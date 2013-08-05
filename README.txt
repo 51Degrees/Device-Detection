@@ -7,4 +7,4 @@ Add mobile device detection to your C or C++ program the easy way with 51Degrees
 
 Visit http://51degrees.mobi/Support/Documentation/C.aspx to get the full setup guide.
 
-The zip file contains a batch file for easy compilation. You will need Visual Studio 10 or GCC set up and configured on a windows operating system in order to use this batch file. See the user guide linked to above for full instructions.
+The ZZZip file contains a batch file for easy compilation. You will need Visual Studio 10 or GCC set up and configured on a windows operating system in order to use this batch file. See the user guide linked to above for full instructions.
