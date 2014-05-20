@@ -1,0 +1,3 @@
+if exist ..\FiftyOne.Mobile.Detection.Provider.Pattern.dll del ..\FiftyOne.Mobile.Detection.Provider.Pattern.dll
+if exist Release\FiftyOne.Mobile.Detection.Provider.Pattern.dll copy Release\FiftyOne.Mobile.Detection.Provider.Pattern.dll ..\FiftyOne.Mobile.Detection.Provider.Pattern.dll
+if exist x64\Release\FiftyOne.Mobile.Detection.Provider.Pattern.dll copy x64\Release\FiftyOne.Mobile.Detection.Provider.Pattern.dll ..\FiftyOne.Mobile.Detection.Provider.Pattern.dll
