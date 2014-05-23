@@ -149,12 +149,6 @@ typedef struct property_t {
 } Property;
 #pragma pack(pop)
 
-#pragma pack(push, 4)
-typedef struct signature_t {
-    const int32_t rank;
-} Signature;
-#pragma pack(pop)
-
 #pragma pack(push, 2)
 typedef struct value_t {
     const int16_t propertyIndex; /* Index of the property the value relates to */
@@ -237,6 +231,7 @@ typedef struct dataset_header_t {
     const EntityHeader values;
     const EntityHeader profiles;
     const EntityHeader signatures;
+    const EntityHeader rankedSignatureIndexes;
     const EntityHeader nodes;
     const EntityHeader rootNodes;
     const EntityHeader profileOffsets;
@@ -257,6 +252,7 @@ typedef struct dataset_t {
     const Value *values;
     const byte *profiles;
     const byte *signatures;
+    const int32_t *rankedSignatureIndexes;
     const byte *nodes;
     const Node **rootNodes;
     const ProfileOffset *profileOffsets;
@@ -266,8 +262,7 @@ typedef struct dataset_t {
 typedef struct linked_signature_list_item_t {
     struct linked_signature_list_item_t *next;
     struct linked_signature_list_item_t *previous;
-    int32_t signatureIndex;
-    Signature *signature;
+    int32_t rankedSignatureIndex;
     int32_t frequency;
 } LinkedSignatureListItem;
 
@@ -276,6 +271,7 @@ typedef struct linked_signature_list_t {
 	LinkedSignatureListItem *first; /* Pointer to the first signature in the linked list */
 	LinkedSignatureListItem *last; /* Pointer to the last signature in the linked list */
 	int32_t count; /* The number of signatures pointed to by signatures */
+	LinkedSignatureListItem *current; /* Pointer to the current item in the list when navigating */
 } LinkedSignatureList;
 
 #pragma pack(push, 1)
@@ -292,8 +288,9 @@ typedef struct workset_t {
 	const Node **nodes; /* Pointer to a list of nodes related to the match */
 	const Node **orderedNodes; /* Pointer to a list of nodes in ascending order of signature count */
 	int32_t nodeCount; /* The number of nodes referenced by **nodes */
+    int32_t closestNodeRankedSignatureIndex; /* If a single node is returned the index of the ranked signature to be processed */
 	LinkedSignatureList linkedSignatureList; /* Linked list of signatures used by Closest match */
-	Signature *signature; /* The signature found if only one exists */
+	byte *signature; /* The signature found if only one exists */
 	char *signatureAsString; /* The signature as a string */
 	int16_t nextCharacterPositionIndex;
 	matchMethod method; /* The method used to provide the match result */
@@ -303,10 +300,12 @@ typedef struct workset_t {
 	int32_t nodesEvaluated; /* The number of nodes read during the detection */
 	int32_t signaturesCompared; /* The number of signatures read in full and compared to the target */
 	int32_t signaturesRead; /* The number of signatures read in full */
+	int32_t closestSignatures; /* The total number of closest signatures available */
 	const Value **values; /* Pointers to values associated with the property requested */
 	int32_t valuesCount; /* Number of values available */
 	fod_bool startWithInitialScore; /* True if the NEAREST and CLOSEST methods should start with an initial score */
 	int (*functionPtrGetScore)(struct workset_t *ws, const Node *node); /* Returns scores for each different node between signature and match */
+	const byte* (*functionPtrNextClosestSignature)(struct workset_t *ws); /* Returns the next closest signature */
 } Workset;
 #pragma pack(pop)
 

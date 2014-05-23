@@ -35,6 +35,18 @@ call "%ProgramFiles%\Microsoft Visual Studio 11.0\VC\vcvarsall.bat" x64
 
 goto :msvc
 
+:msvc64-12
+
+call "%ProgramFiles(x86)%\Microsoft Visual Studio 12.0\VC\vcvarsall.bat" x64
+
+goto :msvc
+
+:msvc86-12
+
+call "%ProgramFiles%\Microsoft Visual Studio 12.0\VC\vcvarsall.bat" x64
+
+goto :msvc
+
 :msvc
 
 cl /DHAVE_SNPRINTF /D_CRT_SECURE_NO_WARNINGS /Ox /Ot /GL /MP src/console/Console.c src/pattern/51Degrees.c src/snprintf/snprintf.c

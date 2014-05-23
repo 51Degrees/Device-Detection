@@ -104,9 +104,22 @@ windows/ - all files related exclusively to Windows.
   FiftyOne.Mobile.Detection.Performance.sln - Visual Studio 2010 solution 
     for the multi threaded performance test application.
 
+Changes
+-------
+
+Version 3.0.X to 3.1.1.3
+------------------
+
+1. Pattern data file changed to include pre-sorted lists for Nearest and Closest
+   matching improving performance. Version 3.0 data files will not work with this 
+   verison.
+2. Various changes to wrapper programmes to improve diagnostics information and 
+   better show how the matching rountines can be used.
+3. Fixed segment fault defect with Lite data file and files with fewer root nodes
+   than user agent characters.
 
 Trie Data - Download
-----------------------
+--------------------
 
 Lite Trie data is included in the data folder. Lite data updates are on the
 51Degrees Sourceforge page (https://sourceforge.net/projects/fiftyone-c/files/).

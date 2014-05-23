@@ -106,6 +106,11 @@ void readSignatures(FILE *inputFilePtr, DataSet *dataSet) {
     fread((void*)(dataSet->signatures), dataSet->header.signatures.length, 1, inputFilePtr);
 }
 
+void readRankedSignatureIndexes(FILE *inputFilePtr, DataSet *dataSet) {
+    dataSet->rankedSignatureIndexes = (const int32_t*)malloc(dataSet->header.rankedSignatureIndexes.length);
+    fread((void*)(dataSet->rankedSignatureIndexes), dataSet->header.rankedSignatureIndexes.length, 1, inputFilePtr);
+}
+
 void readNodes(FILE *inputFilePtr, DataSet *dataSet) {
     dataSet->nodes = (const byte*)malloc(dataSet->header.nodes.length);
     fread((void*)(dataSet->nodes), dataSet->header.nodes.length, 1, inputFilePtr);
@@ -135,7 +140,7 @@ int32_t readDataSet(FILE *inputFilePtr, DataSet *dataSet) {
 
     /* Check the version of the data file */
     if (dataSet->header.versionMajor != 3 ||
-        dataSet->header.versionMinor != 0)
+        dataSet->header.versionMinor != 1)
         return 0;
 
     /* Read the entity lists */
@@ -146,14 +151,15 @@ int32_t readDataSet(FILE *inputFilePtr, DataSet *dataSet) {
     readValues(inputFilePtr, dataSet);
     readProfiles(inputFilePtr, dataSet);
     readSignatures(inputFilePtr, dataSet);
+    readRankedSignatureIndexes(inputFilePtr, dataSet);
     readNodes(inputFilePtr, dataSet);
     readRootNodes(inputFilePtr, dataSet);
     readProfileOffsets(inputFilePtr, dataSet);
 
     /* Set some of the constant fields */
-    ((DataSet*)dataSet)->sizeOfSignature = sizeof(Signature) +
+    ((DataSet*)dataSet)->sizeOfSignature =
         ((dataSet->header.signatureNodesCount + dataSet->header.signatureProfilesCount) * sizeof(int32_t));
-    ((DataSet*)dataSet)->signatureStartOfNodes = sizeof(Signature) +
+    ((DataSet*)dataSet)->signatureStartOfNodes =
         (dataSet->header.signatureProfilesCount * sizeof(int32_t));
 
     return 1;
@@ -357,8 +363,18 @@ void getCharactersForNodeIndex(Workset *ws, const NodeIndex *nodeIndex, String *
  * @param index of the signature required
  * @return pointer to the signature at the index
  */
-Signature* getSignatureByIndex(const DataSet *dataSet, int32_t index) {
-    return (Signature*)(dataSet->signatures + (dataSet->sizeOfSignature * index));
+const byte* getSignatureByIndex(const DataSet *dataSet, int32_t index) {
+    return dataSet->signatures + (dataSet->sizeOfSignature * index);
+}
+
+/**
+ * Returns the signature at the ranked index provided.
+ * @param dataSet pointer to the data set
+ * @param ranked index of the signature required
+ * @return pointer to the signature at the ranked index
+ */
+const byte* getSignatureByRankedIndex(const DataSet *dataSet, int32_t index) {
+    return getSignatureByIndex(dataSet, dataSet->rankedSignatureIndexes[index]);
 }
 
 /**
@@ -392,8 +408,8 @@ int32_t getNodeOffsetFromNode(const DataSet *dataSet, const Node *node) {
  * @return pointer to the first integer in the node offsets associated with
  *         the signature
  */
-int32_t* getNodeOffsetsFromSignature(const DataSet *dataSet, Signature *signature) {
-    return (int32_t*)(((byte*)signature) + dataSet->signatureStartOfNodes);
+int32_t* getNodeOffsetsFromSignature(const DataSet *dataSet, const byte *signature) {
+    return (int32_t*)(signature + dataSet->signatureStartOfNodes);
 }
 
 /**
@@ -403,8 +419,19 @@ int32_t* getNodeOffsetsFromSignature(const DataSet *dataSet, Signature *signatur
  * @return pointer to the first integer in the profile offsets associated with
  *         the signature
  */
-int32_t* getProfileOffsetsFromSignature(Signature *signature) {
-    return (int32_t*)(((byte*)signature) + sizeof(Signature));
+int32_t* getProfileOffsetsFromSignature(const byte *signature) {
+    return (int32_t*)signature;
+}
+
+/**
+ * Returns a pointer to the first signature index of the node
+ * @param node pointer whose first signature index is required
+ * @return a pointer to the first signature index
+ */
+int32_t* getFirstRankedSignatureIndexForNode(const Node *node) {
+    return (int32_t*)(((byte*)node) + sizeof(Node) +
+           (node->childrenCount * sizeof(NodeIndex)) +
+           (node->numericChildrenCount * sizeof(NodeNumericIndex)));
 }
 
 /**
@@ -427,10 +454,9 @@ int32_t* getFirstSignatureIndexForNode(const Node *node) {
  * @param linkedList pointer to the linked list
  * @param signatureIndex to be added to the end of the list
  */
-void linkedListAdd(LinkedSignatureList *linkedList, int32_t signatureIndex) {
+void linkedListAdd(LinkedSignatureList *linkedList, int32_t rankedSignatureIndex) {
     LinkedSignatureListItem *newSignature = (LinkedSignatureListItem*)(linkedList->items) + linkedList->count;
-    newSignature->signature = NULL;
-    newSignature->signatureIndex = signatureIndex;
+    newSignature->rankedSignatureIndex = rankedSignatureIndex;
     newSignature->frequency = 1;
     newSignature->next = NULL;
     newSignature->previous = linkedList->last;
@@ -450,7 +476,7 @@ void linkedListAdd(LinkedSignatureList *linkedList, int32_t signatureIndex) {
  */
 void buildInitialList(Workset *ws, const Node *node) {
     int32_t index;
-    int32_t *firstSignatureIndex = getFirstSignatureIndexForNode(node);
+    int32_t *firstSignatureIndex = getFirstRankedSignatureIndexForNode(node);
     for (index = 0; index < node->signatureCount; index++) {
         linkedListAdd(&(ws->linkedSignatureList), *(firstSignatureIndex + index));
     }
@@ -461,10 +487,9 @@ void buildInitialList(Workset *ws, const Node *node) {
  * @param linkedList pointer to the linked list to be altered
  * @param item that the signature index should be added before
  */
-void linkedListAddBefore(LinkedSignatureList *linkedList, LinkedSignatureListItem *item, int32_t signatureIndex) {
+void linkedListAddBefore(LinkedSignatureList *linkedList, LinkedSignatureListItem *item, int32_t rankedSignatureIndex) {
     LinkedSignatureListItem *newSignature = (LinkedSignatureListItem*)(linkedList->items + linkedList->count);
-    newSignature->signature = NULL;
-    newSignature->signatureIndex = signatureIndex;
+    newSignature->rankedSignatureIndex = rankedSignatureIndex;
     newSignature->frequency = 1;
     newSignature->next = item;
     newSignature->previous = item->previous;
@@ -492,136 +517,6 @@ void linkedListRemove(LinkedSignatureList *linkedList, LinkedSignatureListItem *
     if (item == linkedList->last)
         linkedList->last = item->previous;
     linkedList->count--;
-}
-
-/**
- * Splits the source list into two lists by starting at the first
- * item and moving forward half of count.
- * @param list the list to be split into two
- * @param a the first list to populate
- * @param b the second list to populate
- */
-void sortLinkedSignatureListSplit(
-    LinkedSignatureList *list, LinkedSignatureList *a, LinkedSignatureList *b) {
-    int index;
-    LinkedSignatureListItem *current = list->first;
-
-    /* Set the count for the first list */
-    a->count = list->count / 2;
-
-    /* Move through the list half the number of items */
-    for(index = 1; index < a->count; index++) {
-        current = current->next;
-    }
-
-    /* Set the first list */
-    a->first = list->first;
-    a->items = list->items;
-    a->last = current;
-
-    /* Set the second list */
-    b->first = current->next;
-    b->count = list->count - a->count;
-    b->items = list->items;
-    b->last = list->last;
-
-    /* Break the list into two */
-    a->last->next = NULL;
-    b->first->previous = NULL;
-}
-
-/**
- * Merges the two lists of items returning the pointer to the first
- * item in the merged lists. The two lists must be sorted.
- * @param a the first list to merge
- * @param b the second list to merge
- * @return a pointer to the first item in the merged list
- */
-LinkedSignatureListItem* sortLinkedSignatureListMergeItems(
-    LinkedSignatureListItem *a, LinkedSignatureListItem *b) {
-    LinkedSignatureListItem *result;
-    LinkedSignatureListItem *current;
-
-    /* Record the first item in the merged list. */
-    if (a->signature->rank < b->signature->rank) {
-        result = a;
-        a = a->next;
-    }
-    else {
-        result = b;
-        b = b->next;
-    }
-    current = result;
-
-    /* Loop through the lists until one is exhausted */
-    while (a != NULL && b != NULL) {
-        if (a->signature->rank < b->signature->rank) {
-            current->next = a;
-            a->previous = current;
-            a = a->next;
-        } else {
-            current->next = b;
-            b->previous = current;
-            b = b->next;
-        }
-        current = current->next;
-    }
-
-    /* Add the remaining items */
-    current->next = a != NULL ? a : b;
-    current->next->previous = current;
-
-    return result;
-}
-
-/**
- * Merges the two lists provided.
- * @param a the item in the first list to merge.
- * @param b the item in the second list to merge.
- */
-void sortLinkedSignatureListMerge(LinkedSignatureList *list, LinkedSignatureList* a, LinkedSignatureList* b) {
-
-    /* Check for the best cases of one list being empty */
-    if (a->count == 0) {
-        list->first = b->first;
-        list->last = b->last;
-        list->count = b->count;
-        return;
-    }
-    if (b->count == 0) {
-        list->first = a->first;
-        list->last = a->last;
-        list->count = a->count;
-        return;
-    }
-
-    /* Set the pointers and counts correctly for the merged list. */
-    list->first = sortLinkedSignatureListMergeItems(a->first, b->first);
-    list->last = a->last->signature->rank < b->last->signature->rank ? b->last : a->last;
-    list->count = a->count + b->count;
-}
-
-/**
- * Sorts the link list in ascending order of the signature rank
- * assigned to each of the items in the list.
- * @param list the linked list to be sorted.
- */
-void sortLinkedSignatureList(LinkedSignatureList* list) {
-    LinkedSignatureList a;
-    LinkedSignatureList b;
-
-    /* Check for length equals 1 and no sort needed */
-    if (list->first->next != NULL) {
-        /* Split into 2 sub lists */
-        sortLinkedSignatureListSplit(list, &a, &b);
-
-        /* Sort the two lists */
-        sortLinkedSignatureList(&a);
-        sortLinkedSignatureList(&b);
-
-        /* Merge the two lists into a single list */
-        sortLinkedSignatureListMerge(list, &a, &b);
-    }
 }
 
 /**
@@ -871,7 +766,7 @@ int addSignatureNodeToString(Workset *ws, const Node *node) {
  * @param ws pointer to the work set used for the match
  * @param signature pointer to be used as the string for the result
  */
-void setSignatureAsString(Workset *ws, Signature *signature) {
+void setSignatureAsString(Workset *ws, const byte *signature) {
     int *nodeOffsets = getNodeOffsetsFromSignature(ws->dataSet, signature);
     int index,
         nullPosition = 0,
@@ -963,7 +858,7 @@ void setTargetUserAgentArray(Workset *ws, char* userAgent) {
     /* Check to ensure the length of the user agent does not exceed
        the number of root nodes. */
     if (ws->nextCharacterPositionIndex >= ws->dataSet->header.rootNodes.count) {
-        ws->nextCharacterPositionIndex = ws->dataSet->header.rootNodes.count - 1;
+        ws->nextCharacterPositionIndex = (int16_t)(ws->dataSet->header.rootNodes.count - 1);
     }
 
     /* Reset the nodes to zero ready for the new match */
@@ -1096,7 +991,7 @@ const Node* getCompleteNode(Workset *ws, const Node *node) {
  * @param signature pointer to the signature being tested
  * @return the difference between the signature and the matched nodes
  */
-int32_t compareExact(Signature *signature, Workset *ws) {
+int32_t compareExact(const byte *signature, Workset *ws) {
     int32_t index, nodeIndex, difference;
     int32_t *nodeOffsets = getNodeOffsetsFromSignature(ws->dataSet, signature);
     int32_t signatureNodeOffsetsCount = getSignatureNodeOffsetsCount(ws->dataSet, nodeOffsets);
@@ -1125,7 +1020,7 @@ int32_t compareExact(Signature *signature, Workset *ws) {
  */
 int32_t getExactSignatureIndex(Workset *ws) {
     int32_t comparisonResult, middle, lower = 0, upper = ws->dataSet->header.signatures.count - 1;
-    Signature *signature;
+    const byte *signature;
 
     while (lower <= upper)
     {
@@ -1184,12 +1079,12 @@ void setRelevantNodes(Workset *ws) {
  * @param ws pointer to the workset being used for the match
  * @param signature pointer to the signature being set for the match
  */
-void setMatchSignature(Workset *ws, Signature *signature) {
+void setMatchSignature(Workset *ws, const byte *signature) {
     int32_t index, lastPosition, last = 0, profileIndex;
     int32_t *signatureNodeOffsets = getNodeOffsetsFromSignature(ws->dataSet, signature);
     int32_t *signatureProfiles = getProfileOffsetsFromSignature(signature);
 
-    ws->signature = signature;
+    ws->signature = (byte*)signature;
     ws->profileCount = 0;
     for(index = 0; index < ws->dataSet->header.signatureProfilesCount; index++) {
         profileIndex = *(signatureProfiles + index);
@@ -1573,27 +1468,27 @@ void evaluateNumeric(Workset *ws) {
  * @return the count after the node has been evaluated
  */
 int32_t setClosestSignaturesForNode(Workset *ws, const Node *node, int32_t count, int32_t iteration) {
-    fod_bool                    thresholdReached = (ws->nodeCount - iteration) < count;
+    fod_bool                thresholdReached = (ws->nodeCount - iteration) < count;
     LinkedSignatureList     *linkedList = &(ws->linkedSignatureList);
     LinkedSignatureListItem *current = linkedList->first,
                             *next;
-    int32_t                 signatureIndex = 0;
-    int32_t                 *firstSignatureIndex = getFirstSignatureIndexForNode(node),
-                            *currentSignatureIndex;
+    int32_t                 index = 0;
+    int32_t                 *firstRankedSignatureIndex = getFirstRankedSignatureIndexForNode(node),
+                            *currentRankedSignatureIndex;
 
-    while (signatureIndex < node->signatureCount &&
+    while (index < node->signatureCount &&
            current != NULL)
     {
-        currentSignatureIndex = firstSignatureIndex + signatureIndex;
-        if (current->signatureIndex > *currentSignatureIndex)
+        currentRankedSignatureIndex = firstRankedSignatureIndex + index;
+        if (current->rankedSignatureIndex > *currentRankedSignatureIndex)
         {
             // The base list is higher than the target list. Add the element
             // from the target list and move to the next element in each.
             if (thresholdReached == 0)
-                linkedListAddBefore(linkedList, current, *currentSignatureIndex);
-            signatureIndex++;
+                linkedListAddBefore(linkedList, current, *currentRankedSignatureIndex);
+            index++;
         }
-        else if (current->signatureIndex < *currentSignatureIndex)
+        else if (current->rankedSignatureIndex < *currentRankedSignatureIndex)
         {
             if (thresholdReached)
             {
@@ -1616,17 +1511,17 @@ int32_t setClosestSignaturesForNode(Workset *ws, const Node *node, int32_t count
             current->frequency++;
             if (current->frequency > count)
                 count = current->frequency;
-            signatureIndex++;
+            index++;
             current = current->next;
         }
     }
     if (thresholdReached == 0)
     {
         // Add any signature indexes higher than the base list to the base list.
-        while (signatureIndex < node->signatureCount)
+        while (index < node->signatureCount)
         {
-            linkedListAdd(linkedList, *(firstSignatureIndex + signatureIndex));
-            signatureIndex++;
+            linkedListAdd(linkedList, *(firstRankedSignatureIndex + index));
+            index++;
         }
     }
     return count;
@@ -1647,16 +1542,7 @@ void setClosestSignaturesFinal(Workset *ws, int32_t count) {
         if (current->frequency < count) {
             linkedListRemove(linkedList, current);
         }
-        else {
-            current->signature = getSignatureByIndex(ws->dataSet, current->signatureIndex);
-            ws->signaturesRead++;
-        }
         current = current->next;
-    }
-
-    /* Order the remaining items in the list based on rank */
-    if (ws->linkedSignatureList.count > 1) {
-        sortLinkedSignatureList(&(ws->linkedSignatureList));
     }
 }
 
@@ -1693,26 +1579,33 @@ void fillClosestSignatures(Workset *ws) {
                 nodeIndex = 1;
     const Node  *node;
 
-    // Order the nodes in ascending order of signature index length.
-    orderNodesOnSignatureCount(ws);
+    if (ws->nodeCount == 1) {
+        // No need to create a linked list as only 1 node.
+        ws->closestSignatures = ws->nodes[0]->signatureCount;
+    } else {
+        // Order the nodes in ascending order of signature index length.
+        orderNodesOnSignatureCount(ws);
 
-    // Get the first node and add all the signature indexes.
-    node = *(ws->orderedNodes);
-    buildInitialList(ws, node);
+        // Get the first node and add all the signature indexes.
+        node = *(ws->orderedNodes);
+        buildInitialList(ws, node);
 
-    // Count the number of times each signature index occurs.
-    while (nodeIndex < ws->nodeCount)
-    {
-        node = *(ws->orderedNodes + nodeIndex);
-        maxCount = setClosestSignaturesForNode(
-            ws, node, maxCount, iteration);
-        iteration++;
-        nodeIndex++;
+        // Count the number of times each signature index occurs.
+        while (nodeIndex < ws->nodeCount)
+        {
+            node = *(ws->orderedNodes + nodeIndex);
+            maxCount = setClosestSignaturesForNode(
+                ws, node, maxCount, iteration);
+            iteration++;
+            nodeIndex++;
+        }
+
+        // Remove any signatures under the max count and order the
+        // remainder in ascending order of Rank.
+        setClosestSignaturesFinal(ws, maxCount);
+
+        ws->closestSignatures = ws->linkedSignatureList.count;
     }
-
-    // Remove any signatures under the max count and order the
-    // remainder in ascending order of Rank.
-    setClosestSignaturesFinal(ws, maxCount);
 }
 
 /**
@@ -1875,7 +1768,7 @@ int32_t getScoreClosest(Workset *ws, const Node *node) {
  *         signature and the target user agent
  */
 int32_t getScore(Workset *ws,
-                 Signature *signature,
+                 const byte *signature,
                  int16_t lastNodeCharacter) {
     int32_t *nodeOffsets = getNodeOffsetsFromSignature(ws->dataSet, signature);
     int32_t count = getSignatureNodeOffsetsCount(ws->dataSet, nodeOffsets),
@@ -1935,7 +1828,7 @@ int32_t getScore(Workset *ws,
  *        signature
  */
 void evaluateSignature(Workset *ws,
-                       Signature *signature,
+                       const byte *signature,
                        int16_t lastNodeCharacter) {
 
     // Get the score between the target and the signature stopping if it's
@@ -1948,7 +1841,58 @@ void evaluateSignature(Workset *ws,
     if (score < ws->difference)
     {
         ws->difference = score;
-        ws->signature = signature;
+        ws->signature = (byte*)signature;
+    }
+}
+
+/**
+ * Gets the next signature to be examined for the single node found.
+ * @param ws the current work set for the match.
+ * @return null if there are no more signature pointers.
+ */
+const byte* getNextClosestSignatureForSingleNode(Workset *ws) {
+    const byte *signature;
+    if (ws->closestNodeRankedSignatureIndex < ws->nodes[0]->signatureCount) {
+        signature = getSignatureByRankedIndex(ws->dataSet,
+                        *(getFirstSignatureIndexForNode(ws->nodes[0]) + ws->closestNodeRankedSignatureIndex));
+        ws->closestNodeRankedSignatureIndex++;
+    } else {
+        signature = NULL;
+    }
+    return signature;
+}
+
+/**
+ * Gets the next signature to be examined from the linked list.
+ * @param ws the current work set for the match.
+ * @return null if there are no more signature pointers.
+ */
+const byte* getNextClosestSignatureForLinkedList(Workset *ws) {
+    const byte *signature;
+    if (ws->linkedSignatureList.current != NULL) {
+        signature = getSignatureByRankedIndex(ws->dataSet,
+                        ws->linkedSignatureList.current->rankedSignatureIndex);
+        ws->linkedSignatureList.current = ws->linkedSignatureList.current->next;
+    } else {
+        signature = NULL;
+    }
+    return signature;
+}
+
+/**
+ * Resets the work set ready to return the closest signatures.
+ * @param ws the current work set for the match.
+ */
+void resetClosestSignatureEnumeration(Workset *ws) {
+    if (ws->nodeCount == 1) {
+        /* There's only 1 node so just iterate through it's indexes */
+        ws->closestNodeRankedSignatureIndex = 0;
+        ws->functionPtrNextClosestSignature = &getNextClosestSignatureForSingleNode;
+    }
+    else if (ws->nodeCount > 1) {
+        /* We'll need to walk the linked list to get the signatures */
+        ws->linkedSignatureList.current = ws->linkedSignatureList.first;
+        ws->functionPtrNextClosestSignature = &getNextClosestSignatureForLinkedList;
     }
 }
 
@@ -1960,14 +1904,18 @@ void evaluateSignature(Workset *ws,
 void evaluateSignatures(Workset *ws) {
     int16_t lastNodeCharacter = getRootNode(ws->dataSet, *(ws->nodes))->position;
     int32_t count = 0;
-    LinkedSignatureListItem *current = ws->linkedSignatureList.first;
+    const byte *currentSignature;
+
+    /* Setup the linked list to be navigated */
+    resetClosestSignatureEnumeration(ws);
+    currentSignature = ws->functionPtrNextClosestSignature(ws);
     ws->difference = INT_MAX;
 
-    while (current != NULL &&
+    while (currentSignature != NULL &&
            count < ws->dataSet->header.maxSignatures) {
-        setSignatureAsString(ws, current->signature);
-        evaluateSignature(ws, current->signature, lastNodeCharacter);
-        current = current->next;
+        setSignatureAsString(ws, currentSignature);
+        evaluateSignature(ws, currentSignature, lastNodeCharacter);
+        currentSignature = ws->functionPtrNextClosestSignature(ws);
         count++;
     }
 }

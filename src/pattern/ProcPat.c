@@ -30,6 +30,15 @@ int main(int argc, char* argv[]) {
 			if (ws->profileCount > 0) {
 				processDeviceCSV(ws, output, BUFFER_LENGTH);
 				printf("%s", output);
+				printf("\r\nDiagnostics Information\r\n\r\n");
+				printf("  Difference:           %i\r\n", ws->difference);
+				printf("  Method:               %i\r\n", ws->method);
+				printf("  Root Nodes Evaluated: %i\r\n", ws->rootNodesEvaluated);
+				printf("  Nodes Evaluated:      %i\r\n", ws->nodesEvaluated);
+				printf("  Strings Read:         %i\r\n", ws->stringsRead);
+				printf("  Signatures Read:      %i\r\n", ws->signaturesRead);
+				printf("  Signatures Compared:  %i\r\n", ws->signaturesCompared);
+				printf("  Closest Signatures:   %i\r\n", ws->closestSignatures);
 			}
 			else {
 				printf("null\n");

@@ -30,25 +30,22 @@
 #define PASSES 1
 
 // Number of detection to complete between reporting progress.
-#define PROGRESS 50000
+#define PROGRESS_MARKERS 40
 
 // Number of click ticks per millisecond.
 #define CLOCKS_PER_MS (CLOCKS_PER_SEC / 1000)
 
-// Used for determining the max size of the loading bar.
-int _max;
+// The number of items being processed.
+long _max = 0;
 
 // Prints a progress bar
-void printLoadBar(int count) {
+void printLoadBar(long count, long max) {
 	int i;
+	int markers = count / (max / PROGRESS_MARKERS);
 
 	printf("\r\t[");
-	for (i = 0; i < count; i++) {
-		printf("=");
-	}
-
-	for (i = 0; i < (_max / PROGRESS) - count; i++) {
-		printf(" ");
+	for (i = 0; i < PROGRESS_MARKERS; i++) {
+		printf(i <= markers ? "=" : " ");
 	}
 	printf("]");
 }
@@ -56,12 +53,22 @@ void printLoadBar(int count) {
 // Execute a performance test using a file of null terminated useragent strings
 // as input. If calibrate is true then the file is read but no detections
 // are performed.
-int performanceTest(char* fileName, Workset *ws, int calibrate) {
-	int count = 0;
+int performanceTest(char* fileName, Workset *ws, long max, int calibrate) {
+	long count = 0;
+	long marker = max / PROGRESS_MARKERS;
 	const char *result;
 	int profileCount = 0;
 	FILE *inputFilePtr;
+	long size = 0, current;
 	inputFilePtr = fopen(fileName, "r");
+
+    // Get the size of the file.
+    if (max == 0) {
+        fseek(inputFilePtr, 0, SEEK_END);
+        size = ftell(inputFilePtr);
+        fseek(inputFilePtr, 0, SEEK_SET);
+        marker = size / PROGRESS_MARKERS;
+    }
 
 	do {
 		// Get the next character from the input.
@@ -83,16 +90,21 @@ int performanceTest(char* fileName, Workset *ws, int calibrate) {
 		count++;
 
 		// Print a progress marker.
-		if (count % PROGRESS == 0) {
-			printLoadBar(count / PROGRESS);
+		if (max == 0) {
+            current = ftell(inputFilePtr);
+            if (current > marker) {
+                printLoadBar(current, size);
+                marker += (size / PROGRESS_MARKERS);
+            }
+		} else if (count % marker == 0) {
+            printLoadBar(count, max);
 
-			// We need to use the device parameter otherwise an
-			// optimising compiler will ignore the call to
-			// getDevice missing the point of our test!
-			profileCount += ws->profileCount;
+            // We need to use the device parameter otherwise an
+            // optimising compiler will ignore the call to
+            // getDevice missing the point of our test!
+            profileCount += ws->profileCount;
 		}
 	} while(1);
-	_max = count;
 	fclose(inputFilePtr);
 	printf("\n\n");
 	return count;
@@ -108,7 +120,7 @@ clock_t performTest(char *fileName, Workset *ws, int passes, int calibrate, char
 	for(pass = 1; pass <= passes; pass++) {
 		printf("%s pass %i of %i: \n\n", test, pass, passes);
 		start = clock();
-		performanceTest(fileName, ws, calibrate);
+		_max = performanceTest(fileName, ws, _max, calibrate);
 		total = clock() - start + 1;
 		passes_total += total;
 	}
