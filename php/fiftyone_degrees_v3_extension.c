@@ -5,7 +5,7 @@
 #include "php.h"
 #include "src/pattern/51Degrees.h"
  
-#define PHP_EXTENSION_VERSION "3.0"
+#define PHP_EXTENSION_VERSION "3.1"
 #define PHP_EXTENSION_EXTNAME "FiftyOne_Degrees_Detector"
  
 extern zend_module_entry fiftyone_degrees_detector_module_entry;
@@ -51,10 +51,27 @@ PHP_FUNCTION(fiftyone_degrees_test_function)
 }
 
 DataSet dataSet;
+DataSetInitStatus initStatus;
 
 // get properties implementation
 PHP_FUNCTION(fiftyone_degrees_get_properties)
 {
+  switch (initStatus) {
+    case DATA_SET_INIT_STATUS_INSUFFICIENT_MEMORY:
+      php_error(E_WARNING, "51Degrees data set could not be created as not enough memory could be allocated.");
+      return;
+    case DATA_SET_INIT_STATUS_CORRUPT_DATA:
+      php_error(E_WARNING, "51Degrees data set could not be created as a corrupt data file has been provided. Check it is uncompressed.");
+      return;
+    case DATA_SET_INIT_STATUS_INCORRECT_VERSION:
+      php_error(E_WARNING, "51Degrees data set could not be created as the data file is an unsupported version. Check you have the latest version of the data and api.");
+      return;
+    case DATA_SET_INIT_STATUS_FILE_NOT_FOUND:
+      php_error(E_WARNING, "51Degrees data set could not be created as a data file could not be found.");
+      return;
+    case DATA_SET_INIT_STATUS_SUCCESS: // do nothing
+      break;
+  }
   char* useragent;
   int useragent_len;
 
@@ -112,13 +129,15 @@ PHP_MINIT_FUNCTION(fiftyone_degrees_detector_init)
 {
   REGISTER_INI_ENTRIES();
   char* dataFilePath = INI_STR("fiftyone_degrees.data_file");
-  initWithPropertyString(dataFilePath, &dataSet, NULL);
+  initStatus = initWithPropertyString(dataFilePath, &dataSet, NULL);
   return SUCCESS;
 }
 
 PHP_MSHUTDOWN_FUNCTION(fiftyone_degrees_detector_shutdown)
 {
   UNREGISTER_INI_ENTRIES();
-  destroy(&dataSet);
+  if (initStatus == SUCCESS) {
+    destroy(&dataSet);
+  }
   return SUCCESS;
 }

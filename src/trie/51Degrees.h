@@ -1,4 +1,4 @@
-﻿/* *********************************************************************
+/* *********************************************************************
  * This Source Code Form is copyright of 51Degrees Mobile Experts Limited.
  * Copyright © 2014 51Degrees Mobile Experts Limited, 5 Charlotte Close,
  * Caversham, Reading, Berkshire, United Kingdom RG4 7BY
@@ -25,8 +25,17 @@
 #define EXTERNAL
 #endif
 
+/* Used to provide the status of the data set initialisation */
+typedef enum e_DataSetInitStatus {
+    DATA_SET_INIT_STATUS_SUCCESS,
+    DATA_SET_INIT_STATUS_INSUFFICIENT_MEMORY,
+    DATA_SET_INIT_STATUS_CORRUPT_DATA,
+    DATA_SET_INIT_STATUS_INCORRECT_VERSION,
+    DATA_SET_INIT_STATUS_FILE_NOT_FOUND
+} DataSetInitStatus;
+
 // Initialises the memory using the file provided.
-EXTERNAL int init(char *fileName, char *properties);
+EXTERNAL DataSetInitStatus init(char *fileName, char *properties);
 
 // Returns the offset to a matching device based on the useragent provided.
 EXTERNAL int getDeviceOffset(char *userAgent);
@@ -43,3 +52,7 @@ EXTERNAL void destroy();
 // Converts the device offset to a CSV string returning the number of
 // characters used.
 EXTERNAL int processDeviceCSV(int deviceOffset, char* result, int resultLength);
+
+// Converts the device offset to a JSON string returning the number of
+// characters used.
+EXTERNAL int processDeviceJSON(int deviceOffset, char* result, int resultLength);

@@ -8,7 +8,7 @@
 
 /* *********************************************************************
  * This Source Code Form is copyright of 51Degrees Mobile Experts Limited.
- * Copyright © 2014 51Degrees Mobile Experts Limited, 5 Charlotte Close,
+ * Copyright ï¿½ 2014 51Degrees Mobile Experts Limited, 5 Charlotte Close,
  * Caversham, Reading, Berkshire, United Kingdom RG4 7BY
  *
  * This Source Code Form is the subject of the following patent
@@ -59,102 +59,184 @@ const int16_t POWERS[] = { 1, 10, 100, 1000, 10000 };
  * DATA FILE READ METHODS
  */
 
-void readDate(FILE *inputFilePtr, const Date *date) {
-    fread((void*)&(date->year), sizeof(const int16_t), 1, inputFilePtr);
-    fread((void*)&(date->month), sizeof(const byte), 1, inputFilePtr);
-    fread((void*)&(date->day), sizeof(const byte), 1, inputFilePtr);
-}
-
-void readEntitiesHeader(FILE *inputFilePtr, const EntityHeader *enitiesHeader) {
-    fread((void*)&(enitiesHeader->startPosition), sizeof(int32_t), 1, inputFilePtr);
-    fread((void*)&(enitiesHeader->length), sizeof(int32_t), 1, inputFilePtr);
-    fread((void*)&(enitiesHeader->count), sizeof(int32_t), 1, inputFilePtr);
-}
-
-void readStrings(FILE *inputFilePtr, DataSet *dataSet) {
+DataSetInitStatus readStrings(FILE *inputFilePtr, DataSet *dataSet) {
     dataSet->strings = (const byte*)malloc(dataSet->header.strings.length + 1);
-    fread((void*)(dataSet->strings), dataSet->header.strings.length, 1, inputFilePtr);
+    if (dataSet->strings == NULL) {
+        return DATA_SET_INIT_STATUS_INSUFFICIENT_MEMORY;
+    }
+    if (fread((void*)(dataSet->strings), dataSet->header.strings.length, 1, inputFilePtr) != 1) {
+        return DATA_SET_INIT_STATUS_CORRUPT_DATA;
+    }
+    return DATA_SET_INIT_STATUS_SUCCESS;
 }
 
-void readComponents(FILE *inputFilePtr, DataSet *dataSet) {
+DataSetInitStatus readComponents(FILE *inputFilePtr, DataSet *dataSet) {
     dataSet->components = (const Component*)malloc(dataSet->header.components.length);
-    fread((void*)(dataSet->components), dataSet->header.components.length, 1, inputFilePtr);
+    if (dataSet->components == NULL) {
+        return DATA_SET_INIT_STATUS_INSUFFICIENT_MEMORY;
+    }
+    if (fread((void*)(dataSet->components), dataSet->header.components.length, 1, inputFilePtr) != 1) {
+        return DATA_SET_INIT_STATUS_CORRUPT_DATA;
+    }
+
+    return DATA_SET_INIT_STATUS_SUCCESS;
 }
 
-void readMaps(FILE *inputFilePtr, DataSet *dataSet) {
+DataSetInitStatus readMaps(FILE *inputFilePtr, DataSet *dataSet) {
     dataSet->maps = (const Map*)malloc(dataSet->header.maps.length);
-    fread((void*)(dataSet->maps), dataSet->header.maps.length, 1, inputFilePtr);
+    if (dataSet->maps == NULL) {
+        return DATA_SET_INIT_STATUS_INSUFFICIENT_MEMORY;
+    }
+    if (fread((void*)(dataSet->maps), dataSet->header.maps.length, 1, inputFilePtr) != 1) {
+        return DATA_SET_INIT_STATUS_CORRUPT_DATA;
+    }
+
+    return DATA_SET_INIT_STATUS_SUCCESS;
 }
 
-void readProperties(FILE *inputFilePtr, DataSet *dataSet) {
+DataSetInitStatus readProperties(FILE *inputFilePtr, DataSet *dataSet) {
     dataSet->properties = (const Property*)malloc(dataSet->header.properties.length);
-    fread((void*)(dataSet->properties), dataSet->header.properties.length, 1, inputFilePtr);
+    if (dataSet->properties == NULL) {
+        return DATA_SET_INIT_STATUS_INSUFFICIENT_MEMORY;
+    }
+    if (fread((void*)(dataSet->properties), dataSet->header.properties.length, 1, inputFilePtr) != 1) {
+        return DATA_SET_INIT_STATUS_CORRUPT_DATA;
+    }
+
+    return DATA_SET_INIT_STATUS_SUCCESS;
 }
 
-void readValues(FILE *inputFilePtr, DataSet *dataSet) {
+DataSetInitStatus readValues(FILE *inputFilePtr, DataSet *dataSet) {
     dataSet->values = (const Value*)malloc(dataSet->header.values.length);
-    fread((void*)(dataSet->values), dataSet->header.values.length, 1, inputFilePtr);
+    if (dataSet->values == NULL) {
+        return DATA_SET_INIT_STATUS_INSUFFICIENT_MEMORY;
+    }
+    if (fread((void*)(dataSet->values), dataSet->header.values.length, 1, inputFilePtr) != 1) {
+        return DATA_SET_INIT_STATUS_CORRUPT_DATA;
+    }
+
+    return DATA_SET_INIT_STATUS_SUCCESS;
 }
 
-void readProfiles(FILE *inputFilePtr, DataSet *dataSet) {
+DataSetInitStatus readProfiles(FILE *inputFilePtr, DataSet *dataSet) {
     dataSet->profiles = (const byte*)malloc(dataSet->header.profiles.length);
-    fread((void*)(dataSet->profiles), dataSet->header.profiles.length, 1, inputFilePtr);
+    if (dataSet->profiles == NULL) {
+        return DATA_SET_INIT_STATUS_INSUFFICIENT_MEMORY;
+    }
+    if (fread((void*)(dataSet->profiles), dataSet->header.profiles.length, 1, inputFilePtr) != 1) {
+        return DATA_SET_INIT_STATUS_CORRUPT_DATA;
+    }
+
+    return DATA_SET_INIT_STATUS_SUCCESS;
 }
 
-void readSignatures(FILE *inputFilePtr, DataSet *dataSet) {
+DataSetInitStatus readSignatures(FILE *inputFilePtr, DataSet *dataSet) {
     dataSet->signatures = (const byte*)malloc(dataSet->header.signatures.length);
-    fread((void*)(dataSet->signatures), dataSet->header.signatures.length, 1, inputFilePtr);
+    if (dataSet->signatures == NULL) {
+        return DATA_SET_INIT_STATUS_INSUFFICIENT_MEMORY;
+    }
+    if (fread((void*)(dataSet->signatures), dataSet->header.signatures.length, 1, inputFilePtr) != 1) {
+        return DATA_SET_INIT_STATUS_CORRUPT_DATA;
+    }
+
+    return DATA_SET_INIT_STATUS_SUCCESS;
 }
 
-void readRankedSignatureIndexes(FILE *inputFilePtr, DataSet *dataSet) {
+DataSetInitStatus readRankedSignatureIndexes(FILE *inputFilePtr, DataSet *dataSet) {
     dataSet->rankedSignatureIndexes = (const int32_t*)malloc(dataSet->header.rankedSignatureIndexes.length);
-    fread((void*)(dataSet->rankedSignatureIndexes), dataSet->header.rankedSignatureIndexes.length, 1, inputFilePtr);
+    if (dataSet->rankedSignatureIndexes == NULL) {
+        return DATA_SET_INIT_STATUS_INSUFFICIENT_MEMORY;
+    }
+    if (fread((void*)(dataSet->rankedSignatureIndexes), dataSet->header.rankedSignatureIndexes.length, 1, inputFilePtr) != 1) {
+        return DATA_SET_INIT_STATUS_CORRUPT_DATA;
+    }
+
+    return DATA_SET_INIT_STATUS_SUCCESS;
 }
 
-void readNodes(FILE *inputFilePtr, DataSet *dataSet) {
+DataSetInitStatus readNodes(FILE *inputFilePtr, DataSet *dataSet) {
     dataSet->nodes = (const byte*)malloc(dataSet->header.nodes.length);
-    fread((void*)(dataSet->nodes), dataSet->header.nodes.length, 1, inputFilePtr);
+    if (dataSet->nodes == NULL) {
+        return DATA_SET_INIT_STATUS_INSUFFICIENT_MEMORY;
+    }
+    if (fread((void*)(dataSet->nodes), dataSet->header.nodes.length, 1, inputFilePtr) != 1) {
+        return DATA_SET_INIT_STATUS_CORRUPT_DATA;
+    }
+
+    return DATA_SET_INIT_STATUS_SUCCESS;
 }
 
-void readRootNodes(FILE *inputFilePtr, DataSet *dataSet) {
+DataSetInitStatus readRootNodes(FILE *inputFilePtr, DataSet *dataSet) {
     int32_t index;
     int32_t* rootNodeOffsets;
     rootNodeOffsets = (int32_t*)malloc(dataSet->header.rootNodes.length);
+    if (rootNodeOffsets == NULL) {
+        return DATA_SET_INIT_STATUS_INSUFFICIENT_MEMORY;
+    }
     dataSet->rootNodes = (const Node**)malloc(dataSet->header.rootNodes.count * sizeof(Node*));
-    fread((void*)rootNodeOffsets, dataSet->header.rootNodes.length, 1, inputFilePtr);
+    if (dataSet->rootNodes == NULL) {
+        return DATA_SET_INIT_STATUS_INSUFFICIENT_MEMORY;
+    }
+    if (fread((void*)rootNodeOffsets, dataSet->header.rootNodes.length, 1, inputFilePtr) != 1) {
+        return DATA_SET_INIT_STATUS_CORRUPT_DATA;
+    }
     for(index = 0; index < dataSet->header.rootNodes.count; index++) {
         *(dataSet->rootNodes + index) = (Node*)(dataSet->nodes + *(rootNodeOffsets + index));
     }
     free(rootNodeOffsets);
+
+    return DATA_SET_INIT_STATUS_SUCCESS;
 }
 
-void readProfileOffsets(FILE *inputFilePtr, DataSet *dataSet) {
+DataSetInitStatus readProfileOffsets(FILE *inputFilePtr, DataSet *dataSet) {
     dataSet->profileOffsets = (const ProfileOffset*)malloc(dataSet->header.profileOffsets.length);
-    fread((void*)(dataSet->profileOffsets), dataSet->header.profileOffsets.length, 1, inputFilePtr);
+    if (dataSet->profileOffsets == NULL) {
+        return DATA_SET_INIT_STATUS_INSUFFICIENT_MEMORY;
+    }
+    if (fread((void*)(dataSet->profileOffsets), dataSet->header.profileOffsets.length, 1, inputFilePtr) != 1) {
+        return DATA_SET_INIT_STATUS_CORRUPT_DATA;
+    }
+
+    return DATA_SET_INIT_STATUS_SUCCESS;
 }
 
-int32_t readDataSet(FILE *inputFilePtr, DataSet *dataSet) {
+DataSetInitStatus readDataSet(FILE *inputFilePtr, DataSet *dataSet) {
+    DataSetInitStatus status = DATA_SET_INIT_STATUS_SUCCESS;
 
     /* Read the data set header */
-    fread((void*)&(dataSet->header), sizeof(DataSetHeader), 1, inputFilePtr);
+    if (fread((void*)&(dataSet->header), sizeof(DataSetHeader), 1, inputFilePtr) != 1) {
+        return DATA_SET_INIT_STATUS_CORRUPT_DATA;
+    }
 
     /* Check the version of the data file */
     if (dataSet->header.versionMajor != 3 ||
-        dataSet->header.versionMinor != 1)
-        return 0;
+        dataSet->header.versionMinor != 1) {
+        return DATA_SET_INIT_STATUS_INCORRECT_VERSION;
+    }
 
     /* Read the entity lists */
-    readStrings(inputFilePtr, dataSet);
-    readComponents(inputFilePtr, dataSet);
-    readMaps(inputFilePtr, dataSet);
-    readProperties(inputFilePtr, dataSet);
-    readValues(inputFilePtr, dataSet);
-    readProfiles(inputFilePtr, dataSet);
-    readSignatures(inputFilePtr, dataSet);
-    readRankedSignatureIndexes(inputFilePtr, dataSet);
-    readNodes(inputFilePtr, dataSet);
-    readRootNodes(inputFilePtr, dataSet);
-    readProfileOffsets(inputFilePtr, dataSet);
+    status = readStrings(inputFilePtr, dataSet);
+    if (status != DATA_SET_INIT_STATUS_SUCCESS) return status;
+    status = readComponents(inputFilePtr, dataSet);
+    if (status != DATA_SET_INIT_STATUS_SUCCESS) return status;
+    status = readMaps(inputFilePtr, dataSet);
+    if (status != DATA_SET_INIT_STATUS_SUCCESS) return status;
+    status = readProperties(inputFilePtr, dataSet);
+    if (status != DATA_SET_INIT_STATUS_SUCCESS) return status;
+    status = readValues(inputFilePtr, dataSet);
+    if (status != DATA_SET_INIT_STATUS_SUCCESS) return status;
+    status = readProfiles(inputFilePtr, dataSet);
+    if (status != DATA_SET_INIT_STATUS_SUCCESS) return status;
+    status = readSignatures(inputFilePtr, dataSet);
+    if (status != DATA_SET_INIT_STATUS_SUCCESS) return status;
+    status = readRankedSignatureIndexes(inputFilePtr, dataSet);
+    if (status != DATA_SET_INIT_STATUS_SUCCESS) return status;
+    status = readNodes(inputFilePtr, dataSet);
+    if (status != DATA_SET_INIT_STATUS_SUCCESS) return status;
+    status = readRootNodes(inputFilePtr, dataSet);
+    if (status != DATA_SET_INIT_STATUS_SUCCESS) return status;
+    status = readProfileOffsets(inputFilePtr, dataSet);
+    if (status != DATA_SET_INIT_STATUS_SUCCESS) return status;
 
     /* Set some of the constant fields */
     ((DataSet*)dataSet)->sizeOfSignature =
@@ -162,7 +244,7 @@ int32_t readDataSet(FILE *inputFilePtr, DataSet *dataSet) {
     ((DataSet*)dataSet)->signatureStartOfNodes =
         (dataSet->header.signatureProfilesCount * sizeof(int32_t));
 
-    return 1;
+    return DATA_SET_INIT_STATUS_SUCCESS;
 }
 
 /**
@@ -618,12 +700,12 @@ int32_t getSeparatorCount(char* input) {
  *        the dataSet can return
  * @return the number of bytes read from the file
  */
-int32_t initWithPropertyString(const char *fileName, DataSet *dataSet, char* requiredProperties) {
+DataSetInitStatus initWithPropertyString(const char *fileName, DataSet *dataSet, char* requiredProperties) {
     int32_t requiredPropertyCount = getSeparatorCount(requiredProperties);
     int32_t index, count = 0;
     char **requiredPropertiesArray = NULL;
     char *last = requiredProperties;
-    int32_t bytesRead = 0;
+    DataSetInitStatus status;
 
     // Determine if properties were provided.
     if (requiredPropertyCount > 0) {
@@ -645,12 +727,12 @@ int32_t initWithPropertyString(const char *fileName, DataSet *dataSet, char* req
         }
     }
 
-    bytesRead = initWithPropertyArray(fileName, dataSet, requiredPropertiesArray, requiredPropertyCount);
+    status = initWithPropertyArray(fileName, dataSet, requiredPropertiesArray, requiredPropertyCount);
 
     if (requiredPropertiesArray != NULL)
         free(requiredPropertiesArray);
 
-    return bytesRead;
+    return status;
 }
 
 /**
@@ -664,13 +746,14 @@ int32_t initWithPropertyString(const char *fileName, DataSet *dataSet, char* req
  * @param count the number of elements in the requiredProperties array
  * @return the number of bytes read from the file
  */
-int32_t initWithPropertyArray(const char *fileName, DataSet *dataSet, char** requiredProperties, int32_t count) {
-	FILE *inputFilePtr = NULL;
-	int32_t bytesRead = 0;
+DataSetInitStatus initWithPropertyArray(const char *fileName, DataSet *dataSet, char** requiredProperties, int32_t count) {
+	FILE *inputFilePtr;
+	DataSetInitStatus status;
 
     // Open the file and hold on to the pointer.
     #ifndef _MSC_FULL_VER
-	inputFilePtr = fopen(fileName, "rb");
+    //"C:\\Users\\Mike\\Work\\51Degrees_C\\data\\51Degrees-Lite.dat"
+    inputFilePtr = fopen(fileName, "rb");
 	#else
 	/* If using Microsoft use the fopen_s method to avoid warning */
     if (fopen_s(&inputFilePtr, fileName, "rb") != 0) {
@@ -680,10 +763,13 @@ int32_t initWithPropertyArray(const char *fileName, DataSet *dataSet, char** req
 
 	// If the file didn't open return -1.
 	if (inputFilePtr == NULL)
-		return -1;
+		return DATA_SET_INIT_STATUS_FILE_NOT_FOUND;
 
     // Read the data set into memory.
-    bytesRead = readDataSet(inputFilePtr, dataSet);
+    status = readDataSet(inputFilePtr, dataSet);
+    if (status != DATA_SET_INIT_STATUS_SUCCESS) {
+        return status;
+    }
 
     // Set the properties that are returned by the data set.
     if (requiredProperties == NULL || count == 0) {
@@ -692,7 +778,7 @@ int32_t initWithPropertyArray(const char *fileName, DataSet *dataSet, char** req
         setProperties(dataSet, requiredProperties, count);
     }
 
-    return bytesRead;
+    return status;
 }
 
 /**
@@ -708,21 +794,55 @@ int32_t initWithPropertyArray(const char *fileName, DataSet *dataSet, char** req
  */
 Workset *createWorkset(const DataSet *dataSet) {
 	Workset *ws = (Workset*)malloc(sizeof(Workset));
-	ws->dataSet = dataSet;
-	ws->linkedSignatureList.items = (LinkedSignatureListItem*)malloc(dataSet->header.maxSignaturesClosest * sizeof(LinkedSignatureListItem));
-	ws->input = (char*)malloc((dataSet->header.maxUserAgentLength + 1) * sizeof(char));
-	ws->signatureAsString = (char*)malloc((dataSet->header.maxUserAgentLength + 1) * sizeof(char));
-    ws->profiles = (const Profile**)malloc(dataSet->header.components.count * sizeof(const Profile*));
-    ws->nodes = (const Node**)malloc(dataSet->header.maxUserAgentLength * sizeof(const Node*));
-    ws->orderedNodes = (const Node**)malloc(dataSet->header.maxUserAgentLength * sizeof(const Node*));
-    ws->targetUserAgentArray = (byte*)malloc(dataSet->header.maxUserAgentLength);
-    ws->relevantNodes = (char*)malloc(dataSet->header.maxUserAgentLength + 1);
-    ws->closestNodes = (char*)malloc(dataSet->header.maxUserAgentLength + 1);
-    ws->values = (const Value**)malloc(dataSet->header.maxValues * sizeof(const Value*));
+	if (ws != NULL) {
+        ws->dataSet = dataSet;
 
-    // Null terminate the strings used to return the relevant and closest nodes.
-    ws->relevantNodes[dataSet->header.maxUserAgentLength] = 0;
-    ws->closestNodes[dataSet->header.maxUserAgentLength] = 0;
+        // Allocate all the memory needed to the workset.
+        ws->linkedSignatureList.items = (LinkedSignatureListItem*)malloc(dataSet->header.maxSignaturesClosest * sizeof(LinkedSignatureListItem));
+        ws->input = (char*)malloc((dataSet->header.maxUserAgentLength + 1) * sizeof(char));
+        ws->signatureAsString = (char*)malloc((dataSet->header.maxUserAgentLength + 1) * sizeof(char));
+        ws->profiles = (const Profile**)malloc(dataSet->header.components.count * sizeof(const Profile*));
+        ws->nodes = (const Node**)malloc(dataSet->header.maxUserAgentLength * sizeof(const Node*));
+        ws->orderedNodes = (const Node**)malloc(dataSet->header.maxUserAgentLength * sizeof(const Node*));
+        ws->targetUserAgentArray = (byte*)malloc(dataSet->header.maxUserAgentLength);
+        ws->relevantNodes = (char*)malloc(dataSet->header.maxUserAgentLength + 1);
+        ws->closestNodes = (char*)malloc(dataSet->header.maxUserAgentLength + 1);
+        ws->values = (const Value**)malloc(dataSet->header.maxValues * sizeof(const Value*));
+
+        // Check all the memory was allocated correctly.
+        if (ws->linkedSignatureList.items == NULL ||
+            ws->input == NULL ||
+            ws->signatureAsString == NULL ||
+            ws->profiles == NULL ||
+            ws->nodes == NULL ||
+            ws->orderedNodes == NULL ||
+            ws->targetUserAgentArray == NULL ||
+            ws->relevantNodes == NULL ||
+            ws->closestNodes == NULL ||
+            ws->values == NULL) {
+
+            // One or more of the workset memory allocations failed.
+            // Free any that worked and return NULL.
+            if (ws->linkedSignatureList.items != NULL) { free((void*)ws->linkedSignatureList.items); }
+            if (ws->input != NULL) { free((void*)ws->input); }
+            if (ws->signatureAsString != NULL) { free((void*)ws->signatureAsString); }
+            if (ws->profiles != NULL) { free((void*)ws->profiles); }
+            if (ws->nodes != NULL) { free((void*)ws->nodes); }
+            if (ws->orderedNodes != NULL) { free((void*)ws->orderedNodes); }
+            if (ws->targetUserAgentArray != NULL) { free((void*)ws->targetUserAgentArray); }
+            if (ws->relevantNodes != NULL) { free((void*)ws->relevantNodes); }
+            if (ws->closestNodes != NULL) { free((void*)ws->closestNodes); }
+            if (ws->values != NULL) { free((void*)ws->values); }
+
+            // Free the workset which worked earlier and return NULL.
+            free(ws);
+            ws = NULL;
+        } else {
+            // Null terminate the strings used to return the relevant and closest nodes.
+            ws->relevantNodes[dataSet->header.maxUserAgentLength] = 0;
+            ws->closestNodes[dataSet->header.maxUserAgentLength] = 0;
+        }
+	}
 	return ws;
 }
 
@@ -977,6 +1097,7 @@ const Node* getCompleteNode(Workset *ws, const Node *node) {
     const Node *nextNode = getNextNode(ws, node), *foundNode = NULL;
     if (nextNode != NULL) {
         foundNode = getCompleteNode(ws, nextNode);
+
     }
     if (foundNode == NULL && getIsNodeComplete(node))
         foundNode = node;
@@ -1372,6 +1493,7 @@ const Node* getCompleteNumericNode(Workset *ws, const Node *node) {
         foundNode = node;
     return foundNode;
 }
+
 
 
 /**
@@ -2091,3 +2213,70 @@ int32_t processDeviceCSV(Workset *ws, char* result, int32_t resultLength) {
     return (int32_t)(currentPos - result);
 }
 
+
+/**
+ * Process device properties into a JSON string
+ */
+int32_t processDeviceJSON(Workset *ws, char* result, int32_t resultLength) {
+    int32_t propertyIndex, valueIndex, profileIndex;
+	char* currentPos = result;
+	char* endPos = result + resultLength;
+
+	if (ws->profileCount > 0) {
+        currentPos += snprintf(
+            currentPos,
+            (int32_t)(endPos - currentPos),
+            "{\"Id\": \"");
+        for(profileIndex = 0; profileIndex < ws->profileCount; profileIndex++) {
+            currentPos += snprintf(
+                currentPos,
+                (int32_t)(endPos - currentPos),
+                "%d",
+                (*(ws->profiles + profileIndex))->profileId);
+            if (profileIndex < ws->profileCount - 1) {
+                currentPos += snprintf(
+                    currentPos,
+                    (int32_t)(endPos - currentPos),
+                    "-");
+            }
+        }
+        currentPos += snprintf(
+            currentPos,
+            (int32_t)(endPos - currentPos),
+            "\",\n");
+
+        for(propertyIndex = 0; propertyIndex < ws->dataSet->requiredPropertyCount; propertyIndex++) {
+            if (setValues(ws, propertyIndex) > 0) {
+                currentPos += snprintf(
+                    currentPos,
+                    (int32_t)(endPos - currentPos),
+                    "\"%s\": \"",
+                    getPropertyName(ws->dataSet, *(ws->dataSet->requiredProperties + propertyIndex)));
+                for(valueIndex = 0; valueIndex < ws->valuesCount; valueIndex++) {
+                    currentPos += snprintf(
+                        currentPos,
+                        (int32_t)(endPos - currentPos),
+                        "%s",
+                        getValueName(ws->dataSet, *(ws->values + valueIndex)));
+                    if (valueIndex < ws->valuesCount - 1) {
+                        currentPos += snprintf(
+                            currentPos,
+                            (int32_t)(endPos - currentPos),
+                            "|");
+                    }
+                }
+                if (propertyIndex + 1 != ws->dataSet->requiredPropertyCount) {
+                  currentPos += snprintf(
+                    currentPos,
+                    (int32_t)(endPos - currentPos),
+                    "\",\n");
+                }
+            }
+        }
+        currentPos += snprintf(
+          currentPos,
+          (int32_t)(endPos - currentPos),
+          "\"}");
+    }
+    return (int32_t)(currentPos - result);
+}

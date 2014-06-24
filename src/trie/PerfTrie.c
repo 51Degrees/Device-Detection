@@ -178,7 +178,7 @@ void performance(char *fileName) {
     state.max = 0;
 	state.fileName = fileName;
     state.calibrate = 1;
-    state.numberOfThreads = 1;
+    state.numberOfThreads = 10;
 
     performTest(&state, 1, "Caching Data");
     state.numberOfThreads = THREAD_COUNT;
@@ -237,29 +237,40 @@ int main(int argc, char* argv[]) {
 
 	if (argc > 2) {
 
-		// Check the files exist.
-		if (fileExists(argv[2]) == 0) {
-			printf("\n\nFile '%s' does not found.", argv[2]);
-			return 0;
-		}
-		if (fileExists(argv[1]) == 0) {
-			printf("\n\nFile '%s' does not found.", argv[1]);
-			return 0;
-		}
+        char *fileName = argc > 1 ? argv[1] : NULL;
+        char *requiredProperties = argc > 3 ? argv[3] : NULL;
 
-		// Perform the tests now we know the files exist.
-		if (init(argv[1], argc > 3 ? argv[3] : "Id") == 0) {
-			printf("\n\nUseragents file is: %s\n\nData file is: %s\n\n",
-				findFileNames(argv[2]),
-				findFileNames(argv[1]));
+        DataSetInitStatus status = SUCCESS;
+        status = init(fileName, requiredProperties);
+        switch(status) {
+            case DATA_SET_INIT_STATUS_INSUFFICIENT_MEMORY:
+                printf("Insufficient memory to load '%s'.", argv[1]);
+                break;
+            case DATA_SET_INIT_STATUS_CORRUPT_DATA:
+                printf("Device data file '%s' is corrupted.", argv[1]);
+                break;
+            case DATA_SET_INIT_STATUS_INCORRECT_VERSION:
+                printf("Device data file '%s' is not correct version.", argv[1]);
+                break;
+            case DATA_SET_INIT_STATUS_FILE_NOT_FOUND:
+                printf("Device data file '%s' not found.", argv[1]);
+                break;
+            default: {
+                printf("\n\nUseragents file is: %s\n\nData file is: %s\n\n",
+                    findFileNames(argv[2]),
+                    findFileNames(argv[1]));
 
-			// Wait for a character to be pressed.
-			printf("\nPress enter to start performance tests.\n");
-			fgetc(stdin);
+                // Wait for a character to be pressed.
+                printf("\nPress enter to start performance tests.\n");
+                fgetc(stdin);
 
-			performance(argv[2]);
-			destroy();
-		}
+                performance(argv[2]);
+                destroy();
+                break;
+            }
+        }
+	} else {
+        printf("Not enough arguments supplied. Expecting: path/to/trie_file path/to/test_file property1,property2(optional)\n");
 	}
 
 	return 0;

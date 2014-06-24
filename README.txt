@@ -107,6 +107,25 @@ windows/ - all files related exclusively to Windows.
 Changes
 -------
 
+Version 3.1.2.2
+---------------
+
+1. The init functions now return an enum instead of a int which can be used to
+   to see if the initialisation was successful or to the exact error if a
+   failure did occur. These allowed values are:
+	 SUCCESS - Initialisation finished with no issues.
+	 INSUFFICIENT_MEMORY - The system does not have enough available memory
+	 to create the dataset.
+	 CORRUPT_DATA - The data file had unexpected data. Make sure it is uncompressed
+	 and that you're using the correct file. Try downloading the file again if
+	 you get persistent problems.
+	 INCORRECT_VERSION - The file is valid, but cannot be read by your api. Make
+	 sure you have the latest file and api.
+	 FILE_NOT_FOUND - The given file could not be found. Check it exists and
+	 that the process has sufficient permission.
+2.	Added ProcessJSON function. This function returns device data as a JSON string.
+	This function is used heavily in the Perl and Python APIs.
+
 Version 3.0.X to 3.1.1.3
 ------------------
 

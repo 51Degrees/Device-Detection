@@ -5,6 +5,7 @@
 #include <stdlib.h>
 #include <string.h>
 #include <math.h>
+#include "51Degrees.h"
 
 /* *********************************************************************
  * This Source Code Form is copyright of 51Degrees Mobile Experts Limited.
@@ -26,6 +27,7 @@
  * This Source Code Form is "Incompatible With Secondary Licenses", as
  * defined by the Mozilla Public License, v. 2.0.
  ********************************************************************** */
+
 
 /**
  * PROBLEM MEHODS
@@ -136,47 +138,80 @@ static uint32_t* _requiredProperties;
 static char** _requiredPropertiesNames;
 
 // Reads the strings from the file.
-void readStrings(FILE *inputFilePtr) {
-	fread(&_stringsSize, sizeof(int32_t), 1, inputFilePtr);
+DataSetInitStatus readStrings(FILE *inputFilePtr) {
+	if (fread(&_stringsSize, sizeof(int32_t), 1, inputFilePtr) != 1)
+        return DATA_SET_INIT_STATUS_CORRUPT_DATA;
 	_strings = (char*)malloc(_stringsSize);
-	fread(_strings, sizeof(BYTE), _stringsSize, inputFilePtr);
+	if (_strings == NULL)
+        return DATA_SET_INIT_STATUS_INSUFFICIENT_MEMORY;
+	if (fread(_strings, sizeof(BYTE), _stringsSize, inputFilePtr) != _stringsSize)
+        return DATA_SET_INIT_STATUS_CORRUPT_DATA;
+    return DATA_SET_INIT_STATUS_SUCCESS;
 }
 
 // Reads the profiles from the file.
-void readProperties(FILE *inputFilePtr) {
-	fread(&_propertiesSize, sizeof(int32_t), 1, inputFilePtr);
+DataSetInitStatus readProperties(FILE *inputFilePtr) {
+	if(fread(&_propertiesSize, sizeof(int32_t), 1, inputFilePtr) != 1)
+        return DATA_SET_INIT_STATUS_CORRUPT_DATA;
 	_properties = (int32_t*)malloc(_propertiesSize);
-	fread(_properties, sizeof(BYTE), _propertiesSize, inputFilePtr);
+	if (_properties == NULL)
+        return DATA_SET_INIT_STATUS_INSUFFICIENT_MEMORY;
+	if (fread(_properties, sizeof(BYTE), _propertiesSize, inputFilePtr) != _propertiesSize)
+        return DATA_SET_INIT_STATUS_CORRUPT_DATA;
 	_propertiesCount = _propertiesSize / sizeof(int32_t);
+	return DATA_SET_INIT_STATUS_SUCCESS;
 }
 
 // Reads the profiles from the file.
-void readDevices(FILE *inputFilePtr) {
-	fread(&_devicesSize, sizeof(int32_t), 1, inputFilePtr);
+DataSetInitStatus readDevices(FILE *inputFilePtr) {
+	if (fread(&_devicesSize, sizeof(int32_t), 1, inputFilePtr) != 1)
+        return DATA_SET_INIT_STATUS_CORRUPT_DATA;
 	_devices = (int32_t*)malloc(_devicesSize);
-	fread(_devices, sizeof(BYTE), _devicesSize, inputFilePtr);
+	if (_devices == NULL)
+        return DATA_SET_INIT_STATUS_INSUFFICIENT_MEMORY;
+	if (fread(_devices, sizeof(BYTE), _devicesSize, inputFilePtr) != _devicesSize)
+        return DATA_SET_INIT_STATUS_CORRUPT_DATA;
+    return DATA_SET_INIT_STATUS_SUCCESS;
 }
 
 // Reads the lookups from the input file provided.
-void readLookupList(FILE *inputFilePtr) {
-	fread(&_lookupListSize, sizeof(int32_t), 1, inputFilePtr);
+DataSetInitStatus readLookupList(FILE *inputFilePtr) {
+	if (fread(&_lookupListSize, sizeof(int32_t), 1, inputFilePtr) != 1)
+        return DATA_SET_INIT_STATUS_CORRUPT_DATA;
 	_lookupList = (LOOKUP_HEADER*)malloc(_lookupListSize);
-	fread(_lookupList, sizeof(BYTE), _lookupListSize, inputFilePtr);
+	if (_lookupList ==NULL)
+        return DATA_SET_INIT_STATUS_INSUFFICIENT_MEMORY;
+	if (fread(_lookupList, sizeof(BYTE), _lookupListSize, inputFilePtr) != _lookupListSize)
+        return DATA_SET_INIT_STATUS_CORRUPT_DATA;
+    return DATA_SET_INIT_STATUS_SUCCESS;
 }
 
 // Reads the nodes byte array into memory.
-void readNodes(FILE *inputFilePtr) {
-	fread(&_nodesSize, sizeof(int64_t), 1, inputFilePtr);
+DataSetInitStatus readNodes(FILE *inputFilePtr) {
+	if (fread(&_nodesSize, sizeof(int64_t), 1, inputFilePtr) != 1)
+        return DATA_SET_INIT_STATUS_CORRUPT_DATA;
 	_rootNode = (int32_t*)malloc(_nodesSize);
-	if (_rootNode > 0)
-		fread(_rootNode, sizeof(BYTE), _nodesSize, inputFilePtr);
+    if (_rootNode == 0)
+        return DATA_SET_INIT_STATUS_INSUFFICIENT_MEMORY;
+	if (_rootNode > 0) {
+        if (fread(_rootNode, sizeof(BYTE), _nodesSize, inputFilePtr) != _nodesSize) {
+            return DATA_SET_INIT_STATUS_CORRUPT_DATA;
+        }
+	}
+
+    return DATA_SET_INIT_STATUS_SUCCESS;
 }
 
 // Reads the copyright message into memory.
-void readCopyright(FILE *inputFilePtr) {
-	fread(&_copyrightSize, sizeof(int32_t), 1, inputFilePtr);
+DataSetInitStatus readCopyright(FILE *inputFilePtr) {
+	if (fread(&_copyrightSize, sizeof(int32_t), 1, inputFilePtr) != 1)
+        return DATA_SET_INIT_STATUS_CORRUPT_DATA;
 	_copyright = (char*)malloc(_copyrightSize);
-	fread(_copyright, sizeof(BYTE), _copyrightSize, inputFilePtr);
+	if (_copyright == NULL)
+        return DATA_SET_INIT_STATUS_INSUFFICIENT_MEMORY;
+	if (fread(_copyright, sizeof(BYTE), _copyrightSize, inputFilePtr) != _copyrightSize)
+        return DATA_SET_INIT_STATUS_CORRUPT_DATA;
+    return DATA_SET_INIT_STATUS_SUCCESS;
 }
 
 // Fress the memory.
@@ -191,41 +226,69 @@ void destroy(void) {
 
 // Reads the version value from the start of the file and returns
 // 0 if the file is in a format that can be read by this code.
-int readVersion(FILE *inputFilePtr) {
+DataSetInitStatus readVersion(FILE *inputFilePtr) {
 	uint16_t version;
 	fread(&version, sizeof(uint16_t), 1, inputFilePtr);
-	return (version != 3);
+	if (version != 3)
+        return DATA_SET_INIT_STATUS_INCORRECT_VERSION;
+    return DATA_SET_INIT_STATUS_SUCCESS;
 }
 
 // Reads the input file into memory returning 1 if it
 // was read unsuccessfully, otherwise 0.
-int readFile(char* fileName) {
+DataSetInitStatus readFile(char* fileName) {
+    DataSetInitStatus status = DATA_SET_INIT_STATUS_SUCCESS;
+
 	FILE *inputFilePtr;
-	int failed = 0;
 
 	// Open the file and hold on to the pointer.
 	inputFilePtr = fopen(fileName, "rb");
 
 	// If the file didn't open return -1.
-	if (inputFilePtr == NULL)
-		return -1;
-
+	if (inputFilePtr == NULL) {
+        return DATA_SET_INIT_STATUS_FILE_NOT_FOUND;
+	}
 	// Read the various data segments if the version is
 	// one we can read.
-	failed = readVersion(inputFilePtr);
-	if (failed == 0)
-	{
-		readCopyright(inputFilePtr);
-		readStrings(inputFilePtr);
-		readProperties(inputFilePtr);
-		readDevices(inputFilePtr);
-		readLookupList(inputFilePtr);
-		readNodes(inputFilePtr);
-		failed = failed | (_rootNode == 0);
+    status = readVersion(inputFilePtr);
+    if (status != DATA_SET_INIT_STATUS_SUCCESS) {
+        fclose(inputFilePtr);
+        return status;
+    }
+	status = readCopyright(inputFilePtr);
+	if (status != DATA_SET_INIT_STATUS_SUCCESS) {
+        fclose(inputFilePtr);
+        return status;
 	}
+	status = readStrings(inputFilePtr);
+	if (status != DATA_SET_INIT_STATUS_SUCCESS) {
+        fclose(inputFilePtr);
+        return status;
+	}
+    status = readProperties(inputFilePtr);
+    if (status != DATA_SET_INIT_STATUS_SUCCESS) {
+        fclose(inputFilePtr);
+        return status;
+    }
+    status = readDevices(inputFilePtr);
+    if (status != DATA_SET_INIT_STATUS_SUCCESS) {
+        fclose(inputFilePtr);
+        return status;
+    }
+    status = readLookupList(inputFilePtr);
+    if (status != DATA_SET_INIT_STATUS_SUCCESS) {
+
+        fclose(inputFilePtr);
+        return status;
+    }
+	status = readNodes(inputFilePtr);
+	if (status != DATA_SET_INIT_STATUS_SUCCESS) {
+        fclose(inputFilePtr);
+        return status;
+    }
 	fclose(inputFilePtr);
 
-	return failed;
+	return status;
 }
 
 // Returns the index of the property requested, or -1 if not available.
@@ -304,10 +367,12 @@ void initAllProperties() {
 }
 
 // Initialises the memory using the file provided.
-int init(char* fileName, char* properties) {
-	// Read the data from the file provided.
-	if (readFile(fileName) != 0)
-		return -1;
+DataSetInitStatus init(char* fileName, char* properties) {
+    DataSetInitStatus status = DATA_SET_INIT_STATUS_SUCCESS;
+    status = readFile(fileName);
+    if (status != DATA_SET_INIT_STATUS_SUCCESS) {
+        return status;
+    }
 
 	// If no properties are provided then use all of them.
 	if (properties == NULL || strlen(properties) == 0)
@@ -315,7 +380,7 @@ int init(char* fileName, char* properties) {
 	else
 		initSpecificProperties(properties);
 
-	return 0;
+	return status;
 }
 
 // Returns the index of the property requested, or -1 if not available.
@@ -473,5 +538,41 @@ int processDeviceCSV(int32_t deviceOffset, char* result, int resultLength) {
 	}
 
 	// Return the length of the string buffer used.
+	return (int)(currentPos - result);
+}
+
+// Process device properties into a JSON string.
+int processDeviceJSON(int32_t deviceOffset, char* result, int resultLength) {
+	char* currentPos = result;
+	char* endPos = result + resultLength;
+	uint32_t i;
+	int32_t* device = _devices + deviceOffset;
+
+	// If no properties return empty JSON.
+	if (_requiredPropertiesCount == 0) {
+        currentPos += snprintf(currentPos, endPos - currentPos, "{ }");
+		return currentPos;
+	}
+
+	currentPos += snprintf(currentPos, endPos - currentPos, "{\n");
+		
+	// Process each line of data using the relevant value separator. In this case, a pipe.
+	for(i = 0; i < _requiredPropertiesCount; i++) {
+		// Add the next property to the buffer.
+		currentPos += snprintf(
+			currentPos,
+			(int)(endPos - currentPos),
+			"\"%s\": \"%s\"",
+			*(_requiredPropertiesNames + i),
+			getValueFromDevice(device, *(_requiredProperties + i)));
+
+		if(i + 1 != _requiredPropertiesCount) {
+			currentPos += snprintf(currentPos, endPos - currentPos, ",\n");
+		}
+		// Check to see if buffer is filled in which case return -1.
+		if (currentPos >= endPos)
+			return -1;
+	}
+	currentPos += snprintf(currentPos, endPos - currentPos, "\n}");
 	return (int)(currentPos - result);
 }

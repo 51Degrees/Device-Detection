@@ -44,6 +44,15 @@ typedef unsigned char fod_bool;
 /* Used to return the match method */
 typedef enum {NONE, EXACT, NUMERIC, NEAREST, CLOSEST} matchMethod;
 
+/* Used to provide the status of the data set initialisation */
+typedef enum e_DataSetInitStatus {
+    DATA_SET_INIT_STATUS_SUCCESS,
+    DATA_SET_INIT_STATUS_INSUFFICIENT_MEMORY,
+    DATA_SET_INIT_STATUS_CORRUPT_DATA,
+    DATA_SET_INIT_STATUS_INCORRECT_VERSION,
+    DATA_SET_INIT_STATUS_FILE_NOT_FOUND
+} DataSetInitStatus;
+
 typedef struct range_t {
     const int16_t lower;
     const int16_t upper;
@@ -310,8 +319,8 @@ typedef struct workset_t {
 #pragma pack(pop)
 
 /* External methods */
-EXTERNAL int32_t initWithPropertyArray(const char *fileName, DataSet *dataSet, char** properties, int32_t count);
-EXTERNAL int32_t initWithPropertyString(const char *fileName, DataSet *dataSet, char* properties);
+EXTERNAL DataSetInitStatus initWithPropertyArray(const char *fileName, DataSet *dataSet, char** properties, int32_t count);
+EXTERNAL DataSetInitStatus initWithPropertyString(const char *fileName, DataSet *dataSet, char* properties);
 EXTERNAL void destroy(const DataSet *dataSet);
 
 EXTERNAL Workset* createWorkset(const DataSet *dataSet);
@@ -322,5 +331,6 @@ EXTERNAL const AsciiString* getString(const DataSet *dataSet, int32_t offset);
 EXTERNAL const char* getValueName(const DataSet *dataSet, const Value *value);
 EXTERNAL const char* getPropertyName(const DataSet *dataSet, const Property *property);
 EXTERNAL int32_t processDeviceCSV(Workset *ws, char* result, int32_t resultLength);
+EXTERNAL int32_t processDeviceJSON(Workset *ws, char* result, int32_t resultLength);
 
 #endif // 51DEGREES_H_INCLUDED

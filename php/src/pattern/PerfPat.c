@@ -62,6 +62,12 @@ int performanceTest(char* fileName, Workset *ws, long max, int calibrate) {
 	long size = 0, current;
 	inputFilePtr = fopen(fileName, "r");
 
+	if (inputFilePtr == NULL) {
+        printf("Failed to open file with null-terminating user agent strings to match against 51Degrees data file. \n");
+        fclose(inputFilePtr);
+        exit(0);
+	}
+
     // Get the size of the file.
     if (max == 0) {
         fseek(inputFilePtr, 0, SEEK_END);
@@ -82,7 +88,7 @@ int performanceTest(char* fileName, Workset *ws, long max, int calibrate) {
 		// useragent that has just been read.
 		if (calibrate == 0)
 		{
-			match(ws, ws->input);
+			match(ws, ws->input); //workset, useragent
 		}
 
 		// Increase the counter and reset the offset to
@@ -186,17 +192,33 @@ int main(int argc, char* argv[]) {
 	printf("\t#                                                           #\n");
     printf("\t#############################################################\n");
 
-	if (inputFileName != NULL &&
-        dataSetFileName != NULL &&
-        initWithPropertyString(dataSetFileName, &dataSet, requiredProperties) > 0) {
-        ws = createWorkset(&dataSet);
-        printf(
-            "\n\nUseragents file is: %s\n\n",
-            findFileNames(inputFileName));
-        performance(inputFileName, ws);
-        freeWorkset(ws);
-        destroy(&dataSet);
-	}
+    if (dataSetFileName == NULL || inputFileName == NULL)
+    {
+        printf("Not enough arguments supplied. Expecting path/to/51Degrees.dat path/to/test_file.csv \n");
+        return 0;
+    }
 
+    switch(initWithPropertyString(dataSetFileName, &dataSet, requiredProperties)) {
+        case DATA_SET_INIT_STATUS_INSUFFICIENT_MEMORY:
+                printf("Insufficient memory to load '%s'.", argv[1]);
+                break;
+        case DATA_SET_INIT_STATUS_CORRUPT_DATA:
+            printf("Device data file '%s' is corrupted.", argv[1]);
+            break;
+        case DATA_SET_INIT_STATUS_INCORRECT_VERSION:
+            printf("Device data file '%s' is not correct version.", argv[1]);
+            break;
+        case DATA_SET_INIT_STATUS_FILE_NOT_FOUND:
+            printf("Device data file '%s' not found.", argv[1]);
+            break;
+        default: {
+            ws = createWorkset(&dataSet);
+            printf("\n\nUseragents file is: %s\n\n",findFileNames(inputFileName));
+            performance(inputFileName, ws);
+            freeWorkset(ws);
+            destroy(&dataSet);
+        }
+                break;
+    }
 	return 0;
 }
