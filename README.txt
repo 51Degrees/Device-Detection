@@ -107,6 +107,14 @@ windows/ - all files related exclusively to Windows.
 Changes
 -------
 
+Version 3.1.3.2
+---------------
+
+1. The PerfTrie.c file has been changed to use the new init function enum.
+
+2. The JSON method has been changed to return the correct string lenth when no
+   properties are provided.
+
 Version 3.1.2.2
 ---------------
 

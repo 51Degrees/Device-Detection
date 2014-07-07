@@ -551,11 +551,11 @@ int processDeviceJSON(int32_t deviceOffset, char* result, int resultLength) {
 	// If no properties return empty JSON.
 	if (_requiredPropertiesCount == 0) {
         currentPos += snprintf(currentPos, endPos - currentPos, "{ }");
-		return currentPos;
+		return (int)(currentPos - result);
 	}
 
 	currentPos += snprintf(currentPos, endPos - currentPos, "{\n");
-		
+
 	// Process each line of data using the relevant value separator. In this case, a pipe.
 	for(i = 0; i < _requiredPropertiesCount; i++) {
 		// Add the next property to the buffer.

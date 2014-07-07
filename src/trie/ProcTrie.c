@@ -13,13 +13,13 @@ int main(int argc, char* argv[]) {
             case DATA_SET_INIT_STATUS_INSUFFICIENT_MEMORY:
                 printf("Insufficient memory to load '%s'.", argv[1]);
                 break;
-            case DATA_SET_INIT_STATUS_CORRUPT_DATA:
+			case DATA_SET_INIT_STATUS_CORRUPT_DATA:
                 printf("Device data file '%s' is corrupted.", argv[1]);
                 break;
-            case DATA_SET_INIT_STATUS_INCORRECT_VERSION:
+			case DATA_SET_INIT_STATUS_INCORRECT_VERSION:
                 printf("Device data file '%s' is not correct version.", argv[1]);
                 break;
-            case DATA_SET_INIT_STATUS_FILE_NOT_FOUND:
+			case DATA_SET_INIT_STATUS_FILE_NOT_FOUND:
                 printf("Device data file '%s' not found.", argv[1]);
                 break;
             default: {

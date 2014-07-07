@@ -23,7 +23,7 @@
 #define CLOCKS_PER_MS (CLOCKS_PER_SEC / 1000)
 
 // Number of threads to start for performance analysis.
-#define THREAD_COUNT 16
+#define THREAD_COUNT 4
 
 // Used to control multi threaded performance.
 typedef struct t_performance_state {
@@ -240,7 +240,7 @@ int main(int argc, char* argv[]) {
         char *fileName = argc > 1 ? argv[1] : NULL;
         char *requiredProperties = argc > 3 ? argv[3] : NULL;
 
-        DataSetInitStatus status = SUCCESS;
+        DataSetInitStatus status = DATA_SET_INIT_STATUS_SUCCESS;
         status = init(fileName, requiredProperties);
         switch(status) {
             case DATA_SET_INIT_STATUS_INSUFFICIENT_MEMORY:
