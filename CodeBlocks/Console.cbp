@@ -38,7 +38,7 @@
 				<Option object_output="obj/Debug/" />
 				<Option type="1" />
 				<Option compiler="gcc" />
-				<Option parameters='&quot;../data/51Degrees-Lite.dat&quot;' />
+				<Option parameters='&quot;../data/51Degrees-Enterprise.dat&quot;' />
 				<Compiler>
 					<Add option="-g" />
 					<Add option="-DHAVE_SNPRINTF" />

@@ -1,5 +1,5 @@
 # depslib dependency file v1.0
-1399999137 source:d:\code\c\src\snprintf\snprintf.c
+1399999138 source:d:\code\c\src\snprintf\snprintf.c
 	<sys/types.h>
 	<string.h>
 	<stdlib.h>
@@ -8,18 +8,21 @@
 	<assert.h>
 	<errno.h>
 
-1398721684 source:d:\code\c\src\trie\51degrees.c
+1404482538 source:d:\code\c\src\trie\51degrees.c
+	<stdarg.h>
+	"../snprintf/snprintf.h"
+	<stdint.h>
+	<stdlib.h>
+	<string.h>
+	<math.h>
+	"51Degrees.h"
+
+1399926140 d:\code\c\src\snprintf\snprintf.h
+	<stdarg.h>
 	<stdlib.h>
 	<stdio.h>
-	<string.h>
-	<stdarg.h>
-	<math.h>
-	"../snprintf/snprintf.h"
 
-1393599332 d:\code\c\src\snprintf\snprintf.h
-	<stdio.h>
-
-1399929497 source:d:\code\c\src\trie\perftrie.c
+1404825481 source:d:\code\c\src\trie\perftrie.c
 	<stdio.h>
 	<time.h>
 	<string.h>
@@ -28,5 +31,5 @@
 	<semaphore.h>
 	"51Degrees.h"
 
-1398720191 d:\code\c\src\trie\51degrees.h
+1404481262 d:\code\c\src\trie\51degrees.h
 

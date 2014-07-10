@@ -1,19 +1,19 @@
 <?xml version="1.0" encoding="UTF-8" standalone="yes" ?>
 <CodeBlocks_layout_file>
-	<ActiveTarget name="MSVC Debug" />
-	<File name="..\src\console\Console.c" open="0" top="0" tabpos="2" split="0" active="1" splitpos="0" zoom_1="0" zoom_2="0">
+	<ActiveTarget name="GCC Debug" />
+	<File name="..\src\console\Console.c" open="1" top="0" tabpos="3" split="0" active="1" splitpos="0" zoom_1="0" zoom_2="0">
 		<Cursor>
-			<Cursor1 position="3766" topLine="0" />
+			<Cursor1 position="4671" topLine="14" />
 		</Cursor>
 	</File>
-	<File name="..\src\pattern\51Degrees.c" open="0" top="0" tabpos="1" split="0" active="1" splitpos="0" zoom_1="0" zoom_2="0">
+	<File name="..\src\pattern\51Degrees.c" open="1" top="1" tabpos="1" split="0" active="1" splitpos="0" zoom_1="0" zoom_2="0">
 		<Cursor>
-			<Cursor1 position="177" topLine="0" />
+			<Cursor1 position="2438" topLine="66" />
 		</Cursor>
 	</File>
-	<File name="..\src\pattern\51Degrees.h" open="0" top="0" tabpos="2" split="0" active="1" splitpos="0" zoom_1="0" zoom_2="0">
+	<File name="..\src\pattern\51Degrees.h" open="1" top="0" tabpos="2" split="0" active="1" splitpos="0" zoom_1="0" zoom_2="0">
 		<Cursor>
-			<Cursor1 position="7013" topLine="195" />
+			<Cursor1 position="1725" topLine="45" />
 		</Cursor>
 	</File>
 	<File name="..\src\snprintf\snprintf.c" open="0" top="0" tabpos="0" split="0" active="1" splitpos="0" zoom_1="0" zoom_2="0">

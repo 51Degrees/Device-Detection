@@ -1,5 +1,5 @@
 # depslib dependency file v1.0
-1393599332 source:d:\code\c\src\snprintf\snprintf.c
+1399999138 source:d:\code\c\src\snprintf\snprintf.c
 	<sys/types.h>
 	<string.h>
 	<stdlib.h>

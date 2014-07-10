@@ -27,13 +27,10 @@
  ********************************************************************** */
 
 // Number of test passes to perform.
-#define PASSES 1
+#define PASSES 5
 
 // Number of detection to complete between reporting progress.
 #define PROGRESS_MARKERS 40
-
-// Number of click ticks per millisecond.
-#define CLOCKS_PER_MS (CLOCKS_PER_SEC / 1000)
 
 // The number of items being processed.
 long _max = 0;
@@ -117,35 +114,33 @@ int performanceTest(char* fileName, Workset *ws, long max, int calibrate) {
 }
 
 // Perform the test and return the average time.
-clock_t performTest(char *fileName, Workset *ws, int passes, int calibrate, char *test) {
+double performTest(char *fileName, Workset *ws, int passes, int calibrate, char *test) {
 	int pass;
-	clock_t start, total, passes_total = 0;
+	time_t start, end;
 	fflush(stdout);
 
 	// Perform a number of passes of the test.
+	time(&start);
 	for(pass = 1; pass <= passes; pass++) {
 		printf("%s pass %i of %i: \n\n", test, pass, passes);
-		start = clock();
 		_max = performanceTest(fileName, ws, _max, calibrate);
-		total = clock() - start + 1;
-		passes_total += total;
 	}
-	return passes_total / pass;
+	time(&end);
+	return difftime(end, start) / (double)passes;
 }
 
 // Performance test.
 void performance(char *fileName, Workset *ws) {
-	float totalSec;
-	clock_t	calibration, test;
+	double totalSec, calibration, test;
 	performTest(fileName, ws, 1, 1, "Caching Data");
 
 	calibration = performTest(fileName, ws, PASSES, 1, "Calibrate");
 	test = performTest(fileName, ws, PASSES, 0, "Detection test");
 
 	// Time to complete.
-	printf("Average detection time for total data set: %d ms\n", (int)((test - calibration) / CLOCKS_PER_MS));
 	totalSec = test - calibration;
-	printf("Average number of detections per second: %.0f\n", (float) (_max / totalSec) * CLOCKS_PER_SEC);
+	printf("Average detection time for total data set: %.2f s\n", totalSec);
+	printf("Average number of detections per second: %.2f\n", (double)_max / totalSec);
 
 	// Wait for a character to be pressed.
 	fgetc(stdin);

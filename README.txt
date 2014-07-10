@@ -107,6 +107,13 @@ windows/ - all files related exclusively to Windows.
 Changes
 -------
 
+Version 3.1.4.1
+---------------
+
+1. Changed the PerfTrie and PerfPat class to use wall time rather than CPU
+   ticks to avoid problems associated with multi threading on some platforms.
+   Number of passes increased to offset impact of lower resolution timer.
+
 Version 3.1.3.2
 ---------------
 

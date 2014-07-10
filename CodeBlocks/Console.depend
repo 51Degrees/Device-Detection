@@ -4,11 +4,11 @@
 	<string.h>
 	"../pattern/51Degrees.h"
 
-1399914683 d:\code\c\src\pattern\51degrees.h
+1402566079 d:\code\c\src\pattern\51degrees.h
 	<stdint.h>
 	<limits.h>
 
-1400000062 source:d:\code\c\src\pattern\51degrees.c
+1402566814 source:d:\code\c\src\pattern\51degrees.c
 	<stdlib.h>
 	<stdio.h>
 	"../snprintf/snprintf.h"
@@ -17,7 +17,7 @@
 	<math.h>
 	"51Degrees.h"
 
-1394210060 source:d:\code\c\src\console\console.c
+1402566881 source:d:\code\c\src\console\console.c
 	<stdio.h>
 	<string.h>
 	"../pattern/51Degrees.h"

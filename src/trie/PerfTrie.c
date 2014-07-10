@@ -11,7 +11,7 @@
 #ifdef _DEBUG
 #define PASSES 1
 #else
-#define PASSES 5
+#define PASSES 10
 #endif
 
 // Size of the character buffers
@@ -19,8 +19,6 @@
 
 // Number of marks to make when showing progress.
 #define PROGRESS_MARKS 40
-
-#define CLOCKS_PER_MS (CLOCKS_PER_SEC / 1000)
 
 // Number of threads to start for performance analysis.
 #define THREAD_COUNT 4
@@ -39,14 +37,15 @@ typedef struct t_performance_state {
 // Prints a progress bar
 void printLoadBar(PERFORMANCE_STATE *state) {
 	int i;
-	float empty = (float)(state->max - state->count) / (float)state->progress;
+	int full = state->count / state->progress;
+	int empty = (state->max - state->count) / state->progress;
 
 	printf("\r\t[");
-	for (i = 0; i < (state->count / state->progress); i++) {
+	for (i = 0; i < full; i++) {
 		printf("=");
 	}
 
-	for (i = 0; i < (int)empty; i++) {
+	for (i = 0; i < empty; i++) {
 		printf(" ");
 	}
 	printf("]");
@@ -58,17 +57,15 @@ void reportProgress(PERFORMANCE_STATE *perfState, int count, int device, int pro
     pthread_mutex_lock(&(perfState->signal));
 
     // Increase the count.
-    perfState->count = perfState->count + count;
+    perfState->count += count;
 
     // Update the user interface.
-    if (perfState->count % perfState->progress == 0) {
-        printLoadBar(perfState);
+    printLoadBar(perfState);
 
-        // If in real detection mode then print the id of the device found
-        // to prove it's actually doing something!
-        if (perfState->calibrate == 0) {
-            printf(" %s  ", getValue(device, propertyIndex));
-        }
+    // If in real detection mode then print the id of the device found
+    // to prove it's actually doing something!
+    if (perfState->calibrate == 0) {
+        printf(" %s  ", getValue(device, propertyIndex));
     }
 
     // Unlock the signal now that the count has been updated.
@@ -145,52 +142,52 @@ void performanceTest(PERFORMANCE_STATE *state) {
 }
 
 // Perform the test and return the average time.
-clock_t performTest(PERFORMANCE_STATE *state, int passes, char *test) {
+double performTest(PERFORMANCE_STATE *state, int passes, char *test) {
 	int pass;
-	clock_t start, total, passes_total = 0;
+	time_t start, end;
 	fflush(stdout);
 
     // Set the progress indicator.
-    if (state->max > 0) {
-        state->progress = state->max / PROGRESS_MARKS;
-    }
-    else {
-        state->progress = INT_MAX / PROGRESS_MARKS;
-    }
+    state->progress = (state->max > 0 ? state->max : INT_MAX) / PROGRESS_MARKS;
 
 	// Perform a number of passes of the test.
+    time(&start);
 	for(pass = 1; pass <= passes; pass++) {
 		printf("%s pass %i of %i: \n\n", test, pass, passes);
-		start = clock();
 		performanceTest(state);
-		total = clock() - start + 1;
-		passes_total += total;
 	}
-	return passes_total / passes;
+	time(&end);
+	return difftime(end, start) / (double)passes;
 }
 
 // Performance test.
 void performance(char *fileName) {
 	PERFORMANCE_STATE state;
-	float totalSec;
-	clock_t calibration, test;
+	double totalSec, calibration, test;
 
     state.max = 0;
 	state.fileName = fileName;
     state.calibrate = 1;
-    state.numberOfThreads = 10;
 
+    // Get the number of records in the data file and also
+    // get it loaded into any available disk cache.
+    state.numberOfThreads = 1;
     performTest(&state, 1, "Caching Data");
     state.numberOfThreads = THREAD_COUNT;
     state.max = state.count * state.numberOfThreads;
+
+    // Process the data file doing all tasks except detecting
+    // the device.
     calibration = performTest(&state, PASSES, "Calibrate"),
+
+    // Process the data file doing the device detection.
     state.calibrate = 0;
     test = performTest(&state, PASSES, "Detection test");
 
 	// Time to complete.
 	totalSec = test - calibration;
-	printf("Average detection time for total data set: %d ms\n", (int)(totalSec / CLOCKS_PER_MS));
-	printf("Average number of detections per second: %.0f\n", (float)(state.max / (totalSec / CLOCKS_PER_SEC)));
+	printf("Average detection time for total data set: %.2fs\n", totalSec);
+	printf("Average number of detections per second: %.0f\n", (double)state.max / totalSec);
 }
 
 // Reduces a file path to file name only.
