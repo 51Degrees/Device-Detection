@@ -543,6 +543,8 @@ int processDeviceCSV(int32_t deviceOffset, char* result, int resultLength) {
 
 // Process device properties into a JSON string.
 int processDeviceJSON(int32_t deviceOffset, char* result, int resultLength) {
+	const char* deviceValue;
+	int32_t deviceValueLength, deviceValueIndex;
 	char* currentPos = result;
 	char* endPos = result + resultLength;
 	uint32_t i;
@@ -558,14 +560,37 @@ int processDeviceJSON(int32_t deviceOffset, char* result, int resultLength) {
 
 	// Process each line of data using the relevant value separator. In this case, a pipe.
 	for(i = 0; i < _requiredPropertiesCount; i++) {
+		
+	
 		// Add the next property to the buffer.
 		currentPos += snprintf(
 			currentPos,
 			(int)(endPos - currentPos),
-			"\"%s\": \"%s\"",
-			*(_requiredPropertiesNames + i),
-			getValueFromDevice(device, *(_requiredProperties + i)));
-
+			"\"%s\": \"",
+			*(_requiredPropertiesNames + i));
+			
+			deviceValue = getValueFromDevice(device, *(_requiredProperties + i));
+			deviceValueLength = strlen(deviceValue);
+			for(deviceValueIndex = 0; deviceValueIndex < deviceValueLength; deviceValueIndex++) {
+				if(deviceValue[deviceValueIndex] == 0){
+					break;
+				}
+				else if(deviceValue[deviceValueIndex] == '"'){
+					currentPos += snprintf(
+						currentPos,
+						(int)(endPos - currentPos),
+						"\\");
+				}
+				currentPos += snprintf(
+					currentPos,
+					(int)(endPos - currentPos),
+					"%c",
+					deviceValue[deviceValueIndex]);
+			}
+			currentPos += snprintf(
+				currentPos,
+				(int)(endPos - currentPos),
+				"\"");
 		if(i + 1 != _requiredPropertiesCount) {
 			currentPos += snprintf(currentPos, endPos - currentPos, ",\n");
 		}

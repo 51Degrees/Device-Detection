@@ -2218,7 +2218,8 @@ int32_t processDeviceCSV(Workset *ws, char* result, int32_t resultLength) {
  * Process device properties into a JSON string
  */
 int32_t processDeviceJSON(Workset *ws, char* result, int32_t resultLength) {
-    int32_t propertyIndex, valueIndex, profileIndex;
+    int32_t propertyIndex, valueIndex, profileIndex, valueNameIndex, valueNameLength;
+	const char* valueName;
 	char* currentPos = result;
 	char* endPos = result + resultLength;
 
@@ -2253,11 +2254,24 @@ int32_t processDeviceJSON(Workset *ws, char* result, int32_t resultLength) {
                     "\"%s\": \"",
                     getPropertyName(ws->dataSet, *(ws->dataSet->requiredProperties + propertyIndex)));
                 for(valueIndex = 0; valueIndex < ws->valuesCount; valueIndex++) {
-                    currentPos += snprintf(
-                        currentPos,
-                        (int32_t)(endPos - currentPos),
-                        "%s",
-                        getValueName(ws->dataSet, *(ws->values + valueIndex)));
+					valueName = getValueName(ws->dataSet, *(ws->values + valueIndex));
+					valueNameLength = strlen(valueName);
+					for(valueNameIndex = 0; valueNameIndex < valueNameLength; valueNameIndex++) {
+						if(valueName[valueNameIndex] == 0) {
+							break;
+						}
+						else if(valueName[valueNameIndex] == '"') {
+							currentPos += snprintf(
+								currentPos,
+								(int32_t)(endPos - currentPos),
+								"\\");
+						}
+						currentPos += snprintf(
+							currentPos,
+							(int32_t)(endPos - currentPos),
+							"%c",
+							valueName[valueNameIndex]);
+					}
                     if (valueIndex < ws->valuesCount - 1) {
                         currentPos += snprintf(
                             currentPos,
