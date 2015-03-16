@@ -104,6 +104,21 @@ PHP_FUNCTION(fiftyone_degrees_get_properties)
             }
           }
         }
+	int32_t sigRank = getSignatureRank(ws);
+	add_assoc_long(return_value, "SignatureRank", sigRank);
+	add_assoc_long(return_value, "Difference", ws->difference);
+
+	char* methodString;
+	switch(ws->method){
+		case NONE: methodString = "None"; break;
+		case EXACT: methodString = "Exact"; break;
+		case NUMERIC: methodString = "Numeric"; break;
+		case NEAREST: methodString = "Nearest"; break;
+		case CLOSEST: methodString = "Closest"; break;
+		default: methodString = "Unknown"; break;
+	}
+
+	add_assoc_string(return_value, "Method", methodString, 1);
 	freeWorkset(ws);
       }
       else 
@@ -118,7 +133,16 @@ PHP_FUNCTION(fiftyone_degrees_get_properties)
   
 }
 
-
+int32_t getSignatureRank(Workset *ws) {
+	int32_t rank;
+	int32_t signatureIndex = (int32_t)(ws->signature - ws->dataSet->signatures) / ws->dataSet->sizeOfSignature;
+	for (rank = 0; rank < ws->dataSet->header.signatures.count; rank++) {
+		if (ws->dataSet->rankedSignatureIndexes[rank] == signatureIndex) {
+			return rank;
+		}
+	}
+	return INT32_MAX;
+}
 
 PHP_INI_BEGIN()
 PHP_INI_ENTRY("fiftyone_degrees.data_file", "/usr/lib/php5/51Degrees-Lite.dat", PHP_INI_ALL, NULL)
