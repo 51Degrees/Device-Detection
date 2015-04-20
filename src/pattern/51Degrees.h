@@ -319,18 +319,18 @@ typedef struct fiftyoneDegrees_workset_t {
 #pragma pack(pop)
 
 /* External methods */
-EXTERNAL fiftyoneDegreesDataSetInitStatus initWithPropertyArray(const char *fileName, fiftyoneDegreesDataSet *dataSet, char** properties, int32_t count);
-EXTERNAL fiftyoneDegreesDataSetInitStatus initWithPropertyString(const char *fileName, fiftyoneDegreesDataSet *dataSet, char* properties);
-EXTERNAL void destroy(const fiftyoneDegreesDataSet *dataSet);
+EXTERNAL fiftyoneDegreesDataSetInitStatus fiftyoneDegreesInitWithPropertyArray(const char *fileName, fiftyoneDegreesDataSet *dataSet, char** properties, int32_t count);
+EXTERNAL fiftyoneDegreesDataSetInitStatus fiftyoneDegreesInitWithPropertyString(const char *fileName, fiftyoneDegreesDataSet *dataSet, char* properties);
+EXTERNAL void fiftyoneDegreesDestroy(const fiftyoneDegreesDataSet *dataSet);
 
-EXTERNAL fiftyoneDegreesWorkset* createWorkset(const fiftyoneDegreesDataSet *dataSet);
-EXTERNAL void freeWorkset(const fiftyoneDegreesWorkset *ws);
-EXTERNAL void match(fiftyoneDegreesWorkset *ws, char* userAgent);
-EXTERNAL int32_t setValues(fiftyoneDegreesWorkset *ws, int32_t requiredPropertyIndex);
-EXTERNAL const fiftyoneDegreesAsciiString* getString(const fiftyoneDegreesDataSet *dataSet, int32_t offset);
-EXTERNAL const char* getValueName(const fiftyoneDegreesDataSet *dataSet, const fiftyoneDegreesValue *value);
-EXTERNAL const char* getPropertyName(const fiftyoneDegreesDataSet *dataSet, const fiftyoneDegreesProperty *property);
-EXTERNAL int32_t processDeviceCSV(fiftyoneDegreesWorkset *ws, char* result, int32_t resultLength);
-EXTERNAL int32_t processDeviceJSON(fiftyoneDegreesWorkset *ws, char* result, int32_t resultLength);
+EXTERNAL fiftyoneDegreesWorkset* fiftyoneDegreesCreateWorkset(const fiftyoneDegreesDataSet *dataSet);
+EXTERNAL void fiftyoneDegreesFreeWorkset(const fiftyoneDegreesWorkset *ws);
+EXTERNAL void fiftyoneDegreesMatch(fiftyoneDegreesWorkset *ws, char* userAgent);
+EXTERNAL int32_t fiftyoneDegreesSetValues(fiftyoneDegreesWorkset *ws, int32_t requiredPropertyIndex);
+EXTERNAL const fiftyoneDegreesAsciiString* fiftyoneDegreesGetString(const fiftyoneDegreesDataSet *dataSet, int32_t offset);
+EXTERNAL const char* fiftyoneDegreesGetValueName(const fiftyoneDegreesDataSet *dataSet, const fiftyoneDegreesValue *value);
+EXTERNAL const char* fiftyoneDegreesGetPropertyName(const fiftyoneDegreesDataSet *dataSet, const fiftyoneDegreesProperty *property);
+EXTERNAL int32_t fiftyoneDegreesProcessDeviceCSV(fiftyoneDegreesWorkset *ws, char* result, int32_t resultLength);
+EXTERNAL int32_t fiftyoneDegreesProcessDeviceJSON(fiftyoneDegreesWorkset *ws, char* result, int32_t resultLength);
 
 #endif // 51DEGREES_H_INCLUDED

@@ -296,12 +296,12 @@ int32_t getPropertyIndex(const fiftyoneDegreesDataSet *dataSet, const fiftyoneDe
  * @param name string of the property required
  * @return pointer to the property, or NULL if not found.
  */
-const fiftyoneDegreesProperty* getPropertyByName(fiftyoneDegreesDataSet *dataSet, char* name) {
+const fiftyoneDegreesProperty* fiftyoneDegreesGetPropertyByName(fiftyoneDegreesDataSet *dataSet, char* name) {
     int32_t index;
 	const fiftyoneDegreesProperty *property;
     for(index = 0; index < dataSet->header.properties.count; index++) {
         property = dataSet->properties + index;
-        if (strcmp(getPropertyName(dataSet, property),
+		if (strcmp(fiftyoneDegreesGetPropertyName(dataSet, property),
                    name) == 0)
             return property;
     }
@@ -314,7 +314,7 @@ const fiftyoneDegreesProperty* getPropertyByName(fiftyoneDegreesDataSet *dataSet
  * @param value pointer whose name is required
  * @return pointer to the char string of the name
  */
-const char* getValueName(const fiftyoneDegreesDataSet *dataSet, const fiftyoneDegreesValue *value) {
+const char* fiftyoneDegreesGetValueName(const fiftyoneDegreesDataSet *dataSet, const fiftyoneDegreesValue *value) {
     return (char*)(&getString(dataSet, value->nameOffset)->firstByte);
 }
 
@@ -324,7 +324,7 @@ const char* getValueName(const fiftyoneDegreesDataSet *dataSet, const fiftyoneDe
  * @param property pointer whose name is required
  * @return pointer to the char string of the name
  */
-const char* getPropertyName(const fiftyoneDegreesDataSet *dataSet, const fiftyoneDegreesProperty *property) {
+const char* fiftyoneDegreesGetPropertyName(const fiftyoneDegreesDataSet *dataSet, const fiftyoneDegreesProperty *property) {
     return (const char*)&(getString(dataSet, property->nameOffset)->firstByte);
 }
 
@@ -611,7 +611,7 @@ void linkedListRemove(fiftyoneDegreesLinkedSignatureList *linkedList, fiftyoneDe
  * Destroys the data set releasing all memory available.
  * @param dataSet pointer to the data set being destroyed
  */
-void destroy(const fiftyoneDegreesDataSet *dataSet) {
+void fiftyoneDegreesDestroy(const fiftyoneDegreesDataSet *dataSet) {
     free((void*)(dataSet->requiredProperties));
     free((void*)(dataSet->strings));
     free((void*)(dataSet->components));
@@ -702,7 +702,7 @@ int32_t getSeparatorCount(char* input) {
  *        the dataSet can return
  * @return the number of bytes read from the file
  */
-fiftyoneDegreesDataSetInitStatus initWithPropertyString(const char *fileName, fiftyoneDegreesDataSet *dataSet, char* requiredProperties) {
+fiftyoneDegreesDataSetInitStatus fiftyoneDegreesInitWithPropertyString(const char *fileName, fiftyoneDegreesDataSet *dataSet, char* requiredProperties) {
     int32_t requiredPropertyCount = getSeparatorCount(requiredProperties);
     int32_t index, count = 0;
     char **requiredPropertiesArray = NULL;
@@ -729,7 +729,7 @@ fiftyoneDegreesDataSetInitStatus initWithPropertyString(const char *fileName, fi
         }
     }
 
-    status = initWithPropertyArray(fileName, dataSet, requiredPropertiesArray, requiredPropertyCount);
+	status = fiftyoneDegreesInitWithPropertyArray(fileName, dataSet, requiredPropertiesArray, requiredPropertyCount);
 
     if (requiredPropertiesArray != NULL)
         free(requiredPropertiesArray);
@@ -748,7 +748,7 @@ fiftyoneDegreesDataSetInitStatus initWithPropertyString(const char *fileName, fi
  * @param count the number of elements in the requiredProperties array
  * @return the number of bytes read from the file
  */
-fiftyoneDegreesDataSetInitStatus initWithPropertyArray(const char *fileName, fiftyoneDegreesDataSet *dataSet, char** requiredProperties, int32_t count) {
+fiftyoneDegreesDataSetInitStatus fiftyoneDegreesInitWithPropertyArray(const char *fileName, fiftyoneDegreesDataSet *dataSet, char** requiredProperties, int32_t count) {
 	FILE *inputFilePtr;
 	fiftyoneDegreesDataSetInitStatus status;
 
@@ -794,7 +794,7 @@ fiftyoneDegreesDataSetInitStatus initWithPropertyArray(const char *fileName, fif
  * @param dataSet pointer to the data set
  * @returns a pointer to the workset created
  */
-fiftyoneDegreesWorkset *createWorkset(const fiftyoneDegreesDataSet *dataSet) {
+fiftyoneDegreesWorkset *fiftyoneDegreesCreateWorkset(const fiftyoneDegreesDataSet *dataSet) {
 	fiftyoneDegreesWorkset *ws = (fiftyoneDegreesWorkset*)malloc(sizeof(fiftyoneDegreesWorkset));
 	if (ws != NULL) {
         ws->dataSet = dataSet;
@@ -852,7 +852,7 @@ fiftyoneDegreesWorkset *createWorkset(const fiftyoneDegreesDataSet *dataSet) {
  * Releases the memory used by the workset.
  * @param pointer to the workset created previously
  */
-void freeWorkset(const fiftyoneDegreesWorkset *ws) {
+void fiftyoneDegreesFreeWorkset(const fiftyoneDegreesWorkset *ws) {
     free((void*)(ws->input));
     free((void*)(ws->signatureAsString));
     free((void*)ws->profiles);
@@ -2072,7 +2072,7 @@ void evaluate(fiftyoneDegreesWorkset *ws) {
  *        createWorkset function
  * @param userAgent pointer to the target user agent
  */
-void match(fiftyoneDegreesWorkset *ws, char* userAgent) {
+void fiftyoneDegreesMatch(fiftyoneDegreesWorkset *ws, char* userAgent) {
     int32_t signatureIndex;
     setTargetUserAgentArray(ws, userAgent);
     if (ws->targetUserAgentArrayLength >= ws->dataSet->header.minUserAgentLength) {
@@ -2127,7 +2127,7 @@ void match(fiftyoneDegreesWorkset *ws, char* userAgent) {
  *        require properties
  * @return the number of values that were set.
  */
-int32_t setValues(fiftyoneDegreesWorkset *ws, int32_t requiredPropertyIndex) {
+int32_t fiftyoneDegreesSetValues(fiftyoneDegreesWorkset *ws, int32_t requiredPropertyIndex) {
     int32_t profileIndex, valueIndex;
 	const fiftyoneDegreesProfile *profile;
 	const fiftyoneDegreesProperty *property = *(ws->dataSet->requiredProperties + requiredPropertyIndex);
@@ -2157,7 +2157,7 @@ int32_t setValues(fiftyoneDegreesWorkset *ws, int32_t requiredPropertyIndex) {
 /**
  * Process device properties into a CSV string
  */
-int32_t processDeviceCSV(fiftyoneDegreesWorkset *ws, char* result, int32_t resultLength) {
+int32_t fiftyoneDegreesProcessDeviceCSV(fiftyoneDegreesWorkset *ws, char* result, int32_t resultLength) {
     int32_t propertyIndex, valueIndex, profileIndex;
 	char* currentPos = result;
 	char* endPos = result + resultLength;
@@ -2186,18 +2186,18 @@ int32_t processDeviceCSV(fiftyoneDegreesWorkset *ws, char* result, int32_t resul
             "\n");
 
         for(propertyIndex = 0; propertyIndex < ws->dataSet->requiredPropertyCount; propertyIndex++) {
-            if (setValues(ws, propertyIndex) > 0) {
+			if (fiftyoneDegreesSetValues(ws, propertyIndex) > 0) {
                 currentPos += snprintf(
                     currentPos,
                     (int32_t)(endPos - currentPos),
                     "%s,",
-                    getPropertyName(ws->dataSet, *(ws->dataSet->requiredProperties + propertyIndex)));
+					fiftyoneDegreesGetPropertyName(ws->dataSet, *(ws->dataSet->requiredProperties + propertyIndex)));
                 for(valueIndex = 0; valueIndex < ws->valuesCount; valueIndex++) {
                     currentPos += snprintf(
                         currentPos,
                         (int32_t)(endPos - currentPos),
                         "%s",
-                        getValueName(ws->dataSet, *(ws->values + valueIndex)));
+						fiftyoneDegreesGetValueName(ws->dataSet, *(ws->values + valueIndex)));
                     if (valueIndex < ws->valuesCount - 1) {
                         currentPos += snprintf(
                             currentPos,
@@ -2219,7 +2219,7 @@ int32_t processDeviceCSV(fiftyoneDegreesWorkset *ws, char* result, int32_t resul
 /**
  * Process device properties into a JSON string
  */
-int32_t processDeviceJSON(fiftyoneDegreesWorkset *ws, char* result, int32_t resultLength) {
+int32_t fiftyoneDegreesProcessDeviceJSON(fiftyoneDegreesWorkset *ws, char* result, int32_t resultLength) {
     int32_t propertyIndex, valueIndex, profileIndex, valueNameIndex, valueNameLength;
 	const char* valueName;
 	char* currentPos = result;
@@ -2249,14 +2249,14 @@ int32_t processDeviceJSON(fiftyoneDegreesWorkset *ws, char* result, int32_t resu
             "\",\n");
 
         for(propertyIndex = 0; propertyIndex < ws->dataSet->requiredPropertyCount; propertyIndex++) {
-            if (setValues(ws, propertyIndex) > 0) {
+			if (fiftyoneDegreesSetValues(ws, propertyIndex) > 0) {
                 currentPos += snprintf(
                     currentPos,
                     (int32_t)(endPos - currentPos),
                     "\"%s\": \"",
-                    getPropertyName(ws->dataSet, *(ws->dataSet->requiredProperties + propertyIndex)));
+					fiftyoneDegreesGetPropertyName(ws->dataSet, *(ws->dataSet->requiredProperties + propertyIndex)));
                 for(valueIndex = 0; valueIndex < ws->valuesCount; valueIndex++) {
-					valueName = getValueName(ws->dataSet, *(ws->values + valueIndex));
+					valueName = fiftyoneDegreesGetValueName(ws->dataSet, *(ws->values + valueIndex));
 					valueNameLength = strlen(valueName);
 					for(valueNameIndex = 0; valueNameIndex < valueNameLength; valueNameIndex++) {
 						if(valueName[valueNameIndex] == 0) {

@@ -16,7 +16,7 @@
 
 EXTERN_DLL_EXPORT void __cdecl Destroy(LP dataSet)
 {
-	destroy((fiftyoneDegreesDataSet*)dataSet);
+	fiftyoneDegreesDestroy((fiftyoneDegreesDataSet*)dataSet);
 	free((fiftyoneDegreesDataSet*)dataSet);
 }
 
@@ -25,7 +25,7 @@ EXTERN_DLL_EXPORT LP __cdecl CreateDataSet(LPCTSTR fileName, LPCTSTR properties)
 	fiftyoneDegreesDataSet *ds = NULL;
 	int bytesRead;
 	ds = (fiftyoneDegreesDataSet*)malloc(sizeof(fiftyoneDegreesDataSet));
-	bytesRead = initWithPropertyString((char*)fileName, ds, (char*)properties);
+	bytesRead = fiftyoneDegreesInitWithPropertyString((char*)fileName, ds, (char*)properties);
 	if (bytesRead <= 0)
 	{
 		free(ds);
@@ -37,23 +37,23 @@ EXTERN_DLL_EXPORT LP __cdecl CreateDataSet(LPCTSTR fileName, LPCTSTR properties)
 EXTERN_DLL_EXPORT LP __cdecl CreateWorkSet(LP dataSet)
 {
 	fiftyoneDegreesWorkset *ws = NULL;
-	ws = createWorkset((fiftyoneDegreesDataSet*)dataSet);
+	ws = fiftyoneDegreesCreateWorkset((fiftyoneDegreesDataSet*)dataSet);
 	return (LP)ws;
 }
 
 EXTERN_DLL_EXPORT void __cdecl FreeWorkSet(LP workSet)
 {
-	freeWorkset((fiftyoneDegreesWorkset*)workSet);
+	fiftyoneDegreesFreeWorkset((fiftyoneDegreesWorkset*)workSet);
 }
 
 EXTERN_DLL_EXPORT int __cdecl GetPropertiesCSV(LP workSet, LPCTSTR userAgent, LPTSTR result, DWORD resultLength)
 {
 	// Populate the workset with the results for the provided
 	// user agent.
-	match((fiftyoneDegreesWorkset*)workSet, (char*)userAgent);
+	fiftyoneDegreesMatch((fiftyoneDegreesWorkset*)workSet, (char*)userAgent);
 
 	// Add the results in CSV form to the string provided.
-	return (int)processDeviceCSV(
+	return (int)fiftyoneDegreesProcessDeviceCSV(
 		(fiftyoneDegreesWorkset*)workSet,
 		(char*)result,
 		resultLength);
