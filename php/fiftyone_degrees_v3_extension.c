@@ -134,7 +134,7 @@ PHP_FUNCTION(fiftyone_degrees_get_properties)
   
 }
 
-int32_t getSignatureRank(Workset *ws) {
+int32_t getSignatureRank(fiftyoneDegreesWorkset *ws) {
 	int32_t rank;
 	int32_t signatureIndex = (int32_t)(ws->signature - ws->dataSet->signatures) / ws->dataSet->sizeOfSignature;
 	for (rank = 0; rank < ws->dataSet->header.signatures.count; rank++) {
