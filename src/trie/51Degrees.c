@@ -367,7 +367,7 @@ void initAllProperties() {
 }
 
 // Initialises the memory using the file provided.
-fiftyoneDegreesDataSetInitStatus init(char* fileName, char* properties) {
+fiftyoneDegreesDataSetInitStatus fiftyoneDegreesInit(char* fileName, char* properties) {
 	fiftyoneDegreesDataSetInitStatus status = DATA_SET_INIT_STATUS_SUCCESS;
     status = readFile(fileName);
     if (status != DATA_SET_INIT_STATUS_SUCCESS) {
@@ -496,7 +496,7 @@ int32_t getDeviceIndex(char* userAgent) {
 }
 
 // Returns the offset in the properties list to the first value for the device.
-int32_t getDeviceOffset(char* userAgent) {
+int32_t fiftyoneDegreesGetDeviceOffset(char* userAgent) {
     return getDeviceIndex(userAgent) * _propertiesCount;
 }
 
@@ -510,7 +510,7 @@ char* getValue(int deviceOffset, int propertyIndex) {
 }
 
 // Process device properties into a CSV string.
-int processDeviceCSV(int32_t deviceOffset, char* result, int resultLength) {
+int fiftyoneDegreesProcessDeviceCSV(int32_t deviceOffset, char* result, int resultLength) {
 	char* currentPos = result;
 	char* endPos = result + resultLength;
 	uint32_t i;
@@ -542,7 +542,7 @@ int processDeviceCSV(int32_t deviceOffset, char* result, int resultLength) {
 }
 
 // Process device properties into a JSON string.
-int processDeviceJSON(int32_t deviceOffset, char* result, int resultLength) {
+int fiftyoneDegreesProcessDeviceJSON(int32_t deviceOffset, char* result, int resultLength) {
 	const char* deviceValue;
 	int32_t deviceValueLength, deviceValueIndex;
 	char* currentPos = result;

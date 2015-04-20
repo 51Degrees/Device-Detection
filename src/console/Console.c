@@ -46,11 +46,11 @@ void print50Columns(char* label, const char* value, int32_t length) {
     printf("\r\n");
 }
 
-void run(DataSet *dataSet) {
-    Workset *ws = NULL;
+void run(fiftyoneDegreesDataSet *dataSet) {
+    fiftyoneDegreesWorkset *ws = NULL;
     int32_t index, propertyIndex, valueIndex;
 
-    printf("Name:\t\t\t%s\r\n", &(getString(dataSet, dataSet->header.nameOffset)->firstByte));
+    printf("Name:\t\t\t%s\r\n", &(fiftyoneDegreesGetString(dataSet, dataSet->header.nameOffset)->firstByte));
     printf("Published:\t\t%d/%d/%d\r\n",
            dataSet->header.published.day,
            dataSet->header.published.month,
@@ -61,14 +61,14 @@ void run(DataSet *dataSet) {
            dataSet->header.nextUpdate.year);
     printf("Signatures:\t\t%d\r\n", dataSet->header.signatures.count);
     printf("Device Combinations:\t%d\r\n", dataSet->header.deviceCombinations);
-    printf("Data set version:\t%s\r\n", &(getString(dataSet, dataSet->header.formatOffset)->firstByte));
+    printf("Data set version:\t%s\r\n", &(fiftyoneDegreesGetString(dataSet, dataSet->header.formatOffset)->firstByte));
     printf("\r\n");
 
-    ws = createWorkset(dataSet);
+    ws = fiftyoneDegreesCreateWorkset(dataSet);
     if (ws != NULL) {
         for(index = 0; index < (sizeof(TARGET_USER_AGENTS) / sizeof(char*)); index++)
         {
-            match(ws, TARGET_USER_AGENTS[index]);
+            fiftyoneDegreesMatch(ws, TARGET_USER_AGENTS[index]);
 
             printf("\r\n\t\t\t*** Detection Results ***\r\n");
             print50Columns("Target User Agent:\t", ws->targetUserAgent, strlen(ws->targetUserAgent));
@@ -90,10 +90,10 @@ void run(DataSet *dataSet) {
             printf("\t\t\t*** Example Properties ***\r\n");
 
             for(propertyIndex = 0; propertyIndex < ws->dataSet->requiredPropertyCount; propertyIndex++) {
-                printf("%s:\t", getPropertyName(ws->dataSet, *(ws->dataSet->requiredProperties + propertyIndex)));
-                if (setValues(ws, propertyIndex) > 0) {
+                printf("%s:\t", fiftyoneDegreesGetPropertyName(ws->dataSet, *(ws->dataSet->requiredProperties + propertyIndex)));
+                if (fiftyoneDegreesSetValues(ws, propertyIndex) > 0) {
                     for(valueIndex = 0; valueIndex < ws->valuesCount; valueIndex++) {
-                        printf("%s", getValueName(ws->dataSet, *(ws->values + valueIndex)));
+                        printf("%s", fiftyoneDegreesGetValueName(ws->dataSet, *(ws->values + valueIndex)));
                         if (valueIndex < ws->valuesCount - 1)
                             printf(", ");
                     }
@@ -101,16 +101,16 @@ void run(DataSet *dataSet) {
                 printf("\r\n");
             }
         }
-        freeWorkset(ws);
+        fiftyoneDegreesFreeWorkset(ws);
     }
-    destroy(dataSet);
+    fiftyoneDegreesDestroy(dataSet);
 }
 
 int32_t main(int32_t argc, char* argv[]) {
-    DataSet dataSet;
+    fiftyoneDegreesDataSet dataSet;
 
     if (argc > 1) {
-        switch(initWithPropertyArray(argv[1], &dataSet, PROPERTIES, PROPERTIES_COUNT)) {
+        switch(fiftyoneDegreesInitWithPropertyArray(argv[1], &dataSet, PROPERTIES, PROPERTIES_COUNT)) {
             case DATA_SET_INIT_STATUS_INSUFFICIENT_MEMORY:
                 printf("Insufficient memory to load '%s'.", argv[1]);
                 break;
