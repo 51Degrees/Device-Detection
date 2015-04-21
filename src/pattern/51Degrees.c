@@ -362,7 +362,7 @@ const fiftyoneDegreesNodeIndex* getNodeIndexesForNode(const fiftyoneDegreesNode*
  * @param node pointer to be checked
  * @return true if the node is complete, otherwise false
  */
-fod_bool getIsNodeComplete(const fiftyoneDegreesNode* node) {
+fiftyoneDegreesBool getIsNodeComplete(const fiftyoneDegreesNode* node) {
     return node->nextCharacterPosition != SHRT_MIN;
 }
 
@@ -1504,7 +1504,7 @@ const fiftyoneDegreesNode* getCompleteNumericNode(fiftyoneDegreesWorkset *ws, co
  * @param b the second node to test
  * @return true if they overlap, otherwise false
  */
-fod_bool areNodesOverlapped(const fiftyoneDegreesDataSet *dataSet, const fiftyoneDegreesNode *a, const fiftyoneDegreesNode *b) {
+fiftyoneDegreesBool areNodesOverlapped(const fiftyoneDegreesDataSet *dataSet, const fiftyoneDegreesNode *a, const fiftyoneDegreesNode *b) {
 	const fiftyoneDegreesNode *lower = a->position < b->position ? a : b,
          *higher = lower == b ? a : b,
          *rootNode = getRootNode(dataSet, lower);
@@ -1523,7 +1523,7 @@ fod_bool areNodesOverlapped(const fiftyoneDegreesDataSet *dataSet, const fiftyon
  * @param ws pointer to the work set used for the match
  * @return 1 if the node overlaps, otherwise 0
  */
-fod_bool isNodeOverlapped(const fiftyoneDegreesNode *node, fiftyoneDegreesWorkset *ws) {
+fiftyoneDegreesBool isNodeOverlapped(const fiftyoneDegreesNode *node, fiftyoneDegreesWorkset *ws) {
 	const fiftyoneDegreesNode  *currentNode;
     int         index;
     for(index = ws->nodeCount - 1; index >= 0; index--) {
@@ -1592,7 +1592,7 @@ void evaluateNumeric(fiftyoneDegreesWorkset *ws) {
  * @return the count after the node has been evaluated
  */
 int32_t setClosestSignaturesForNode(fiftyoneDegreesWorkset *ws, const fiftyoneDegreesNode *node, int32_t count, int32_t iteration) {
-    fod_bool                thresholdReached = (ws->nodeCount - iteration) < count;
+    fiftyoneDegreesBool                thresholdReached = (ws->nodeCount - iteration) < count;
 	fiftyoneDegreesLinkedSignatureList     *linkedList = &(ws->linkedSignatureList);
 	fiftyoneDegreesLinkedSignatureListItem *current = linkedList->first,
                             *next;
@@ -1737,7 +1737,7 @@ void fillClosestSignatures(fiftyoneDegreesWorkset *ws) {
  * @param value to be checked
  * @return 1 if the value is numeric, otherwise 0
  */
-fod_bool getIsNumeric(byte *value) {
+fiftyoneDegreesBool getIsNumeric(byte *value) {
     return (*value >= (byte)'0' && *value <= (byte)'9');
 }
 

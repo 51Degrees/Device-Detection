@@ -39,7 +39,7 @@
 typedef unsigned char byte;
 
 /* Used to represent boolean */
-typedef unsigned char fod_bool;
+typedef unsigned char fiftyoneDegreesBool;
 
 /* Used to return the match method */
 typedef enum { NONE, EXACT, NUMERIC, NEAREST, CLOSEST } fiftyoneDegreesMatchMethod;
@@ -140,11 +140,11 @@ typedef struct fiftyoneDegrees_profile_offset_t {
 typedef struct property_t {
     const byte componentIndex; /* Index of the component */
     const byte displayOrder; /* The order the property should be displayed in relative to other properties */
-    const fod_bool isMandatory; /* True if the property is mandatory and must be provided */
-    const fod_bool isList; /* True if the property is a list can can return multiple values */
-    const fod_bool showValues; /* True if the values should be shown in GUIs */
-    const fod_bool isObsolete; /* True if the property is obsolete and will be removed from future data sets */
-    const fod_bool show; /* True if the property should be shown in GUIs */
+    const fiftyoneDegreesBool isMandatory; /* True if the property is mandatory and must be provided */
+    const fiftyoneDegreesBool isList; /* True if the property is a list can can return multiple values */
+    const fiftyoneDegreesBool showValues; /* True if the values should be shown in GUIs */
+    const fiftyoneDegreesBool isObsolete; /* True if the property is obsolete and will be removed from future data sets */
+    const fiftyoneDegreesBool show; /* True if the property should be shown in GUIs */
     const byte valueType; /* The type of value the property represents */
     const int32_t defaultValueIndex; /* The default value index for the property */
     const int32_t nameOffset; /* The offset in the strings structure to the property name */
@@ -201,8 +201,8 @@ typedef struct fiftyoneDegrees_numeric_node_state {
     int32_t startIndex;
     int32_t lowIndex;
     int32_t highIndex;
-    fod_bool lowInRange;
-    fod_bool highInRange;
+    fiftyoneDegreesBool lowInRange;
+    fiftyoneDegreesBool highInRange;
 } fiftyoneDegreesNumericNodeState;
 #pragma pack(pop)
 
@@ -312,7 +312,7 @@ typedef struct fiftyoneDegrees_workset_t {
 	int32_t closestSignatures; /* The total number of closest signatures available */
 	const fiftyoneDegreesValue **values; /* Pointers to values associated with the property requested */
 	int32_t valuesCount; /* Number of values available */
-	fod_bool startWithInitialScore; /* True if the NEAREST and CLOSEST methods should start with an initial score */
+	fiftyoneDegreesBool startWithInitialScore; /* True if the NEAREST and CLOSEST methods should start with an initial score */
 	int(*functionPtrGetScore)(struct fiftyoneDegrees_workset_t *ws, const fiftyoneDegreesNode *node); /* Returns scores for each different node between signature and match */
 	const byte* (*functionPtrNextClosestSignature)(struct fiftyoneDegrees_workset_t *ws); /* Returns the next closest signature */
 } fiftyoneDegreesWorkset;
