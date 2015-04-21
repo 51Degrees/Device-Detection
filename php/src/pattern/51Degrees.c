@@ -266,7 +266,7 @@ const fiftyoneDegreesComponent* getComponent(fiftyoneDegreesDataSet *dataSet, in
  * @param offset to the ascii string required
  * @return a pointer to the AsciiString at the offset
  */
-const fiftyoneDegreesAsciiString* getString(const fiftyoneDegreesDataSet *dataSet, int32_t offset) {
+const fiftyoneDegreesAsciiString* fiftyoneDegreesGetString(const fiftyoneDegreesDataSet *dataSet, int32_t offset) {
 	return (const fiftyoneDegreesAsciiString*)(dataSet->strings + offset);
 }
 
@@ -315,7 +315,7 @@ const fiftyoneDegreesProperty* fiftyoneDegreesGetPropertyByName(fiftyoneDegreesD
  * @return pointer to the char string of the name
  */
 const char* fiftyoneDegreesGetValueName(const fiftyoneDegreesDataSet *dataSet, const fiftyoneDegreesValue *value) {
-    return (char*)(&getString(dataSet, value->nameOffset)->firstByte);
+    return (char*)(&fiftyoneDegreesGetString(dataSet, value->nameOffset)->firstByte);
 }
 
 /**
@@ -325,7 +325,7 @@ const char* fiftyoneDegreesGetValueName(const fiftyoneDegreesDataSet *dataSet, c
  * @return pointer to the char string of the name
  */
 const char* fiftyoneDegreesGetPropertyName(const fiftyoneDegreesDataSet *dataSet, const fiftyoneDegreesProperty *property) {
-    return (const char*)&(getString(dataSet, property->nameOffset)->firstByte);
+    return (const char*)&(fiftyoneDegreesGetString(dataSet, property->nameOffset)->firstByte);
 }
 
 /**
@@ -409,7 +409,7 @@ int32_t getSignatureLengthFromNodeOffsets(const fiftyoneDegreesDataSet *dataSet,
  * @return pointer to the ascii string associated with the node
  */
 const fiftyoneDegreesAsciiString* getNodeCharacters(const fiftyoneDegreesDataSet *dataSet, const fiftyoneDegreesNode *node) {
-    return getString(dataSet, node->characterStringOffset);
+    return fiftyoneDegreesGetString(dataSet, node->characterStringOffset);
 }
 
 /**
@@ -426,7 +426,7 @@ void getCharactersForNodeIndex(fiftyoneDegreesWorkset *ws, const fiftyoneDegrees
 	const fiftyoneDegreesAsciiString *asciiString;
     if (nodeIndex->isString != 0) {
 
-        asciiString = getString(ws->dataSet, nodeIndex->value.integer);
+        asciiString = fiftyoneDegreesGetString(ws->dataSet, nodeIndex->value.integer);
         /* Set the length of the byte array removing the null terminator */
         string->length = (int16_t)(asciiString->length - 1);
         string->value = (byte*)&(asciiString->firstByte);
@@ -659,7 +659,7 @@ void setProperties(fiftyoneDegreesDataSet *dataSet, char** properties, int32_t c
         requiredPropertyName = *(properties + propertyIndex);
         requiredPropertyLength = strlen(requiredPropertyName);
         for(index = 0; index < dataSet->header.properties.count; index++) {
-            propertyName = getString(dataSet, (dataSet->properties + index)->nameOffset);
+            propertyName = fiftyoneDegreesGetString(dataSet, (dataSet->properties + index)->nameOffset);
             if (requiredPropertyLength == propertyName->length - 1 &&
                 memcmp(requiredPropertyName, &propertyName->firstByte, requiredPropertyLength) == 0) {
                 *(dataSet->requiredProperties + dataSet->requiredPropertyCount) = (dataSet->properties + index);
@@ -874,7 +874,7 @@ void fiftyoneDegreesFreeWorkset(const fiftyoneDegreesWorkset *ws) {
  */
 int addSignatureNodeToString(fiftyoneDegreesWorkset *ws, const fiftyoneDegreesNode *node) {
     int nodeIndex, signatureIndex;
-	const fiftyoneDegreesAsciiString *characters = getString(ws->dataSet, node->characterStringOffset);
+	const fiftyoneDegreesAsciiString *characters = fiftyoneDegreesGetString(ws->dataSet, node->characterStringOffset);
     for(nodeIndex = 0, signatureIndex = node->position + 1;
         nodeIndex < characters->length - 1;
         nodeIndex++, signatureIndex++) {
@@ -1171,7 +1171,7 @@ int32_t getExactSignatureIndex(fiftyoneDegreesWorkset *ws) {
  */
 int32_t setNodeString(const fiftyoneDegreesDataSet *dataSet, const fiftyoneDegreesNode *node, char* output) {
     int32_t n, c, last = 0;
-	const fiftyoneDegreesAsciiString *string = getString(dataSet, node->characterStringOffset);
+	const fiftyoneDegreesAsciiString *string = fiftyoneDegreesGetString(dataSet, node->characterStringOffset);
     for(n = 0, c = node->position + 1; n < string->length - 1; c++, n++) {
         *(output + c) = *(&string->firstByte + n);
         if (c > last)
@@ -1798,7 +1798,7 @@ int32_t calculateNumericDifference(const fiftyoneDegreesAsciiString *characters,
  */
 int16_t matchIndexOf(fiftyoneDegreesWorkset *ws, const fiftyoneDegreesNode *node)
 {
-	const fiftyoneDegreesAsciiString *characters = getString(ws->dataSet, node->characterStringOffset);
+	const fiftyoneDegreesAsciiString *characters = fiftyoneDegreesGetString(ws->dataSet, node->characterStringOffset);
     int16_t index,
             nodeIndex,
             targetIndex,
