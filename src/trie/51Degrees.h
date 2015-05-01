@@ -46,6 +46,12 @@ EXTERNAL int fiftyoneDegreesGetPropertyIndex(char *value);
 // Takes the results of getDeviceOffset and getPropertyIndex to return a value.
 EXTERNAL char* fiftyoneDegreesGetValue(int deviceOffset, int propertyIndex);
 
+// Returns how many properties have been loaded in the dataset.
+EXTERNAL int fiftyoneDegreesGetRequiredPropertiesCount();
+
+// Returns the names of the properties loaded in the dataset.
+EXTERNAL char ** fiftyoneDegreesGetRequiredPropertiesNames();
+
 // Fress the memory.
 EXTERNAL void fiftyoneDegreesDestroy();
 

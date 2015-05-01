@@ -505,8 +505,18 @@ char* getValueFromDevice(int32_t* device, int32_t propertyIndex) {
 }
 
 // Takes the results of getDeviceOffset and getPropertyIndex to return a value.
-char* getValue(int deviceOffset, int propertyIndex) {
+char* fiftyoneDegreesGetValue(int deviceOffset, int propertyIndex) {
     return getValueFromDevice(_devices + deviceOffset, propertyIndex);
+}
+
+// Returns how many properties have been loaded in the dataset.
+int32_t fiftyoneDegreesGetRequiredPropertiesCount() {
+  return _requiredPropertiesCount;
+}
+
+// Returns the names of the properties loaded in the dataset.
+char ** fiftyoneDegreesGetRequiredPropertiesNames() {
+  return _requiredPropertiesNames;
 }
 
 // Process device properties into a CSV string.
