@@ -65,7 +65,7 @@ void reportProgress(PERFORMANCE_STATE *perfState, int count, int device, int pro
     // If in real detection mode then print the id of the device found
     // to prove it's actually doing something!
     if (perfState->calibrate == 0) {
-        printf(" %s  ", getValue(device, propertyIndex));
+        printf(" %s  ", fiftyoneDegreesGetValue(device, propertyIndex));
     }
 
     // Unlock the signal now that the count has been updated.
