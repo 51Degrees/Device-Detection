@@ -107,7 +107,7 @@ windows/ - all files related exclusively to Windows.
 Changes
 -------
 
-Version 3.1.5.X
+Version 3.1.5.2
 
 1. Names of external functions and structs have been changed to have the
    prefix 'fiftyoneDegrees'. This is to prevent name clashes when
