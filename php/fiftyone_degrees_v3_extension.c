@@ -105,7 +105,7 @@ PHP_FUNCTION(fiftyone_degrees_get_properties)
         }
       }
 
-      int32_t sigRank = fiftyoneDegreesGetSignatureRank(ws);
+      int32_t sigRank = getSignatureRank(ws);
       add_assoc_long(return_value, "SignatureRank", sigRank);
       add_assoc_long(return_value, "Difference", ws->difference);
 
