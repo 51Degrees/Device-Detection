@@ -50,7 +50,7 @@ void printLoadBar(long count, long max) {
 // Execute a performance test using a file of null terminated useragent strings
 // as input. If calibrate is true then the file is read but no detections
 // are performed.
-int performanceTest(char* fileName, Workset *ws, long max, int calibrate) {
+int performanceTest(char* fileName, fiftyoneDegreesWorkset *ws, long max, int calibrate) {
 	long count = 0;
 	long marker = max / PROGRESS_MARKERS;
 	const char *result;
@@ -60,7 +60,7 @@ int performanceTest(char* fileName, Workset *ws, long max, int calibrate) {
 	inputFilePtr = fopen(fileName, "r");
 
 	if (inputFilePtr == NULL) {
-        printf("Failed to open file with null-terminating user agent strings to match against 51Degrees data file. \n");
+        printf("Failed to open file with null-terminating user agent strings to fiftyoneDegreesMatch against 51Degrees data file. \n");
         fclose(inputFilePtr);
         exit(0);
 	}
@@ -85,7 +85,7 @@ int performanceTest(char* fileName, Workset *ws, long max, int calibrate) {
 		// useragent that has just been read.
 		if (calibrate == 0)
 		{
-			match(ws, ws->input); //workset, useragent
+			fiftyoneDegreesMatch(ws, ws->input); //fiftyoneDegreesWorkset, useragent
 		}
 
 		// Increase the counter and reset the offset to
@@ -114,7 +114,7 @@ int performanceTest(char* fileName, Workset *ws, long max, int calibrate) {
 }
 
 // Perform the test and return the average time.
-double performTest(char *fileName, Workset *ws, int passes, int calibrate, char *test) {
+double performTest(char *fileName, fiftyoneDegreesWorkset *ws, int passes, int calibrate, char *test) {
 	int pass;
 	time_t start, end;
 	fflush(stdout);
@@ -130,7 +130,7 @@ double performTest(char *fileName, Workset *ws, int passes, int calibrate, char 
 }
 
 // Performance test.
-void performance(char *fileName, Workset *ws) {
+void performance(char *fileName, fiftyoneDegreesWorkset *ws) {
 	double totalSec, calibration, test;
 	performTest(fileName, ws, 1, 1, "Caching Data");
 
@@ -166,26 +166,26 @@ char *findFileNames(char *subject) {
 
 // The main method used by the command line test routine.
 int main(int argc, char* argv[]) {
-	DataSet dataSet;
-	Workset *ws = NULL;
+	fiftyoneDegreesDataSet dataSet;
+	fiftyoneDegreesWorkset *ws = NULL;
 	char *dataSetFileName = argc > 1 ? argv[1] : NULL;
 	char *inputFileName = argc > 2 ? argv[2] : NULL;
-    char *requiredProperties = argc > 3 ? argv[3] : NULL;
+  char *requiredProperties = argc > 3 ? argv[3] : NULL;
 
 	printf("\n");
 	printf("\t#############################################################\n");
-    printf("\t#                                                           #\n");
-    printf("\t#  This program can be used to test the performance of the  #\n");
-    printf("\t#                51Degrees 'Pattern' C API.                 #\n");
-    printf("\t#                                                           #\n");
-    printf("\t#   The test will read a list of User Agents and calculate  #\n");
-    printf("\t#            the number of detections per second.           #\n");
-    printf("\t#                                                           #\n");
+  printf("\t#                                                           #\n");
+  printf("\t#  This program can be used to test the performance of the  #\n");
+  printf("\t#                51Degrees 'Pattern' C API.                 #\n");
+  printf("\t#                                                           #\n");
+  printf("\t#   The test will read a list of User Agents and calculate  #\n");
+  printf("\t#            the number of detections per second.           #\n");
+  printf("\t#                                                           #\n");
 	printf("\t#  Command line arguments should be a csv file containing   #\n");
-    printf("\t#  a list of user agents. A test file of 1 million can be   #\n");
+  printf("\t#  a list of user agents. A test file of 1 million can be   #\n");
 	printf("\t#    downloaded from http://51degrees.com/million.zip       #\n");
 	printf("\t#                                                           #\n");
-    printf("\t#############################################################\n");
+  printf("\t#############################################################\n");
 
     if (dataSetFileName == NULL || inputFileName == NULL)
     {
@@ -193,10 +193,10 @@ int main(int argc, char* argv[]) {
         return 0;
     }
 
-    switch(initWithPropertyString(dataSetFileName, &dataSet, requiredProperties)) {
+    switch(fiftyoneDegreesInitWithPropertyString(dataSetFileName, &dataSet, requiredProperties)) {
         case DATA_SET_INIT_STATUS_INSUFFICIENT_MEMORY:
-                printf("Insufficient memory to load '%s'.", argv[1]);
-                break;
+            printf("Insufficient memory to load '%s'.", argv[1]);
+            break;
         case DATA_SET_INIT_STATUS_CORRUPT_DATA:
             printf("Device data file '%s' is corrupted.", argv[1]);
             break;
@@ -207,11 +207,11 @@ int main(int argc, char* argv[]) {
             printf("Device data file '%s' not found.", argv[1]);
             break;
         default: {
-            ws = createWorkset(&dataSet);
-            printf("\n\nUseragents file is: %s\n\n",findFileNames(inputFileName));
+            ws = fiftyoneDegreesCreateWorkset(&dataSet);
+            printf("\n\nUseragents file is: %s\n\n", findFileNames(inputFileName));
             performance(inputFileName, ws);
-            freeWorkset(ws);
-            destroy(&dataSet);
+            fiftyoneDegreesFreeWorkset(ws);
+            fiftyoneDegreesDestroy(&dataSet);
         }
                 break;
     }

@@ -9,13 +9,13 @@
 #define BUFFER_LENGTH 50000
 
 int main(int argc, char* argv[]) {
-	Workset *ws = NULL;
-	DataSet dataSet;
+	fiftyoneDegreesWorkset *ws = NULL;
+	fiftyoneDegreesDataSet dataSet;
 	char output[BUFFER_LENGTH];
     char *fileName = argc > 1 ? argv[1] : NULL;
     char *requiredProperties = argc > 2 ? argv[2] : NULL;
 
-        switch(initWithPropertyString(fileName, &dataSet, requiredProperties)) {
+        switch(fiftyoneDegreesInitWithPropertyString(fileName, &dataSet, requiredProperties)) {
             case DATA_SET_INIT_STATUS_INSUFFICIENT_MEMORY:
                 printf("Insufficient memory to load '%s'.", argv[1]);
                 break;
@@ -30,7 +30,7 @@ int main(int argc, char* argv[]) {
                 break;
             default: {
 
-                    ws = createWorkset(&dataSet);
+                    ws = fiftyoneDegreesCreateWorkset(&dataSet);
 
                     #ifdef _MSC_VER
                     gets_s(ws->input, dataSet.header.maxUserAgentLength);
@@ -38,9 +38,9 @@ int main(int argc, char* argv[]) {
                     gets(ws->input);
                     #endif
                     while(strlen(ws->input) > 0) {
-                        match(ws, ws->input);
+                        fiftyoneDegreesMatch(ws, ws->input);
                         if (ws->profileCount > 0) {
-                            processDeviceCSV(ws, output, BUFFER_LENGTH);
+                            fiftyoneDegreesProcessDeviceCSV(ws, output, BUFFER_LENGTH);
                             printf("%s", output);
                             /* Diagnostics Info
                             printf("\r\nDiagnostics Information\r\n\r\n");
@@ -70,8 +70,8 @@ int main(int argc, char* argv[]) {
                         #endif
                     }
 
-                    freeWorkset(ws);
-                    destroy(&dataSet);
+                    fiftyoneDegreesFreeWorkset(ws);
+                    fiftyoneDegreesDestroy(&dataSet);
                 }//End default
                 break;
             }//End Switch

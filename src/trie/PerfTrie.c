@@ -65,7 +65,7 @@ void reportProgress(PERFORMANCE_STATE *perfState, int count, int device, int pro
     // If in real detection mode then print the id of the device found
     // to prove it's actually doing something!
     if (perfState->calibrate == 0) {
-        printf(" %s  ", getValue(device, propertyIndex));
+        printf(" %s  ", fiftyoneDegreesGetValue(device, propertyIndex));
     }
 
     // Unlock the signal now that the count has been updated.
@@ -77,7 +77,7 @@ void runPerformanceTest(void* state) {
 	const char *result;
 	char userAgent[BUFFER];
 	int device = INT_MAX;
-	int propertyIndex = getPropertyIndex("Id");
+	int propertyIndex = fiftyoneDegreesGetPropertyIndex("Id");
 	FILE *inputFilePtr = fopen(perfState->fileName, "r");
     int count = 0;
 
@@ -92,7 +92,7 @@ void runPerformanceTest(void* state) {
 		// If we're not calibrating then get the device for the
 		// useragent that has just been read.
 		if (strlen(userAgent) < 1024 && perfState->calibrate == 0)
-			device = getDeviceOffset(userAgent);
+			device = fiftyoneDegreesGetDeviceOffset(userAgent);
 
         // Increase the local counter.
         count++;
@@ -147,11 +147,11 @@ double performTest(PERFORMANCE_STATE *state, int passes, char *test) {
 	time_t start, end;
 	fflush(stdout);
 
-    // Set the progress indicator.
-    state->progress = (state->max > 0 ? state->max : INT_MAX) / PROGRESS_MARKS;
+  // Set the progress indicator.
+  state->progress = (state->max > 0 ? state->max : INT_MAX) / PROGRESS_MARKS;
 
 	// Perform a number of passes of the test.
-    time(&start);
+  time(&start);
 	for(pass = 1; pass <= passes; pass++) {
 		printf("%s pass %i of %i: \n\n", test, pass, passes);
 		performanceTest(state);
@@ -165,24 +165,24 @@ void performance(char *fileName) {
 	PERFORMANCE_STATE state;
 	double totalSec, calibration, test;
 
-    state.max = 0;
+  state.max = 0;
 	state.fileName = fileName;
-    state.calibrate = 1;
+  state.calibrate = 1;
 
-    // Get the number of records in the data file and also
-    // get it loaded into any available disk cache.
-    state.numberOfThreads = 1;
-    performTest(&state, 1, "Caching Data");
-    state.numberOfThreads = THREAD_COUNT;
-    state.max = state.count * state.numberOfThreads;
+  // Get the number of records in the data file and also
+  // get it loaded into any available disk cache.
+  state.numberOfThreads = 1;
+  performTest(&state, 1, "Caching Data");
+  state.numberOfThreads = THREAD_COUNT;
+  state.max = state.count * state.numberOfThreads;
 
-    // Process the data file doing all tasks except detecting
-    // the device.
-    calibration = performTest(&state, PASSES, "Calibrate"),
+  // Process the data file doing all tasks except detecting
+  // the device.
+  calibration = performTest(&state, PASSES, "Calibrate"),
 
-    // Process the data file doing the device detection.
-    state.calibrate = 0;
-    test = performTest(&state, PASSES, "Detection test");
+  // Process the data file doing the device detection.
+  state.calibrate = 0;
+  test = performTest(&state, PASSES, "Detection test");
 
 	// Time to complete.
 	totalSec = test - calibration;
@@ -218,27 +218,27 @@ int fileExists(char *fileName) {
 int main(int argc, char* argv[]) {
 	printf("\n");
 	printf("\t#############################################################\n");
-    printf("\t#                                                           #\n");
-    printf("\t#  This program can be used to test the performance of the  #\n");
-    printf("\t#                 51Degrees 'Trie' C API.                   #\n");
-    printf("\t#                                                           #\n");
-    printf("\t#   The test will read a list of User Agents and calculate  #\n");
-    printf("\t#            the number of detections per second.           #\n");
-    printf("\t#                                                           #\n");
+  printf("\t#                                                           #\n");
+  printf("\t#  This program can be used to test the performance of the  #\n");
+  printf("\t#                 51Degrees 'Trie' C API.                   #\n");
+  printf("\t#                                                           #\n");
+  printf("\t#   The test will read a list of User Agents and calculate  #\n");
+  printf("\t#            the number of detections per second.           #\n");
+  printf("\t#                                                           #\n");
 	printf("\t#    Command line arguments should be a tree format data    #\n");
 	printf("\t#   file and a csv file containing a list of user agents.   #\n");
 	printf("\t#      A test file of 1 million can be downloaded from      #\n");
 	printf("\t#            http://51degrees.com/million.zip               #\n");
 	printf("\t#                                                           #\n");
-    printf("\t#############################################################\n");
+  printf("\t#############################################################\n");
 
 	if (argc > 2) {
 
         char *fileName = argc > 1 ? argv[1] : NULL;
         char *requiredProperties = argc > 3 ? argv[3] : NULL;
 
-        DataSetInitStatus status = DATA_SET_INIT_STATUS_SUCCESS;
-        status = init(fileName, requiredProperties);
+        fiftyoneDegreesDataSetInitStatus status = DATA_SET_INIT_STATUS_SUCCESS;
+        status = fiftyoneDegreesInit(fileName, requiredProperties);
         switch(status) {
             case DATA_SET_INIT_STATUS_INSUFFICIENT_MEMORY:
                 printf("Insufficient memory to load '%s'.", argv[1]);
@@ -262,7 +262,7 @@ int main(int argc, char* argv[]) {
                 fgetc(stdin);
 
                 performance(argv[2]);
-                destroy();
+                fiftyoneDegreesDestroy();
                 break;
             }
         }

@@ -50,8 +50,8 @@ PHP_FUNCTION(fiftyone_degrees_test_function)
   RETURN_STRING("HELLO WORLD", 1);
 }
 
-DataSet dataSet;
-DataSetInitStatus initStatus;
+fiftyoneDegreesDataSet dataSet;
+fiftyoneDegreesDataSetInitStatus initStatus;
 
 // get properties implementation
 PHP_FUNCTION(fiftyone_degrees_get_properties)
@@ -75,65 +75,66 @@ PHP_FUNCTION(fiftyone_degrees_get_properties)
   char* useragent;
   int useragent_len;
 
-    if (zend_parse_parameters(ZEND_NUM_ARGS() TSRMLS_CC, "s", 
-    &useragent, &useragent_len) == SUCCESS) {
-      Workset* ws = NULL;
-      
-      ws = createWorkset(&dataSet);
+  if (zend_parse_parameters(ZEND_NUM_ARGS() TSRMLS_CC, "s", 
+  &useragent, &useragent_len) == SUCCESS) {
+    fiftyoneDegreesWorkset* ws = NULL;
+    
+    ws = fiftyoneDegreesCreateWorkset(&dataSet);
 
-      if (ws != NULL) {
-        array_init(return_value);
-        match(ws, useragent);
-        int propertyIndex;
-        for(propertyIndex = 0; propertyIndex < ws->dataSet->requiredPropertyCount; propertyIndex++) {
-          char* propertyName = getPropertyName(ws->dataSet, *(ws->dataSet->requiredProperties + propertyIndex));
-          int valueCount = setValues(ws, propertyIndex);
-          if (valueCount == 1) {
-            char *valueString = getValueName(ws->dataSet, *ws->values);
-            add_assoc_string(return_value, propertyName, valueString, 1);
-          }
-          else if (valueCount > 1) {
-            zval* valueArray;
-	    ALLOC_INIT_ZVAL(valueArray);
-            array_init(valueArray);
-	    add_assoc_zval(return_value, propertyName, valueArray);
-            int valueIndex;
-            for(valueIndex = 0; valueIndex < valueCount; valueIndex++) {
-              char *valueString = getValueName(ws->dataSet, *(ws->values + valueIndex));
-              add_next_index_string(valueArray, valueString, 1);
-            }
+    if (ws != NULL) {
+      array_init(return_value);
+      fiftyoneDegreesMatch(ws, useragent);
+      int propertyIndex;
+      for(propertyIndex = 0; propertyIndex < ws->dataSet->requiredPropertyCount; propertyIndex++) {
+        char* propertyName = fiftyoneDegreesGetPropertyName(ws->dataSet, *(ws->dataSet->requiredProperties + propertyIndex));
+        int valueCount = fiftyoneDegreesSetValues(ws, propertyIndex);
+        if (valueCount == 1) {
+          char *valueString = fiftyoneDegreesGetValueName(ws->dataSet, *ws->values);
+          add_assoc_string(return_value, propertyName, valueString, 1);
+        }
+        else if (valueCount > 1) {
+          zval* valueArray;
+          ALLOC_INIT_ZVAL(valueArray);
+          array_init(valueArray);
+          add_assoc_zval(return_value, propertyName, valueArray);
+          int valueIndex;
+          for(valueIndex = 0; valueIndex < valueCount; valueIndex++) {
+            char *valueString = fiftyoneDegreesGetValueName(ws->dataSet, *(ws->values + valueIndex));
+            add_next_index_string(valueArray, valueString, 1);
           }
         }
-	int32_t sigRank = getSignatureRank(ws);
-	add_assoc_long(return_value, "SignatureRank", sigRank);
-	add_assoc_long(return_value, "Difference", ws->difference);
-
-	char* methodString;
-	switch(ws->method){
-		case NONE: methodString = "None"; break;
-		case EXACT: methodString = "Exact"; break;
-		case NUMERIC: methodString = "Numeric"; break;
-		case NEAREST: methodString = "Nearest"; break;
-		case CLOSEST: methodString = "Closest"; break;
-		default: methodString = "Unknown"; break;
-	}
-
-	add_assoc_string(return_value, "Method", methodString, 1);
-	freeWorkset(ws);
       }
-      else 
-      {
-        php_error(E_WARNING, "The workset could not be initialised.");
+
+      int32_t sigRank = getSignatureRank(ws);
+      add_assoc_long(return_value, "SignatureRank", sigRank);
+      add_assoc_long(return_value, "Difference", ws->difference);
+
+      char* methodString;
+      switch(ws->method){
+        case NONE: methodString = "None"; break;
+        case EXACT: methodString = "Exact"; break;
+        case NUMERIC: methodString = "Numeric"; break;
+        case NEAREST: methodString = "Nearest"; break;
+        case CLOSEST: methodString = "Closest"; break;
+        default: methodString = "Unknown"; break;
       }
+
+      add_assoc_string(return_value, "Method", methodString, 1);
+      fiftyoneDegreesFreeWorkset(ws);
     }
     else 
     {
-      php_error(E_WARNING, "Could not parse arguments.");
+      php_error(E_WARNING, "The workset could not be initialised.");
     }
+  }
+  else 
+  {
+    php_error(E_WARNING, "Could not parse arguments.");
+  }
   
 }
 
-int32_t getSignatureRank(Workset *ws) {
+int32_t getSignatureRank(fiftyoneDegreesWorkset *ws) {
 	int32_t rank;
 	int32_t signatureIndex = (int32_t)(ws->signature - ws->dataSet->signatures) / ws->dataSet->sizeOfSignature;
 	for (rank = 0; rank < ws->dataSet->header.signatures.count; rank++) {
@@ -153,7 +154,7 @@ PHP_MINIT_FUNCTION(fiftyone_degrees_detector_init)
 {
   REGISTER_INI_ENTRIES();
   char* dataFilePath = INI_STR("fiftyone_degrees.data_file");
-  initStatus = initWithPropertyString(dataFilePath, &dataSet, NULL);
+  initStatus = fiftyoneDegreesInitWithPropertyString(dataFilePath, &dataSet, NULL);
   return SUCCESS;
 }
 
@@ -161,7 +162,7 @@ PHP_MSHUTDOWN_FUNCTION(fiftyone_degrees_detector_shutdown)
 {
   UNREGISTER_INI_ENTRIES();
   if (initStatus == SUCCESS) {
-    destroy(&dataSet);
+    fiftyoneDegreesDestroy(&dataSet);
   }
   return SUCCESS;
 }

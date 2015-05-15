@@ -21,7 +21,7 @@ EXTERN_DLL_EXPORT void __cdecl Init(LPCTSTR fileName, LPCTSTR properties)
 
 EXTERN_DLL_EXPORT void __cdecl Destroy()
 {
-	destroy();
+	fiftyoneDegreesDestroy();
 }
 
 EXTERN_DLL_EXPORT int __cdecl GetPropertiesCSV(LPCTSTR userAgent, LPTSTR result, DWORD resultLength)

@@ -26,33 +26,39 @@
 #endif
 
 /* Used to provide the status of the data set initialisation */
-typedef enum e_DataSetInitStatus {
+typedef enum e_fiftyoneDegreesDataSetInitStatus {
     DATA_SET_INIT_STATUS_SUCCESS,
     DATA_SET_INIT_STATUS_INSUFFICIENT_MEMORY,
     DATA_SET_INIT_STATUS_CORRUPT_DATA,
     DATA_SET_INIT_STATUS_INCORRECT_VERSION,
     DATA_SET_INIT_STATUS_FILE_NOT_FOUND
-} DataSetInitStatus;
+} fiftyoneDegreesDataSetInitStatus;
 
 // Initialises the memory using the file provided.
-EXTERNAL DataSetInitStatus init(char *fileName, char *properties);
+EXTERNAL fiftyoneDegreesDataSetInitStatus fiftyoneDegreesInit(char *fileName, char *properties);
 
 // Returns the offset to a matching device based on the useragent provided.
-EXTERNAL int getDeviceOffset(char *userAgent);
+EXTERNAL int fiftyoneDegreesGetDeviceOffset(char *userAgent);
 
 // Returns the index of the property requested, or -1 if not available.
-EXTERNAL int getPropertyIndex(char *value);
+EXTERNAL int fiftyoneDegreesGetPropertyIndex(char *value);
 
 // Takes the results of getDeviceOffset and getPropertyIndex to return a value.
-EXTERNAL char* getValue(int deviceOffset, int propertyIndex);
+EXTERNAL char* fiftyoneDegreesGetValue(int deviceOffset, int propertyIndex);
+
+// Returns how many properties have been loaded in the dataset.
+EXTERNAL int fiftyoneDegreesGetRequiredPropertiesCount();
+
+// Returns the names of the properties loaded in the dataset.
+EXTERNAL char ** fiftyoneDegreesGetRequiredPropertiesNames();
 
 // Fress the memory.
-EXTERNAL void destroy();
+EXTERNAL void fiftyoneDegreesDestroy();
 
 // Converts the device offset to a CSV string returning the number of
 // characters used.
-EXTERNAL int processDeviceCSV(int deviceOffset, char* result, int resultLength);
+EXTERNAL int fiftyoneDegreesProcessDeviceCSV(int deviceOffset, char* result, int resultLength);
 
 // Converts the device offset to a JSON string returning the number of
 // characters used.
-EXTERNAL int processDeviceJSON(int deviceOffset, char* result, int resultLength);
+EXTERNAL int fiftyoneDegreesProcessDeviceJSON(int deviceOffset, char* result, int resultLength);

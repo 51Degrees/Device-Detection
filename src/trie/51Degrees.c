@@ -138,7 +138,7 @@ static uint32_t* _requiredProperties;
 static char** _requiredPropertiesNames;
 
 // Reads the strings from the file.
-DataSetInitStatus readStrings(FILE *inputFilePtr) {
+fiftyoneDegreesDataSetInitStatus readStrings(FILE *inputFilePtr) {
 	if (fread(&_stringsSize, sizeof(int32_t), 1, inputFilePtr) != 1)
         return DATA_SET_INIT_STATUS_CORRUPT_DATA;
 	_strings = (char*)malloc(_stringsSize);
@@ -150,7 +150,7 @@ DataSetInitStatus readStrings(FILE *inputFilePtr) {
 }
 
 // Reads the profiles from the file.
-DataSetInitStatus readProperties(FILE *inputFilePtr) {
+fiftyoneDegreesDataSetInitStatus readProperties(FILE *inputFilePtr) {
 	if(fread(&_propertiesSize, sizeof(int32_t), 1, inputFilePtr) != 1)
         return DATA_SET_INIT_STATUS_CORRUPT_DATA;
 	_properties = (int32_t*)malloc(_propertiesSize);
@@ -163,7 +163,7 @@ DataSetInitStatus readProperties(FILE *inputFilePtr) {
 }
 
 // Reads the profiles from the file.
-DataSetInitStatus readDevices(FILE *inputFilePtr) {
+fiftyoneDegreesDataSetInitStatus readDevices(FILE *inputFilePtr) {
 	if (fread(&_devicesSize, sizeof(int32_t), 1, inputFilePtr) != 1)
         return DATA_SET_INIT_STATUS_CORRUPT_DATA;
 	_devices = (int32_t*)malloc(_devicesSize);
@@ -175,7 +175,7 @@ DataSetInitStatus readDevices(FILE *inputFilePtr) {
 }
 
 // Reads the lookups from the input file provided.
-DataSetInitStatus readLookupList(FILE *inputFilePtr) {
+fiftyoneDegreesDataSetInitStatus readLookupList(FILE *inputFilePtr) {
 	if (fread(&_lookupListSize, sizeof(int32_t), 1, inputFilePtr) != 1)
         return DATA_SET_INIT_STATUS_CORRUPT_DATA;
 	_lookupList = (LOOKUP_HEADER*)malloc(_lookupListSize);
@@ -187,7 +187,7 @@ DataSetInitStatus readLookupList(FILE *inputFilePtr) {
 }
 
 // Reads the nodes byte array into memory.
-DataSetInitStatus readNodes(FILE *inputFilePtr) {
+fiftyoneDegreesDataSetInitStatus readNodes(FILE *inputFilePtr) {
 	if (fread(&_nodesSize, sizeof(int64_t), 1, inputFilePtr) != 1)
         return DATA_SET_INIT_STATUS_CORRUPT_DATA;
 	_rootNode = (int32_t*)malloc(_nodesSize);
@@ -203,7 +203,7 @@ DataSetInitStatus readNodes(FILE *inputFilePtr) {
 }
 
 // Reads the copyright message into memory.
-DataSetInitStatus readCopyright(FILE *inputFilePtr) {
+fiftyoneDegreesDataSetInitStatus readCopyright(FILE *inputFilePtr) {
 	if (fread(&_copyrightSize, sizeof(int32_t), 1, inputFilePtr) != 1)
         return DATA_SET_INIT_STATUS_CORRUPT_DATA;
 	_copyright = (char*)malloc(_copyrightSize);
@@ -215,7 +215,7 @@ DataSetInitStatus readCopyright(FILE *inputFilePtr) {
 }
 
 // Fress the memory.
-void destroy(void) {
+void fiftyoneDegreesDestroy(void) {
 	if (_requiredProperties > 0) free(_requiredProperties);
 	if (_rootNode > 0) free(_rootNode);
 	if (_lookupList > 0) free(_lookupList);
@@ -226,7 +226,7 @@ void destroy(void) {
 
 // Reads the version value from the start of the file and returns
 // 0 if the file is in a format that can be read by this code.
-DataSetInitStatus readVersion(FILE *inputFilePtr) {
+fiftyoneDegreesDataSetInitStatus readVersion(FILE *inputFilePtr) {
 	uint16_t version;
 	fread(&version, sizeof(uint16_t), 1, inputFilePtr);
 	if (version != 3)
@@ -236,8 +236,8 @@ DataSetInitStatus readVersion(FILE *inputFilePtr) {
 
 // Reads the input file into memory returning 1 if it
 // was read unsuccessfully, otherwise 0.
-DataSetInitStatus readFile(char* fileName) {
-    DataSetInitStatus status = DATA_SET_INIT_STATUS_SUCCESS;
+fiftyoneDegreesDataSetInitStatus readFile(char* fileName) {
+	fiftyoneDegreesDataSetInitStatus status = DATA_SET_INIT_STATUS_SUCCESS;
 
 	FILE *inputFilePtr;
 
@@ -367,8 +367,8 @@ void initAllProperties() {
 }
 
 // Initialises the memory using the file provided.
-DataSetInitStatus init(char* fileName, char* properties) {
-    DataSetInitStatus status = DATA_SET_INIT_STATUS_SUCCESS;
+fiftyoneDegreesDataSetInitStatus fiftyoneDegreesInit(char* fileName, char* properties) {
+	fiftyoneDegreesDataSetInitStatus status = DATA_SET_INIT_STATUS_SUCCESS;
     status = readFile(fileName);
     if (status != DATA_SET_INIT_STATUS_SUCCESS) {
         return status;
@@ -384,7 +384,7 @@ DataSetInitStatus init(char* fileName, char* properties) {
 }
 
 // Returns the index of the property requested, or -1 if not available.
-int getPropertyIndex(char *value) {
+int fiftyoneDegreesGetPropertyIndex(char *value) {
 	uint32_t i = 0;
 	for(i = 0; i < _propertiesCount; i++) {
 		if(strcmp(
@@ -399,7 +399,7 @@ int getPropertyIndex(char *value) {
 // Returns the index of the child of the current node based on
 // the value of the current character being compared.
 BYTE getChildIndex(char value, int32_t lookupListPosition) {
-	LOOKUP_HEADER *lookup= (LOOKUP_HEADER*)(((BYTE*)_lookupList) + lookupListPosition);
+	LOOKUP_HEADER *lookup = (LOOKUP_HEADER*)(((BYTE*)_lookupList) + lookupListPosition);
 	if (value < lookup->lowest ||
 		value > lookup->highest)
 		return BYTE_MAX;
@@ -486,8 +486,8 @@ int32_t getDeviceIndexNoDeviceNode(char* userAgent, NODE_NO_DEVICE_INDEX* node, 
 // the pointer to the user agent left.
 int32_t getDeviceIndexForNode(char* userAgent, int32_t* node, int32_t parentDeviceIndex) {
     if (*node >= 0)
-        return getDeviceIndexFullNode(userAgent, (NODE_FULL*)node);
-    return getDeviceIndexNoDeviceNode(userAgent, (NODE_NO_DEVICE_INDEX*)node, parentDeviceIndex);
+		return getDeviceIndexFullNode(userAgent, (NODE_FULL*)node);
+	return getDeviceIndexNoDeviceNode(userAgent, (NODE_NO_DEVICE_INDEX*)node, parentDeviceIndex);
 }
 
 // Returns the index to a matching device based on the useragent provided.
@@ -496,7 +496,7 @@ int32_t getDeviceIndex(char* userAgent) {
 }
 
 // Returns the offset in the properties list to the first value for the device.
-int32_t getDeviceOffset(char* userAgent) {
+int32_t fiftyoneDegreesGetDeviceOffset(char* userAgent) {
     return getDeviceIndex(userAgent) * _propertiesCount;
 }
 
@@ -505,12 +505,22 @@ char* getValueFromDevice(int32_t* device, int32_t propertyIndex) {
 }
 
 // Takes the results of getDeviceOffset and getPropertyIndex to return a value.
-char* getValue(int deviceOffset, int propertyIndex) {
+char* fiftyoneDegreesGetValue(int deviceOffset, int propertyIndex) {
     return getValueFromDevice(_devices + deviceOffset, propertyIndex);
 }
 
+// Returns how many properties have been loaded in the dataset.
+int32_t fiftyoneDegreesGetRequiredPropertiesCount() {
+  return _requiredPropertiesCount;
+}
+
+// Returns the names of the properties loaded in the dataset.
+char ** fiftyoneDegreesGetRequiredPropertiesNames() {
+  return _requiredPropertiesNames;
+}
+
 // Process device properties into a CSV string.
-int processDeviceCSV(int32_t deviceOffset, char* result, int resultLength) {
+int fiftyoneDegreesProcessDeviceCSV(int32_t deviceOffset, char* result, int resultLength) {
 	char* currentPos = result;
 	char* endPos = result + resultLength;
 	uint32_t i;
@@ -542,7 +552,7 @@ int processDeviceCSV(int32_t deviceOffset, char* result, int resultLength) {
 }
 
 // Process device properties into a JSON string.
-int processDeviceJSON(int32_t deviceOffset, char* result, int resultLength) {
+int fiftyoneDegreesProcessDeviceJSON(int32_t deviceOffset, char* result, int resultLength) {
 	const char* deviceValue;
 	int32_t deviceValueLength, deviceValueIndex;
 	char* currentPos = result;

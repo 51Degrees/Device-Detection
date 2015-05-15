@@ -107,6 +107,75 @@ windows/ - all files related exclusively to Windows.
 Changes
 -------
 
+Version 3.1.5.2
+
+1. Names of external functions and structs have been changed to have the
+   prefix 'fiftyoneDegrees'. This is to prevent name clashes when
+   integrating to existing code.
+   The following Pattern detector names have been changed:
+
+   Structs and enums:
+      fod_bool -> fiftyoneDegreesBool
+      matchMethod -> fiftyoneDegreesMatchMethod;
+      DataSetInitStatus -> fiftyoneDegreesDataSetInitStatus
+      RANGE -> fiftyoneDegreesRANGE
+      AsciiString -> fiftyoneDegreesAsciiString
+      Component -> fiftyoneDegreesComponent
+      Map -> fiftyoneDegreesMap
+      NodeNumericIndex -> fiftyoneDegreesNodeNumericIndex
+      NodeIndexValue -> fiftyoneDegreesNodeIndexValue
+      NodeIndex -> fiftyoneDegreesNodeIndex
+      String -> fiftyoneDegreesString
+      Strings -> fiftyoneDegreesStrings
+      Node -> fiftyoneDegreesNode
+      ProfileOffset -> fiftyoneDegreesProfileOffset
+      Property -> fiftyoneDegreesProperty
+      Value -> fiftyoneDegreesValue
+      Profile -> fiftyoneDegreesProfile
+      Date -> fiftyoneDegreesDate
+      EntityHeader -> fiftyoneDegreesEntityHeader
+      NumericNodeState -> fiftyoneDegreesNumericNodeState
+      DataSetHeader -> fiftyoneDegreesDataSetHeader;
+      DataSet -> fiftyoneDegreesDataSet;
+      LinkedSignatureListItem -> fiftyoneDegreesLinkedSignatureListItem;
+      LinkedSignatureList -> fiftyoneDegreesLinkedSignatureList;
+      WorkSet -> fiftyoneDegreesWorkset;
+
+   Functions:
+      initWithPropertyArray -> fiftyoneDegreesInitWithPropertyArray
+      initWithPropertyString -> fiftyoneDegreesInitWithPropertyString
+      destroy -> fiftyoneDegreesDestroy
+      createWorkset -> fiftyoneDegreesCreateWorkset
+      freeWorkset -> fiftyoneDegreesFreeWorkset
+      match -> fiftyoneDegreesMatch
+      setValues -> fiftyoneDegreesSetValues
+      getString -> fiftyoneDegreesGetString
+      getValueName -> fiftyoneDegreesGetValueName
+      getPropertyName -> fiftyoneDegreesGetPropertyName
+      processDeviceCSV -> fiftyoneDegreesProcessDeviceCSV
+      processDeviceJSON -> fiftyoneDegreesProcessDeviceJSON             
+
+   The following Trie detector names have been changes:
+
+   Structs:
+      DataSetInitStatus -> fiftyoneDegreesDataSetInitStatus;
+
+   Functions:
+      init -> fiftyoneDegreesInit
+      getDeviceOffset -> fiftyoneDegreesGetDeviceOffset
+      getPropertyIndex -> fiftyoneDegreesGetPropertyIndex
+      getValue -> fiftyoneDegreesGetValue
+      destroy -> fiftyoneDegreesDestroy
+      processDeviceCSV -> fiftyoneDegreesProcessDeviceCSV
+      processDeviceJSON -> fiftyoneDegreesProcessDeviceJSON
+
+2. Added two new functions to Trie:
+   int fiftyoneDegreesGetRequiredPropertiesCount()
+   Returns how many properties have been loaded in the dataset.
+
+   char** fiftyoneDegreesGetRequiredPropertiesNames()
+   Returns the names of the properties loaded in the dataset.
+
 Version 3.1.4.2
 ---------------
 
