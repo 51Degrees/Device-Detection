@@ -18,6 +18,8 @@
  * This Source Code Form is “Incompatible With Secondary Licenses”, as
  * defined by the Mozilla Public License, v. 2.0.
  ********************************************************************** */
+#ifndef FIFTYONEDEGREES_H_INCLUDED
+#define FIFTYONEDEGREES_H_INCLUDED
 
 #ifdef __cplusplus
 #define EXTERNAL extern "C"
@@ -62,3 +64,5 @@ EXTERNAL int fiftyoneDegreesProcessDeviceCSV(int deviceOffset, char* result, int
 // Converts the device offset to a JSON string returning the number of
 // characters used.
 EXTERNAL int fiftyoneDegreesProcessDeviceJSON(int deviceOffset, char* result, int resultLength);
+
+#endif // 51DEGREES_H_INCLUDED
