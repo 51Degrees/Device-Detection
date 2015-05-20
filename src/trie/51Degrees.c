@@ -402,8 +402,8 @@ void initAllProperties() {
 	}
 }
 
-// Initialises the memory using the file provided.
-fiftyoneDegreesDataSetInitStatus fiftyoneDegreesInit(char* fileName, char* properties) {
+// Initialises the memory using the file provided and a string of properties.
+fiftyoneDegreesDataSetInitStatus fiftyoneDegreesInitWithPropertyString(char* fileName, char* properties) {
 	fiftyoneDegreesDataSetInitStatus status = DATA_SET_INIT_STATUS_SUCCESS;
     status = readFile(fileName);
     if (status != DATA_SET_INIT_STATUS_SUCCESS) {
@@ -420,7 +420,7 @@ fiftyoneDegreesDataSetInitStatus fiftyoneDegreesInit(char* fileName, char* prope
 }
 
 // Initialises the memory using the file provided.
-fiftyoneDegreesDataSetInitStatus fiftyoneDegreesInitFromArray(char* fileName, char** properties, int propertyCount) {
+fiftyoneDegreesDataSetInitStatus fiftyoneDegreesInitWithPropertyArray(char* fileName, char** properties, int propertyCount) {
 	fiftyoneDegreesDataSetInitStatus status = DATA_SET_INIT_STATUS_SUCCESS;
     status = readFile(fileName);
     if (status != DATA_SET_INIT_STATUS_SUCCESS) {

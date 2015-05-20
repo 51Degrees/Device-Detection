@@ -21,6 +21,10 @@
 #ifndef FIFTYONEDEGREES_H_INCLUDED
 #define FIFTYONEDEGREES_H_INCLUDED
 
+#ifndef FIFTYONEDEGREES_H_TRIE_INCLUDED
+#define FIFTYONEDEGREES_H_TRIE_INCLUDED
+#endif
+
 #ifdef __cplusplus
 #define EXTERNAL extern "C"
 #else
@@ -33,13 +37,13 @@ typedef enum e_fiftyoneDegreesDataSetInitStatus {
     DATA_SET_INIT_STATUS_INSUFFICIENT_MEMORY,
     DATA_SET_INIT_STATUS_CORRUPT_DATA,
     DATA_SET_INIT_STATUS_INCORRECT_VERSION,
-    DATA_SET_INIT_STATUS_FILE_NOT_FOUND
+    DATA_SET_INIT_STATUS_FILE_NOT_FOUND,
+	DATA_SET_INIT_STATUS_NOT_SET
 } fiftyoneDegreesDataSetInitStatus;
 
-// Initialises the memory using the file provided.
-EXTERNAL fiftyoneDegreesDataSetInitStatus fiftyoneDegreesInit(char *fileName, char *properties);
-
-EXTERNAL fiftyoneDegreesDataSetInitStatus fiftyoneDegreesInitFromArray(char* fileName, char** properties, int propertyCount);
+// Initialises the memory using the file and properies provided.
+EXTERNAL fiftyoneDegreesDataSetInitStatus fiftyoneDegreesInitWithPropertyArray(char* fileName, char** properties, int propertyCount);
+EXTERNAL fiftyoneDegreesDataSetInitStatus fiftyoneDegreesInitWithPropertyString(char *fileName, char *properties);
 
 // Returns the offset to a matching device based on the useragent provided.
 EXTERNAL int fiftyoneDegreesGetDeviceOffset(char *userAgent);
