@@ -228,10 +228,12 @@ void fiftyoneDegreesDestroy(void) {
 // 0 if the file is in a format that can be read by this code.
 fiftyoneDegreesDataSetInitStatus readVersion(FILE *inputFilePtr) {
 	uint16_t version;
-	fread(&version, sizeof(uint16_t), 1, inputFilePtr);
-	if (version != 3)
-        return DATA_SET_INIT_STATUS_INCORRECT_VERSION;
-    return DATA_SET_INIT_STATUS_SUCCESS;
+	if (fread(&version, sizeof(uint16_t), 1, inputFilePtr) != -1) {
+	   if (version != 3)
+           return DATA_SET_INIT_STATUS_INCORRECT_VERSION;
+       return DATA_SET_INIT_STATUS_SUCCESS;
+   }
+   return DATA_SET_INIT_STATUS_CORRUPT_DATA;
 }
 
 // Reads the input file into memory returning 1 if it
