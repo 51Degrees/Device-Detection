@@ -292,13 +292,13 @@ fiftyoneDegreesDataSetInitStatus readFile(char* fileName) {
 }
 
 // Returns the index of the property requested, or -1 if not available.
-int getPropertyIndexRange(char *start, char *end) {
+int getPropertyIndexRange(char *property, size_t length) {
 	uint32_t i = 0;
 	for(i = 0; i < _propertiesCount; i++) {
 		if(strncmp(
 			_strings + *(_properties + i),
-			start,
-			end - start) == 0) {
+			property,
+			length) == 0) {
 			return i;
 		}
 	}
@@ -319,7 +319,7 @@ void initSpecificProperties(char* properties) {
 		if (*end == '|' || *end == ',' || *end == '\0') {
 			// Check the property we've just reached is valid and
 			// if it is then increase the count.
-			if (getPropertyIndexRange(start, end) > 0)
+			if (getPropertyIndexRange(start, (end - start)) > 0)
 				_requiredPropertiesCount++;
 			start = end + 1;
 		}
@@ -329,14 +329,13 @@ void initSpecificProperties(char* properties) {
 	_requiredProperties = (uint32_t*)malloc(_requiredPropertiesCount * sizeof(int));
 	_requiredPropertiesNames = (char**)malloc(_requiredPropertiesCount * sizeof(char**));
 
-	// Initialise the requiredProperties array.
 	start = properties;
 	end = properties - 1;
 	do {
 		end++;
 		if (*end == '|' || *end == ',' || *end == '\0') {
 			// If this is a valid property add it to the list.
-			propertyIndex = getPropertyIndexRange(start, end);
+			propertyIndex = getPropertyIndexRange(start, (end - start));
 			if (propertyIndex > 0) {
 				*(_requiredProperties + currentIndex) = propertyIndex;
 				*(_requiredPropertiesNames + currentIndex) = _strings + *(_properties + propertyIndex);
@@ -346,6 +345,41 @@ void initSpecificProperties(char* properties) {
 		}
 
 	} while (*end != '\0');
+}
+
+// Initialises the properties provided.
+void initSpecificPropertiesFromArray(char** properties, int count) {
+   int i;
+	int propertyIndex, currentIndex = 0;
+   char *currentProperty;
+   int currentLength = 0;
+
+	// Count the number of valid properties.
+	_requiredPropertiesCount = 0;
+   for (i = 0; i < count; i++) {
+      currentProperty = properties[i];
+      currentLength = strlen(currentProperty);
+      if (getPropertyIndexRange(currentProperty, currentLength) > 0)
+			_requiredPropertiesCount++;
+   }
+
+	// Create enough memory for the properties.
+	_requiredProperties = (uint32_t*)malloc(_requiredPropertiesCount * sizeof(int));
+	_requiredPropertiesNames = (char**)malloc(_requiredPropertiesCount * sizeof(char**));
+
+
+	// Initialise the requiredProperties array.
+   for (i = 0; i < count; i++ ) {
+      currentProperty = properties[i];
+      currentLength = strlen(currentProperty);
+      // If this is a valid property add it to the list.
+		propertyIndex = getPropertyIndexRange(currentProperty, currentLength);
+		if (propertyIndex > 0) {
+			*(_requiredProperties + currentIndex) = propertyIndex;
+			*(_requiredPropertiesNames + currentIndex) = _strings + *(_properties + propertyIndex);
+			currentIndex++;
+		}
+   }
 }
 
 // Initialises all the available properties.
@@ -382,6 +416,19 @@ fiftyoneDegreesDataSetInitStatus fiftyoneDegreesInit(char* fileName, char* prope
 
 	return status;
 }
+
+// Initialises the memory using the file provided.
+fiftyoneDegreesDataSetInitStatus fiftyoneDegreesInitFromArray(char* fileName, char** properties, int propertyCount) {
+	fiftyoneDegreesDataSetInitStatus status = DATA_SET_INIT_STATUS_SUCCESS;
+    status = readFile(fileName);
+    if (status != DATA_SET_INIT_STATUS_SUCCESS) {
+        return status;
+    }
+    initSpecificPropertiesFromArray(properties, propertyCount);
+
+	return status;
+}
+
 
 // Returns the index of the property requested, or -1 if not available.
 int fiftyoneDegreesGetPropertyIndex(char *value) {

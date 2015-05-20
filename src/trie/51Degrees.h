@@ -39,6 +39,8 @@ typedef enum e_fiftyoneDegreesDataSetInitStatus {
 // Initialises the memory using the file provided.
 EXTERNAL fiftyoneDegreesDataSetInitStatus fiftyoneDegreesInit(char *fileName, char *properties);
 
+EXTERNAL fiftyoneDegreesDataSetInitStatus fiftyoneDegreesInitFromArray(char* fileName, char** properties, int propertyCount);
+
 // Returns the offset to a matching device based on the useragent provided.
 EXTERNAL int fiftyoneDegreesGetDeviceOffset(char *userAgent);
 
