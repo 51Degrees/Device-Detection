@@ -16,7 +16,7 @@
 
 EXTERN_DLL_EXPORT void __cdecl Init(LPCTSTR fileName, LPCTSTR properties)
 {
-	init((char*)fileName, (char*)properties);
+	fiftyoneDegreesInitWithPropertyString((char*)fileName, (char*)properties);
 }
 
 EXTERN_DLL_EXPORT void __cdecl Destroy()
@@ -26,5 +26,5 @@ EXTERN_DLL_EXPORT void __cdecl Destroy()
 
 EXTERN_DLL_EXPORT int __cdecl GetPropertiesCSV(LPCTSTR userAgent, LPTSTR result, DWORD resultLength)
 {
-	return processDeviceCSV(getDeviceOffset((char*)userAgent), (char*)result, resultLength);
+	return fiftyoneDegreesProcessDeviceCSV(fiftyoneDegreesGetDeviceOffset((char*)userAgent), (char*)result, resultLength);
 }
