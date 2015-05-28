@@ -6,6 +6,9 @@ ProcTrie
 *.dat
 php/*
 !php/src/*
+!php/PHPExtensionReadMe.txt
+!php/config.m4
+!php/fiftyone_degrees_v3_extension.c
 *.o
 *.so
 
