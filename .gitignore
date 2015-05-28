@@ -1,0 +1,11 @@
+Console
+PerfPat
+PerfTrie
+ProcPat
+ProcTrie
+*.dat
+php/*
+!php/src/*
+*.o
+*.so
+
