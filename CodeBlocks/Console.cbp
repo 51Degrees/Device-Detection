@@ -48,6 +48,11 @@
 		<Compiler>
 			<Add option="-Wall" />
 		</Compiler>
+		<Unit filename="../src/cityhash/city.c">
+			<Option compilerVar="CC" />
+		</Unit>
+		<Unit filename="../src/cityhash/city.h" />
+		<Unit filename="../src/cityhash/citycrc.h" />
 		<Unit filename="../src/console/Console.c">
 			<Option compilerVar="CC" />
 		</Unit>

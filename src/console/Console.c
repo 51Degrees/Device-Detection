@@ -9,6 +9,8 @@
 char* TARGET_USER_AGENTS[] = {
     // Internet explorer
     "Mozilla/5.0 (Windows NT 6.1; WOW64; Trident/7.0; rv:11.0) like Gecko",
+    // Internet explorer (again to test the cache)
+    "Mozilla/5.0 (Windows NT 6.1; WOW64; Trident/7.0; rv:11.0) like Gecko",
     // A set top box running Android, not a mobile device.
     "Mozilla/5.0 (Linux; U; Android 4.1.1; nl-nl; Rikomagic MK802IIIS Build/JRO03H) AppleWebKit/534.30 (KHTML, like Gecko) Version/4.0 Safari/534.30",
     // Galaxy Note from Samsung.
@@ -18,7 +20,9 @@ char* TARGET_USER_AGENTS[] = {
     // Crawler
     "Mozilla/5.0 (compatible; AhrefsBot/3.1; +http://ahrefs.com/robot/)",
     // Modern version of Chrome
-    "Mozilla/5.0 (Windows NT 6.3; WOW64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/32.0.1700.107 Safari/537.36"
+    "Mozilla/5.0 (Windows NT 6.3; WOW64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/32.0.1700.107 Safari/537.36",
+    // Internet explorer (again to test the cache)
+    "Mozilla/5.0 (Windows NT 6.1; WOW64; Trident/7.0; rv:11.0) like Gecko"
 };
 
 char* PROPERTIES[] = {
@@ -101,6 +105,12 @@ void run(fiftyoneDegreesDataSet *dataSet) {
                 printf("\r\n");
             }
         }
+
+        printf("\r\n\t\t\t*** Cache Results ***\r\n");
+        printf("Switches:\t%d\r\n", ws->cache->switches);
+        printf("Hits:\t\t%d\r\n", ws->cache->hits);
+        printf("Misses:\t\t%d\r\n", ws->cache->misses);
+
         fiftyoneDegreesFreeWorkset(ws);
     }
     fiftyoneDegreesDestroy(dataSet);

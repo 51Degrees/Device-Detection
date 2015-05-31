@@ -141,6 +141,9 @@ void performance(char *fileName, fiftyoneDegreesWorkset *ws) {
 	totalSec = test - calibration;
 	printf("Average detection time for total data set: %.2f s\n", totalSec);
 	printf("Average number of detections per second: %.2f\n", (double)_max / totalSec);
+	printf("Cache hits: %d\n", ws->cache->hits);
+	printf("Cache misses: %d\n", ws->cache->misses);
+	printf("Cache switches: %d\n", ws->cache->switches);
 
 	// Wait for a character to be pressed.
 	fgetc(stdin);
@@ -170,22 +173,22 @@ int main(int argc, char* argv[]) {
 	fiftyoneDegreesWorkset *ws = NULL;
 	char *dataSetFileName = argc > 1 ? argv[1] : NULL;
 	char *inputFileName = argc > 2 ? argv[2] : NULL;
-  char *requiredProperties = argc > 3 ? argv[3] : NULL;
+    char *requiredProperties = argc > 3 ? argv[3] : NULL;
 
 	printf("\n");
 	printf("\t#############################################################\n");
-  printf("\t#                                                           #\n");
-  printf("\t#  This program can be used to test the performance of the  #\n");
-  printf("\t#                51Degrees 'Pattern' C API.                 #\n");
-  printf("\t#                                                           #\n");
-  printf("\t#   The test will read a list of User Agents and calculate  #\n");
-  printf("\t#            the number of detections per second.           #\n");
-  printf("\t#                                                           #\n");
+    printf("\t#                                                           #\n");
+    printf("\t#  This program can be used to test the performance of the  #\n");
+    printf("\t#                51Degrees 'Pattern' C API.                 #\n");
+    printf("\t#                                                           #\n");
+    printf("\t#   The test will read a list of User Agents and calculate  #\n");
+    printf("\t#            the number of detections per second.           #\n");
+    printf("\t#                                                           #\n");
 	printf("\t#  Command line arguments should be a csv file containing   #\n");
-  printf("\t#  a list of user agents. A test file of 1 million can be   #\n");
+    printf("\t#  a list of user agents. A test file of 1 million can be   #\n");
 	printf("\t#    downloaded from http://51degrees.com/million.zip       #\n");
 	printf("\t#                                                           #\n");
-  printf("\t#############################################################\n");
+    printf("\t#############################################################\n");
 
     if (dataSetFileName == NULL || inputFileName == NULL)
     {
@@ -206,6 +209,9 @@ int main(int argc, char* argv[]) {
         case DATA_SET_INIT_STATUS_FILE_NOT_FOUND:
             printf("Device data file '%s' not found.", argv[1]);
             break;
+        case DATA_SET_INIT_STATUS_NOT_SET:
+            printf("Device data file '%s' could not be used to initialise.", argv[1]);
+            break;
         default: {
             ws = fiftyoneDegreesCreateWorkset(&dataSet);
             printf("\n\nUseragents file is: %s\n\n", findFileNames(inputFileName));
@@ -213,7 +219,7 @@ int main(int argc, char* argv[]) {
             fiftyoneDegreesFreeWorkset(ws);
             fiftyoneDegreesDestroy(&dataSet);
         }
-                break;
+        break;
     }
 	return 0;
 }

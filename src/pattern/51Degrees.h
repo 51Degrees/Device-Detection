@@ -38,15 +38,22 @@
 
 #include <stdint.h>
 #include <limits.h>
+#include <time.h>
 
 /* Used to represent bytes */
 typedef unsigned char byte;
 
-/* Used to represent boolean */
+/* Single byte boolean representation */
 typedef unsigned char fiftyoneDegreesBool;
 
 /* Used to return the match method */
-typedef enum { NONE, EXACT, NUMERIC, NEAREST, CLOSEST } fiftyoneDegreesMatchMethod;
+typedef enum e_fiftyoneDegrees_MatchMethod {
+    NONE,
+    EXACT,
+    NUMERIC,
+    NEAREST,
+    CLOSEST
+} fiftyoneDegreesMatchMethod;
 
 /* Used to provide the status of the data set initialisation */
 typedef enum e_fiftyoneDegrees_DataSetInitStatus {
@@ -62,7 +69,6 @@ typedef struct fiftyoneDegreesRange_t {
     const int16_t lower;
     const int16_t upper;
 } fiftyoneDegreesRANGE;
-
 
 #pragma pack(push, 1)
 typedef struct fiftyoneDegrees_ascii_string_t {
@@ -289,24 +295,12 @@ typedef struct fiftyoneDegrees_linked_signature_list_t {
 } fiftyoneDegreesLinkedSignatureList;
 
 #pragma pack(push, 1)
-typedef struct fiftyoneDegrees_workset_t {
+typedef struct fiftyoneDegrees_resultset_t {
 	const fiftyoneDegreesDataSet *dataSet; /* A pointer to the data set to use for the match */
-    char *input; /* An input buffer large enough to store the useragent to be matched */
-	char *targetUserAgent; /* A pointer to the user agent string */
 	byte *targetUserAgentArray; /* An array of bytes representing the target user agent */
-	int32_t targetUserAgentArrayLength; /* The length of the target user agent */
-	char* relevantNodes; /* Pointer to a char array containing the relevant nodes */
-	char* closestNodes; /* Pointer to a char array containing the closest nodes */
-	const fiftyoneDegreesProfile **profiles; /* Pointer to a list of profiles returned for the match */
-	int32_t profileCount; /* The number of profiles the match contains */
-	const fiftyoneDegreesNode **nodes; /* Pointer to a list of nodes related to the match */
-	const fiftyoneDegreesNode **orderedNodes; /* Pointer to a list of nodes in ascending order of signature count */
-	int32_t nodeCount; /* The number of nodes referenced by **nodes */
-    int32_t closestNodeRankedSignatureIndex; /* If a single node is returned the index of the ranked signature to be processed */
-	fiftyoneDegreesLinkedSignatureList linkedSignatureList; /* Linked list of signatures used by Closest match */
-	byte *signature; /* The signature found if only one exists */
-	char *signatureAsString; /* The signature as a string */
-	int16_t nextCharacterPositionIndex;
+	size_t targetUserAgentArrayLength; /* The length of the target user agent */
+    uint64_t targetUserAgentHashCode; /* The hash code of the target user agent */
+    fiftyoneDegreesBool hashCodeSet; /* 0 if the hash code has not been calculated */
 	fiftyoneDegreesMatchMethod method; /* The method used to provide the match result */
 	int32_t difference; /* The difference score between the signature found and the target */
 	int32_t rootNodesEvaluated; /* The number of root nodes evaluated */
@@ -315,11 +309,62 @@ typedef struct fiftyoneDegrees_workset_t {
 	int32_t signaturesCompared; /* The number of signatures read in full and compared to the target */
 	int32_t signaturesRead; /* The number of signatures read in full */
 	int32_t closestSignatures; /* The total number of closest signatures available */
+	const fiftyoneDegreesProfile **profiles; /* Pointer to a list of profiles returned for the match */
+	int32_t profileCount; /* The number of profiles the match contains */
+} fiftyoneDegreesResultset;
+
+typedef struct fiftyoneDegrees_resultset_cache_items_t {
+    const fiftyoneDegreesResultset *resultSets; /* Memory allocated to the resultsets */
+    const fiftyoneDegreesResultset **items; /* The start of the list of resultsets */
+    int32_t total; /* The number of resultsets in the cache */
+    int32_t allocated; /* The number of resultsets currently allocated */
+} fiftyoneDegreesResultsetCacheItems;
+
+typedef struct fiftyoneDegrees_resultset_cache_t {
+	const fiftyoneDegreesDataSet *dataSet; /* A pointer to the data set to use with the cache */
+    fiftyoneDegreesResultsetCacheItems *active; /* Items that are actively being checked */
+    fiftyoneDegreesResultsetCacheItems *background; /* Items that are being recorded as recently accessed */
+    int32_t switchLimit; /* The number of items that can be allocated before the caches are switched */
+    int32_t hits; /* The number of times an item was found in the cache */
+    int32_t misses; /* The number of times an item was not found in the cache */
+    int32_t switches; /* The number of times the cache has been switched */
+} fiftyoneDegreesResultsetCache;
+
+#pragma pack(push, 1)
+typedef struct fiftyoneDegrees_workset_t {
+	const fiftyoneDegreesDataSet *dataSet; /* A pointer to the data set to use for the match */
+	byte *targetUserAgentArray; /* An array of bytes representing the target user agent */
+	size_t targetUserAgentArrayLength; /* The length of the target user agent */
+    uint64_t targetUserAgentHashCode; /* The hash code of the target user agent */
+    fiftyoneDegreesBool hashCodeSet; /* 0 if the hash code has not been calculated */
+	fiftyoneDegreesMatchMethod method; /* The method used to provide the match result */
+	int32_t difference; /* The difference score between the signature found and the target */
+	int32_t rootNodesEvaluated; /* The number of root nodes evaluated */
+	int32_t stringsRead; /* The number of strings read */
+	int32_t nodesEvaluated; /* The number of nodes read during the detection */
+	int32_t signaturesCompared; /* The number of signatures read in full and compared to the target */
+	int32_t signaturesRead; /* The number of signatures read in full */
+	int32_t closestSignatures; /* The total number of closest signatures available */
+	const fiftyoneDegreesProfile **profiles; /* Pointer to a list of profiles returned for the match */
+	int32_t profileCount; /* The number of profiles the match contains */
 	const fiftyoneDegreesValue **values; /* Pointers to values associated with the property requested */
 	int32_t valuesCount; /* Number of values available */
+    char *input; /* An input buffer large enough to store the useragent to be matched */
+	char *targetUserAgent; /* A pointer to the user agent string */
+	char *relevantNodes; /* Pointer to a char array containing the relevant nodes */
+	char *closestNodes; /* Pointer to a char array containing the closest nodes */
+	byte *signature; /* The signature found if only one exists */
+	char *signatureAsString; /* The signature as a string */
+	const fiftyoneDegreesNode **nodes; /* Pointer to a list of nodes related to the match */
+	const fiftyoneDegreesNode **orderedNodes; /* Pointer to a list of nodes in ascending order of signature count */
+	int32_t nodeCount; /* The number of nodes referenced by **nodes */
+    int32_t closestNodeRankedSignatureIndex; /* If a single node is returned the index of the ranked signature to be processed */
+	fiftyoneDegreesLinkedSignatureList linkedSignatureList; /* Linked list of signatures used by Closest match */
+	int16_t nextCharacterPositionIndex;
 	fiftyoneDegreesBool startWithInitialScore; /* True if the NEAREST and CLOSEST methods should start with an initial score */
 	int(*functionPtrGetScore)(struct fiftyoneDegrees_workset_t *ws, const fiftyoneDegreesNode *node); /* Returns scores for each different node between signature and match */
 	const byte* (*functionPtrNextClosestSignature)(struct fiftyoneDegrees_workset_t *ws); /* Returns the next closest signature */
+	fiftyoneDegreesResultsetCache *cache; /* Cache used to store results between detections */
 } fiftyoneDegreesWorkset;
 #pragma pack(pop)
 
@@ -329,8 +374,10 @@ EXTERNAL fiftyoneDegreesDataSetInitStatus fiftyoneDegreesInitWithPropertyString(
 EXTERNAL void fiftyoneDegreesDestroy(const fiftyoneDegreesDataSet *dataSet);
 
 EXTERNAL fiftyoneDegreesWorkset* fiftyoneDegreesCreateWorkset(const fiftyoneDegreesDataSet *dataSet);
+EXTERNAL fiftyoneDegreesWorkset* fiftyoneDegreesCreateWorksetWithCacheSize(const fiftyoneDegreesDataSet *dataSet, int32_t cacheSize);
 EXTERNAL void fiftyoneDegreesFreeWorkset(const fiftyoneDegreesWorkset *ws);
-EXTERNAL void fiftyoneDegreesMatch(fiftyoneDegreesWorkset *ws, char* userAgent);
+
+EXTERNAL const fiftyoneDegreesResultset* fiftyoneDegreesMatch(fiftyoneDegreesWorkset *ws, char* userAgent);
 EXTERNAL int32_t fiftyoneDegreesSetValues(fiftyoneDegreesWorkset *ws, int32_t requiredPropertyIndex);
 EXTERNAL const fiftyoneDegreesAsciiString* fiftyoneDegreesGetString(const fiftyoneDegreesDataSet *dataSet, int32_t offset);
 EXTERNAL const char* fiftyoneDegreesGetValueName(const fiftyoneDegreesDataSet *dataSet, const fiftyoneDegreesValue *value);

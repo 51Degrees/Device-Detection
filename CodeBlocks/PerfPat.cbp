@@ -11,7 +11,7 @@
 				<Option object_output="obj/Debug/" />
 				<Option type="1" />
 				<Option compiler="gcc" />
-				<Option parameters='&quot;../data/51Degrees-Lite.dat&quot; &quot;../data/Million.csv&quot; IsMobile' />
+				<Option parameters='&quot;../data/51Degrees-Lite.dat&quot; &quot;../data/million.csv&quot; IsMobile' />
 				<Compiler>
 					<Add option="-g" />
 					<Add option="-DHAVE_SNPRINTF" />
@@ -22,7 +22,7 @@
 				<Option object_output="obj/Release/" />
 				<Option type="1" />
 				<Option compiler="gcc" />
-				<Option parameters='&quot;../data/51Degrees-Ultimate.dat&quot; &quot;../data/Million.csv&quot; IsMobile' />
+				<Option parameters='&quot;../data/51Degrees-Lite.dat&quot; &quot;../data/million.csv&quot; IsMobile' />
 				<Compiler>
 					<Add option="-O2" />
 					<Add option="-DHAVE_SNPRINTF" />
@@ -35,6 +35,11 @@
 		<Compiler>
 			<Add option="-Wall" />
 		</Compiler>
+		<Unit filename="../src/cityhash/city.c">
+			<Option compilerVar="CC" />
+		</Unit>
+		<Unit filename="../src/cityhash/city.h" />
+		<Unit filename="../src/cityhash/citycrc.h" />
 		<Unit filename="../src/pattern/51Degrees.c">
 			<Option compilerVar="CC" />
 		</Unit>
