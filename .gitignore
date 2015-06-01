@@ -11,4 +11,13 @@ php/*
 !php/fiftyone_degrees_v3_extension.c
 *.o
 *.so
-
+*.exe
+*bin*
+*Debug*
+windows/Backup/*
+*.zip
+*.csv
+*.opensdf
+*.sdf
+*.suo
+*/UpgradeLog*.htm
