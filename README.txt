@@ -318,7 +318,7 @@ Performance.exe TrieDataFile UserAgentsFile
 [UserAgentsFile] A path to a list of user agents to be used in the performance
   test.
 
-  http://51Degrees/Million.zip contains a test file of one million user agents.
+  http://51Degrees.com/Million.zip contains a test file of one million user agents.
 
 Example:  Performance.exe 51Degrees-Lite.Trie million.csv
 
