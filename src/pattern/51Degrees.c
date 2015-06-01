@@ -1367,7 +1367,7 @@ int32_t binarySearchNumericChildren(const fiftyoneDegreesNode *node, fiftyoneDeg
  * @param data pointer to the state settings used for the evaluation
  */
 void setNumericNodeState(const fiftyoneDegreesNode *node, fiftyoneDegreesNumericNodeState *state) {
-    if (state->target >= 0 && state->target <= SHRT_MAX) {
+    if (state->target >= 0) {
         setRange(state);
         state->node = node;
         state->firstNodeNumericIndex = getFirstNumericIndexForNode(node);
