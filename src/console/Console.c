@@ -20,7 +20,7 @@ char* TARGET_USER_AGENTS[] = {
     // Crawler
     "Mozilla/5.0 (compatible; AhrefsBot/3.1; +http://ahrefs.com/robot/)",
     // Modern version of Chrome
-    "Mozilla/5.0 (Windows NT 6.3; WOW64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/32.0.1700.107 Safari/537.36",
+    "Mozilla/5.0 (Windows NT 6.3; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/43.0.2357.81 Safari/537.36",
     // Internet explorer (again to test the cache)
     "Mozilla/5.0 (Windows NT 6.1; WOW64; Trident/7.0; rv:11.0) like Gecko"
 };
@@ -52,7 +52,7 @@ void print50Columns(char* label, const char* value, int32_t length) {
 
 void run(fiftyoneDegreesDataSet *dataSet) {
     fiftyoneDegreesWorkset *ws = NULL;
-    int32_t index, propertyIndex, valueIndex;
+    int32_t index, propertyIndex, valueIndex, profileIndex;
 
     printf("Name:\t\t\t%s\r\n", &(fiftyoneDegreesGetString(dataSet, dataSet->header.nameOffset)->firstByte));
     printf("Published:\t\t%d/%d/%d\r\n",
@@ -68,7 +68,7 @@ void run(fiftyoneDegreesDataSet *dataSet) {
     printf("Data set version:\t%s\r\n", &(fiftyoneDegreesGetString(dataSet, dataSet->header.formatOffset)->firstByte));
     printf("\r\n");
 
-    ws = fiftyoneDegreesCreateWorkset(dataSet);
+    ws = fiftyoneDegreesCreateWorksetWithCache(dataSet, 3);
     if (ws != NULL) {
         for(index = 0; index < (sizeof(TARGET_USER_AGENTS) / sizeof(char*)); index++)
         {
@@ -85,11 +85,20 @@ void run(fiftyoneDegreesDataSet *dataSet) {
                     ws->method == CLOSEST ? "Closest" :
                     ws->method == NEAREST ? "Nearest" :
                     "None");
+            printf("Signature Rank:\t\t%d\r\n", fiftyoneDegreesGetSignatureRank(ws));
             printf("Root Nodes Evaluated:\t%d\r\n", ws->rootNodesEvaluated);
             printf("Nodes Evaluated:\t%d\r\n", ws->nodesEvaluated);
             printf("Strings Read:\t\t%d\r\n", ws->stringsRead);
             printf("Signatures Read:\t%d\r\n", ws->signaturesRead);
             printf("Signatures Compared:\t%d\r\n", ws->signaturesCompared);
+            printf("Profiles:\t\t");
+            for(profileIndex = 0; profileIndex < ws->profileCount; profileIndex++) {
+                printf("%d", ws->profiles[profileIndex]->profileId);
+                if (profileIndex < ws->profileCount - 1) {
+                    printf("-");
+                }
+            }
+            printf("\r\n");
             printf("\r\n");
             printf("\t\t\t*** Example Properties ***\r\n");
 
@@ -106,10 +115,12 @@ void run(fiftyoneDegreesDataSet *dataSet) {
             }
         }
 
-        printf("\r\n\t\t\t*** Cache Results ***\r\n");
-        printf("Switches:\t%d\r\n", ws->cache->switches);
-        printf("Hits:\t\t%d\r\n", ws->cache->hits);
-        printf("Misses:\t\t%d\r\n", ws->cache->misses);
+        if (ws->cache != NULL) {
+            printf("\r\n\t\t\t*** Cache Results ***\r\n");
+            printf("Switches:\t%d\r\n", ws->cache->switches);
+            printf("Hits:\t\t%d\r\n", ws->cache->hits);
+            printf("Misses:\t\t%d\r\n", ws->cache->misses);
+        }
 
         fiftyoneDegreesFreeWorkset(ws);
     }

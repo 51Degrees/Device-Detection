@@ -57,7 +57,7 @@ const int16_t POWERS[] = { 1, 10, 100, 1000, 10000 };
 
 #define POWERS_COUNT sizeof(POWERS) / sizeof(int32_t)
 
-#define DEFAULT_CACHE_SIZE 10000
+#define MIN_CACHE_SIZE 2
 
 /**
  * DATA FILE READ METHODS
@@ -243,9 +243,9 @@ fiftyoneDegreesDataSetInitStatus readDataSet(FILE *inputFilePtr, fiftyoneDegrees
     if (status != DATA_SET_INIT_STATUS_SUCCESS) return status;
 
     /* Set some of the constant fields */
-	((fiftyoneDegreesDataSet*)dataSet)->sizeOfSignature =
+	dataSet->sizeOfSignature =
         ((dataSet->header.signatureNodesCount + dataSet->header.signatureProfilesCount) * sizeof(int32_t));
-	((fiftyoneDegreesDataSet*)dataSet)->signatureStartOfNodes =
+	dataSet->signatureStartOfNodes =
         (dataSet->header.signatureProfilesCount * sizeof(int32_t));
 
     return DATA_SET_INIT_STATUS_SUCCESS;
@@ -498,6 +498,23 @@ int32_t getNodeOffsetFromNode(const fiftyoneDegreesDataSet *dataSet, const fifty
  */
 int32_t* getNodeOffsetsFromSignature(const fiftyoneDegreesDataSet *dataSet, const byte *signature) {
     return (int32_t*)(signature + dataSet->signatureStartOfNodes);
+}
+
+/**
+ * Loops through the signature ranks until this one is found.
+ * @param dataSet pointer to the data set
+ * @param signature pointer to the start of a signature structure
+ * @returns the rank of the signature if available, or INT_MAX
+ */
+int32_t getRankFromSignature(const fiftyoneDegreesDataSet *dataSet, const byte *signature) {
+    int32_t index = (signature - dataSet->signatures) / dataSet->sizeOfSignature;
+    int32_t i;
+    for(i = 0; i < dataSet->header.signatures.count; i++) {
+        if (dataSet->rankedSignatureIndexes[i] == index) {
+            return i;
+        }
+    }
+    return INT_MAX;
 }
 
 /**
@@ -844,43 +861,15 @@ uint64_t fiftyoneDegreesGetResultsetHashCode(fiftyoneDegreesResultset *rs) {
 #define CACHED_RESULTSET_LENGTH(h) sizeof(fiftyoneDegreesResultset) + RESULTSET_TARGET_USERAGENT_ARRAY_SIZE(h) + RESULTSET_PROFILES_SIZE(h)
 #define CACHED_RESULTSET_TARGET_USERAGENT_ARRAY_OFFSET(h) sizeof(fiftyoneDegreesResultset)
 #define CACHED_RESULTSET_PROFILES_OFFSET(h) CACHED_RESULTSET_TARGET_USERAGENT_ARRAY_OFFSET(h) + RESULTSET_TARGET_USERAGENT_ARRAY_SIZE(h)
+#define CACHED_RESULTSET_INDEX(rsc, i) (fiftyoneDegreesResultset*)((void*)rsc->resultSets + (i * rsc->sizeOfResultset))
 
 /**
- * Creates a new list of result set items to be used in the cache.
- * @param dataSet pointer to the data set
- * @param size maximum number of items that the cache should store
- * @returns a pointer to the result set cache items created
+ * Releases the memory used by the cache list for itself and pointers to resultsets.
+ * @param rscl pointer to the cache list created previously
  */
-fiftyoneDegreesResultsetCacheItems *fiftyoneDegreesResultsetCacheCreateItems(const fiftyoneDegreesDataSet *dataSet, int32_t size) {
-    int i, resultSetSize, profileOffset, targetUserAgentOffset;
-    fiftyoneDegreesResultset *rs;
-    fiftyoneDegreesResultsetCacheItems *rsci = (fiftyoneDegreesResultsetCacheItems*)malloc(sizeof(fiftyoneDegreesResultsetCacheItems));
-    if (rsci != NULL) {
-        rsci->total = size;
-        rsci->allocated = 0;
-        resultSetSize = CACHED_RESULTSET_LENGTH(dataSet->header);
-        profileOffset = CACHED_RESULTSET_PROFILES_OFFSET(dataSet->header);
-        targetUserAgentOffset = CACHED_RESULTSET_TARGET_USERAGENT_ARRAY_OFFSET(dataSet->header);
-        rsci->resultSets = (const fiftyoneDegreesResultset*)malloc(size * resultSetSize);
-        rsci->items = (const fiftyoneDegreesResultset**)malloc(size * sizeof(fiftyoneDegreesResultset*));
-        for(i = 0; i < size; i++) {
-            rs = (fiftyoneDegreesResultset*)((void*)rsci->resultSets + (i * resultSetSize));
-            rs->profiles = (void*)rs + profileOffset;
-            rs->targetUserAgentArray = (void*)rs + targetUserAgentOffset;
-            rsci->items[i] = rs;
-        }
-    }
-    return rsci;
-}
-
-/**
- * Releases the memory used by the cache items, including any items stored in it.
- * @param pointer to the cache items created previously
- */
-void fiftyoneDegreesResultsetCacheFreeItems(const fiftyoneDegreesResultsetCacheItems *rsci) {
-    free((void*)rsci->resultSets);
-    free((void*)rsci->items);
-    free((void*)rsci);
+void fiftyoneDegreesResultsetCacheListFree(const fiftyoneDegreesResultsetCacheList *rscl) {
+    free((void*)rscl->resultSets);
+    free((void*)rscl);
 }
 
 /**
@@ -888,36 +877,177 @@ void fiftyoneDegreesResultsetCacheFreeItems(const fiftyoneDegreesResultsetCacheI
  * @param pointer to the cache created previously
  */
 void fiftyoneDegreesResultsetCacheFree(const fiftyoneDegreesResultsetCache *rsc) {
-    fiftyoneDegreesResultsetCacheFreeItems(rsc->active);
-    fiftyoneDegreesResultsetCacheFreeItems(rsc->background);
+    fiftyoneDegreesResultsetCacheListFree(rsc->active);
+    fiftyoneDegreesResultsetCacheListFree(rsc->background);
+    free((void*)rsc->resultSets);
     free((void*)rsc);
+}
+
+/**
+ * Initialises the cache by setting pointers for linked lists and memory.
+ * @param rsc pointer to the cache to be initialised.
+ */
+void fiftyoneDegreesResultsetCacheInit(fiftyoneDegreesResultsetCache *rsc) {
+    int i, profileOffset, targetUserAgentOffset;
+    fiftyoneDegreesResultset *current = NULL, *next, *previous = NULL;
+
+    // Set the pointers back to the cache.
+    rsc->active->cache = rsc;
+    rsc->background->cache = rsc;
+
+    // Set the number of resultsets allocated.
+    rsc->active->allocated = 0;
+    rsc->background->allocated = 0;
+
+    // Set the pointers for the result sets to form a complete linked list
+    // with locations for profiles and target user agent data.
+    profileOffset = CACHED_RESULTSET_PROFILES_OFFSET(rsc->dataSet->header);
+    targetUserAgentOffset = CACHED_RESULTSET_TARGET_USERAGENT_ARRAY_OFFSET(rsc->dataSet->header);
+    next = (fiftyoneDegreesResultset*)rsc->resultSets;
+    for(i = 0; i < rsc->total; i++) {
+        current = next;
+        next = i < rsc->total - 1 ? (fiftyoneDegreesResultset*)((void*)current + rsc->sizeOfResultset) : NULL;
+        current->next = next;
+        current->previous = previous;
+        current->profiles = (fiftyoneDegreesProfile*)((void*)current + profileOffset);
+        current->targetUserAgentArray = (byte*)((void*)current + targetUserAgentOffset);
+        previous = current;
+    }
+
+    // Set the free and allocated linked lists.
+    rsc->allocated.count = 0;
+    rsc->allocated.first = NULL;
+    rsc->allocated.last = NULL;
+    rsc->free.count = rsc->total;
+    rsc->free.first = (fiftyoneDegreesResultset*)rsc->resultSets;
+    rsc->free.last = current;
+}
+
+/**
+ * Creates a new cache list of the size provided.
+ * @param size the number of items in the cache
+ * @returns a new uninitialised cache list for use as an active or background
+            cache
+ */
+fiftyoneDegreesResultsetCacheList *fiftyoneDegreesResultsetCacheListCreate(int32_t size) {
+    fiftyoneDegreesResultsetCacheList* rscl = (fiftyoneDegreesResultsetCacheList*)malloc(sizeof(fiftyoneDegreesResultsetCacheList));
+    if (rscl != NULL) {
+        rscl->resultSets = (fiftyoneDegreesResultset **)malloc(size * sizeof(fiftyoneDegreesResultset*));
+        if (rscl->resultSets == NULL) {
+            free((void*)rscl);
+            rscl = NULL;
+        }
+    }
+    return rscl;
 }
 
 /**
  * Creates a new cache used to speed up duplicate detections.
  * The cache must be destroyed with the fiftyoneDegreesFreeCache method.
+ * If the cache size is lower then 2 then no cache is created.
  * @param dataSet pointer to the data set
- * @param size maximum number of items that the cache should store.
- * @returns a pointer to the resultset cache items created
+ * @param size maximum number of items that the cache should store
+ * @returns a pointer to the resultset cache created, or NULL
  */
 fiftyoneDegreesResultsetCache *fiftyoneDegreesResultsetCacheCreate(const fiftyoneDegreesDataSet *dataSet, int32_t size) {
-    fiftyoneDegreesResultsetCache *rsc = (fiftyoneDegreesResultsetCache*)malloc(sizeof(fiftyoneDegreesResultsetCache));
+    fiftyoneDegreesResultsetCache *rsc = size >= MIN_CACHE_SIZE ? (fiftyoneDegreesResultsetCache*)malloc(sizeof(fiftyoneDegreesResultsetCache)) : NULL;
     if (rsc != NULL) {
         rsc->dataSet = dataSet;
         rsc->hits = 0;
         rsc->misses = 0;
         rsc->switches = 0;
-        rsc->active = fiftyoneDegreesResultsetCacheCreateItems(dataSet, size);
-        rsc->background = fiftyoneDegreesResultsetCacheCreateItems(dataSet, size);
-        if (rsc->active == NULL ||
+        rsc->total = size;
+        rsc->switchLimit = size / 2;
+
+        // Initialise the memory used for the list of result sets.
+        rsc->sizeOfResultset = CACHED_RESULTSET_LENGTH(dataSet->header);
+        rsc->resultSets = (const fiftyoneDegreesResultset*)malloc(size * rsc->sizeOfResultset);
+        rsc->active = fiftyoneDegreesResultsetCacheListCreate(size);
+        rsc->background = fiftyoneDegreesResultsetCacheListCreate(size);
+
+        // Check memory was allocated and if there was a problem free that which
+        // was allocated.
+        if (rsc->resultSets == NULL ||
+            rsc->active == NULL ||
             rsc->background == NULL) {
-            if (rsc->active != NULL) { fiftyoneDegreesResultsetCacheFreeItems(rsc->active); }
-            if (rsc->background != NULL) { fiftyoneDegreesResultsetCacheFreeItems(rsc->background); }
+            if (rsc->resultSets != NULL) { free((void*)rsc->resultSets); }
+            if (rsc->active != NULL) { fiftyoneDegreesResultsetCacheListFree(rsc->active); }
+            if (rsc->background != NULL) { fiftyoneDegreesResultsetCacheListFree(rsc->background); }
             free((void*)rsc);
         }
-        rsc->switchLimit = size / 2;
+
+        // Initialise the linked lists for allocated and free.
+        fiftyoneDegreesResultsetCacheInit(rsc);
     }
     return rsc;
+}
+
+/**
+ * Takes an empty resultset from the free linked list and adds it to the
+ * allocated linked list copying the resultset provided to the empty
+ * location.
+ * @param rsc pointer to the resultset cache
+ * @param rs pointer to the resultSet to be added
+ * @returns pointer to the new result set added to the list
+ */
+fiftyoneDegreesResultset *fiftyoneDegreesResultsetCacheAdd(fiftyoneDegreesResultsetCache *rsc, const fiftyoneDegreesResultset *rs) {
+    fiftyoneDegreesResultset *empty;
+
+    // Get the next empty resultset from the free list.
+    empty = rsc->free.first;
+    rsc->free.first = empty->next;
+    if (rsc->free.first != NULL) {
+        rsc->free.first->previous = NULL;
+    } else {
+        rsc->free.last = NULL;
+    }
+    rsc->free.count--;
+
+    if (rsc->allocated.count == 0) {
+        // Make this resultset the only item in the linked list.
+        rsc->allocated.first = empty;
+        rsc->allocated.last = empty;
+        empty->previous = NULL;
+        empty->next = NULL;
+    } else {
+        // Add this resultset to the end of the linked list.
+        rsc->allocated.last->next = empty;
+        empty->previous = rsc->allocated.last;
+        empty->next = NULL;
+        rsc->allocated.last = empty;
+    }
+    rsc->allocated.count++;
+
+    // Copy the provided resultset to the empty location.
+    fiftyoneDegreesResultsetCopy(empty, rs);
+
+    return empty;
+}
+
+/**
+ * Removes the resultset from the allocated linked list and returns it to the
+ * free linked list.
+ * @param rsc pointer to the resultset cache
+ * @param rs pointer to the resultSet to be removed
+ */
+void fiftyoneDegreesResultsetCacheRemove(fiftyoneDegreesResultsetCache *rsc, fiftyoneDegreesResultset *rs) {
+
+    rsc->allocated.count--;
+
+    if (rsc->free.count == 0) {
+        // Make this resultset the only item in the linked list.
+        rsc->free.first = rs;
+        rsc->free.last = rs;
+        rs->previous = NULL;
+        rs->next = NULL;
+    } else {
+        // Add this resultset to the end of the linked list.
+        rsc->free.last->next = rs;
+        rs->previous = rsc->free.last;
+        rs->next = NULL;
+        rsc->free.last = rs;
+    }
+    rsc->free.count++;
 }
 
 /**
@@ -927,18 +1057,18 @@ fiftyoneDegreesResultsetCache *fiftyoneDegreesResultsetCacheCreate(const fiftyon
  * @returns index of the item if present, otherwise the twos complement
  *          of the index to insert at.
  */
-int32_t fiftyoneDegreesResultsetCacheFetchIndex(const fiftyoneDegreesResultsetCacheItems *rsci, uint64_t hashcode) {
-    int32_t upper = rsci->allocated - 1, lower = 0, middle;
+int32_t fiftyoneDegreesResultsetCacheFetchIndex(const fiftyoneDegreesResultsetCacheList *rscl, uint64_t hashcode) {
+    int32_t upper = rscl->allocated - 1, lower = 0, middle;
 
     if (upper >= 0)
     {
         while (lower <= upper)
         {
             middle = lower + (upper - lower) / 2;
-            if (hashcode == rsci->items[middle]->targetUserAgentHashCode) {
+            if (hashcode == rscl->resultSets[middle]->targetUserAgentHashCode) {
                 return middle;
             }
-            else if (hashcode < rsci->items[middle]->targetUserAgentHashCode) {
+            else if (hashcode < rscl->resultSets[middle]->targetUserAgentHashCode) {
                 upper = middle - 1;
             }
             else {
@@ -952,69 +1082,71 @@ int32_t fiftyoneDegreesResultsetCacheFetchIndex(const fiftyoneDegreesResultsetCa
 
 /**
  * Inserts the result set into the cache items list at the index provided
- * shifting all subsequent result sets in the cache down by one item. A copy
- * of the result set is made which will only be used by the cache. The number
- * of allocated items is also increased by 1.
- * @param rsci a result set cache items list.
- * @param rs the result set to be inserted.
- * @param index of the item to be added.
- * @returns a copy of the result set added to the list.
+ * shifting all subsequent result sets in the cache down by one item. The
+ * number of allocated items is also increased by 1.
+ * @param rscl a resultset cache list (either active or background).
+ * @param rs the resultset to be inserted.
+ * @param index where the resultset should be copied to.
  */
-const fiftyoneDegreesResultset *fiftyoneDegreesCacheItemsInsert(fiftyoneDegreesResultsetCacheItems *rsci, const fiftyoneDegreesResultset *rs, int32_t index) {
-    fiftyoneDegreesResultset *item;
-    size_t resultSetSize = CACHED_RESULTSET_LENGTH(rs->dataSet->header);
+void fiftyoneDegreesCacheItemsInsert(fiftyoneDegreesResultsetCacheList *rscl, fiftyoneDegreesResultset *rs, int32_t index) {
     int32_t i;
-
-    // Get the pointer to the next item in the list of resultsets.
-    item = (fiftyoneDegreesResultset*)((void*)rsci->resultSets + (rsci->allocated * resultSetSize));
-
-    // Copy the result provided to the new item in the list.
-    fiftyoneDegreesResultsetCopy(item, rs);
 
     // Make room for the new item to be added at the index by
     // shifting later items down the list.
-    for(i = rsci->allocated; i > index; i--) {
-        rsci->items[i] = rsci->items[i - 1];
+    for(i = rscl->allocated; i > index; i--) {
+        rscl->resultSets[i] = rscl->resultSets[i - 1];
     }
 
     // Add the new item at the index.
-    rsci->items[index] = item;
+    rscl->resultSets[index] = rs;
 
     // Increase the number of allocated items.
-    rsci->allocated++;
+    rscl->allocated++;
+}
 
-    return item;
+/**
+ * Inserts the result set into the cache items list at the index provided
+ * shifting all subsequent result sets in the cache down by one item. A copy
+ * of the result set is made which will only be used by the cache. The number
+ * of allocated items is also increased by 1.
+ * @param rscl a resultset cache list (either active or background).
+ * @param rs the resultset to be inserted.
+ * @param index where the resultset should be copied to.
+ * @returns a copy of the result set added to the list.
+ */
+fiftyoneDegreesResultset *fiftyoneDegreesCacheItemsInsertWithCopy(fiftyoneDegreesResultsetCacheList *rscl, const fiftyoneDegreesResultset *src, int32_t index) {
+    fiftyoneDegreesResultset *rs;
+
+    // Get the pointer to the next item in the list of resultsets
+    // copy the source resultset into the linked list.
+    rs = fiftyoneDegreesResultsetCacheAdd(rscl->cache, src);
+
+    // Insert the copy at the index provided.
+    fiftyoneDegreesCacheItemsInsert(rscl, rs, index);
+
+    return rs;
 }
 
 /**
  * Sets the result into the cache items by making a copy of it. If the hashcode
  * exists already then it is overwritten. This could happen if there is a hashcode
  * collision, but due to the nature of the data being cached isn't critical.
- * @param cache pointer to a cache data structure.
- * @param result set to be added to the cache.
+ * @param rscl a resultset cache list (either active or background).
+ * @param rs resultset to be added to the cache.
  * @returns a pointer the resultset in the cache, otherwise NULL.
  */
-const fiftyoneDegreesResultset *fiftyoneDegreesCacheItemsSet(fiftyoneDegreesResultsetCacheItems *rsci, const fiftyoneDegreesResultset *rs) {
-    const fiftyoneDegreesResultset *item;
+void fiftyoneDegreesCacheItemsSet(fiftyoneDegreesResultsetCacheList *rscl, fiftyoneDegreesResultset *rs) {
     int32_t index;
 
     // Find the index of the existing hashcode, or where we should insert
     // the new resultset.
-    index = fiftyoneDegreesResultsetCacheFetchIndex(rsci, fiftyoneDegreesGetResultsetHashCode((fiftyoneDegreesResultset*)rs));
+    index = fiftyoneDegreesResultsetCacheFetchIndex(rscl, fiftyoneDegreesGetResultsetHashCode((fiftyoneDegreesResultset*)rs));
 
     if (index < 0) {
         // The item doesn't exist so add it at the index
         // returned from the fetch index method.
-        item = fiftyoneDegreesCacheItemsInsert(rsci, rs, ~index);
+        fiftyoneDegreesCacheItemsInsert(rscl, rs, ~index);
     }
-    else  {
-        // The item exists already so we just need to refresh it with
-        // these results.
-        memcpy((void*)(rsci->items[index]), (void*)rs, sizeof(fiftyoneDegreesResultset));
-        item = rs;
-    }
-
-    return item;
 }
 
 /**
@@ -1024,19 +1156,37 @@ const fiftyoneDegreesResultset *fiftyoneDegreesCacheItemsSet(fiftyoneDegreesResu
  * @param rsc pointer to the cache
   */
 void fiftyoneDegreesCacheSwitch(fiftyoneDegreesResultsetCache *rsc) {
-    fiftyoneDegreesResultsetCacheItems* temp;
+    fiftyoneDegreesResultsetCacheList* temp;
+    fiftyoneDegreesResultset* rs;
+    int i;
 
     // Do the background and active items need to be switched?
     if (rsc->background->allocated >= rsc->switchLimit) {
 
-        // Switch the cache items.
+        // Switch the caches so that the background cache is now
+        // active and ready to service requests.
         temp = rsc->active;
         rsc->active = rsc->background;
         rsc->background = temp;
 
-        // Reset the allocated items in the background cache so
-        // that it can start to fill up again.
+        // Clean out the background list with anything that's still there marked
+        // as active only as it's not been accessed since the last switch.
+        for(i = 0; i < rsc->background->allocated; i++) {
+            rs = rsc->background->resultSets[i];
+            if (rs->state == ACTIVE_CACHE_LIST_ONLY) {
+                fiftyoneDegreesResultsetCacheRemove(rsc, rs);
+            }
+        }
+
+        // Empty the new background cache as all joint entries are
+        // now only in the active cache.
         rsc->background->allocated = 0;
+
+        // Any resultset that is in the active list should only appear
+        // in that list now.
+        for(i = 0; i < rsc->active->allocated; i++) {
+            rsc->active->resultSets[i]->state = ACTIVE_CACHE_LIST_ONLY;
+        }
 
         // Increase the number of times the cache has been switched.
         rsc->switches++;
@@ -1055,7 +1205,7 @@ void fiftyoneDegreesCacheSwitch(fiftyoneDegreesResultsetCache *rsc) {
  * @param cacheSize the number of results the cache should be sized to store
  * @returns a pointer to the workset created
  */
-fiftyoneDegreesWorkset *fiftyoneDegreesCreateWorksetWithCacheSize(const fiftyoneDegreesDataSet *dataSet, int32_t cacheSize) {
+fiftyoneDegreesWorkset *fiftyoneDegreesCreateWorksetWithCache(const fiftyoneDegreesDataSet *dataSet, int32_t cacheSize) {
 	fiftyoneDegreesWorkset *ws = (fiftyoneDegreesWorkset*)malloc(sizeof(fiftyoneDegreesWorkset));
 	if (ws != NULL) {
         // Initialise all the parameters of the workset.
@@ -1086,7 +1236,7 @@ fiftyoneDegreesWorkset *fiftyoneDegreesCreateWorksetWithCacheSize(const fiftyone
             ws->values == NULL ||
             ws->profiles == NULL ||
             ws->targetUserAgentArray == NULL ||
-            ws->cache == NULL) {
+            (ws->cache == NULL && cacheSize >= MIN_CACHE_SIZE)) {
 
             // One or more of the workset memory allocations failed.
             // Free any that worked and return NULL.
@@ -1122,7 +1272,7 @@ fiftyoneDegreesWorkset *fiftyoneDegreesCreateWorksetWithCacheSize(const fiftyone
  * @returns a pointer to the workset created
  */
 fiftyoneDegreesWorkset *fiftyoneDegreesCreateWorkset(const fiftyoneDegreesDataSet *dataSet) {
-    return fiftyoneDegreesCreateWorksetWithCacheSize(dataSet, DEFAULT_CACHE_SIZE);
+    return fiftyoneDegreesCreateWorksetWithCache(dataSet, 0);
 }
 
 /**
@@ -1139,7 +1289,9 @@ void fiftyoneDegreesFreeWorkset(const fiftyoneDegreesWorkset *ws) {
 	free((void*)ws->targetUserAgentArray);
 	free((void*)ws->profiles);
     free((void*)ws->linkedSignatureList.items);
-    fiftyoneDegreesResultsetCacheFree((void*)ws->cache);
+    if (ws->cache != NULL) {
+        fiftyoneDegreesResultsetCacheFree((void*)ws->cache);
+    }
 	free((void*)ws);
 }
 
@@ -2344,7 +2496,12 @@ void evaluate(fiftyoneDegreesWorkset *ws) {
     }
 }
 
-const fiftyoneDegreesResultset *fiftyoneDegreesMatchAndCache(fiftyoneDegreesWorkset *ws, int32_t cacheIndex) {
+/**
+ * Processes the data in the workset setting relevant fields to indicate
+ * the result of the match.
+ * @param ws workset configured with input data
+ */
+void fiftyoneDegreesSetMatch(fiftyoneDegreesWorkset *ws) {
     int32_t signatureIndex;
     evaluate(ws);
     signatureIndex = getExactSignatureIndex(ws);
@@ -2386,9 +2543,33 @@ const fiftyoneDegreesResultset *fiftyoneDegreesMatchAndCache(fiftyoneDegreesWork
         ws->method = NONE;
     }
     setRelevantNodes(ws);
+}
 
-    // Add the workset data to the active cache and return the resulting resultset.
-    return fiftyoneDegreesCacheItemsInsert(ws->cache->active, (fiftyoneDegreesResultset*)ws, cacheIndex);
+/**
+ * Processes the data in the workset setting relevant fields to indicate
+ * the result of the match. The result is then copied into the cache
+ * at the index provided for future retrieval.
+ * @param ws workset configured with input data
+ * @param cacheIndex the index in the active list that the resultset should be
+ *        copied
+ */
+fiftyoneDegreesResultset *fiftyoneDegreesSetMatchAndCache(fiftyoneDegreesWorkset *ws, int32_t cacheIndex) {
+    // Perform the match process.
+    fiftyoneDegreesSetMatch(ws);
+
+    // Copy the workset data to the active cache and return the copy resultset.
+    return fiftyoneDegreesCacheItemsInsertWithCopy(ws->cache->active, (fiftyoneDegreesResultset*)ws, cacheIndex);
+}
+
+fiftyoneDegreesResultset *fiftyoneDegreesSetMatchAndUpdateCache(fiftyoneDegreesWorkset *ws, int32_t cacheIndex) {
+    // Perform the match process.
+    fiftyoneDegreesSetMatch(ws);
+
+    // Copy the workset over the resultset already at the cache position.
+    fiftyoneDegreesResultsetCopy(ws->cache->active->resultSets[cacheIndex], (fiftyoneDegreesResultset*)ws);
+
+    // Return the resultset at that cacheindex.
+    return ws->cache->active->resultSets[cacheIndex];
 }
 
 /**
@@ -2402,32 +2583,58 @@ const fiftyoneDegreesResultset *fiftyoneDegreesMatchAndCache(fiftyoneDegreesWork
  */
 const fiftyoneDegreesResultset *fiftyoneDegreesMatch(fiftyoneDegreesWorkset *ws, char* userAgent) {
     int32_t cacheIndex;
-    const fiftyoneDegreesResultset *result = NULL;
+    fiftyoneDegreesResultset *rs = NULL;
 
     setTargetUserAgentArray(ws, userAgent);
     if (ws->targetUserAgentArrayLength >= ws->dataSet->header.minUserAgentLength) {
 
-        // Does the user agent already exist in the cache?
-        cacheIndex = fiftyoneDegreesResultsetCacheFetchIndex(ws->cache->active, fiftyoneDegreesGetResultsetHashCode((fiftyoneDegreesResultset*)ws));
+        // Is a cache being used?
+        if (ws->cache != NULL) {
 
-        if (cacheIndex < 0) {
-            result = fiftyoneDegreesMatchAndCache(ws, ~cacheIndex);
-            ws->cache->misses++;
+            // Does the hashcode for the user agent already exist in the cache?
+            cacheIndex = fiftyoneDegreesResultsetCacheFetchIndex(ws->cache->active, fiftyoneDegreesGetResultsetHashCode((fiftyoneDegreesResultset*)ws));
+
+            if (cacheIndex < 0) {
+                // Add to the cache and record the miss.
+                rs = fiftyoneDegreesSetMatchAndCache(ws, ~cacheIndex);
+                ws->cache->misses++;
+            }
+            else if (ws->targetUserAgentArrayLength == ws->cache->active->resultSets[cacheIndex]->targetUserAgentArrayLength &&
+                     memcmp(ws->targetUserAgentArray, ws->cache->active->resultSets[cacheIndex]->targetUserAgentArray, ws->targetUserAgentArrayLength) != 0) {
+                // The hashcode matched but the user agents didn't. Update this entry
+                // in the cache with the new user agent and match values.
+                rs = fiftyoneDegreesSetMatchAndUpdateCache(ws, cacheIndex);
+            }
+            else {
+                // Fetch from the cache and record the hit.
+                rs = ws->cache->active->resultSets[cacheIndex];
+                fiftyoneDegreesResultsetCopy((fiftyoneDegreesResultset*)ws, rs);
+                ws->cache->hits++;
+            }
+
+            // Make sure this result is in the background cache.
+            fiftyoneDegreesCacheItemsSet(ws->cache->background, rs);
+            rs->state = BOTH_CACHE_LISTS;
+
+            // See if the caches now need to be switched.
+            fiftyoneDegreesCacheSwitch(ws->cache);
+        } else {
+            // Don't use the cache, just process the input data.
+            fiftyoneDegreesSetMatch(ws);
+            rs = (fiftyoneDegreesResultset*)ws;
         }
-        else {
-            result = ws->cache->active->items[cacheIndex];
-            fiftyoneDegreesResultsetCopy((fiftyoneDegreesResultset*)ws, result);
-            ws->cache->hits++;
-        }
-
-        // Make sure this result is in the background cache.
-        fiftyoneDegreesCacheItemsSet(ws->cache->background, result);
-
-        // See if the caches now need to be switched.
-        fiftyoneDegreesCacheSwitch(ws->cache);
     }
 
-    return result;
+    return (const fiftyoneDegreesResultset*)rs;
+}
+
+/**
+ * Returns the rank of the signature set in the workset.
+ * @param ws pointer to the work set associated with the match
+ * @returns the rank of the signature if available, or INT_MAX
+ */
+int32_t fiftyoneDegreesGetSignatureRank(fiftyoneDegreesWorkset *ws) {
+    return getRankFromSignature(ws->dataSet, ws->signature);
 }
 
 /**

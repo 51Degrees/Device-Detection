@@ -55,6 +55,12 @@ typedef enum e_fiftyoneDegrees_MatchMethod {
     CLOSEST
 } fiftyoneDegreesMatchMethod;
 
+/* Used to indicate what state the result set is in the cache */
+typedef enum e_fiftyoneDegrees_Resultset_CacheState {
+    ACTIVE_CACHE_LIST_ONLY,
+    BOTH_CACHE_LISTS
+} fiftyoneDegreesResultsetCacheState;
+
 /* Used to provide the status of the data set initialisation */
 typedef enum e_fiftyoneDegrees_DataSetInitStatus {
     DATA_SET_INIT_STATUS_SUCCESS,
@@ -263,6 +269,7 @@ typedef struct fiftyoneDegrees_dataset_t {
 	const fiftyoneDegreesDataSetHeader header;
     int32_t sizeOfSignature; /* The length in bytes of each signature record */
     int32_t signatureStartOfNodes; /* The number of bytes to ignore before the nodes start */
+    int32_t signatureStartOfRank; /* The number of bytes to ignore before the signature rank is found */
 	const fiftyoneDegreesProperty **requiredProperties; /* Pointer to properties to be returned */
 	int32_t requiredPropertyCount; /* Number of properties to return */
     const byte *strings;
@@ -309,26 +316,41 @@ typedef struct fiftyoneDegrees_resultset_t {
 	int32_t signaturesCompared; /* The number of signatures read in full and compared to the target */
 	int32_t signaturesRead; /* The number of signatures read in full */
 	int32_t closestSignatures; /* The total number of closest signatures available */
-	const fiftyoneDegreesProfile **profiles; /* Pointer to a list of profiles returned for the match */
+	const fiftyoneDegreesProfile *profiles; /* Pointer to a list of profiles returned for the match */
 	int32_t profileCount; /* The number of profiles the match contains */
+	struct fiftyoneDegrees_resultset_t *previous; /* The previous item in the linked list, or NULL if first */
+	struct fiftyoneDegrees_resultset_t *next; /* The next item in the linked list, or NULL if last */
+	fiftyoneDegreesResultsetCacheState state; /* Indicates if the result set is in the active, background or both lists */
 } fiftyoneDegreesResultset;
 
-typedef struct fiftyoneDegrees_resultset_cache_items_t {
-    const fiftyoneDegreesResultset *resultSets; /* Memory allocated to the resultsets */
-    const fiftyoneDegreesResultset **items; /* The start of the list of resultsets */
-    int32_t total; /* The number of resultsets in the cache */
-    int32_t allocated; /* The number of resultsets currently allocated */
-} fiftyoneDegreesResultsetCacheItems;
+typedef struct fiftyoneDegrees_resultset_cache_t fiftyoneDegreesResultsetCache;
 
-typedef struct fiftyoneDegrees_resultset_cache_t {
+typedef struct fiftyoneDegrees_resultset_cache_list_t {
+    struct fiftyoneDegrees_resultset_cache_t *cache; /* Pointer to the cache the list is a part of */
+    fiftyoneDegreesResultset **resultSets; /* Hashcode ordered list of pointers to resultsets in the cache list */
+    int32_t allocated; /* The number of resultsets currently allocated in the list */
+} fiftyoneDegreesResultsetCacheList;
+
+typedef struct fiftyoneDegrees_resultset_cache_link_list_t {
+    fiftyoneDegreesResultset *first; /* Pointer to the first item in the linked list */
+    fiftyoneDegreesResultset *last; /* Pointer to the last item in the linked list */
+    int32_t count; /* Number of items in the linked list */
+} fiftyoneDegreesResultsetCacheLinkedList;
+
+struct fiftyoneDegrees_resultset_cache_t {
 	const fiftyoneDegreesDataSet *dataSet; /* A pointer to the data set to use with the cache */
-    fiftyoneDegreesResultsetCacheItems *active; /* Items that are actively being checked */
-    fiftyoneDegreesResultsetCacheItems *background; /* Items that are being recorded as recently accessed */
+    const fiftyoneDegreesResultset *resultSets; /* The start of the list of resultsets in the cache */
+    int32_t sizeOfResultset; /* The number of bytes used for each resultset */
+    int32_t total; /* The number of resultset items in the cache */
+    fiftyoneDegreesResultsetCacheLinkedList free; /* Linked list of pointers to free resultsets */
+    fiftyoneDegreesResultsetCacheLinkedList allocated; /* Linked list of pointers to allocated resultsets */
+    fiftyoneDegreesResultsetCacheList *active; /* List of cache items that are actively being checked */
+    fiftyoneDegreesResultsetCacheList *background; /* List of cache items that are being recorded as recently accessed */
     int32_t switchLimit; /* The number of items that can be allocated before the caches are switched */
     int32_t hits; /* The number of times an item was found in the cache */
     int32_t misses; /* The number of times an item was not found in the cache */
     int32_t switches; /* The number of times the cache has been switched */
-} fiftyoneDegreesResultsetCache;
+};
 
 #pragma pack(push, 1)
 typedef struct fiftyoneDegrees_workset_t {
@@ -374,7 +396,7 @@ EXTERNAL fiftyoneDegreesDataSetInitStatus fiftyoneDegreesInitWithPropertyString(
 EXTERNAL void fiftyoneDegreesDestroy(const fiftyoneDegreesDataSet *dataSet);
 
 EXTERNAL fiftyoneDegreesWorkset* fiftyoneDegreesCreateWorkset(const fiftyoneDegreesDataSet *dataSet);
-EXTERNAL fiftyoneDegreesWorkset* fiftyoneDegreesCreateWorksetWithCacheSize(const fiftyoneDegreesDataSet *dataSet, int32_t cacheSize);
+EXTERNAL fiftyoneDegreesWorkset* fiftyoneDegreesCreateWorksetWithCache(const fiftyoneDegreesDataSet *dataSet, int32_t cacheSize);
 EXTERNAL void fiftyoneDegreesFreeWorkset(const fiftyoneDegreesWorkset *ws);
 
 EXTERNAL const fiftyoneDegreesResultset* fiftyoneDegreesMatch(fiftyoneDegreesWorkset *ws, char* userAgent);
@@ -384,5 +406,6 @@ EXTERNAL const char* fiftyoneDegreesGetValueName(const fiftyoneDegreesDataSet *d
 EXTERNAL const char* fiftyoneDegreesGetPropertyName(const fiftyoneDegreesDataSet *dataSet, const fiftyoneDegreesProperty *property);
 EXTERNAL int32_t fiftyoneDegreesProcessDeviceCSV(fiftyoneDegreesWorkset *ws, char* result, int32_t resultLength);
 EXTERNAL int32_t fiftyoneDegreesProcessDeviceJSON(fiftyoneDegreesWorkset *ws, char* result, int32_t resultLength);
+EXTERNAL int32_t fiftyoneDegreesGetSignatureRank(fiftyoneDegreesWorkset *ws);
 
 #endif // 51DEGREES_H_INCLUDED

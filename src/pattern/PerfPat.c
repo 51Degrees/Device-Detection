@@ -76,6 +76,7 @@ int performanceTest(char* fileName, fiftyoneDegreesWorkset *ws, long max, int ca
 	do {
 		// Get the next character from the input.
 		result = fgets(ws->input, ws->dataSet->header.maxUserAgentLength, inputFilePtr);
+		strtok(result, "\n");
 
 		// Break for an empty string or end of file.
 		if (result == NULL && feof(inputFilePtr))
@@ -141,9 +142,12 @@ void performance(char *fileName, fiftyoneDegreesWorkset *ws) {
 	totalSec = test - calibration;
 	printf("Average detection time for total data set: %.2f s\n", totalSec);
 	printf("Average number of detections per second: %.2f\n", (double)_max / totalSec);
-	printf("Cache hits: %d\n", ws->cache->hits);
-	printf("Cache misses: %d\n", ws->cache->misses);
-	printf("Cache switches: %d\n", ws->cache->switches);
+	printf("Average milliseconds per detection: %.6f\n", (totalSec * (double)1000) / (double)_max);
+	if (ws->cache != NULL) {
+        printf("Cache hits: %d\n", ws->cache->hits);
+        printf("Cache misses: %d\n", ws->cache->misses);
+        printf("Cache switches: %d\n", ws->cache->switches);
+	}
 
 	// Wait for a character to be pressed.
 	fgetc(stdin);
@@ -171,9 +175,11 @@ char *findFileNames(char *subject) {
 int main(int argc, char* argv[]) {
 	fiftyoneDegreesDataSet dataSet;
 	fiftyoneDegreesWorkset *ws = NULL;
+
 	char *dataSetFileName = argc > 1 ? argv[1] : NULL;
 	char *inputFileName = argc > 2 ? argv[2] : NULL;
     char *requiredProperties = argc > 3 ? argv[3] : NULL;
+    int cacheSize = argc > 4 ? atoi(argv[4]) : 5000;
 
 	printf("\n");
 	printf("\t#############################################################\n");
@@ -213,8 +219,9 @@ int main(int argc, char* argv[]) {
             printf("Device data file '%s' could not be used to initialise.", argv[1]);
             break;
         default: {
-            ws = fiftyoneDegreesCreateWorkset(&dataSet);
-            printf("\n\nUseragents file is: %s\n\n", findFileNames(inputFileName));
+            ws = fiftyoneDegreesCreateWorksetWithCache(&dataSet, cacheSize);
+            printf("\n\nUseragents file is: %s\n", findFileNames(inputFileName));
+            printf("Cache Size is: %d\n\n", ws->cache->total);
             performance(inputFileName, ws);
             fiftyoneDegreesFreeWorkset(ws);
             fiftyoneDegreesDestroy(&dataSet);
