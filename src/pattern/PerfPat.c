@@ -53,7 +53,7 @@ void printLoadBar(long count, long max) {
 int performanceTest(char* fileName, fiftyoneDegreesWorkset *ws, long max, int calibrate) {
 	long count = 0;
 	long marker = max / PROGRESS_MARKERS;
-	const char *result;
+	char *result;
 	int profileCount = 0;
 	FILE *inputFilePtr;
 	long size = 0, current;

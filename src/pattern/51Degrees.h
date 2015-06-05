@@ -305,7 +305,7 @@ typedef struct fiftyoneDegrees_linked_signature_list_t {
 typedef struct fiftyoneDegrees_resultset_t {
 	const fiftyoneDegreesDataSet *dataSet; /* A pointer to the data set to use for the match */
 	byte *targetUserAgentArray; /* An array of bytes representing the target user agent */
-	size_t targetUserAgentArrayLength; /* The length of the target user agent */
+	uint16_t targetUserAgentArrayLength; /* The length of the target user agent */
     uint64_t targetUserAgentHashCode; /* The hash code of the target user agent */
     fiftyoneDegreesBool hashCodeSet; /* 0 if the hash code has not been calculated */
 	fiftyoneDegreesMatchMethod method; /* The method used to provide the match result */
@@ -322,21 +322,29 @@ typedef struct fiftyoneDegrees_resultset_t {
 	struct fiftyoneDegrees_resultset_t *next; /* The next item in the linked list, or NULL if last */
 	fiftyoneDegreesResultsetCacheState state; /* Indicates if the result set is in the active, background or both lists */
 } fiftyoneDegreesResultset;
+#pragma pack(pop)
 
+#pragma pack(push, 4)
 typedef struct fiftyoneDegrees_resultset_cache_t fiftyoneDegreesResultsetCache;
+#pragma pack(pop)
 
+#pragma pack(push, 4)
 typedef struct fiftyoneDegrees_resultset_cache_list_t {
     struct fiftyoneDegrees_resultset_cache_t *cache; /* Pointer to the cache the list is a part of */
     fiftyoneDegreesResultset **resultSets; /* Hashcode ordered list of pointers to resultsets in the cache list */
     int32_t allocated; /* The number of resultsets currently allocated in the list */
 } fiftyoneDegreesResultsetCacheList;
+#pragma pack(pop)
 
+#pragma pack(push, 4)
 typedef struct fiftyoneDegrees_resultset_cache_link_list_t {
     fiftyoneDegreesResultset *first; /* Pointer to the first item in the linked list */
     fiftyoneDegreesResultset *last; /* Pointer to the last item in the linked list */
     int32_t count; /* Number of items in the linked list */
 } fiftyoneDegreesResultsetCacheLinkedList;
+#pragma pack(pop)
 
+#pragma pack(push, 4)
 struct fiftyoneDegrees_resultset_cache_t {
 	const fiftyoneDegreesDataSet *dataSet; /* A pointer to the data set to use with the cache */
     const fiftyoneDegreesResultset *resultSets; /* The start of the list of resultsets in the cache */
@@ -351,12 +359,13 @@ struct fiftyoneDegrees_resultset_cache_t {
     int32_t misses; /* The number of times an item was not found in the cache */
     int32_t switches; /* The number of times the cache has been switched */
 };
+#pragma pack(pop)
 
 #pragma pack(push, 1)
 typedef struct fiftyoneDegrees_workset_t {
 	const fiftyoneDegreesDataSet *dataSet; /* A pointer to the data set to use for the match */
 	byte *targetUserAgentArray; /* An array of bytes representing the target user agent */
-	size_t targetUserAgentArrayLength; /* The length of the target user agent */
+	uint16_t targetUserAgentArrayLength; /* The length of the target user agent */
     uint64_t targetUserAgentHashCode; /* The hash code of the target user agent */
     fiftyoneDegreesBool hashCodeSet; /* 0 if the hash code has not been calculated */
 	fiftyoneDegreesMatchMethod method; /* The method used to provide the match result */

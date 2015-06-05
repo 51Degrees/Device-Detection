@@ -49,10 +49,10 @@ goto :msvc
 
 :msvc
 
-cl /DHAVE_SNPRINTF /D_CRT_SECURE_NO_WARNINGS /Ox /Ot /GL /MP src/console/Console.c src/pattern/51Degrees.c src/snprintf/snprintf.c
-cl /DHAVE_SNPRINTF /D_CRT_SECURE_NO_WARNINGS /Ox /Ot /GL /MP src/pattern/ProcPat.c src/pattern/51Degrees.c src/snprintf/snprintf.c
-cl /DHAVE_SNPRINTF /D_CRT_SECURE_NO_WARNINGS /Ox /Ot /GL /MP src/pattern/PerfPat.c src/pattern/51Degrees.c src/snprintf/snprintf.c
-cl /DHAVE_SNPRINTF /D_CRT_SECURE_NO_WARNINGS /Ox /Ot /GL /MP src/trie/ProcTrie.c src/trie/51Degrees.c src/snprintf/snprintf.c
+cl /DHAVE_SNPRINTF /D_CRT_SECURE_NO_WARNINGS /Ox /Ot /GL /MP /W3 /wd4711 src/console/Console.c src/pattern/51Degrees.c src/cityhash/city.c
+cl /DHAVE_SNPRINTF /D_CRT_SECURE_NO_WARNINGS /Ox /Ot /GL /MP /W3 /wd4711 src/pattern/ProcPat.c src/pattern/51Degrees.c src/cityhash/city.c
+cl /DHAVE_SNPRINTF /D_CRT_SECURE_NO_WARNINGS /Ox /Ot /GL /MP /W3 /wd4711 src/pattern/PerfPat.c src/pattern/51Degrees.c src/cityhash/city.c
+cl /DHAVE_SNPRINTF /D_CRT_SECURE_NO_WARNINGS /Ox /Ot /GL /MP /W3 /wd4711 src/trie/ProcTrie.c src/trie/51Degrees.c
 
 del *.obj
 

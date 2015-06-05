@@ -75,9 +75,9 @@ void run(fiftyoneDegreesDataSet *dataSet) {
             fiftyoneDegreesMatch(ws, TARGET_USER_AGENTS[index]);
 
             printf("\r\n\t\t\t*** Detection Results ***\r\n");
-            print50Columns("Target User Agent:\t", ws->targetUserAgent, strlen(ws->targetUserAgent));
-            print50Columns("Relevant Sub Strings:\t", ws->relevantNodes, strlen(ws->relevantNodes));
-            print50Columns("Closest Sub Strings:\t", ws->closestNodes, strlen(ws->closestNodes));
+            print50Columns("Target User Agent:\t", ws->targetUserAgent, (int32_t)strlen(ws->targetUserAgent));
+            print50Columns("Relevant Sub Strings:\t", ws->relevantNodes, (int32_t)strlen(ws->relevantNodes));
+            print50Columns("Closest Sub Strings:\t", ws->closestNodes, (int32_t)strlen(ws->closestNodes));
             printf("Difference:\t\t%d\r\n", ws->difference);
             printf("Method:\t\t\t%s\r\n",
                     ws->method == EXACT ? "Exact" :

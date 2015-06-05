@@ -6,8 +6,36 @@
 		<Option pch_mode="2" />
 		<Option compiler="gcc" />
 		<Build>
-			<Target title="Debug">
-				<Option output="bin/Debug/51Degrees" prefix_auto="1" extension_auto="1" />
+			<Target title="MSVC Debug">
+				<Option output="bin/Debug/PerfPat" prefix_auto="1" extension_auto="1" />
+				<Option object_output="obj/Debug/" />
+				<Option type="1" />
+				<Option compiler="msvc10" />
+				<Option parameters='&quot;../data/51Degrees-Lite.dat&quot; &quot;../data/million.csv&quot; IsMobile' />
+				<Compiler>
+					<Add option="-g" />
+					<Add option="-wd4668" />
+					<Add option="-wd4711" />
+					<Add option="/DHAVE_SNPRINTF" />
+					<Add option="/D_CRT_SECURE_NO_WARNINGS" />
+				</Compiler>
+			</Target>
+			<Target title="MSVC Release">
+				<Option output="bin/Release/PerfPat" prefix_auto="1" extension_auto="1" />
+				<Option object_output="obj/Release/" />
+				<Option type="1" />
+				<Option compiler="msvc10" />
+				<Option parameters='&quot;../data/51Degrees-Lite.dat&quot; &quot;../data/million.csv&quot; IsMobile' />
+				<Compiler>
+					<Add option="-O2" />
+					<Add option="-wd4668" />
+					<Add option="-wd4711" />
+					<Add option="/DHAVE_SNPRINTF" />
+					<Add option="/D_CRT_SECURE_NO_WARNINGS" />
+				</Compiler>
+			</Target>
+			<Target title="GCC Debug">
+				<Option output="bin/Debug/PerfPat" prefix_auto="1" extension_auto="1" />
 				<Option object_output="obj/Debug/" />
 				<Option type="1" />
 				<Option compiler="gcc" />
@@ -17,8 +45,8 @@
 					<Add option="-DHAVE_SNPRINTF" />
 				</Compiler>
 			</Target>
-			<Target title="Release">
-				<Option output="bin/Release/51Degrees" prefix_auto="1" extension_auto="1" />
+			<Target title="GCC Release">
+				<Option output="bin/Release/PerfPat" prefix_auto="1" extension_auto="1" />
 				<Option object_output="obj/Release/" />
 				<Option type="1" />
 				<Option compiler="gcc" />
@@ -27,9 +55,6 @@
 					<Add option="-O2" />
 					<Add option="-DHAVE_SNPRINTF" />
 				</Compiler>
-				<Linker>
-					<Add option="-s" />
-				</Linker>
 			</Target>
 		</Build>
 		<Compiler>

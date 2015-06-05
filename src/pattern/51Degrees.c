@@ -291,7 +291,7 @@ fiftyoneDegreesProfile* getProfileByIndex(fiftyoneDegreesDataSet *dataSet, int32
  * @return the index of the property
  */
 int32_t getPropertyIndex(const fiftyoneDegreesDataSet *dataSet, const fiftyoneDegreesProperty *property) {
-    return property - dataSet->properties;
+    return (int32_t)(property - dataSet->properties);
 }
 
 /**
@@ -485,7 +485,7 @@ int32_t getSignatureNodeOffsetsCount(const fiftyoneDegreesDataSet *dataSet, int3
  * @return the integer offset to the node in the data structure
  */
 int32_t getNodeOffsetFromNode(const fiftyoneDegreesDataSet *dataSet, const fiftyoneDegreesNode *node) {
-    return (byte*)node - (byte*)(dataSet->nodes);
+    return (int32_t)((byte*)node - (byte*)dataSet->nodes);
 }
 
 /**
@@ -507,7 +507,7 @@ int32_t* getNodeOffsetsFromSignature(const fiftyoneDegreesDataSet *dataSet, cons
  * @returns the rank of the signature if available, or INT_MAX
  */
 int32_t getRankFromSignature(const fiftyoneDegreesDataSet *dataSet, const byte *signature) {
-    int32_t index = (signature - dataSet->signatures) / dataSet->sizeOfSignature;
+    int32_t index = (int32_t)(signature - dataSet->signatures) / dataSet->sizeOfSignature;
     int32_t i;
     for(i = 0; i < dataSet->header.signatures.count; i++) {
         if (dataSet->rankedSignatureIndexes[i] == index) {
@@ -667,7 +667,8 @@ void setAllProperties(fiftyoneDegreesDataSet *dataSet) {
  * @param count number of elements in the properties array
  */
 void setProperties(fiftyoneDegreesDataSet *dataSet, char** properties, int32_t count) {
-    int32_t index, propertyIndex, requiredPropertyLength;
+    int32_t index, propertyIndex;
+    int16_t requiredPropertyLength;
     char *requiredPropertyName;
 	const fiftyoneDegreesAsciiString *propertyName;
 
@@ -678,7 +679,7 @@ void setProperties(fiftyoneDegreesDataSet *dataSet, char** properties, int32_t c
     // Add the properties to the list of required properties.
     for(propertyIndex = 0; propertyIndex < count; propertyIndex++) {
         requiredPropertyName = *(properties + propertyIndex);
-        requiredPropertyLength = strlen(requiredPropertyName);
+        requiredPropertyLength = (int16_t)strlen(requiredPropertyName);
         for(index = 0; index < dataSet->header.properties.count; index++) {
             propertyName = fiftyoneDegreesGetString(dataSet, (dataSet->properties + index)->nameOffset);
             if (requiredPropertyLength == propertyName->length - 1 &&
@@ -906,11 +907,11 @@ void fiftyoneDegreesResultsetCacheInit(fiftyoneDegreesResultsetCache *rsc) {
     next = (fiftyoneDegreesResultset*)rsc->resultSets;
     for(i = 0; i < rsc->total; i++) {
         current = next;
-        next = i < rsc->total - 1 ? (fiftyoneDegreesResultset*)((void*)current + rsc->sizeOfResultset) : NULL;
+        next = i < rsc->total - 1 ? (fiftyoneDegreesResultset*)((char*)current + rsc->sizeOfResultset) : NULL;
         current->next = next;
         current->previous = previous;
-        current->profiles = (fiftyoneDegreesProfile*)((void*)current + profileOffset);
-        current->targetUserAgentArray = (byte*)((void*)current + targetUserAgentOffset);
+        current->profiles = (fiftyoneDegreesProfile*)((char*)current + profileOffset);
+        current->targetUserAgentArray = (byte*)((char*)current + targetUserAgentOffset);
         previous = current;
     }
 
@@ -1394,12 +1395,18 @@ int32_t insertNodeIntoWorkSet(fiftyoneDegreesWorkset *ws, const fiftyoneDegreesN
  */
 void setTargetUserAgentArray(fiftyoneDegreesWorkset *ws, char* userAgent) {
     int32_t index;
+    size_t length;
     ws->targetUserAgent = userAgent;
-    ws->targetUserAgentArrayLength = strlen(userAgent);
     ws->hashCodeSet = 0;
 
-    if (ws->targetUserAgentArrayLength > ws->dataSet->header.maxUserAgentLength)
+    // If the user agent is longer than the maximum then set to the max length
+    // otherwise use the length of the string.
+    length = strlen(userAgent);
+    if (length > (size_t)ws->dataSet->header.maxUserAgentLength) {
         ws->targetUserAgentArrayLength = ws->dataSet->header.maxUserAgentLength;
+    } else {
+        ws->targetUserAgentArrayLength = (uint16_t)length;
+    }
 
     /* Work out the starting character position */
     for(index = 0; index < ws->targetUserAgentArrayLength; index++) {
@@ -2775,7 +2782,7 @@ int32_t fiftyoneDegreesProcessDeviceJSON(fiftyoneDegreesWorkset *ws, char* resul
 					fiftyoneDegreesGetPropertyName(ws->dataSet, *(ws->dataSet->requiredProperties + propertyIndex)));
                 for(valueIndex = 0; valueIndex < ws->valuesCount; valueIndex++) {
 					valueName = fiftyoneDegreesGetValueName(ws->dataSet, *(ws->values + valueIndex));
-					valueNameLength = strlen(valueName);
+					valueNameLength = (int32_t)strlen(valueName);
 					for(valueNameIndex = 0; valueNameIndex < valueNameLength; valueNameIndex++) {
 						if(valueName[valueNameIndex] == 0) {
 							break;
