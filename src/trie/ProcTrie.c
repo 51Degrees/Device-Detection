@@ -9,7 +9,7 @@ int main(int argc, char* argv[]) {
     if (argc > 1) {
       char *fileName = argc > 1 ? argv[1] : NULL;
       char *requiredProperties = argc > 2 ? argv[2] : NULL;
-      switch(fiftyoneDegreesInit(fileName, requiredProperties)) {
+      switch(fiftyoneDegreesInitWithPropertyString(fileName, requiredProperties)) {
         case DATA_SET_INIT_STATUS_INSUFFICIENT_MEMORY:
           printf("Insufficient memory to load '%s'.", argv[1]);
           break;

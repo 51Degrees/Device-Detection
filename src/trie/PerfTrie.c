@@ -238,7 +238,7 @@ int main(int argc, char* argv[]) {
         char *requiredProperties = argc > 3 ? argv[3] : NULL;
 
         fiftyoneDegreesDataSetInitStatus status = DATA_SET_INIT_STATUS_SUCCESS;
-        status = fiftyoneDegreesInit(fileName, requiredProperties);
+        status = fiftyoneDegreesInitWithPropertyString(fileName, requiredProperties);
         switch(status) {
             case DATA_SET_INIT_STATUS_INSUFFICIENT_MEMORY:
                 printf("Insufficient memory to load '%s'.", argv[1]);
