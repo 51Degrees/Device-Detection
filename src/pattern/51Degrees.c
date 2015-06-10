@@ -880,6 +880,8 @@ void fiftyoneDegreesInitResultsetCacheMutex(fiftyoneDegreesResultsetCache* cache
 		NULL,	// default security attributes
 		FALSE,	// initially not owned
 		NULL);	// unnamed mutex
+#else
+	pthread_mutex_init(&cache->mutex, NULL);
 #endif
 }
 
@@ -887,6 +889,8 @@ void fiftyoneDegreesDestroyResultsetCacheMutex(fiftyoneDegreesResultsetCache* ca
 {
 #ifdef WIN32
 	CloseHandle(cache->mutex);
+#else
+	pthread_mutex_destroy(&cache->mutex);
 #endif
 }
 
@@ -1133,12 +1137,16 @@ void fiftyoneDegreesGetLock(fiftyoneDegreesResultsetCache* cache) {
 	WaitForSingleObject(
 		cache->mutex,    // handle to mutex
 		INFINITE);  // no time-out interval
+#else
+	pthread_mutex_lock(&cache->mutex);
 #endif
 }
 
 void fiftyoneDegreesReleaseLock(fiftyoneDegreesResultsetCache* cache) {
 #ifdef WIN32
 	ReleaseMutex(cache->mutex);
+#else
+	pthread_mutex_unlock(&cache->mutex);
 #endif
 }
 

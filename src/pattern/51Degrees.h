@@ -42,6 +42,8 @@
 
 #ifdef WIN32
 #include <Windows.h>
+#else
+#include <pthread.h>
 #endif
 
 /* Used to represent bytes */
@@ -364,6 +366,8 @@ struct fiftyoneDegrees_resultset_cache_t {
     int32_t switches; /* The number of times the cache has been switched */
 #ifdef WIN32
 	HANDLE mutex;
+#else
+   pthread_mutex_t mutex;
 #endif
 };
 #pragma pack(pop)
