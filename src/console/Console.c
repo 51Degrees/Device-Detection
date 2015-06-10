@@ -52,6 +52,7 @@ void print50Columns(char* label, const char* value, int32_t length) {
 
 void run(fiftyoneDegreesDataSet *dataSet) {
     fiftyoneDegreesWorkset *ws = NULL;
+    fiftyoneDegreesResultsetCache *cache = NULL;
     int32_t index, propertyIndex, valueIndex, profileIndex;
 
     printf("Name:\t\t\t%s\r\n", &(fiftyoneDegreesGetString(dataSet, dataSet->header.nameOffset)->firstByte));
@@ -68,61 +69,65 @@ void run(fiftyoneDegreesDataSet *dataSet) {
     printf("Data set version:\t%s\r\n", &(fiftyoneDegreesGetString(dataSet, dataSet->header.formatOffset)->firstByte));
     printf("\r\n");
 
-    ws = fiftyoneDegreesCreateWorksetWithCache(dataSet, 3);
-    if (ws != NULL) {
-        for(index = 0; index < (sizeof(TARGET_USER_AGENTS) / sizeof(char*)); index++)
-        {
-            fiftyoneDegreesMatch(ws, TARGET_USER_AGENTS[index]);
+	cache = fiftyoneDegreesResultsetCacheCreate(dataSet, 3);
+    if (cache != NULL) {
+        ws = fiftyoneDegreesCreateWorkset(dataSet, cache);
+        if (ws != NULL) {
+            for(index = 0; index < (sizeof(TARGET_USER_AGENTS) / sizeof(char*)); index++)
+            {
+                fiftyoneDegreesMatch(ws, TARGET_USER_AGENTS[index]);
 
-            printf("\r\n\t\t\t*** Detection Results ***\r\n");
-            print50Columns("Target User Agent:\t", ws->targetUserAgent, (int32_t)strlen(ws->targetUserAgent));
-            print50Columns("Relevant Sub Strings:\t", ws->relevantNodes, (int32_t)strlen(ws->relevantNodes));
-            print50Columns("Closest Sub Strings:\t", ws->closestNodes, (int32_t)strlen(ws->closestNodes));
-            printf("Difference:\t\t%d\r\n", ws->difference);
-            printf("Method:\t\t\t%s\r\n",
-                    ws->method == EXACT ? "Exact" :
-                    ws->method == NUMERIC ? "Numeric" :
-                    ws->method == CLOSEST ? "Closest" :
-                    ws->method == NEAREST ? "Nearest" :
-                    "None");
-            printf("Signature Rank:\t\t%d\r\n", fiftyoneDegreesGetSignatureRank(ws));
-            printf("Root Nodes Evaluated:\t%d\r\n", ws->rootNodesEvaluated);
-            printf("Nodes Evaluated:\t%d\r\n", ws->nodesEvaluated);
-            printf("Strings Read:\t\t%d\r\n", ws->stringsRead);
-            printf("Signatures Read:\t%d\r\n", ws->signaturesRead);
-            printf("Signatures Compared:\t%d\r\n", ws->signaturesCompared);
-            printf("Profiles:\t\t");
-            for(profileIndex = 0; profileIndex < ws->profileCount; profileIndex++) {
-                printf("%d", ws->profiles[profileIndex]->profileId);
-                if (profileIndex < ws->profileCount - 1) {
-                    printf("-");
-                }
-            }
-            printf("\r\n");
-            printf("\r\n");
-            printf("\t\t\t*** Example Properties ***\r\n");
-
-            for(propertyIndex = 0; propertyIndex < ws->dataSet->requiredPropertyCount; propertyIndex++) {
-                printf("%s:\t", fiftyoneDegreesGetPropertyName(ws->dataSet, *(ws->dataSet->requiredProperties + propertyIndex)));
-                if (fiftyoneDegreesSetValues(ws, propertyIndex) > 0) {
-                    for(valueIndex = 0; valueIndex < ws->valuesCount; valueIndex++) {
-                        printf("%s", fiftyoneDegreesGetValueName(ws->dataSet, *(ws->values + valueIndex)));
-                        if (valueIndex < ws->valuesCount - 1)
-                            printf(", ");
+                printf("\r\n\t\t\t*** Detection Results ***\r\n");
+                print50Columns("Target User Agent:\t", ws->targetUserAgent, (int32_t)strlen(ws->targetUserAgent));
+                print50Columns("Relevant Sub Strings:\t", ws->relevantNodes, (int32_t)strlen(ws->relevantNodes));
+                print50Columns("Closest Sub Strings:\t", ws->closestNodes, (int32_t)strlen(ws->closestNodes));
+                printf("Difference:\t\t%d\r\n", ws->difference);
+                printf("Method:\t\t\t%s\r\n",
+                        ws->method == EXACT ? "Exact" :
+                        ws->method == NUMERIC ? "Numeric" :
+                        ws->method == CLOSEST ? "Closest" :
+                        ws->method == NEAREST ? "Nearest" :
+                        "None");
+                printf("Signature Rank:\t\t%d\r\n", fiftyoneDegreesGetSignatureRank(ws));
+                printf("Root Nodes Evaluated:\t%d\r\n", ws->rootNodesEvaluated);
+                printf("Nodes Evaluated:\t%d\r\n", ws->nodesEvaluated);
+                printf("Strings Read:\t\t%d\r\n", ws->stringsRead);
+                printf("Signatures Read:\t%d\r\n", ws->signaturesRead);
+                printf("Signatures Compared:\t%d\r\n", ws->signaturesCompared);
+                printf("Profiles:\t\t");
+                for(profileIndex = 0; profileIndex < ws->profileCount; profileIndex++) {
+                    printf("%d", ws->profiles[profileIndex]->profileId);
+                    if (profileIndex < ws->profileCount - 1) {
+                        printf("-");
                     }
                 }
                 printf("\r\n");
+                printf("\r\n");
+                printf("\t\t\t*** Example Properties ***\r\n");
+
+                for(propertyIndex = 0; propertyIndex < ws->dataSet->requiredPropertyCount; propertyIndex++) {
+                    printf("%s:\t", fiftyoneDegreesGetPropertyName(ws->dataSet, *(ws->dataSet->requiredProperties + propertyIndex)));
+                    if (fiftyoneDegreesSetValues(ws, propertyIndex) > 0) {
+                        for(valueIndex = 0; valueIndex < ws->valuesCount; valueIndex++) {
+                            printf("%s", fiftyoneDegreesGetValueName(ws->dataSet, *(ws->values + valueIndex)));
+                            if (valueIndex < ws->valuesCount - 1)
+                                printf(", ");
+                        }
+                    }
+                    printf("\r\n");
+                }
             }
-        }
 
-        if (ws->cache != NULL) {
-            printf("\r\n\t\t\t*** Cache Results ***\r\n");
-            printf("Switches:\t%d\r\n", ws->cache->switches);
-            printf("Hits:\t\t%d\r\n", ws->cache->hits);
-            printf("Misses:\t\t%d\r\n", ws->cache->misses);
-        }
+            if (ws->cache != NULL) {
+                printf("\r\n\t\t\t*** Cache Results ***\r\n");
+                printf("Switches:\t%d\r\n", ws->cache->switches);
+                printf("Hits:\t\t%d\r\n", ws->cache->hits);
+                printf("Misses:\t\t%d\r\n", ws->cache->misses);
+            }
 
-        fiftyoneDegreesFreeWorkset(ws);
+            fiftyoneDegreesFreeWorkset(ws);
+        }
+		fiftyoneDegreesResultsetCacheFree(cache);
     }
     fiftyoneDegreesDestroy(dataSet);
 }

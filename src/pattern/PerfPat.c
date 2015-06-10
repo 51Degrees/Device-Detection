@@ -2,7 +2,6 @@
 #include <stdio.h>
 #include <time.h>
 #include <string.h>
-
 #include "51Degrees.h"
 
 /* *********************************************************************
@@ -50,14 +49,14 @@ void printLoadBar(long count, long max) {
 // Execute a performance test using a file of null terminated useragent strings
 // as input. If calibrate is true then the file is read but no detections
 // are performed.
-int performanceTest(char* fileName, fiftyoneDegreesWorkset *ws, long max, int calibrate) {
+int performanceTest(char* fileName, fiftyoneDegreesWorkset *ws, long max, int calibrate, long *checkValue) {
 	long count = 0;
 	long marker = max / PROGRESS_MARKERS;
 	char *result;
-	int profileCount = 0;
 	FILE *inputFilePtr;
 	long size = 0, current;
 	inputFilePtr = fopen(fileName, "r");
+	int i, v;
 
 	if (inputFilePtr == NULL) {
         printf("Failed to open file with null-terminating user agent strings to fiftyoneDegreesMatch against 51Degrees data file. \n");
@@ -87,6 +86,12 @@ int performanceTest(char* fileName, fiftyoneDegreesWorkset *ws, long max, int ca
 		if (calibrate == 0)
 		{
 			fiftyoneDegreesMatch(ws, ws->input); //fiftyoneDegreesWorkset, useragent
+			for (i = 0; i < ws->dataSet->requiredPropertyCount; i++) {
+				fiftyoneDegreesSetValues(ws, i);
+				for (v = 0; v < ws->valuesCount; v++) {
+					*checkValue += ws->values[v]->nameOffset;
+				}
+			}
 		}
 
 		// Increase the counter and reset the offset to
@@ -102,11 +107,6 @@ int performanceTest(char* fileName, fiftyoneDegreesWorkset *ws, long max, int ca
             }
 		} else if (count % marker == 0) {
             printLoadBar(count, max);
-
-            // We need to use the device parameter otherwise an
-            // optimising compiler will ignore the call to
-            // getDevice missing the point of our test!
-            profileCount += ws->profileCount;
 		}
 	} while(1);
 	fclose(inputFilePtr);
@@ -117,6 +117,7 @@ int performanceTest(char* fileName, fiftyoneDegreesWorkset *ws, long max, int ca
 // Perform the test and return the average time.
 double performTest(char *fileName, fiftyoneDegreesWorkset *ws, int passes, int calibrate, char *test) {
 	int pass;
+	long checkValue;
 	time_t start, end;
 	fflush(stdout);
 
@@ -124,7 +125,14 @@ double performTest(char *fileName, fiftyoneDegreesWorkset *ws, int passes, int c
 	time(&start);
 	for(pass = 1; pass <= passes; pass++) {
 		printf("%s pass %i of %i: \n\n", test, pass, passes);
-		_max = performanceTest(fileName, ws, _max, calibrate);
+		checkValue = 0;
+		_max = performanceTest(fileName, ws, _max, calibrate, &checkValue);
+
+		// If the cache is being used then output the check value which
+		// should be identical across multiple runs.
+		if (calibrate == 0 && ws->cache != NULL) {
+			printf("Cache check value = %i\n\n", checkValue);
+		}
 	}
 	time(&end);
 	return difftime(end, start) / (double)passes;
@@ -174,6 +182,7 @@ char *findFileNames(char *subject) {
 // The main method used by the command line test routine.
 int main(int argc, char* argv[]) {
 	fiftyoneDegreesDataSet dataSet;
+	fiftyoneDegreesResultsetCache *cache;
 	fiftyoneDegreesWorkset *ws = NULL;
 
 	char *dataSetFileName = argc > 1 ? argv[1] : NULL;
@@ -218,12 +227,18 @@ int main(int argc, char* argv[]) {
         case DATA_SET_INIT_STATUS_NOT_SET:
             printf("Device data file '%s' could not be used to initialise.", argv[1]);
             break;
-        default: {
-            ws = fiftyoneDegreesCreateWorksetWithCache(&dataSet, cacheSize);
-            printf("\n\nUseragents file is: %s\n", findFileNames(inputFileName));
-            printf("Cache Size is: %d\n\n", ws->cache->total);
-            performance(inputFileName, ws);
-            fiftyoneDegreesFreeWorkset(ws);
+		default: {
+			cache = fiftyoneDegreesResultsetCacheCreate(&dataSet, cacheSize);
+			if (cache != NULL) {
+				ws = fiftyoneDegreesCreateWorkset(&dataSet, cache);
+				if (ws != NULL) {
+					printf("\n\nUseragents file is: %s\n", findFileNames(inputFileName));
+					printf("Cache Size is: %d\n\n", ws->cache->total);
+					performance(inputFileName, ws);
+					fiftyoneDegreesFreeWorkset(ws);
+				}
+				fiftyoneDegreesResultsetCacheFree(cache);
+			}
             fiftyoneDegreesDestroy(&dataSet);
         }
         break;
