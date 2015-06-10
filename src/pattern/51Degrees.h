@@ -40,6 +40,10 @@
 #include <limits.h>
 #include <time.h>
 
+#ifdef WIN32
+#include <Windows.h>
+#endif
+
 /* Used to represent bytes */
 typedef unsigned char byte;
 
@@ -358,6 +362,9 @@ struct fiftyoneDegrees_resultset_cache_t {
     int32_t hits; /* The number of times an item was found in the cache */
     int32_t misses; /* The number of times an item was not found in the cache */
     int32_t switches; /* The number of times the cache has been switched */
+#ifdef WIN32
+	HANDLE mutex;
+#endif
 };
 #pragma pack(pop)
 

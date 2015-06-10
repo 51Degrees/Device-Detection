@@ -873,6 +873,23 @@ void fiftyoneDegreesResultsetCacheListFree(const fiftyoneDegreesResultsetCacheLi
     free((void*)rscl);
 }
 
+void fiftyoneDegreesInitResultsetCacheMutex(fiftyoneDegreesResultsetCache* cache)
+{
+#ifdef WIN32
+	cache->mutex = CreateMutex(
+		NULL,	// default security attributes
+		FALSE,	// initially not owned
+		NULL);	// unnamed mutex
+#endif
+}
+
+void fiftyoneDegreesDestroyResultsetCacheMutex(fiftyoneDegreesResultsetCache* cache)
+{
+#ifdef WIN32
+	CloseHandle(cache->mutex);
+#endif
+}
+
 /**
  * Releases the memory used by the cache.
  * @param pointer to the cache created previously
@@ -880,6 +897,7 @@ void fiftyoneDegreesResultsetCacheListFree(const fiftyoneDegreesResultsetCacheLi
 void fiftyoneDegreesResultsetCacheFree(const fiftyoneDegreesResultsetCache *rsc) {
     fiftyoneDegreesResultsetCacheListFree(rsc->active);
     fiftyoneDegreesResultsetCacheListFree(rsc->background);
+	fiftyoneDegreesDestroyResultsetCacheMutex(rsc);
     free((void*)rsc->resultSets);
     free((void*)rsc);
 }
@@ -939,6 +957,9 @@ fiftyoneDegreesResultsetCacheList *fiftyoneDegreesResultsetCacheListCreate(int32
             rscl = NULL;
         }
     }
+
+
+
     return rscl;
 }
 
@@ -979,6 +1000,8 @@ fiftyoneDegreesResultsetCache *fiftyoneDegreesResultsetCacheCreate(const fiftyon
 
         // Initialise the linked lists for allocated and free.
         fiftyoneDegreesResultsetCacheInit(rsc);
+
+		fiftyoneDegreesInitResultsetCacheMutex(rsc);
     }
     return rsc;
 }
@@ -1105,6 +1128,20 @@ void fiftyoneDegreesCacheItemsInsert(fiftyoneDegreesResultsetCacheList *rscl, fi
     rscl->allocated++;
 }
 
+void fiftyoneDegreesGetLock(fiftyoneDegreesResultsetCache* cache) {
+#ifdef WIN32
+	WaitForSingleObject(
+		cache->mutex,    // handle to mutex
+		INFINITE);  // no time-out interval
+#endif
+}
+
+void fiftyoneDegreesReleaseLock(fiftyoneDegreesResultsetCache* cache) {
+#ifdef WIN32
+	ReleaseMutex(cache->mutex);
+#endif
+}
+
 /**
  * Inserts the result set into the cache items list at the index provided
  * shifting all subsequent result sets in the cache down by one item. A copy
@@ -1118,12 +1155,18 @@ void fiftyoneDegreesCacheItemsInsert(fiftyoneDegreesResultsetCacheList *rscl, fi
 fiftyoneDegreesResultset *fiftyoneDegreesCacheItemsInsertWithCopy(fiftyoneDegreesResultsetCacheList *rscl, const fiftyoneDegreesResultset *src, int32_t index) {
     fiftyoneDegreesResultset *rs;
 
+	// begin lock
+	fiftyoneDegreesGetLock(rscl->cache);
+
     // Get the pointer to the next item in the list of resultsets
     // copy the source resultset into the linked list.
     rs = fiftyoneDegreesResultsetCacheAdd(rscl->cache, src);
 
     // Insert the copy at the index provided.
     fiftyoneDegreesCacheItemsInsert(rscl, rs, index);
+
+	// end lock
+	fiftyoneDegreesReleaseLock(rscl->cache);
 
     return rs;
 }
