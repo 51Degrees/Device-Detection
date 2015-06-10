@@ -367,7 +367,7 @@ struct fiftyoneDegrees_resultset_cache_t {
 #ifdef WIN32
 	HANDLE mutex;
 #else
-   pthread_mutex_t mutex;
+    pthread_mutex_t mutex;
 #endif
 };
 #pragma pack(pop)
@@ -406,7 +406,6 @@ typedef struct fiftyoneDegrees_workset_t {
 	fiftyoneDegreesBool startWithInitialScore; /* True if the NEAREST and CLOSEST methods should start with an initial score */
 	int(*functionPtrGetScore)(struct fiftyoneDegrees_workset_t *ws, const fiftyoneDegreesNode *node); /* Returns scores for each different node between signature and match */
 	const byte* (*functionPtrNextClosestSignature)(struct fiftyoneDegrees_workset_t *ws); /* Returns the next closest signature */
-	fiftyoneDegreesResultsetCache *cache; /* Cache used to store results between detections */
 } fiftyoneDegreesWorkset;
 #pragma pack(pop)
 
@@ -419,7 +418,8 @@ EXTERNAL fiftyoneDegreesWorkset* fiftyoneDegreesCreateWorkset(const fiftyoneDegr
 EXTERNAL fiftyoneDegreesWorkset* fiftyoneDegreesCreateWorksetWithCache(const fiftyoneDegreesDataSet *dataSet, int32_t cacheSize);
 EXTERNAL void fiftyoneDegreesFreeWorkset(const fiftyoneDegreesWorkset *ws);
 
-EXTERNAL const fiftyoneDegreesResultset* fiftyoneDegreesMatch(fiftyoneDegreesWorkset *ws, char* userAgent);
+EXTERNAL void fiftyoneDegreesMatch(fiftyoneDegreesWorkset *ws, char* userAgent);
+EXTERNAL const fiftyoneDegreesResultset* fiftyoneDegreesMatchWithCache(fiftyoneDegreesWorkset *ws, char* userAgent);
 EXTERNAL int32_t fiftyoneDegreesSetValues(fiftyoneDegreesWorkset *ws, int32_t requiredPropertyIndex);
 EXTERNAL const fiftyoneDegreesAsciiString* fiftyoneDegreesGetString(const fiftyoneDegreesDataSet *dataSet, int32_t offset);
 EXTERNAL const char* fiftyoneDegreesGetValueName(const fiftyoneDegreesDataSet *dataSet, const fiftyoneDegreesValue *value);

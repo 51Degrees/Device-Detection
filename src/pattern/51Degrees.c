@@ -1254,10 +1254,9 @@ void fiftyoneDegreesCacheSwitch(fiftyoneDegreesResultsetCache *rsc) {
  * The workset must be destroyed using the freeWorkset method when it's
  * finished with to release memory.
  * @param dataSet pointer to the data set
- * @param cacheSize the number of results the cache should be sized to store
  * @returns a pointer to the workset created
  */
-fiftyoneDegreesWorkset *fiftyoneDegreesCreateWorksetWithCache(const fiftyoneDegreesDataSet *dataSet, int32_t cacheSize) {
+fiftyoneDegreesWorkset *fiftyoneDegreesCreateWorkset(const fiftyoneDegreesDataSet *dataSet) {
 	fiftyoneDegreesWorkset *ws = (fiftyoneDegreesWorkset*)malloc(sizeof(fiftyoneDegreesWorkset));
 	if (ws != NULL) {
         // Initialise all the parameters of the workset.
@@ -1274,7 +1273,6 @@ fiftyoneDegreesWorkset *fiftyoneDegreesCreateWorksetWithCache(const fiftyoneDegr
         ws->values = (const fiftyoneDegreesValue**)malloc(dataSet->header.maxValues * sizeof(const fiftyoneDegreesValue*));
         ws->profiles = (const fiftyoneDegreesProfile**)malloc(RESULTSET_PROFILES_SIZE(dataSet->header));
         ws->targetUserAgentArray = (byte*)malloc(RESULTSET_TARGET_USERAGENT_ARRAY_SIZE(dataSet->header));
-        ws->cache = fiftyoneDegreesResultsetCacheCreate(ws->dataSet, cacheSize);
 
         // Check all the memory was allocated correctly and also
         // allocate using the result set method.
@@ -1287,8 +1285,7 @@ fiftyoneDegreesWorkset *fiftyoneDegreesCreateWorksetWithCache(const fiftyoneDegr
             ws->signatureAsString == NULL ||
             ws->values == NULL ||
             ws->profiles == NULL ||
-            ws->targetUserAgentArray == NULL ||
-            (ws->cache == NULL && cacheSize >= MIN_CACHE_SIZE)) {
+            ws->targetUserAgentArray == NULL) {
 
             // One or more of the workset memory allocations failed.
             // Free any that worked and return NULL.
@@ -1302,7 +1299,6 @@ fiftyoneDegreesWorkset *fiftyoneDegreesCreateWorksetWithCache(const fiftyoneDegr
             if (ws->values != NULL) { free((void*)ws->values); }
             if (ws->profiles != NULL) { free((void*)ws->profiles); }
             if (ws->targetUserAgentArray != NULL) { free((void*)ws->targetUserAgentArray); }
-            if (ws->cache != NULL) { fiftyoneDegreesResultsetCacheFree(ws->cache); }
 
             // Free the workset which worked earlier and return NULL.
             free(ws);
@@ -1314,17 +1310,6 @@ fiftyoneDegreesWorkset *fiftyoneDegreesCreateWorksetWithCache(const fiftyoneDegr
         }
 	}
 	return ws;
-}
-
-/**
- * Creates a new workset to perform matches using the dataset provided.
- * The workset must be destroyed using the freeWorkset method when it's
- * finished with to release memory.
- * @param dataSet pointer to the data seterform matches using the dataset provided.
- * @returns a pointer to the workset created
- */
-fiftyoneDegreesWorkset *fiftyoneDegreesCreateWorkset(const fiftyoneDegreesDataSet *dataSet) {
-    return fiftyoneDegreesCreateWorksetWithCache(dataSet, 0);
 }
 
 /**
@@ -1341,9 +1326,6 @@ void fiftyoneDegreesFreeWorkset(const fiftyoneDegreesWorkset *ws) {
 	free((void*)ws->targetUserAgentArray);
 	free((void*)ws->profiles);
     free((void*)ws->linkedSignatureList.items);
-    if (ws->cache != NULL) {
-        fiftyoneDegreesResultsetCacheFree((void*)ws->cache);
-    }
 	free((void*)ws);
 }
 
@@ -2611,23 +2593,23 @@ void fiftyoneDegreesSetMatch(fiftyoneDegreesWorkset *ws) {
  * @param cacheIndex the index in the active list that the resultset should be
  *        copied
  */
-fiftyoneDegreesResultset *fiftyoneDegreesSetMatchAndCache(fiftyoneDegreesWorkset *ws, int32_t cacheIndex) {
+fiftyoneDegreesResultset *fiftyoneDegreesSetMatchAndCache(fiftyoneDegreesWorkset *ws, fiftyoneDegreesResultsetCache *cache, int32_t cacheIndex) {
     // Perform the match process.
     fiftyoneDegreesSetMatch(ws);
 
     // Copy the workset data to the active cache and return the copy resultset.
-    return fiftyoneDegreesCacheItemsInsertWithCopy(ws->cache->active, (fiftyoneDegreesResultset*)ws, cacheIndex);
+    return fiftyoneDegreesCacheItemsInsertWithCopy(cache->active, (fiftyoneDegreesResultset*)ws, cacheIndex);
 }
 
-fiftyoneDegreesResultset *fiftyoneDegreesSetMatchAndUpdateCache(fiftyoneDegreesWorkset *ws, int32_t cacheIndex) {
+fiftyoneDegreesResultset *fiftyoneDegreesSetMatchAndUpdateCache(fiftyoneDegreesWorkset *ws, fiftyoneDegreesResultsetCache *cache, int32_t cacheIndex) {
     // Perform the match process.
     fiftyoneDegreesSetMatch(ws);
 
     // Copy the workset over the resultset already at the cache position.
-    fiftyoneDegreesResultsetCopy(ws->cache->active->resultSets[cacheIndex], (fiftyoneDegreesResultset*)ws);
+    fiftyoneDegreesResultsetCopy(cache->active->resultSets[cacheIndex], (fiftyoneDegreesResultset*)ws);
 
     // Return the resultset at that cacheindex.
-    return ws->cache->active->resultSets[cacheIndex];
+    return cache->active->resultSets[cacheIndex];
 }
 
 /**
@@ -2639,51 +2621,65 @@ fiftyoneDegreesResultset *fiftyoneDegreesSetMatchAndUpdateCache(fiftyoneDegreesW
  * @param userAgent pointer to the target user agent
  * @returns the resultset from the workset's cache
  */
-const fiftyoneDegreesResultset *fiftyoneDegreesMatch(fiftyoneDegreesWorkset *ws, char* userAgent) {
-    int32_t cacheIndex;
-    fiftyoneDegreesResultset *rs = NULL;
+void fiftyoneDegreesMatch(fiftyoneDegreesWorkset *ws, char* userAgent) {
 
     setTargetUserAgentArray(ws, userAgent);
     if (ws->targetUserAgentArrayLength >= ws->dataSet->header.minUserAgentLength) {
-
-        // Is a cache being used?
-        if (ws->cache != NULL) {
-
-            // Does the hashcode for the user agent already exist in the cache?
-            cacheIndex = fiftyoneDegreesResultsetCacheFetchIndex(ws->cache->active, fiftyoneDegreesGetResultsetHashCode((fiftyoneDegreesResultset*)ws));
-
-            if (cacheIndex < 0) {
-                // Add to the cache and record the miss.
-                rs = fiftyoneDegreesSetMatchAndCache(ws, ~cacheIndex);
-                ws->cache->misses++;
-            }
-            else if (ws->targetUserAgentArrayLength == ws->cache->active->resultSets[cacheIndex]->targetUserAgentArrayLength &&
-                     memcmp(ws->targetUserAgentArray, ws->cache->active->resultSets[cacheIndex]->targetUserAgentArray, ws->targetUserAgentArrayLength) != 0) {
-                // The hashcode matched but the user agents didn't. Update this entry
-                // in the cache with the new user agent and match values.
-                rs = fiftyoneDegreesSetMatchAndUpdateCache(ws, cacheIndex);
-            }
-            else {
-                // Fetch from the cache and record the hit.
-                rs = ws->cache->active->resultSets[cacheIndex];
-                fiftyoneDegreesResultsetCopy((fiftyoneDegreesResultset*)ws, rs);
-                ws->cache->hits++;
-            }
-
-            // Make sure this result is in the background cache.
-            fiftyoneDegreesCacheItemsSet(ws->cache->background, rs);
-            rs->state = BOTH_CACHE_LISTS;
-
-            // See if the caches now need to be switched.
-            fiftyoneDegreesCacheSwitch(ws->cache);
-        } else {
-            // Don't use the cache, just process the input data.
-            fiftyoneDegreesSetMatch(ws);
-            rs = (fiftyoneDegreesResultset*)ws;
-        }
+		fiftyoneDegreesSetMatch(ws);
     }
+}
 
-    return (const fiftyoneDegreesResultset*)rs;
+/**
+* Main entry method used for perform a match. First the cache is checked to
+* determine if the userAgent has already been found. If not then detection
+* is performed. The cache is then updated before the resultset is returned.
+* @param ws pointer to a work set to be used for the match created via
+*        createWorkset function
+* @param userAgent pointer to the target user agent
+* @returns the resultset from the workset's cache
+*/
+const fiftyoneDegreesResultset *fiftyoneDegreesMatchWithCache(fiftyoneDegreesWorkset *ws, fiftyoneDegreesResultsetCache *cache, char* userAgent) {
+	int32_t cacheIndex;
+	fiftyoneDegreesResultset *rs = NULL;
+
+	setTargetUserAgentArray(ws, userAgent);
+	if (ws->targetUserAgentArrayLength >= ws->dataSet->header.minUserAgentLength) {
+
+
+		// Does the hashcode for the user agent already exist in the cache?
+		cacheIndex = fiftyoneDegreesResultsetCacheFetchIndex(cache->active, fiftyoneDegreesGetResultsetHashCode((fiftyoneDegreesResultset*)ws));
+
+		if (cacheIndex < 0) {
+			// Add to the cache and record the miss.
+			rs = fiftyoneDegreesSetMatchAndCache(ws, cache, ~cacheIndex);
+			cache->misses++;
+		}
+		else if (ws->targetUserAgentArrayLength == cache->active->resultSets[cacheIndex]->targetUserAgentArrayLength &&
+			memcmp(ws->targetUserAgentArray, cache->active->resultSets[cacheIndex]->targetUserAgentArray, ws->targetUserAgentArrayLength) != 0) {
+			// The hashcode matched but the user agents didn't. Update this entry
+			// in the cache with the new user agent and match values.
+			rs = fiftyoneDegreesSetMatchAndUpdateCache(ws, cache, cacheIndex);
+		}
+		else {
+			// Fetch from the cache and record the hit.
+			rs = cache->active->resultSets[cacheIndex];
+			fiftyoneDegreesResultsetCopy((fiftyoneDegreesResultset*)ws, rs);
+			cache->hits++;
+		}
+
+		// Make sure this result is in the background cache.
+		fiftyoneDegreesCacheItemsSet(cache->background, rs);
+		rs->state = BOTH_CACHE_LISTS;
+
+		// See if the caches now need to be switched.
+		fiftyoneDegreesCacheSwitch(cache);
+
+		// Don't use the cache, just process the input data.
+		fiftyoneDegreesSetMatch(ws);
+		rs = (fiftyoneDegreesResultset*)ws;
+	}
+
+	return (const fiftyoneDegreesResultset*)rs;
 }
 
 /**
