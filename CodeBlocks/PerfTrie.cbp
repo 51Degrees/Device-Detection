@@ -6,31 +6,37 @@
 		<Option pch_mode="2" />
 		<Option compiler="gcc" />
 		<Build>
-			<Target title="Debug">
+			<Target title="GCC Debug">
 				<Option output="bin/Debug/PerfTrie" prefix_auto="1" extension_auto="1" />
 				<Option object_output="obj/Debug/" />
 				<Option type="1" />
 				<Option compiler="gcc" />
-				<Option parameters='&quot;..\data\51Degrees-Lite.trie&quot; &quot;..\data\Million.csv&quot; &quot;IsMobile&quot;' />
+				<Option parameters='&quot;../data/51Degrees-Lite.trie&quot; &quot;../data/20000 User Agents.csv&quot; &quot;IsMobile&quot;' />
 				<Compiler>
 					<Add option="-march=corei7" />
 					<Add option="-g" />
+					<Add option="-pthread" />
 					<Add option="-DHAVE_SNPRINTF" />
 				</Compiler>
+				<Linker>
+					<Add option="-pthread" />
+				</Linker>
 			</Target>
-			<Target title="Release">
+			<Target title="GCC Release">
 				<Option output="bin/Release/PerfTrie" prefix_auto="1" extension_auto="1" />
 				<Option object_output="obj/Release/" />
 				<Option type="1" />
 				<Option compiler="gcc" />
-				<Option parameters='&quot;..\data\51Degrees-Lite.trie&quot; &quot;..\data\Million.csv&quot; &quot;IsMobile&quot;' />
+				<Option parameters='&quot;../data/51Degrees-Lite.trie&quot; &quot;../data/20000 User Agents.csv&quot; &quot;IsMobile&quot;' />
 				<Compiler>
 					<Add option="-march=corei7-avx" />
 					<Add option="-O2" />
+					<Add option="-pthread" />
 					<Add option="-DHAVE_SNPRINTF" />
 				</Compiler>
 				<Linker>
 					<Add option="-s" />
+					<Add option="-pthread" />
 				</Linker>
 			</Target>
 		</Build>

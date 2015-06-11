@@ -51,3 +51,49 @@
 	<string.h>
 	"51Degrees.h"
 
+1434044424 source:/home/james/51Degrees-C/src/cityhash/city.c
+	<string.h>
+	"city.h"
+	<stdlib.h>
+	<libkern/OSByteOrder.h>
+	<byteswap.h>
+
+1434044424 /home/james/51Degrees-C/src/cityhash/city.h
+	<stdlib.h>
+	<stdint.h>
+
+1434058468 source:/home/james/51Degrees-C/src/pattern/PerfPat.c
+	<stdio.h>
+	<time.h>
+	<string.h>
+	"51Degrees.h"
+
+1434044424 /home/james/51Degrees-C/src/pattern/51Degrees.h
+	<stdint.h>
+	<limits.h>
+	<time.h>
+	"../threading.h"
+
+1434058185 /home/james/51Degrees-C/src/threading.h
+	<windows.h>
+	<pthread.h>
+
+1434044424 source:/home/james/51Degrees-C/src/snprintf/snprintf.c
+	<sys/types.h>
+	<string.h>
+	<stdlib.h>
+	<stdio.h>
+	<stdarg.h>
+	<assert.h>
+	<errno.h>
+
+1434057326 source:/home/james/51Degrees-C/src/pattern/51Degrees.c
+	<stdlib.h>
+	<stdio.h>
+	"../cityhash/city.h"
+	<string.h>
+	<limits.h>
+	<math.h>
+	<time.h>
+	"51Degrees.h"
+

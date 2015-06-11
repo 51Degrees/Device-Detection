@@ -14,6 +14,7 @@ int main(int argc, char* argv[]) {
 	char output[BUFFER_LENGTH];
 	char *fileName = argc > 1 ? argv[1] : NULL;
 	char *requiredProperties = argc > 2 ? argv[2] : NULL;
+	char *result;
 
 	switch (fiftyoneDegreesInitWithPropertyString(fileName, &dataSet, requiredProperties)) {
 	case DATA_SET_INIT_STATUS_INSUFFICIENT_MEMORY:
@@ -33,11 +34,11 @@ int main(int argc, char* argv[]) {
 		ws = fiftyoneDegreesCreateWorkset(&dataSet, NULL);
 
 #ifdef _MSC_VER
-		gets_s(ws->input, dataSet.header.maxUserAgentLength);
+		result = gets_s(ws->input, dataSet.header.maxUserAgentLength);
 #else
-		gets(ws->input);
+		result = fgets(ws->input, ws->dataSet->header.maxUserAgentLength, stdin);
 #endif
-		while (strlen(ws->input) > 0) {
+		while (result != NULL) {
 			fiftyoneDegreesMatch(ws, ws->input);
 			if (ws->profileCount > 0) {
 				fiftyoneDegreesProcessDeviceCSV(ws, output, BUFFER_LENGTH);
@@ -66,7 +67,7 @@ int main(int argc, char* argv[]) {
 #ifdef _MSC_VER
 			gets_s(ws->input, dataSet.header.maxUserAgentLength);
 #else
-			gets(ws->input);
+			result = fgets(ws->input, ws->dataSet->header.maxUserAgentLength, stdin);
 #endif
 		}
 

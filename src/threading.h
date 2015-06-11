@@ -36,7 +36,11 @@
 #ifdef _MSC_VER
 #define FIFTYONEDEGREES_MUTEX HANDLE
 #else
-#define FIFTYONEDEGREES_MUTEX pthread_mutex_t
+typedef struct fiftyoneDegrees_mutex_t {
+    int initValue;
+    pthread_mutex_t mutex;
+} fiftyoneDegreesMutex;
+#define FIFTYONEDEGREES_MUTEX fiftyoneDegreesMutex
 #endif
 
 /**
@@ -46,7 +50,12 @@
 #ifdef _MSC_VER
 #define FIFTYONEDEGREES_SIGNAL HANDLE
 #else
-#define FIFTYONEDEGREES_SIGNAL pthread_mutex_t
+typedef struct fiftyoneDegrees_signal_t {
+    int initValue;
+    pthread_cond_t cond;
+    fiftyoneDegreesMutex mutex;
+} fiftyoneDegreesSignal;
+#define FIFTYONEDEGREES_SIGNAL fiftyoneDegreesSignal
 #endif
 
 /**
@@ -65,6 +74,7 @@
 #ifdef _MSC_VER
 #define FIFTYONEDEGREES_SIGNAL_CREATE(s) s = (FIFTYONEDEGREES_SIGNAL)CreateEvent(NULL, FALSE, TRUE, NULL)
 #else
+#define FIFTYONEDEGREES_SIGNAL_CREATE(s) s.initValue = pthread_cond_init((pthread_cond_t*)&s.cond, 0); FIFTYONEDEGREES_MUTEX_CREATE(s.mutex)
 #endif
 
 /**
@@ -73,6 +83,7 @@
 #ifdef _MSC_VER
 #define FIFTYONEDEGREES_SIGNAL_CLOSE(s) CloseHandle(s)
 #else
+#define FIFTYONEDEGREES_SIGNAL_CLOSE(s) pthread_cond_destroy(&s.cond); FIFTYONEDEGREES_MUTEX_CLOSE(s.mutex);
 #endif
 
 /**
@@ -81,6 +92,7 @@
 #ifdef _MSC_VER
 #define FIFTYONEDEGREES_SIGNAL_SET(s) SetEvent(s)
 #else
+#define FIFTYONEDEGREES_SIGNAL_SET(s) pthread_cond_signal(&s.cond)
 #endif
 
 /**
@@ -89,6 +101,16 @@
 #ifdef _MSC_VER
 #define FIFTYONEDEGREES_SIGNAL_WAIT(s) WaitForSingleObject(s, INFINITE)
 #else
+#define FIFTYONEDEGREES_SIGNAL_WAIT(s) pthread_cond_wait(&s.cond, &s.mutex.mutex)
+#endif
+
+/**
+ * Returns true if the signal is valid.
+ */
+#ifdef _MSC_VER
+#define FIFTYONEDEGREES_SIGNAL_VALID(s) (s != NULL)
+#else
+#define FIFTYONEDEGREES_SIGNAL_VALID(s) ((s.initValue == 0) && FIFTYONEDEGREES_MUTEX_VALID(s.mutex))
 #endif
 
 /**
@@ -97,7 +119,7 @@
 #ifdef _MSC_VER
 #define FIFTYONEDEGREES_MUTEX_CREATE(m) m = (FIFTYONEDEGREES_MUTEX)CreateMutex(NULL,FALSE,NULL)
 #else
-#define FIFTYONEDEGREES_MUTEX_CREATE(m) pthread_mutex_init(m, NULL);
+#define FIFTYONEDEGREES_MUTEX_CREATE(m) m.initValue = pthread_mutex_init((pthread_mutex_t*)&m.mutex, NULL)
 #endif
 
 /**
@@ -106,7 +128,7 @@
 #ifdef _MSC_VER
 #define FIFTYONEDEGREES_MUTEX_CLOSE(m) CloseHandle(m)
 #else
-#define FIFTYONEDEGREES_MUTEX_CLOSE(m) pthread_mutex_destroy(m);
+#define FIFTYONEDEGREES_MUTEX_CLOSE(m) pthread_mutex_destroy((pthread_mutex_t*)&m.mutex);
 #endif
 
 /**
@@ -115,7 +137,7 @@
 #ifdef _MSC_VER
 #define FIFTYONEDEGREES_MUTEX_LOCK(m) WaitForSingleObject(m, INFINITE)
 #else
-#define FIFTYONEDEGREES_MUTEX_LOCK(m) pthread_mutex_lock(m)
+#define FIFTYONEDEGREES_MUTEX_LOCK(m) pthread_mutex_lock((pthread_mutex_t*)&m.mutex)
 #endif
 
 /**
@@ -124,7 +146,16 @@
 #ifdef _MSC_VER
 #define FIFTYONEDEGREES_MUTEX_UNLOCK(m) ReleaseMutex(m)
 #else
-#define FIFTYONEDEGREES_MUTEX_UNLOCK(m) pthread_mutex_unlock(m)
+#define FIFTYONEDEGREES_MUTEX_UNLOCK(m) pthread_mutex_unlock((pthread_mutex_t*)&m.mutex)
+#endif
+
+/**
+ * Returns true if the signal is valid.
+ */
+#ifdef _MSC_VER
+#define FIFTYONEDEGREES_MUTEX_VALID(m) (m != NULL)
+#else
+#define FIFTYONEDEGREES_MUTEX_VALID(m) (m.initValue == 0)
 #endif
 
 /**
@@ -136,11 +167,11 @@
 #ifdef _MSC_VER
 #define FIFTYONEDEGREES_THREAD_CREATE(t, m, s) t = (FIFTYONEDEGREES_THREAD)CreateThread(NULL, 0, m, s, 0, NULL)
 #else
-#define FIFTYONEDEGREES_THREAD_CREATE(t, m, s) pthread_create(t, NULL, m, s);
+#define FIFTYONEDEGREES_THREAD_CREATE(t, m, s) pthread_create(&t, NULL, m, s)
 #endif
 
 /**
- * Joins the thread provided to the current thread waiting 
+ * Joins the thread provided to the current thread waiting
  * indefinitely for the operation to complete.
  * t - pointer to a previously created thread
  */
@@ -162,5 +193,5 @@
 #ifdef _MSC_VER
 #define FIFTYONEDEGREES_THREAD_EXIT
 #else
-#define FIFTYONEDEGREES_THREAD_FREE(t) pthread_exit(NULL)
+#define FIFTYONEDEGREES_THREAD_EXIT(t) pthread_exit(NULL)
 #endif

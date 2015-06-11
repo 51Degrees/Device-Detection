@@ -110,7 +110,7 @@ void runPerformanceTest(void* state) {
 	// Finally report progress.
 	reportProgress(perfState, count, device, propertyIndex);
 
-	FIFTYONEDEGREES_THREAD_EXIT;
+	FIFTYONEDEGREES_THREAD_EXIT();
 }
 
 // Execute a performance test using a file of null terminated useragent strings

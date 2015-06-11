@@ -5,7 +5,6 @@
 #include <limits.h>
 #include <math.h>
 #include <time.h>
-#include "../threading.h"
 #include "51Degrees.h"
 
 /* *********************************************************************
@@ -876,11 +875,11 @@ fiftyoneDegreesWorksetPool *fiftyoneDegreesWorksetPoolCreate(fiftyoneDegreesData
 		FIFTYONEDEGREES_SIGNAL_CREATE(pool->signal);
 		pool->worksets = (fiftyoneDegreesWorkset**)malloc(size * sizeof(fiftyoneDegreesWorkset*));
 		if (pool->worksets == NULL ||
-			pool->lock == NULL ||
-			pool->signal == NULL) {
+			FIFTYONEDEGREES_MUTEX_VALID(pool->lock) == 0 ||
+			FIFTYONEDEGREES_SIGNAL_VALID(pool->signal) == 0) {
 			if (pool->worksets != NULL) { free((void*)pool->worksets); }
-			if (pool->lock != NULL) { FIFTYONEDEGREES_MUTEX_CLOSE(pool->lock); }
-			if (pool->signal != NULL) { FIFTYONEDEGREES_SIGNAL_CLOSE(pool->signal); }
+			if (FIFTYONEDEGREES_MUTEX_VALID(pool->lock) == 0) { FIFTYONEDEGREES_MUTEX_CLOSE(pool->lock); }
+			if (FIFTYONEDEGREES_SIGNAL_VALID(pool->signal) == 0) { FIFTYONEDEGREES_SIGNAL_CLOSE(pool->signal); }
 			free((void*)pool);
 			pool = NULL;
 		}
@@ -893,7 +892,7 @@ fiftyoneDegreesWorksetPool *fiftyoneDegreesWorksetPoolCreate(fiftyoneDegreesData
  * use.
  * @param pool containing worksets
  * @param ws workset to be placed back on the queue
- */ 
+ */
 void fiftyoneDegreesWorksetPoolRelease(fiftyoneDegreesWorksetPool *pool, fiftyoneDegreesWorkset *ws) {
 	FIFTYONEDEGREES_MUTEX_LOCK(pool->lock);
 	if (pool->available == pool->size) {
@@ -2739,8 +2738,6 @@ fiftyoneDegreesResultset *fiftyoneDegreesAddToCache(fiftyoneDegreesWorkset *ws) 
 */
 void fiftyoneDegreesMatch(fiftyoneDegreesWorkset *ws, char* userAgent) {
 	fiftyoneDegreesResultset *rs = NULL;
-	int switched = 0;
-	int r = 0;
 
 	setTargetUserAgentArray(ws, userAgent);
 	if (ws->targetUserAgentArrayLength >= ws->dataSet->header.minUserAgentLength) {
@@ -2764,14 +2761,14 @@ void fiftyoneDegreesMatch(fiftyoneDegreesWorkset *ws, char* userAgent) {
 
 				// Unlock the cache whilst the detection is performed. The active
 				// list will be checked again after detection and may has already
-				// been altered by another thread, or the lists may have been 
+				// been altered by another thread, or the lists may have been
 				// switched.
 				FIFTYONEDEGREES_MUTEX_UNLOCK(ws->cache->activeLock);
 
 				// Get the results of the detection process.
 				fiftyoneDegreesSetMatch(ws);
 
-				// Lock the cache again whilst the result is added to the active 
+				// Lock the cache again whilst the result is added to the active
 				// list and the resulset from the cache copied into the result
 				FIFTYONEDEGREES_MUTEX_LOCK(ws->cache->activeLock);
 

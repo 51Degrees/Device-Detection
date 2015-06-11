@@ -88,7 +88,7 @@ void runPerformanceTest(PERFORMANCE_STATE *state) {
 	char *result = NULL;
 	long valueCount;
 	FILE *inputFilePtr;
-	long size = 0, current;
+	// long size = 0;
 	inputFilePtr = fopen(state->fileName, "r");
 	int i, v;
 	fiftyoneDegreesWorkset *ws = NULL;
@@ -103,7 +103,7 @@ void runPerformanceTest(PERFORMANCE_STATE *state) {
     // Get the size of the file.
 	if (state->max == 0) {
         fseek(inputFilePtr, 0, SEEK_END);
-        size = ftell(inputFilePtr);
+        // size = ftell(inputFilePtr);
         fseek(inputFilePtr, 0, SEEK_SET);
     }
 
@@ -167,6 +167,8 @@ void runPerformanceTest(PERFORMANCE_STATE *state) {
 
 	reportProgress(state, count);
 	fclose(inputFilePtr);
+
+	FIFTYONEDEGREES_THREAD_EXIT();
 }
 
 // Perform the test and return the average time.
@@ -188,8 +190,6 @@ double performTest(PERFORMANCE_STATE *state) {
 
 		printf("%s pass %i of %i: \n\n", state->test, pass, state->passes);
 
-		FIFTYONEDEGREES_THREAD *threads = (FIFTYONEDEGREES_THREAD*)malloc(sizeof(FIFTYONEDEGREES_THREAD) * state->numberOfThreads);
-		
 		// Create the threads.
 		for (thread = 0; thread < state->numberOfThreads; thread++) {
 			FIFTYONEDEGREES_THREAD_CREATE(threads[thread], (void*)&runPerformanceTest, state);
@@ -201,16 +201,16 @@ double performTest(PERFORMANCE_STATE *state) {
 		}
 
 		printf("\n\n");
-		
-		free((void*)threads);
-		
+
 		// If the cache is being used then output the check value which
 		// should be identical across multiple runs.
 		if (state->calibrate == 0 && state->pool->cache != NULL) {
-			printf("Cache check value = %i\n\n", state->valueCount);
+			printf("Cache check value = %ld\n\n", state->valueCount);
 		}
 	}
-	
+
+    free((void*)threads);
+
 	time(&end);
 	return difftime(end, start) / (double)state->passes;
 }
@@ -223,7 +223,7 @@ void performance(char *fileName, fiftyoneDegreesWorksetPool *pool) {
 	state.pool = pool;
 	state.fileName = fileName;
 	FIFTYONEDEGREES_MUTEX_CREATE(state.lock);
-	
+
 	state.test = "Caching Data";
 	state.calibrate = 1;
 	state.max = 0;
