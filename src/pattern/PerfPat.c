@@ -49,7 +49,7 @@ void printLoadBar(long count, long max) {
 // Execute a performance test using a file of null terminated useragent strings
 // as input. If calibrate is true then the file is read but no detections
 // are performed.
-int performanceTest(char* fileName, fiftyoneDegreesWorkset *ws, long max, int calibrate, long *checkValue) {
+int performanceTest(char* fileName, fiftyoneDegreesWorksetPool *pool, long max, int calibrate, long *checkValue) {
 	long count = 0;
 	long marker = max / PROGRESS_MARKERS;
 	char *result;
@@ -57,6 +57,7 @@ int performanceTest(char* fileName, fiftyoneDegreesWorkset *ws, long max, int ca
 	long size = 0, current;
 	inputFilePtr = fopen(fileName, "r");
 	int i, v;
+	fiftyoneDegreesWorkset *ws;
 
 	if (inputFilePtr == NULL) {
         printf("Failed to open file with null-terminating user agent strings to fiftyoneDegreesMatch against 51Degrees data file. \n");
@@ -73,13 +74,18 @@ int performanceTest(char* fileName, fiftyoneDegreesWorkset *ws, long max, int ca
     }
 
 	do {
+		// Get an available workset from the pool of worksets.
+		ws = fiftyoneDegreesWorksetPoolGet(pool);
+
 		// Get the next character from the input.
 		result = fgets(ws->input, ws->dataSet->header.maxUserAgentLength, inputFilePtr);
 		strtok(result, "\n");
 
 		// Break for an empty string or end of file.
-		if (result == NULL && feof(inputFilePtr))
+		if (result == NULL && feof(inputFilePtr)) {
+			fiftyoneDegreesWorksetPoolRelease(pool, ws);
 			break;
+		}
 
 		// If we're not calibrating then get the device for the
 		// useragent that has just been read.
@@ -108,6 +114,10 @@ int performanceTest(char* fileName, fiftyoneDegreesWorkset *ws, long max, int ca
 		} else if (count % marker == 0) {
             printLoadBar(count, max);
 		}
+
+		// Release the workset back to the pool.
+		fiftyoneDegreesWorksetPoolRelease(pool, ws);
+
 	} while(1);
 	fclose(inputFilePtr);
 	printf("\n\n");
@@ -115,7 +125,7 @@ int performanceTest(char* fileName, fiftyoneDegreesWorkset *ws, long max, int ca
 }
 
 // Perform the test and return the average time.
-double performTest(char *fileName, fiftyoneDegreesWorkset *ws, int passes, int calibrate, char *test) {
+double performTest(char *fileName, fiftyoneDegreesWorksetPool *pool, int passes, int calibrate, char *test) {
 	int pass;
 	long checkValue;
 	time_t start, end;
@@ -126,11 +136,11 @@ double performTest(char *fileName, fiftyoneDegreesWorkset *ws, int passes, int c
 	for(pass = 1; pass <= passes; pass++) {
 		printf("%s pass %i of %i: \n\n", test, pass, passes);
 		checkValue = 0;
-		_max = performanceTest(fileName, ws, _max, calibrate, &checkValue);
+		_max = performanceTest(fileName, pool, _max, calibrate, &checkValue);
 
 		// If the cache is being used then output the check value which
 		// should be identical across multiple runs.
-		if (calibrate == 0 && ws->cache != NULL) {
+		if (calibrate == 0 && pool->cache != NULL) {
 			printf("Cache check value = %i\n\n", checkValue);
 		}
 	}
@@ -139,22 +149,22 @@ double performTest(char *fileName, fiftyoneDegreesWorkset *ws, int passes, int c
 }
 
 // Performance test.
-void performance(char *fileName, fiftyoneDegreesWorkset *ws) {
+void performance(char *fileName, fiftyoneDegreesWorksetPool *pool) {
 	double totalSec, calibration, test;
-	performTest(fileName, ws, 1, 1, "Caching Data");
+	performTest(fileName, pool, 1, 1, "Caching Data");
 
-	calibration = performTest(fileName, ws, PASSES, 1, "Calibrate");
-	test = performTest(fileName, ws, PASSES, 0, "Detection test");
+	calibration = performTest(fileName, pool, PASSES, 1, "Calibrate");
+	test = performTest(fileName, pool, PASSES, 0, "Detection test");
 
 	// Time to complete.
 	totalSec = test - calibration;
 	printf("Average detection time for total data set: %.2f s\n", totalSec);
 	printf("Average number of detections per second: %.2f\n", (double)_max / totalSec);
 	printf("Average milliseconds per detection: %.6f\n", (totalSec * (double)1000) / (double)_max);
-	if (ws->cache != NULL) {
-        printf("Cache hits: %d\n", ws->cache->hits);
-        printf("Cache misses: %d\n", ws->cache->misses);
-        printf("Cache switches: %d\n", ws->cache->switches);
+	if (pool->cache != NULL) {
+		printf("Cache hits: %d\n", pool->cache->hits);
+		printf("Cache misses: %d\n", pool->cache->misses);
+		printf("Cache switches: %d\n", pool->cache->switches);
 	}
 
 	// Wait for a character to be pressed.
@@ -183,7 +193,7 @@ char *findFileNames(char *subject) {
 int main(int argc, char* argv[]) {
 	fiftyoneDegreesDataSet dataSet;
 	fiftyoneDegreesResultsetCache *cache;
-	fiftyoneDegreesWorkset *ws = NULL;
+	fiftyoneDegreesWorksetPool *pool;
 
 	char *dataSetFileName = argc > 1 ? argv[1] : NULL;
 	char *inputFileName = argc > 2 ? argv[2] : NULL;
@@ -230,12 +240,12 @@ int main(int argc, char* argv[]) {
 		default: {
 			cache = fiftyoneDegreesResultsetCacheCreate(&dataSet, cacheSize);
 			if (cache != NULL) {
-				ws = fiftyoneDegreesCreateWorkset(&dataSet, cache);
-				if (ws != NULL) {
+				pool = fiftyoneDegreesWorksetPoolCreate(&dataSet, cache, 10);
+				if (pool != NULL) {
 					printf("\n\nUseragents file is: %s\n", findFileNames(inputFileName));
-					printf("Cache Size is: %d\n\n", ws->cache->total);
-					performance(inputFileName, ws);
-					fiftyoneDegreesFreeWorkset(ws);
+					printf("Cache Size is: %d\n\n", pool->cache->total);
+					performance(inputFileName, pool);
+					fiftyoneDegreesWorksetPoolFree(pool);
 				}
 				fiftyoneDegreesResultsetCacheFree(cache);
 			}

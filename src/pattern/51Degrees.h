@@ -36,12 +36,6 @@
 #define EXTERNAL
 #endif
 
-#ifdef _MSC_VER
-#define FIFTYONEDEGREES_MUTEX HANDLE
-#else
-#define FIFTYONEDEGREES_MUTEX pthread_mutex_t
-#endif
-
 #include <stdint.h>
 #include <limits.h>
 #include <time.h>
@@ -50,6 +44,25 @@
 #include <windows.h>
 #else
 #include <pthread.h>
+#endif
+
+/**
+* Mutex used to synchronise access to data structures that could be used
+* in parallel in a multi threaded environment.
+*/
+#ifdef _MSC_VER
+#define FIFTYONEDEGREES_MUTEX HANDLE
+#else
+#define FIFTYONEDEGREES_MUTEX pthread_mutex_t
+#endif
+
+/**
+ * A signal used to limit the number of worksets that can be created by
+ * the pool.
+ */
+#ifdef _MSC_VER
+#define FIFTYONEDEGREES_SIGNAL HANDLE
+#else
 #endif
 
 /* Used to represent bytes */
@@ -412,6 +425,17 @@ typedef struct fiftyoneDegrees_workset_t {
 } fiftyoneDegreesWorkset;
 #pragma pack(pop)
 
+typedef struct fiftyoneDegrees_workset_pool_t {
+	fiftyoneDegreesDataSet *dataSet; /* Pointer to the dataset the pool relates to */
+	fiftyoneDegreesResultsetCache *cache; /* Pointer to the cache to be used by the worksets */
+	int32_t size; /* The maximum number of worksets the pool can contain */
+	fiftyoneDegreesWorkset **worksets; /* Pointer to the array of work sets */
+	int32_t available; /* The number of worksets that are available in the pool */
+	int32_t created; /* The number of worksets created by the pool */
+	FIFTYONEDEGREES_MUTEX lock; /* Used to to limit access to the pool */
+	FIFTYONEDEGREES_SIGNAL signal; /* Used to wait for a workset to be made available */
+} fiftyoneDegreesWorksetPool;
+
 /* External methods */
 EXTERNAL fiftyoneDegreesDataSetInitStatus fiftyoneDegreesInitWithPropertyArray(const char *fileName, fiftyoneDegreesDataSet *dataSet, char** properties, int32_t count);
 EXTERNAL fiftyoneDegreesDataSetInitStatus fiftyoneDegreesInitWithPropertyString(const char *fileName, fiftyoneDegreesDataSet *dataSet, char* properties);
@@ -420,10 +444,15 @@ EXTERNAL void fiftyoneDegreesDestroy(const fiftyoneDegreesDataSet *dataSet);
 EXTERNAL fiftyoneDegreesResultsetCache *fiftyoneDegreesResultsetCacheCreate(const fiftyoneDegreesDataSet *dataSet, int32_t size);
 EXTERNAL void fiftyoneDegreesResultsetCacheFree(const fiftyoneDegreesResultsetCache *rsc);
 
+EXTERNAL fiftyoneDegreesWorksetPool *fiftyoneDegreesWorksetPoolCreate(fiftyoneDegreesDataSet *dataSet, fiftyoneDegreesResultsetCache *cache, int32_t size);
+EXTERNAL void fiftyoneDegreesWorksetPoolFree(fiftyoneDegreesWorksetPool *pool);
+EXTERNAL fiftyoneDegreesWorkset *fiftyoneDegreesWorksetPoolGet(fiftyoneDegreesWorksetPool *pool);
+EXTERNAL void fiftyoneDegreesWorksetPoolRelease(fiftyoneDegreesWorksetPool *pool, fiftyoneDegreesWorkset *ws);
+
 EXTERNAL fiftyoneDegreesWorkset* fiftyoneDegreesCreateWorkset(const fiftyoneDegreesDataSet *dataSet, const fiftyoneDegreesResultsetCache *cache);
 EXTERNAL void fiftyoneDegreesFreeWorkset(const fiftyoneDegreesWorkset *ws);
 
-EXTERNAL fiftyoneDegreesResultset* fiftyoneDegreesMatch(fiftyoneDegreesWorkset *ws, char* userAgent);
+EXTERNAL void fiftyoneDegreesMatch(fiftyoneDegreesWorkset *ws, char* userAgent);
 EXTERNAL int32_t fiftyoneDegreesSetValues(fiftyoneDegreesWorkset *ws, int32_t requiredPropertyIndex);
 EXTERNAL const fiftyoneDegreesAsciiString* fiftyoneDegreesGetString(const fiftyoneDegreesDataSet *dataSet, int32_t offset);
 EXTERNAL const char* fiftyoneDegreesGetValueName(const fiftyoneDegreesDataSet *dataSet, const fiftyoneDegreesValue *value);

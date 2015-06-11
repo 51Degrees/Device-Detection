@@ -53,6 +53,7 @@ void print50Columns(char* label, const char* value, int32_t length) {
 void run(fiftyoneDegreesDataSet *dataSet) {
     fiftyoneDegreesWorkset *ws = NULL;
     fiftyoneDegreesResultsetCache *cache = NULL;
+	fiftyoneDegreesWorksetPool *pool = NULL;
     int32_t index, propertyIndex, valueIndex, profileIndex;
 
     printf("Name:\t\t\t%s\r\n", &(fiftyoneDegreesGetString(dataSet, dataSet->header.nameOffset)->firstByte));
@@ -71,11 +72,13 @@ void run(fiftyoneDegreesDataSet *dataSet) {
 
 	cache = fiftyoneDegreesResultsetCacheCreate(dataSet, 3);
     if (cache != NULL) {
-        ws = fiftyoneDegreesCreateWorkset(dataSet, cache);
-        if (ws != NULL) {
+		pool = fiftyoneDegreesWorksetPoolCreate(dataSet, cache, 10);
+		if (pool != NULL) {
             for(index = 0; index < (sizeof(TARGET_USER_AGENTS) / sizeof(char*)); index++)
             {
-                fiftyoneDegreesMatch(ws, TARGET_USER_AGENTS[index]);
+				ws = fiftyoneDegreesWorksetPoolGet(pool);
+
+				fiftyoneDegreesMatch(ws, TARGET_USER_AGENTS[index]);
 
                 printf("\r\n\t\t\t*** Detection Results ***\r\n");
                 print50Columns("Target User Agent:\t", ws->targetUserAgent, (int32_t)strlen(ws->targetUserAgent));
@@ -116,16 +119,18 @@ void run(fiftyoneDegreesDataSet *dataSet) {
                     }
                     printf("\r\n");
                 }
+
+				fiftyoneDegreesWorksetPoolRelease(pool, ws);
             }
 
-            if (ws->cache != NULL) {
+            if (cache != NULL) {
                 printf("\r\n\t\t\t*** Cache Results ***\r\n");
-                printf("Switches:\t%d\r\n", ws->cache->switches);
-                printf("Hits:\t\t%d\r\n", ws->cache->hits);
-                printf("Misses:\t\t%d\r\n", ws->cache->misses);
+                printf("Switches:\t%d\r\n", cache->switches);
+                printf("Hits:\t\t%d\r\n", cache->hits);
+                printf("Misses:\t\t%d\r\n", cache->misses);
             }
 
-            fiftyoneDegreesFreeWorkset(ws);
+			fiftyoneDegreesWorksetPoolFree(pool);
         }
 		fiftyoneDegreesResultsetCacheFree(cache);
     }

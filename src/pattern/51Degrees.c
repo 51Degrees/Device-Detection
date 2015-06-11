@@ -1,6 +1,5 @@
 #include <stdlib.h>
 #include <stdio.h>
-#include "../snprintf/snprintf.h"
 #include "../cityhash/city.h"
 #include <string.h>
 #include <limits.h>
@@ -34,13 +33,46 @@
  */
 
 /* Change snprintf to the Microsoft version */
-#ifdef _MSC_FULL_VER
+#ifdef _MSC_VER
 #define snprintf _snprintf
 #endif
 
 /**
  * MUTEX AND THREADING MACROS
  */
+
+/**
+ * Creates a new signal that can be used to wait for 
+ * other operations to complete before continuing.
+ */
+#ifdef _MSC_VER
+#define SIGNAL_CREATE(s) s = (FIFTYONEDEGREES_SIGNAL)CreateEvent(NULL, FALSE, TRUE, NULL)
+#else
+#endif
+
+/**
+ * Frees the handle provided to the macro.
+ */
+#ifdef _MSC_VER
+#define SIGNAL_FREE(s) CloseHandle(s)
+#else
+#endif
+
+/**
+ * Signals a thread waiting for the signal to proceed.
+ */
+#ifdef _MSC_VER
+#define SIGNAL_SET(s) SetEvent(s)
+#else
+#endif
+
+/**
+ * Waits for the signal to become set by another thread.
+ */
+#ifdef _MSC_VER
+#define SIGNAL_WAIT(s) WaitForSingleObject(s, INFINITE)
+#else
+#endif
 
 /**
  * Creates a new mutex at the pointer provided.
@@ -891,6 +923,106 @@ uint64_t fiftyoneDegreesGetResultsetHashCode(fiftyoneDegreesResultset *rs) {
 	}
 	return rs->targetUserAgentHashCode;
 }
+
+/**
+ * WORKSET POOL METHODS
+ */
+
+/**
+ * Creates a new workset pool for the data set and cache provided.
+ * @param dataset pointer to a data set structure
+ * @param cache pointer to a cache, or NULL if no cache to be used
+ * @return a pointer to a new work set pool
+ */
+fiftyoneDegreesWorksetPool *fiftyoneDegreesWorksetPoolCreate(fiftyoneDegreesDataSet *dataSet, fiftyoneDegreesResultsetCache *cache, int32_t size) {
+	fiftyoneDegreesWorksetPool *pool = (fiftyoneDegreesWorksetPool*)malloc(sizeof(fiftyoneDegreesWorksetPool));
+	if (pool != NULL) {
+		pool->dataSet = dataSet;
+		pool->cache = cache;
+		pool->size = size;
+		pool->available = 0;
+		pool->created = 0;
+		MUTEX_CREATE(pool->lock);
+		SIGNAL_CREATE(pool->signal);
+		pool->worksets = (fiftyoneDegreesWorkset**)malloc(size * sizeof(fiftyoneDegreesWorkset*));
+		if (pool->worksets == NULL ||
+			pool->lock == NULL ||
+			pool->signal == NULL) {
+			if (pool->worksets != NULL) { free((void*)pool->worksets); }
+			if (pool->lock != NULL) { MUTEX_FREE(pool->lock); }
+			if (pool->signal != NULL) { SIGNAL_FREE(pool->signal); }
+			free((void*)pool);
+			pool = NULL;
+		}
+	}
+	return pool;
+}
+
+/**
+ * Releases the workset provided back to the pool making it available for future
+ * use.
+ * @param pool containing worksets
+ * @param ws workset to be placed back on the queue
+ */ 
+void fiftyoneDegreesWorksetPoolRelease(fiftyoneDegreesWorksetPool *pool, fiftyoneDegreesWorkset *ws) {
+	MUTEX_LOCK(pool->lock);
+	if (pool->available == pool->size) {
+		// The pool is already full, so destroy the workset.
+		fiftyoneDegreesFreeWorkset(ws);
+	}
+	else {
+		// Place the workset at the next available space in the
+		// array of worksets.
+		pool->worksets[pool->available] = ws;
+		pool->available++;
+	}
+	MUTEX_UNLOCK(pool->lock);
+	SIGNAL_SET(pool->signal);
+}
+
+/**
+ * Gets a workset from the pool, or creates a new one if none are available
+ * @param pool pointer to a pool structure
+ * @returns pointer to a workset that is free and ready for use
+ */
+fiftyoneDegreesWorkset *fiftyoneDegreesWorksetPoolGet(fiftyoneDegreesWorksetPool *pool) {
+	fiftyoneDegreesWorkset *ws;
+
+	// While there is not enough spaces in the pool, keep waiting
+	// for a workset to be returned to the pool.
+	while (pool->available == 0 && pool->created == pool->size) {
+		SIGNAL_WAIT(pool->signal);
+	}
+
+	MUTEX_LOCK(pool->lock);
+	if (pool->available > 0) {
+		// Worksets are available. Take one from the end of the array.
+		ws = pool->worksets[pool->available - 1];
+		pool->available--;
+	} else {
+		// Create a new workset to be returned to the caller.
+		ws = fiftyoneDegreesCreateWorkset(pool->dataSet, pool->cache);
+		pool->created++;
+	}
+	MUTEX_UNLOCK(pool->lock);
+
+	return ws;
+}
+
+/**
+ * Frees all worksets in the pool and releases all memory.
+ */
+void fiftyoneDegreesWorksetPoolFree(fiftyoneDegreesWorksetPool *pool) {
+	int i;
+	for (i = 0; i < pool->available; i++) {
+		fiftyoneDegreesFreeWorkset(pool->worksets[i]);
+	}
+	free((void*)pool->worksets);
+	SIGNAL_FREE(pool->signal);
+	MUTEX_FREE(pool->lock);
+	free((void*)pool);
+}
+
 
 /**
  * CACHE METHODS
@@ -2680,15 +2812,21 @@ fiftyoneDegreesResultset *fiftyoneDegreesMatchAddToCache(fiftyoneDegreesWorkset 
 * @param ws pointer to a work set to be used for the match created via
 *        createWorkset function
 * @param userAgent pointer to the target user agent
-* @returns the resultset from the workset's cache
 */
-fiftyoneDegreesResultset *fiftyoneDegreesMatch(fiftyoneDegreesWorkset *ws, char* userAgent) {
+void fiftyoneDegreesMatch(fiftyoneDegreesWorkset *ws, char* userAgent) {
 	fiftyoneDegreesResultset *rs = NULL;
 
 	setTargetUserAgentArray(ws, userAgent);
 	if (ws->targetUserAgentArrayLength >= ws->dataSet->header.minUserAgentLength) {
 		if (ws->cache != NULL) {
 
+			// Calculate the hash code for the target user agent before
+			// locking thing active list to improve performance over
+			// performing the hashcode calculation in the lock.
+			fiftyoneDegreesGetResultsetHashCode((fiftyoneDegreesResultset*)ws);
+
+			// Lock the active list to stop other threads altering the
+			// cache whilst this thread is checking it.
 			MUTEX_LOCK(ws->cache->active->lock);
 
 			// Does the target exist in the cache?
@@ -2698,13 +2836,17 @@ fiftyoneDegreesResultset *fiftyoneDegreesMatch(fiftyoneDegreesWorkset *ws, char*
 			// a match and then cache this result.
 			if (rs == NULL) {
 
-				// Unlock the cache whilst the detection is performed.
+				// Unlock the cache whilst the detection is performed. The active
+				// list will be checked again after detection and may has already
+				// been altered by another thread, or the lists may have been 
+				// switched.
 				MUTEX_UNLOCK(ws->cache->active->lock);
 
 				// Get the results of the detection process.
 				fiftyoneDegreesSetMatch(ws);
 
-				// Lock the cache again whilst this is added to the active list.
+				// Lock the cache again whilst the result is added to the active 
+				// list and the resulset from the cache copied into the result
 				MUTEX_LOCK(ws->cache->active->lock);
 
 				// Add the match result to the cache and use the resultset
@@ -2725,18 +2867,17 @@ fiftyoneDegreesResultset *fiftyoneDegreesMatch(fiftyoneDegreesWorkset *ws, char*
 			// Unlock the cache as we've now got the result.
 			MUTEX_UNLOCK(ws->cache->background->lock);
 
-			// See if the caches now need to be switched.
+			// See if the caches now need to be switched. Both active
+			// and background lists will be locked before a switch
+			// takes place.
 			fiftyoneDegreesCacheSwitch((fiftyoneDegreesResultsetCache*)ws->cache);
 		}
 		else {
-			// Don't use the cache, just process the input data and
+			// There is no cache. Just process the input data and
 			// use the workset as the return pointer.
 			fiftyoneDegreesSetMatch(ws);
-			rs = (fiftyoneDegreesResultset*)ws;
 		}
 	}
-
-	return rs;
 }
 
 /**
