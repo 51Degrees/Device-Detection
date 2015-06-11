@@ -9,10 +9,6 @@ Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "ProcPat", "ProcPat\ProcPat.
 EndProject
 Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "PerfPat", "PerfPat\PerfPat.vcxproj", "{37BA367F-4FC6-400C-A263-7C55F6AAF571}"
 EndProject
-Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "PerfTrie", "PerfTrie\PerfTrie.vcxproj", "{C25BB61E-5453-4396-A0F6-396271781A89}"
-EndProject
-Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "ProcTrie", "ProcTrie\ProcTrie.vcxproj", "{40CEEF4C-8CF9-48D7-8E86-47F3D9FEE848}"
-EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Win32 = Debug|Win32
@@ -31,14 +27,6 @@ Global
 		{37BA367F-4FC6-400C-A263-7C55F6AAF571}.Debug|Win32.Build.0 = Debug|Win32
 		{37BA367F-4FC6-400C-A263-7C55F6AAF571}.Release|Win32.ActiveCfg = Release|Win32
 		{37BA367F-4FC6-400C-A263-7C55F6AAF571}.Release|Win32.Build.0 = Release|Win32
-		{C25BB61E-5453-4396-A0F6-396271781A89}.Debug|Win32.ActiveCfg = Debug|Win32
-		{C25BB61E-5453-4396-A0F6-396271781A89}.Debug|Win32.Build.0 = Debug|Win32
-		{C25BB61E-5453-4396-A0F6-396271781A89}.Release|Win32.ActiveCfg = Release|Win32
-		{C25BB61E-5453-4396-A0F6-396271781A89}.Release|Win32.Build.0 = Release|Win32
-		{40CEEF4C-8CF9-48D7-8E86-47F3D9FEE848}.Debug|Win32.ActiveCfg = Debug|Win32
-		{40CEEF4C-8CF9-48D7-8E86-47F3D9FEE848}.Debug|Win32.Build.0 = Debug|Win32
-		{40CEEF4C-8CF9-48D7-8E86-47F3D9FEE848}.Release|Win32.ActiveCfg = Release|Win32
-		{40CEEF4C-8CF9-48D7-8E86-47F3D9FEE848}.Release|Win32.Build.0 = Release|Win32
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE

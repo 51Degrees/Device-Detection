@@ -14,8 +14,6 @@
 				<Option parameters='&quot;../data/51Degrees-Lite.dat&quot;' />
 				<Compiler>
 					<Add option="-g" />
-					<Add option="-wd4711" />
-					<Add option="-wd4668" />
 					<Add option="/DHAVE_SNPRINTF" />
 					<Add option="/D_CRT_SECURE_NO_WARNINGS" />
 				</Compiler>
@@ -28,31 +26,21 @@
 				<Option parameters='&quot;../data/51Degrees-Lite.dat&quot;' />
 				<Compiler>
 					<Add option="-O2" />
-					<Add option="-wd4711" />
-					<Add option="-wd4668" />
 					<Add option="/DHAVE_SNPRINTF" />
 					<Add option="/D_CRT_SECURE_NO_WARNINGS" />
 				</Compiler>
+				<Linker>
+					<Add option="-s" />
+				</Linker>
 			</Target>
 			<Target title="GCC Debug">
 				<Option output="bin/Debug/Console" prefix_auto="1" extension_auto="1" />
 				<Option object_output="obj/Debug/" />
 				<Option type="1" />
 				<Option compiler="gcc" />
-				<Option parameters='&quot;../data/51Degrees-Lite.dat&quot;' />
+				<Option parameters='&quot;../data/51Degrees-Enterprise.dat&quot;' />
 				<Compiler>
 					<Add option="-g" />
-					<Add option="-DHAVE_SNPRINTF" />
-				</Compiler>
-			</Target>
-			<Target title="GCC Release">
-				<Option output="bin/Release/51Degrees" prefix_auto="1" extension_auto="1" />
-				<Option object_output="obj/Release/" />
-				<Option type="1" />
-				<Option compiler="gcc" />
-				<Option parameters='&quot;../data/51Degrees-Lite.dat&quot;' />
-				<Compiler>
-					<Add option="-O2" />
 					<Add option="-DHAVE_SNPRINTF" />
 				</Compiler>
 			</Target>
@@ -74,11 +62,8 @@
 		<Unit filename="../src/pattern/51Degrees.h" />
 		<Unit filename="../src/snprintf/snprintf.c">
 			<Option compilerVar="CC" />
-			<Option target="GCC Debug" />
 		</Unit>
-		<Unit filename="../src/snprintf/snprintf.h">
-			<Option target="GCC Debug" />
-		</Unit>
+		<Unit filename="../src/snprintf/snprintf.h" />
 		<Extensions>
 			<code_completion />
 			<envvars />

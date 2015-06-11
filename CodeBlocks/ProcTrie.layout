@@ -1,24 +1,24 @@
 <?xml version="1.0" encoding="UTF-8" standalone="yes" ?>
 <CodeBlocks_layout_file>
-	<ActiveTarget name="GCC Release" />
-	<File name="..\src\trie\51Degrees.h" open="0" top="0" tabpos="9" split="0" active="1" splitpos="0" zoom_1="0" zoom_2="0">
-		<Cursor>
-			<Cursor1 position="2765" topLine="51" />
-		</Cursor>
-	</File>
-	<File name="..\src\trie\51Degrees.c" open="0" top="0" tabpos="8" split="0" active="1" splitpos="0" zoom_1="0" zoom_2="0">
-		<Cursor>
-			<Cursor1 position="19215" topLine="552" />
-		</Cursor>
-	</File>
+	<ActiveTarget name="Debug" />
 	<File name="..\src\snprintf\snprintf.h" open="0" top="0" tabpos="0" split="0" active="1" splitpos="0" zoom_1="0" zoom_2="0">
 		<Cursor>
 			<Cursor1 position="708" topLine="9" />
 		</Cursor>
 	</File>
+	<File name="..\src\trie\51Degrees.h" open="0" top="0" tabpos="0" split="0" active="1" splitpos="0" zoom_1="0" zoom_2="0">
+		<Cursor>
+			<Cursor1 position="866" topLine="6" />
+		</Cursor>
+	</File>
 	<File name="..\src\trie\ProcTrie.c" open="0" top="0" tabpos="1" split="0" active="1" splitpos="0" zoom_1="0" zoom_2="0">
 		<Cursor>
-			<Cursor1 position="345" topLine="0" />
+			<Cursor1 position="327" topLine="0" />
+		</Cursor>
+	</File>
+	<File name="..\src\trie\51Degrees.c" open="0" top="0" tabpos="0" split="0" active="1" splitpos="0" zoom_1="0" zoom_2="0">
+		<Cursor>
+			<Cursor1 position="157" topLine="0" />
 		</Cursor>
 	</File>
 </CodeBlocks_layout_file>
