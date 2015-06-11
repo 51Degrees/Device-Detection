@@ -6,12 +6,10 @@
 #define _INTPTR 0
 #endif
 
-#define BUFFER_LENGTH 50000
-
 int main(int argc, char* argv[]) {
 	fiftyoneDegreesWorkset *ws = NULL;
 	fiftyoneDegreesDataSet dataSet;
-	char output[BUFFER_LENGTH];
+    char *output;
 	char *fileName = argc > 1 ? argv[1] : NULL;
 	char *requiredProperties = argc > 2 ? argv[2] : NULL;
 	char *result;
@@ -32,6 +30,7 @@ int main(int argc, char* argv[]) {
 	default: {
 
 		ws = fiftyoneDegreesCreateWorkset(&dataSet, NULL);
+		output = fiftyoneDegreesCSVCreate(ws);
 
 #ifdef _MSC_VER
 		result = gets_s(ws->input, dataSet.header.maxUserAgentLength);
@@ -41,7 +40,7 @@ int main(int argc, char* argv[]) {
 		while (result != NULL) {
 			fiftyoneDegreesMatch(ws, ws->input);
 			if (ws->profileCount > 0) {
-				fiftyoneDegreesProcessDeviceCSV(ws, output, BUFFER_LENGTH);
+				fiftyoneDegreesProcessDeviceCSV(ws, output);
 				printf("%s", output);
 				/* Diagnostics Info
 				printf("\r\nDiagnostics Information\r\n\r\n");
@@ -71,6 +70,7 @@ int main(int argc, char* argv[]) {
 #endif
 		}
 
+        fiftyoneDegreesCSVFree(output);
 		fiftyoneDegreesFreeWorkset(ws);
 		fiftyoneDegreesDestroy(&dataSet);
 	}//End default

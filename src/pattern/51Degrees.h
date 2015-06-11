@@ -413,29 +413,192 @@ typedef struct fiftyoneDegrees_workset_pool_t {
 	FIFTYONEDEGREES_SIGNAL signal; /* Used to wait for a workset to be made available */
 } fiftyoneDegreesWorksetPool;
 
-/* External methods */
+/**
+ * EXTERNAL METHODS
+ */
+
+/**
+ * Initialises the data set passed to the method with the data from
+ * the file provided. If required properties is provided the data set
+ * will only return those contained in the array.
+ * or tab.
+ * @param fileName of the data source to use for initialisation
+ * @param dataSet pointer to the data set
+ * @param requiredProperties array of strings containing the property names
+ * @param count the number of elements in the requiredProperties array
+ * @return the number of bytes read from the file
+ */
 EXTERNAL fiftyoneDegreesDataSetInitStatus fiftyoneDegreesInitWithPropertyArray(const char *fileName, fiftyoneDegreesDataSet *dataSet, char** properties, int32_t count);
+
+/**
+ * Initialises the data set passed to the method with the data from
+ * the file provided. If required properties is provided the data set
+ * will only return those listed and separated by comma, pipe, space
+ * or tab.
+ * @param fileName of the data source to use for initialisation
+ * @param dataSet pointer to the data set
+ * @param requiredProperties char array to the separated list of properties
+ *        the dataSet can return
+ * @return the number of bytes read from the file
+ */
 EXTERNAL fiftyoneDegreesDataSetInitStatus fiftyoneDegreesInitWithPropertyString(const char *fileName, fiftyoneDegreesDataSet *dataSet, char* properties);
+
+/**
+ * Destroys the data set releasing all memory available.
+ * @param dataSet pointer to the data set being destroyed
+ */
 EXTERNAL void fiftyoneDegreesDestroy(const fiftyoneDegreesDataSet *dataSet);
 
+/**
+ * Creates a new cache used to speed up duplicate detections.
+ * The cache must be destroyed with the fiftyoneDegreesFreeCache method.
+ * If the cache size is lower then 2 then no cache is created.
+ * @param dataSet pointer to the data set
+ * @param size maximum number of items that the cache should store
+ * @returns a pointer to the resultset cache created, or NULL
+ */
 EXTERNAL fiftyoneDegreesResultsetCache *fiftyoneDegreesResultsetCacheCreate(const fiftyoneDegreesDataSet *dataSet, int32_t size);
+
+/**
+ * Releases the memory used by the cache.
+ * @param pointer to the cache created previously
+ */
 EXTERNAL void fiftyoneDegreesResultsetCacheFree(const fiftyoneDegreesResultsetCache *rsc);
 
+/**
+ * Creates a new workset pool for the data set and cache provided.
+ * @param dataset pointer to a data set structure
+ * @param cache pointer to a cache, or NULL if no cache to be used
+ * @return a pointer to a new work set pool
+ */
 EXTERNAL fiftyoneDegreesWorksetPool *fiftyoneDegreesWorksetPoolCreate(fiftyoneDegreesDataSet *dataSet, fiftyoneDegreesResultsetCache *cache, int32_t size);
+
+/**
+ * Frees all worksets in the pool and releases all memory.
+ * @param pool pointer to the pool created by fiftyoneDegreesWorksetPoolCreate
+ */
 EXTERNAL void fiftyoneDegreesWorksetPoolFree(fiftyoneDegreesWorksetPool *pool);
+
+/**
+ * Gets a workset from the pool, or creates a new one if none are available
+ * @param pool pointer to a pool structure
+ * @returns pointer to a workset that is free and ready for use
+ */
 EXTERNAL fiftyoneDegreesWorkset *fiftyoneDegreesWorksetPoolGet(fiftyoneDegreesWorksetPool *pool);
+
+/**
+ * Releases the workset provided back to the pool making it available for future
+ * use.
+ * @param pool containing worksets
+ * @param ws workset to be placed back on the queue
+ */
 EXTERNAL void fiftyoneDegreesWorksetPoolRelease(fiftyoneDegreesWorksetPool *pool, fiftyoneDegreesWorkset *ws);
 
+/**
+ * Creates a new workset to perform matches using the dataset provided.
+ * The workset must be destroyed using the freeWorkset method when it's
+ * finished with to release memory.
+ * @param dataSet pointer to the data set
+ * @param cache pointer or NULL if not used
+ * @returns a pointer to the workset created
+ */
 EXTERNAL fiftyoneDegreesWorkset* fiftyoneDegreesCreateWorkset(const fiftyoneDegreesDataSet *dataSet, const fiftyoneDegreesResultsetCache *cache);
+
+/**
+ * Releases the memory used by the workset.
+ * @param pointer to the workset created previously
+ */
 EXTERNAL void fiftyoneDegreesFreeWorkset(const fiftyoneDegreesWorkset *ws);
 
+/**
+ * Allocates memory sufficiently large to store JSON results.
+ * @param ws pointer to a workset with the results to return in JSON
+ * @returns pointer to memory space to store JSON results
+ */
+EXTERNAL char* fiftyoneDegreesJSONCreate(fiftyoneDegreesWorkset *ws);
+
+/**
+ * Frees the memory space previously allocated by fiftyoneDegreesJSONCreate.
+ * @param json pointer to the memory space to be freed
+ */
+EXTERNAL void fiftyoneDegreesJSONFree(void* json);
+
+/**
+ * Allocates memory sufficiently large to store CSV results.
+ * @param ws pointer to a workset with the results to return in CSV
+ * @returns pointer to memory space to store CSV results
+ */
+EXTERNAL char* fiftyoneDegreesCSVCreate(fiftyoneDegreesWorkset *ws);
+
+/**
+ * Frees the memory space previously allocated by fiftyoneDegreesCSVCreate.
+ * @param csv pointer to the memory space to be freed
+ */
+EXTERNAL void fiftyoneDegreesCSVFree(void* csv);
+
+/**
+* Main entry method used for perform a match. First the cache is checked to
+* determine if the userAgent has already been found. If not then detection
+* is performed. The cache is then updated before the resultset is returned.
+* @param ws pointer to a work set to be used for the match created via
+*        createWorkset function
+* @param userAgent pointer to the target user agent
+*/
 EXTERNAL void fiftyoneDegreesMatch(fiftyoneDegreesWorkset *ws, char* userAgent);
+
+/**
+ * Sets the values associated with the require property index in the workset
+ * so that an array of values can be read.
+ * @param ws pointer to the work set associated with the match
+ * @param requiredPropertyIndex index of the property required from the array of
+ *        require properties
+ * @return the number of values that were set.
+ */
 EXTERNAL int32_t fiftyoneDegreesSetValues(fiftyoneDegreesWorkset *ws, int32_t requiredPropertyIndex);
+
+/**
+ * Returns a pointer to the ascii string at the byte offset provided
+ * @param dataSet pointer to the data set
+ * @param offset to the ascii string required
+ * @return a pointer to the AsciiString at the offset
+ */
 EXTERNAL const fiftyoneDegreesAsciiString* fiftyoneDegreesGetString(const fiftyoneDegreesDataSet *dataSet, int32_t offset);
+
+/**
+ * Returns the name of the value provided.
+ * @param dataSet pointer to the data set containing the value
+ * @param value pointer whose name is required
+ * @return pointer to the char string of the name
+ */
 EXTERNAL const char* fiftyoneDegreesGetValueName(const fiftyoneDegreesDataSet *dataSet, const fiftyoneDegreesValue *value);
+
+/**
+ * Returns the name of the property provided.
+ * @param dataSet pointer to the data set containing the property
+ * @param property pointer whose name is required
+ * @return pointer to the char string of the name
+ */
 EXTERNAL const char* fiftyoneDegreesGetPropertyName(const fiftyoneDegreesDataSet *dataSet, const fiftyoneDegreesProperty *property);
-EXTERNAL int32_t fiftyoneDegreesProcessDeviceCSV(fiftyoneDegreesWorkset *ws, char* result, int32_t resultLength);
-EXTERNAL int32_t fiftyoneDegreesProcessDeviceJSON(fiftyoneDegreesWorkset *ws, char* result, int32_t resultLength);
+
+/**
+ * Process the workset results into a CSV string.
+ * @param ws pointer to a workset with the results to return in CSV
+ * @param csv pointer to memory allocated with fiftyoneDegreesCSVCreate
+ */
+EXTERNAL int32_t fiftyoneDegreesProcessDeviceCSV(fiftyoneDegreesWorkset *ws, char* csv);
+
+/**
+ * Process the workset results into a JSON string.
+ * @param ws pointer to a workset with the results to return in JSON
+ * @param json pointer to memory allocated with fiftyoneDegreesJSONCreate
+ */
+EXTERNAL int32_t fiftyoneDegreesProcessDeviceJSON(fiftyoneDegreesWorkset *ws, char* json);
+
+/**
+ * Returns the rank of the signature set in the workset.
+ * @param ws pointer to the work set associated with the match
+ * @returns the rank of the signature if available, or INT_MAX
+ */
 EXTERNAL int32_t fiftyoneDegreesGetSignatureRank(fiftyoneDegreesWorkset *ws);
 
 #endif // 51DEGREES_H_INCLUDED

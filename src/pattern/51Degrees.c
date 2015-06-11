@@ -940,6 +940,7 @@ fiftyoneDegreesWorkset *fiftyoneDegreesWorksetPoolGet(fiftyoneDegreesWorksetPool
 
 /**
  * Frees all worksets in the pool and releases all memory.
+ * @param pool pointer to the pool created by fiftyoneDegreesWorksetPoolCreate
  */
 void fiftyoneDegreesWorksetPoolFree(fiftyoneDegreesWorksetPool *pool) {
 	int i;
@@ -2844,12 +2845,31 @@ int32_t fiftyoneDegreesSetValues(fiftyoneDegreesWorkset *ws, int32_t requiredPro
 }
 
 /**
- * Process device properties into a CSV string
+ * Allocates memory sufficiently large to store CSV results.
+ * @param ws pointer to a workset with the results to return in CSV
+ * @returns pointer to memory space to store CSV results
  */
-int32_t fiftyoneDegreesProcessDeviceCSV(fiftyoneDegreesWorkset *ws, char* result, int32_t resultLength) {
+char* fiftyoneDegreesCSVCreate(fiftyoneDegreesWorkset *ws) {
+    return (char*)malloc(ws->dataSet->header.csvBufferLength * sizeof(char));
+}
+
+/**
+ * Frees the memory space previously allocated by fiftyoneDegreesCSVCreate.
+ * @param csv pointer to the memory space to be freed
+ */
+void fiftyoneDegreesCSVFree(void* csv) {
+    free(csv);
+}
+
+/**
+ * Process the workset results into a CSV string.
+ * @param ws pointer to a workset with the results to return in CSV
+ * @param csv pointer to memory allocated with fiftyoneDegreesCSVCreate
+ */
+int32_t fiftyoneDegreesProcessDeviceCSV(fiftyoneDegreesWorkset *ws, char* csv) {
 	int32_t propertyIndex, valueIndex, profileIndex;
-	char* currentPos = result;
-	char* endPos = result + resultLength;
+	char* currentPos = csv;
+	char* endPos = csv + ws->dataSet->header.csvBufferLength;
 
 	if (ws->profileCount > 0) {
 		currentPos += snprintf(
@@ -2901,18 +2921,37 @@ int32_t fiftyoneDegreesProcessDeviceCSV(fiftyoneDegreesWorkset *ws, char* result
 			}
 		}
 	}
-	return (int32_t)(currentPos - result);
+	return (int32_t)(currentPos - csv);
 }
 
+/**
+ * Allocates memory sufficiently large to store JSON results.
+ * @param ws pointer to a workset with the results to return in JSON
+ * @returns pointer to memory space to store JSON results
+ */
+char* fiftyoneDegreesJSONCreate(fiftyoneDegreesWorkset *ws) {
+    return (char*)malloc(ws->dataSet->header.jsonBufferLength * sizeof(char));
+}
 
 /**
- * Process device properties into a JSON string
+ * Frees the memory space previously allocated by fiftyoneDegreesJSONCreate.
+ * @param json pointer to the memory space to be freed
  */
-int32_t fiftyoneDegreesProcessDeviceJSON(fiftyoneDegreesWorkset *ws, char* result, int32_t resultLength) {
+void fiftyoneDegreesJSONFree(void* json) {
+    free(json);
+}
+
+/**
+ * Process the workset results into a JSON string.
+ * @param ws pointer to a workset with the results to return in JSON
+ * @param json pointer to memory allocated with fiftyoneDegreesJSONCreate
+ * @param
+ */
+int32_t fiftyoneDegreesProcessDeviceJSON(fiftyoneDegreesWorkset *ws, char* json) {
 	int32_t propertyIndex, valueIndex, profileIndex, valueNameIndex, valueNameLength;
 	const char* valueName;
-	char* currentPos = result;
-	char* endPos = result + resultLength;
+	char* currentPos = json;
+	char* endPos = json + ws->dataSet->header.jsonBufferLength;
 
 	if (ws->profileCount > 0) {
 		currentPos += snprintf(
@@ -2983,5 +3022,5 @@ int32_t fiftyoneDegreesProcessDeviceJSON(fiftyoneDegreesWorkset *ws, char* resul
 			(int32_t)(endPos - currentPos),
 			"\"}");
 	}
-	return (int32_t)(currentPos - result);
+	return (int32_t)(currentPos - json);
 }
