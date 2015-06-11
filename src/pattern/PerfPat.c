@@ -29,35 +29,70 @@
 #define PASSES 5
 
 // Number of detection to complete between reporting progress.
-#define PROGRESS_MARKERS 40
+#define PROGRESS_MARKS 40
 
-// The number of items being processed.
-long _max = 0;
+// Number of threads to start for performance analysis.
+#define THREAD_COUNT 4
+
+// Used to control multi threaded performance.
+typedef struct t_performance_state {
+	char* fileName;
+	fiftyoneDegreesWorksetPool *pool;
+	int calibrate;
+	FIFTYONEDEGREES_MUTEX lock;
+	int count;
+	int progress;
+	int max;
+	int numberOfThreads;
+	long valueCount;
+	int passes;
+	char *test;
+} PERFORMANCE_STATE;
 
 // Prints a progress bar
-void printLoadBar(long count, long max) {
+void printLoadBar(PERFORMANCE_STATE *state) {
 	int i;
-	int markers = count / (max / PROGRESS_MARKERS);
+	int full = state->count / state->progress;
+	int empty = (state->max - state->count) / state->progress;
 
 	printf("\r\t[");
-	for (i = 0; i < PROGRESS_MARKERS; i++) {
-		printf(i <= markers ? "=" : " ");
+	for (i = 0; i < full; i++) {
+		printf("=");
+	}
+
+	for (i = 0; i < empty; i++) {
+		printf(" ");
 	}
 	printf("]");
+}
+
+void reportProgress(PERFORMANCE_STATE *state, int count) {
+
+	// Lock the state whilst the counters are updated.
+	FIFTYONEDEGREES_MUTEX_LOCK(state->lock);
+
+	// Increase the count.
+	state->count += count;
+
+	// Update the user interface.
+	printLoadBar(state);
+
+	// Unlock the signal now that the count has been updated.
+	FIFTYONEDEGREES_MUTEX_UNLOCK(state->lock);
 }
 
 // Execute a performance test using a file of null terminated useragent strings
 // as input. If calibrate is true then the file is read but no detections
 // are performed.
-int performanceTest(char* fileName, fiftyoneDegreesWorksetPool *pool, long max, int calibrate, long *checkValue) {
-	long count = 0;
-	long marker = max / PROGRESS_MARKERS;
-	char *result;
+void runPerformanceTest(PERFORMANCE_STATE *state) {
+	char *result = NULL;
+	long valueCount;
 	FILE *inputFilePtr;
 	long size = 0, current;
-	inputFilePtr = fopen(fileName, "r");
+	inputFilePtr = fopen(state->fileName, "r");
 	int i, v;
-	fiftyoneDegreesWorkset *ws;
+	fiftyoneDegreesWorkset *ws = NULL;
+	int count = 0;
 
 	if (inputFilePtr == NULL) {
         printf("Failed to open file with null-terminating user agent strings to fiftyoneDegreesMatch against 51Degrees data file. \n");
@@ -66,106 +101,157 @@ int performanceTest(char* fileName, fiftyoneDegreesWorksetPool *pool, long max, 
 	}
 
     // Get the size of the file.
-    if (max == 0) {
+	if (state->max == 0) {
         fseek(inputFilePtr, 0, SEEK_END);
         size = ftell(inputFilePtr);
         fseek(inputFilePtr, 0, SEEK_SET);
-        marker = size / PROGRESS_MARKERS;
     }
+
+	if (state->calibrate == 1) {
+		result = (char*)malloc(state->pool->dataSet->header.maxUserAgentLength + 1);
+	}
 
 	do {
 		// Get an available workset from the pool of worksets.
-		ws = fiftyoneDegreesWorksetPoolGet(pool);
+		if (state->calibrate == 0) {
+			ws = fiftyoneDegreesWorksetPoolGet(state->pool);
+		}
 
 		// Get the next character from the input.
-		result = fgets(ws->input, ws->dataSet->header.maxUserAgentLength, inputFilePtr);
+		result = fgets(state->calibrate == 1 ? result : ws->input, state->pool->dataSet->header.maxUserAgentLength, inputFilePtr);
 		strtok(result, "\n");
 
 		// Break for an empty string or end of file.
 		if (result == NULL && feof(inputFilePtr)) {
-			fiftyoneDegreesWorksetPoolRelease(pool, ws);
+			if (state->calibrate == 0) {
+				fiftyoneDegreesWorksetPoolRelease(state->pool, ws);
+			}
 			break;
 		}
 
 		// If we're not calibrating then get the device for the
 		// useragent that has just been read.
-		if (calibrate == 0)
+		if (state->calibrate == 0)
 		{
-			fiftyoneDegreesMatch(ws, ws->input); //fiftyoneDegreesWorkset, useragent
+			fiftyoneDegreesMatch(ws, ws->input);
+			valueCount = 0;
 			for (i = 0; i < ws->dataSet->requiredPropertyCount; i++) {
 				fiftyoneDegreesSetValues(ws, i);
 				for (v = 0; v < ws->valuesCount; v++) {
-					*checkValue += ws->values[v]->nameOffset;
+					valueCount += (long)(ws->values[v]->nameOffset);
 				}
 			}
+			FIFTYONEDEGREES_MUTEX_LOCK(state->lock);
+			state->valueCount += valueCount;
+			FIFTYONEDEGREES_MUTEX_UNLOCK(state->lock);
 		}
 
-		// Increase the counter and reset the offset to
-		// read the next user agent from the input.
 		count++;
 
 		// Print a progress marker.
-		if (max == 0) {
-            current = ftell(inputFilePtr);
-            if (current > marker) {
-                printLoadBar(current, size);
-                marker += (size / PROGRESS_MARKERS);
-            }
-		} else if (count % marker == 0) {
-            printLoadBar(count, max);
+		if (count == state->progress) {
+			reportProgress(state, count);
+			count = 0;
 		}
 
 		// Release the workset back to the pool.
-		fiftyoneDegreesWorksetPoolRelease(pool, ws);
+		if (state->calibrate == 0) {
+			fiftyoneDegreesWorksetPoolRelease(state->pool, ws);
+		}
 
 	} while(1);
+
+	if (state->calibrate == 1) {
+		free(result);
+	}
+
+	reportProgress(state, count);
 	fclose(inputFilePtr);
-	printf("\n\n");
-	return count;
 }
 
 // Perform the test and return the average time.
-double performTest(char *fileName, fiftyoneDegreesWorksetPool *pool, int passes, int calibrate, char *test) {
+double performTest(PERFORMANCE_STATE *state) {
+	FIFTYONEDEGREES_THREAD *threads = (FIFTYONEDEGREES_THREAD*)malloc(sizeof(FIFTYONEDEGREES_THREAD) * state->numberOfThreads);
 	int pass;
-	long checkValue;
 	time_t start, end;
 	fflush(stdout);
+	int thread;
+
+	state->progress = (state->max > 0 ? state->max : INT_MAX) / PROGRESS_MARKS;
 
 	// Perform a number of passes of the test.
 	time(&start);
-	for(pass = 1; pass <= passes; pass++) {
-		printf("%s pass %i of %i: \n\n", test, pass, passes);
-		checkValue = 0;
-		_max = performanceTest(fileName, pool, _max, calibrate, &checkValue);
+	for(pass = 1; pass <= state->passes; pass++) {
 
+		state->valueCount = 0;
+		state->count = 0;
+
+		printf("%s pass %i of %i: \n\n", state->test, pass, state->passes);
+
+		FIFTYONEDEGREES_THREAD *threads = (FIFTYONEDEGREES_THREAD*)malloc(sizeof(FIFTYONEDEGREES_THREAD) * state->numberOfThreads);
+		
+		// Create the threads.
+		for (thread = 0; thread < state->numberOfThreads; thread++) {
+			FIFTYONEDEGREES_THREAD_CREATE(threads[thread], (void*)&runPerformanceTest, state);
+		}
+
+		// Wait for them to finish.
+		for (thread = 0; thread < state->numberOfThreads; thread++) {
+			FIFTYONEDEGREES_THREAD_JOIN(threads[thread]);
+		}
+
+		printf("\n\n");
+		
+		free((void*)threads);
+		
 		// If the cache is being used then output the check value which
 		// should be identical across multiple runs.
-		if (calibrate == 0 && pool->cache != NULL) {
-			printf("Cache check value = %i\n\n", checkValue);
+		if (state->calibrate == 0 && state->pool->cache != NULL) {
+			printf("Cache check value = %i\n\n", state->valueCount);
 		}
 	}
+	
 	time(&end);
-	return difftime(end, start) / (double)passes;
+	return difftime(end, start) / (double)state->passes;
 }
 
 // Performance test.
 void performance(char *fileName, fiftyoneDegreesWorksetPool *pool) {
 	double totalSec, calibration, test;
-	performTest(fileName, pool, 1, 1, "Caching Data");
+	PERFORMANCE_STATE state;
 
-	calibration = performTest(fileName, pool, PASSES, 1, "Calibrate");
-	test = performTest(fileName, pool, PASSES, 0, "Detection test");
+	state.pool = pool;
+	state.fileName = fileName;
+	FIFTYONEDEGREES_MUTEX_CREATE(state.lock);
+	
+	state.test = "Caching Data";
+	state.calibrate = 1;
+	state.max = 0;
+	state.numberOfThreads = 1;
+	state.passes = 1;
+	performTest(&state);
+
+	state.numberOfThreads = THREAD_COUNT;
+	state.max = state.count * state.numberOfThreads;
+	state.passes = PASSES;
+	state.test = "Calibrate";
+	calibration = performTest(&state);
+	state.test = "Detection test";
+	state.calibrate = 0;
+	test = performTest(&state);
 
 	// Time to complete.
 	totalSec = test - calibration;
 	printf("Average detection time for total data set: %.2f s\n", totalSec);
-	printf("Average number of detections per second: %.2f\n", (double)_max / totalSec);
-	printf("Average milliseconds per detection: %.6f\n", (totalSec * (double)1000) / (double)_max);
+	printf("Average number of detections per second per thread: %.2f\n", (double)state.max / totalSec / (double)state.numberOfThreads);
+	printf("Average milliseconds per detection: %.6f\n", (totalSec * (double)1000) / (double)state.max / (double)state.numberOfThreads);
 	if (pool->cache != NULL) {
 		printf("Cache hits: %d\n", pool->cache->hits);
 		printf("Cache misses: %d\n", pool->cache->misses);
 		printf("Cache switches: %d\n", pool->cache->switches);
 	}
+
+	FIFTYONEDEGREES_MUTEX_CLOSE(state.lock);
 
 	// Wait for a character to be pressed.
 	fgetc(stdin);
@@ -240,7 +326,7 @@ int main(int argc, char* argv[]) {
 		default: {
 			cache = fiftyoneDegreesResultsetCacheCreate(&dataSet, cacheSize);
 			if (cache != NULL) {
-				pool = fiftyoneDegreesWorksetPoolCreate(&dataSet, cache, 10);
+				pool = fiftyoneDegreesWorksetPoolCreate(&dataSet, cache, THREAD_COUNT);
 				if (pool != NULL) {
 					printf("\n\nUseragents file is: %s\n", findFileNames(inputFileName));
 					printf("Cache Size is: %d\n\n", pool->cache->total);

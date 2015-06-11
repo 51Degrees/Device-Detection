@@ -33,3 +33,12 @@
 
 1404481262 d:\code\c\src\trie\51degrees.h
 
+1433339717 source:d:\workspace\51degrees-c\src\snprintf\snprintf.c
+	<sys/types.h>
+	<string.h>
+	<stdlib.h>
+	<stdio.h>
+	<stdarg.h>
+	<assert.h>
+	<errno.h>
+

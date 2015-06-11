@@ -180,3 +180,54 @@
 1433066379 c:\users\james\documents\netbeansprojects\51degrees-c\src\cityhash\citycrc.h
 	"city.h"
 
+1433523381 source:d:\workspace\51degrees-c\src\cityhash\city.c
+	<string.h>
+	"city.h"
+	<stdlib.h>
+	<libkern/OSByteOrder.h>
+	<byteswap.h>
+
+1433339729 d:\workspace\51degrees-c\src\cityhash\city.h
+	<stdlib.h>
+	<stdint.h>
+
+1433339729 d:\workspace\51degrees-c\src\cityhash\citycrc.h
+	"city.h"
+
+1433959064 source:d:\workspace\51degrees-c\src\console\console.c
+	<stdio.h>
+	<string.h>
+	"../pattern/51Degrees.h"
+
+1433959421 d:\workspace\51degrees-c\src\pattern\51degrees.h
+	<stdint.h>
+	<limits.h>
+	<time.h>
+	<windows.h>
+	<pthread.h>
+
+1433521399 source:d:\workspace\51degrees-c\src\snprintf\snprintf.c
+	<sys/types.h>
+	<string.h>
+	<stdlib.h>
+	<stdio.h>
+	<stdarg.h>
+	<assert.h>
+	<errno.h>
+
+1433521229 source:d:\workspace\51degrees-c\src\pattern\51degrees.c
+	<stdlib.h>
+	<stdio.h>
+	"../snprintf/snprintf.h"
+	"../cityhash/city.h"
+	<string.h>
+	<limits.h>
+	<math.h>
+	<time.h>
+	"51Degrees.h"
+
+1433339717 d:\workspace\51degrees-c\src\snprintf\snprintf.h
+	<stdarg.h>
+	<stdlib.h>
+	<stdio.h>
+
