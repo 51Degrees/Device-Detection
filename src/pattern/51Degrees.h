@@ -39,31 +39,7 @@
 #include <stdint.h>
 #include <limits.h>
 #include <time.h>
-
-#ifdef _MSC_VER
-#include <windows.h>
-#else
-#include <pthread.h>
-#endif
-
-/**
-* Mutex used to synchronise access to data structures that could be used
-* in parallel in a multi threaded environment.
-*/
-#ifdef _MSC_VER
-#define FIFTYONEDEGREES_MUTEX HANDLE
-#else
-#define FIFTYONEDEGREES_MUTEX pthread_mutex_t
-#endif
-
-/**
- * A signal used to limit the number of worksets that can be created by
- * the pool.
- */
-#ifdef _MSC_VER
-#define FIFTYONEDEGREES_SIGNAL HANDLE
-#else
-#endif
+#include "../threading.h"
 
 /* Used to represent bytes */
 typedef unsigned char byte;
@@ -358,7 +334,6 @@ typedef struct fiftyoneDegrees_resultset_cache_list_t {
 	struct fiftyoneDegrees_resultset_cache_t *cache; /* Pointer to the cache the list is a part of */
 	fiftyoneDegreesResultset **resultSets; /* Hashcode ordered list of pointers to resultsets in the cache list */
 	int32_t allocated; /* The number of resultsets currently allocated in the list */
-	FIFTYONEDEGREES_MUTEX lock; /* Used to lock access to the cache list */
 } fiftyoneDegreesResultsetCacheList;
 #pragma pack(pop)
 
@@ -380,6 +355,8 @@ struct fiftyoneDegrees_resultset_cache_t {
 	fiftyoneDegreesResultsetCacheLinkedList allocated; /* Linked list of pointers to allocated resultsets */
 	fiftyoneDegreesResultsetCacheList *active; /* List of cache items that are actively being checked */
 	fiftyoneDegreesResultsetCacheList *background; /* List of cache items that are being recorded as recently accessed */
+	FIFTYONEDEGREES_MUTEX activeLock; /* Used to lock access to the active cache list */
+	FIFTYONEDEGREES_MUTEX backgroundLock; /* Used to lock access to the background cache list */
 	int32_t switchLimit; /* The number of items that can be allocated before the caches are switched */
 	int32_t hits; /* The number of times an item was found in the cache */
 	int32_t misses; /* The number of times an item was not found in the cache */
