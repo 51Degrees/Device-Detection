@@ -168,7 +168,7 @@ void runPerformanceTest(PERFORMANCE_STATE *state) {
 	reportProgress(state, count);
 	fclose(inputFilePtr);
 
-	FIFTYONEDEGREES_THREAD_EXIT();
+	FIFTYONEDEGREES_THREAD_EXIT;
 }
 
 // Perform the test and return the average time.

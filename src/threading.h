@@ -191,7 +191,7 @@ typedef struct fiftyoneDegrees_signal_t {
 #endif
 
 #ifdef _MSC_VER
-#define FIFTYONEDEGREES_THREAD_EXIT
+#define FIFTYONEDEGREES_THREAD_EXIT ExitThread(0)
 #else
-#define FIFTYONEDEGREES_THREAD_EXIT(t) pthread_exit(NULL)
+#define FIFTYONEDEGREES_THREAD_EXIT pthread_exit(NULL)
 #endif
