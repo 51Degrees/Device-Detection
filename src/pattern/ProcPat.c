@@ -29,7 +29,7 @@ int main(int argc, char* argv[]) {
 		break;
 	default: {
 
-		ws = fiftyoneDegreesCreateWorkset(&dataSet, NULL);
+		ws = fiftyoneDegreesWorksetCreate(&dataSet, NULL);
 		output = fiftyoneDegreesCSVCreate(ws);
 
 #ifdef _MSC_VER
@@ -71,8 +71,8 @@ int main(int argc, char* argv[]) {
 		}
 
         fiftyoneDegreesCSVFree(output);
-		fiftyoneDegreesFreeWorkset(ws);
-		fiftyoneDegreesDestroy(&dataSet);
+		fiftyoneDegreesWorksetFree(ws);
+		fiftyoneDegreesDataSetFree(&dataSet);
 	}//End default
 		break;
 	}//End Switch

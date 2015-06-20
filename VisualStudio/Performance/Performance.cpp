@@ -51,7 +51,7 @@ DWORD WINAPI test(LPVOID myThreadData) {
 			// If we're not calibrating then get the device for the
 			// useragent that has just been read.
 			if (strlen(userAgent) < 1024 && data->calibrate == 0)
-				device = getDeviceOffset(userAgent);
+				device = fiftyoneDegreesGetDeviceOffset(userAgent);
 
 			// Increase the counter.
 			data->detections++;
@@ -140,7 +140,7 @@ int _tmain(int argc, _TCHAR* argv[]) {
 		userAgentsFile = copyFileName(argv[2]);
 
 		// Initialise the trie matcher.
-		if (init(dataFile, "Id") != 0) {
+		if (fiftyoneDegreesInitWithPropertyString(dataFile, "Id") != 0) {
 			printf("\nData file '%s' could not be loaded.\n", dataFile);
 		} else {
 
@@ -158,7 +158,7 @@ int _tmain(int argc, _TCHAR* argv[]) {
 			}
 
 			// Destroy the trie matcher.
-			destroy();
+			fiftyoneDegreesDestroy();
 
 			// Display the results in detections per second.
 			printf(

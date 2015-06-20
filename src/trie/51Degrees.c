@@ -1,6 +1,5 @@
 ﻿#include <stdio.h>
 #include <stdarg.h>
-#include "../snprintf/snprintf.h"
 #include <stdint.h>
 #include <stdlib.h>
 #include <string.h>
@@ -27,7 +26,6 @@
  * This Source Code Form is "Incompatible With Secondary Licenses", as
  * defined by the Mozilla Public License, v. 2.0.
  ********************************************************************** */
-
 
 /**
  * PROBLEM MEHODS

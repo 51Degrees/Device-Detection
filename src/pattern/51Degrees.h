@@ -355,12 +355,14 @@ struct fiftyoneDegrees_resultset_cache_t {
 	fiftyoneDegreesResultsetCacheLinkedList allocated; /* Linked list of pointers to allocated resultsets */
 	fiftyoneDegreesResultsetCacheList *active; /* List of cache items that are actively being checked */
 	fiftyoneDegreesResultsetCacheList *background; /* List of cache items that are being recorded as recently accessed */
-	FIFTYONEDEGREES_MUTEX activeLock; /* Used to lock access to the active cache list */
-	FIFTYONEDEGREES_MUTEX backgroundLock; /* Used to lock access to the background cache list */
 	int32_t switchLimit; /* The number of items that can be allocated before the caches are switched */
 	int32_t hits; /* The number of times an item was found in the cache */
 	int32_t misses; /* The number of times an item was not found in the cache */
 	int32_t switches; /* The number of times the cache has been switched */
+#ifndef FIFTYONEDEGREES_NO_THREADING
+	FIFTYONEDEGREES_MUTEX activeLock; /* Used to lock access to the active cache list */
+	FIFTYONEDEGREES_MUTEX backgroundLock; /* Used to lock access to the background cache list */
+#endif
 };
 #pragma pack(pop)
 
@@ -409,8 +411,10 @@ typedef struct fiftyoneDegrees_workset_pool_t {
 	fiftyoneDegreesWorkset **worksets; /* Pointer to the array of work sets */
 	int32_t available; /* The number of worksets that are available in the pool */
 	int32_t created; /* The number of worksets created by the pool */
+#ifndef FIFTYONEDEGREES_NO_THREADING
 	FIFTYONEDEGREES_MUTEX lock; /* Used to to limit access to the pool */
 	FIFTYONEDEGREES_SIGNAL signal; /* Used to wait for a workset to be made available */
+#endif
 } fiftyoneDegreesWorksetPool;
 
 /**
@@ -447,7 +451,7 @@ EXTERNAL fiftyoneDegreesDataSetInitStatus fiftyoneDegreesInitWithPropertyString(
  * Destroys the data set releasing all memory available.
  * @param dataSet pointer to the data set being destroyed
  */
-EXTERNAL void fiftyoneDegreesDestroy(const fiftyoneDegreesDataSet *dataSet);
+EXTERNAL void fiftyoneDegreesDataSetFree(const fiftyoneDegreesDataSet *dataSet);
 
 /**
  * Creates a new cache used to speed up duplicate detections.
@@ -502,13 +506,13 @@ EXTERNAL void fiftyoneDegreesWorksetPoolRelease(fiftyoneDegreesWorksetPool *pool
  * @param cache pointer or NULL if not used
  * @returns a pointer to the workset created
  */
-EXTERNAL fiftyoneDegreesWorkset* fiftyoneDegreesCreateWorkset(const fiftyoneDegreesDataSet *dataSet, const fiftyoneDegreesResultsetCache *cache);
+EXTERNAL fiftyoneDegreesWorkset* fiftyoneDegreesWorksetCreate(const fiftyoneDegreesDataSet *dataSet, const fiftyoneDegreesResultsetCache *cache);
 
 /**
  * Releases the memory used by the workset.
  * @param pointer to the workset created previously
  */
-EXTERNAL void fiftyoneDegreesFreeWorkset(const fiftyoneDegreesWorkset *ws);
+EXTERNAL void fiftyoneDegreesWorksetFree(const fiftyoneDegreesWorkset *ws);
 
 /**
  * Allocates memory sufficiently large to store JSON results.

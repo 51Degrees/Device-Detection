@@ -19,13 +19,19 @@
 #define PROGRESS_MARKS 40
 
 // Number of threads to start for performance analysis.
+#ifndef FIFTYONEDEGREES_NO_THREADING
 #define THREAD_COUNT 4
+#else
+#define THREAD_COUNT 1
+#endif
 
 // Used to control multi threaded performance.
 typedef struct t_performance_state {
 	char* fileName;
 	int calibrate;
+#ifndef FIFTYONEDEGREES_NO_THREADING
 	FIFTYONEDEGREES_MUTEX lock;
+#endif
 	int count;
 	int progress;
 	int max;
@@ -51,8 +57,10 @@ void printLoadBar(PERFORMANCE_STATE *state) {
 
 void reportProgress(PERFORMANCE_STATE *perfState, int count, int device, int propertyIndex) {
 
+#ifndef FIFTYONEDEGREES_NO_THREADING
 	// Lock the state whilst the counters are updated.
 	FIFTYONEDEGREES_MUTEX_LOCK(perfState->lock);
+#endif
 
 	// Increase the count.
 	perfState->count += count;
@@ -66,8 +74,10 @@ void reportProgress(PERFORMANCE_STATE *perfState, int count, int device, int pro
 		printf(" %s  ", fiftyoneDegreesGetValue(device, propertyIndex));
 	}
 
+#ifndef FIFTYONEDEGREES_NO_THREADING
 	// Unlock the signal now that the count has been updated.
 	FIFTYONEDEGREES_MUTEX_UNLOCK(perfState->lock);
+#endif
 }
 
 void runPerformanceTest(void* state) {
@@ -110,19 +120,23 @@ void runPerformanceTest(void* state) {
 	// Finally report progress.
 	reportProgress(perfState, count, device, propertyIndex);
 
+#ifndef FIFTYONEDEGREES_NO_THREADING
 	FIFTYONEDEGREES_THREAD_EXIT;
+#endif
 }
 
 // Execute a performance test using a file of null terminated useragent strings
 // as input. If calibrate is true then the file is read but no detections
 // are performed.
 void performanceTest(PERFORMANCE_STATE *state) {
+#ifndef FIFTYONEDEGREES_NO_THREADING
 	FIFTYONEDEGREES_THREAD *threads = (FIFTYONEDEGREES_THREAD*)malloc(sizeof(FIFTYONEDEGREES_THREAD) * state->numberOfThreads);
 	int thread;
-
 	FIFTYONEDEGREES_MUTEX_CREATE(state->lock);
+#endif
 	state->count = 0;
 
+#ifndef FIFTYONEDEGREES_NO_THREADING
 	// Create the threads.
 	for (thread = 0; thread < state->numberOfThreads; thread++) {
 		FIFTYONEDEGREES_THREAD_CREATE(threads[thread], (void*)&runPerformanceTest, state);
@@ -132,11 +146,15 @@ void performanceTest(PERFORMANCE_STATE *state) {
 	for (thread = 0; thread < state->numberOfThreads; thread++) {
 		FIFTYONEDEGREES_THREAD_JOIN(threads[thread]);
 	}
-
+#else
+    runPerformanceTest(state);
+#endif
 	printf("\n\n");
 
+#ifndef FIFTYONEDEGREES_NO_THREADING
 	free(threads);
 	FIFTYONEDEGREES_MUTEX_CLOSE(state->lock);
+#endif
 }
 
 // Perform the test and return the average time.

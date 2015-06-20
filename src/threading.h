@@ -20,6 +20,13 @@
 ********************************************************************** */
 
 /**
+ * Define macros if compiler directive is not explicitly requesting single
+ * threaded operation.
+ */
+
+#ifndef FIFTYONEDEGREES_NO_THREADING
+
+/**
 * MUTEX AND THREADING MACROS
 */
 
@@ -194,4 +201,6 @@ typedef struct fiftyoneDegrees_signal_t {
 #define FIFTYONEDEGREES_THREAD_EXIT ExitThread(0)
 #else
 #define FIFTYONEDEGREES_THREAD_EXIT pthread_exit(NULL)
+#endif
+
 #endif

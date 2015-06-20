@@ -1,11 +1,21 @@
 /* *********************************************************************
+ * This Source Code Form is copyright of 51Degrees Mobile Experts Limited. 
+ * Copyright © 2014 51Degrees Mobile Experts Limited, 5 Charlotte Close,
+ * Caversham, Reading, Berkshire, United Kingdom RG4 7BY
+ * 
+ * This Source Code Form is the subject of the following patent 
+ * applications, owned by 51Degrees Mobile Experts Limited of 5 Charlotte
+ * Close, Caversham, Reading, Berkshire, United Kingdom RG4 7BY: 
+ * European Patent Application No. 13192291.6; and
+ * United States Patent Application Nos. 14/085,223 and 14/085,301.
+ *
  * This Source Code Form is subject to the terms of the Mozilla Public
  * License, v. 2.0.
- *
+ * 
  * If a copy of the MPL was not distributed with this file, You can obtain
  * one at http://mozilla.org/MPL/2.0/.
- *
- * This Source Code Form is "Incompatible With Secondary Licenses", as
+ * 
+ * This Source Code Form is “Incompatible With Secondary Licenses”, as
  * defined by the Mozilla Public License, v. 2.0.
  * ********************************************************************* */
 
@@ -23,12 +33,13 @@ namespace FiftyOne.Mobile.Detection.Provider.Interop
     /// Class used to wrap functions exposed by the tree matching C
     /// DLL.
     /// </summary>
-    public class TrieWrapper
+    public class TrieWrapper : IDisposable
     {
         #region DLL Imports
 
         [DllImport("FiftyOne.Mobile.Detection.Provider.Trie.dll", 
-            CallingConvention = CallingConvention.Cdecl, CharSet = CharSet.Ansi)]
+            CallingConvention = CallingConvention.Cdecl, 
+            CharSet = CharSet.Ansi)]
         private static extern void Init(String fileName, String properties);
 
         [DllImport("FiftyOne.Mobile.Detection.Provider.Trie.dll", 
@@ -36,7 +47,8 @@ namespace FiftyOne.Mobile.Detection.Provider.Interop
         private static extern void Destroy();
 
         [DllImport("FiftyOne.Mobile.Detection.Provider.Trie.dll",
-            CallingConvention = CallingConvention.Cdecl, CharSet = CharSet.Ansi)]
+            CallingConvention = CallingConvention.Cdecl,
+            CharSet = CharSet.Ansi)]
         private static extern int GetPropertiesCSV(String userAgent, StringBuilder result, Int32 resultLength);
 
         #endregion
@@ -99,7 +111,6 @@ namespace FiftyOne.Mobile.Detection.Provider.Interop
                     var info = new FileInfo(fileName);
                     if (info.Exists == false)
                         throw new ArgumentException(String.Format("File '{0}' can not be found.", info.FullName), "fileName");
-
                     Init(info.FullName, properties);
                     _instanceCount++;
                 }
@@ -108,16 +119,6 @@ namespace FiftyOne.Mobile.Detection.Provider.Interop
                     throw new Exception("Only one instance of the TrieWrapper can be initialised.");
                 }
             }
-        }
-
-        /// <summary>
-        /// When the class is destroyed ensure all the worksets are
-        /// also freed within the DLL. It's here just in case Dispose
-        /// wasn't used to prevent memory leaks.
-        /// </summary>
-        ~TrieWrapper()
-        {
-            Dispose();
         }
 
         #endregion
@@ -129,7 +130,7 @@ namespace FiftyOne.Mobile.Detection.Provider.Interop
         /// </summary>
         /// <param name="userAgent">The user agent of the device being searched for.</param>
         /// <returns>A | seperated list of properties.</returns>
-        public string GetPropertiesAsCSV(string userAgent)
+        public StringBuilder GetPropertiesAsCSV(string userAgent)
         {
             int length = 0;
             var result = new StringBuilder(DEFAULT_CAPACITY);
@@ -154,10 +155,7 @@ namespace FiftyOne.Mobile.Detection.Provider.Interop
             }
             while (length < 0);
 
-            // If a valid string was created then return.
-            if (length > 0)
-                return result.ToString();
-            return null;
+            return result;
         }
 
         /// <summary>

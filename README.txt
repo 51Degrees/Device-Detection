@@ -1,4 +1,4 @@
-﻿Introduction
+Introduction
 ------------
 
 Use this project to detect device properties using HTTP browser user agents as
@@ -18,16 +18,17 @@ This package includes the follow examples:
 
 1.  Command line process which takes a user agent via stdin and return a device
   id via stdout. Can easily be modified to return other properties.
+  (ProcPat & ProcTrie projects)
 
 2.  Command line performance evaluation programme which takes a file of user 
   agents and returns a performance score measured in detections per second
   per CPU core.
+  (PerfPat & PerfTrie projects)
 
-3.  A GCC only multi-threaded Trie matching method performance evaluation
-  program.
-
-4.  A Windows example web site which uses the 2 detection methods and compares
-  the results side by side for the requesting browser.
+4.  Visual Studio solution with example web site, command line projects and C++
+  projects to demonstrate how to access from managed and unmanaged code.
+  
+5.  PHP extension.
 
 Use the following instructions to compile different versions for different 
 target platforms.
@@ -41,11 +42,25 @@ WinGCCbuild.bat - Builds command line executable using GCC for Windows.
 makefile - Builds a command line executable under Linux.
 Licence.txt - The licence terms for the files in this zip file.
 
+CodeBlocks - project files for CodeBlocks IDE for 5 generic project types.
+
+  PerfPat.* - Project files using standard C source.
+  PerfTrie.* - Project files using standard C source.
+  ProcPat.* - Project files using standard C source.
+  ProcTrie.* - Project files using standard C source.
+  Console.* - Project files using standard C source.
+
 data - A folder for external data files.
   51Degrees-Lite.dat - uncompressed data file for use with Pattern.
   51Degrees-Lite.Trie - uncompressed data file for use with Trie.
-
+  20000 User Agents.csv - file with 20,000 popular useragents.
+ 
+php/ - Files for PHP extension. See php/README.txt for details.
+ 
 src/ - all generic C files used across multiple platforms.
+
+  threading.h - Macros used for threading including locking, signalling and 
+                running multi threaded operations for GCC and MSVC compilers.  
 
 src/Pattern - all source files related to Pattern matching detection.
 
@@ -61,12 +76,21 @@ src/Trie - all source files related to Trie matching detection.
   ProcTrie.c - The command line interface wrapper.
   PerfTrie.c - The command line performance test executable.
 
-src/snprintf - source files to provide safe, OS independent snprintf functions.
+src/cityhash - a port of Google's cityhash algorithm to C by Alexander Nusov.
+
+  city.h - The cityhash header file with CRC methods removed.
+  city.c - The cityhash implementation in C with CRC methods removed.
+  LICENSE.txt - Licence under which cityhash is distributed.
+
+src/snprintf - source files to provide safe, OS independent snprintf functions 
+               if not supported by the compiler. These resources are no longer 
+			   used but retained in case integrators need them.
 
   snprintf.h - The snprintf header file.
   snprintf.c - The snprintf implementation.
-
-windows/ - all files related exclusively to Windows.
+  LICENSE.txt - Licence under which snprintf is distributed.
+  
+VisualStudio/ - all files related exclusively to Windows and Visual Studio 2013.
 
   Interop/FiftyOne.Mobile.Detection.Provider.Interop.csproj - C# project.
   Interop/PatternWrapper.cs - C# class used to wrap and expose Pattern
@@ -81,12 +105,15 @@ windows/ - all files related exclusively to Windows.
 
   Pattern/FiftyOne.Mobile.Detection.Provider.Pattern.vcxproj - C lib project.
   Pattern/FuncsPatternDll.c - Dll methods accessible to any Windows library.
-  Pattern/PreBuild.bat - Used to create platform specific char tables for
-    regexes.
 
-  Demo/FiftyOne.Mobile.Detection.Demo.csproj - Demo web site using the 
-    Interop assembly to request properties associated with the requesting
-    device.
+  Console Interop/Console Interop.csproj - Project file for a console 
+    application which demonstrates access to the Interop wrapper.
+  Console Interop/Program.cs - Main method with simple code to prove the Interop
+    wrappers are working.
+  Console Interop/Properties/AssemblyInfo.cs - Project header information.
+  
+  Demo/Web Site.csproj - Demo web site using the Interop assembly to request
+    properties associated with the requesting device.
   Demo/Default.aspx.* - Demo web page used to display properties. See these 
     files for examples of how to create providers and reTrieve properties.
   Demo/Properties/AssemblyInfo.cs - Project header information.
@@ -95,17 +122,33 @@ windows/ - all files related exclusively to Windows.
     for the multi threaded Windows command line executable.
   Performance/Performance.cpp - Main class for the executable.
   Performance/*.cpp & *.h - Related files to the C++ programme.
+  
+  PerfPat/PerfPat.vcxproj - Project file using standard C source.
+  PerfTrie/PerfTrie.vcxproj - Project file using standard C source.
+  ProcPat/ProcPat.vcxproj - Project file using standard C source.
+  ProcTrie/ProcTrie.vcxproj - Project file using standard C source.
+  Console/Console.vcxproj - Project file using standard C source.
 
   x64Build.bat - Uses the Visual Studio compiler to build a x64 library.
   x86Build.bat - Uses the Visual Studio compiler to build a x86 library.
-  FiftyOne.Mobile.Detection.Provider.sln - Visual Studio 2010 solution 
-    including demonstration web site and single threaded command line
-    executables.
-  FiftyOne.Mobile.Detection.Performance.sln - Visual Studio 2010 solution 
-    for the multi threaded performance test application.
+  VisualStudio.sln - Visual Studio 2013 solution including demonstration web 
+    site, interop console, performance and general C projects.
 
 Changes
 -------
+
+Version 3.1.6.X
+
+1. Pattern now supports multi threading for both GCC and MSVC compilers. Multi 
+   threading can be turned off with the use of FIFTYONEDEGREES_NO_THREADING 
+   directive.
+2. Pattern includes options for a cache of previous detections.
+3. Pattern supports a workset pool for use in a multi threaded environment.
+4. All external method names have been standardised in the form
+   fiftyoneDegrees[TYPE][ACTION]
+5. snprintf is no longer required.
+6. New methods have been added to return the length of a CSV and JSON buffer and
+   also allocate memory for these processing operations.
 
 Version 3.1.5.2
 

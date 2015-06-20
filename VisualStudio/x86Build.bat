@@ -1,12 +1,12 @@
 @echo off
 
-if exist "%ProgramFiles(x86)%\Microsoft Visual Studio 10.0\VC\vcvarsall.bat" goto :msvc86
+if exist "%ProgramFiles(x86)%\Microsoft Visual Studio 12.0\VC\vcvarsall.bat" goto :msvc86
 
 goto :eof
 
 :msvc86
 
-call "%ProgramFiles(x86)%\Microsoft Visual Studio 10.0\VC\vcvarsall.bat" x86
+call "%ProgramFiles(x86)%\Microsoft Visual Studio 12.0\VC\vcvarsall.bat" x86
 
 del Demo\bin\*.* /q
 msbuild "Pattern\FiftyOne.Mobile.Detection.Provider.Pattern.vcxproj" /p:Configuration=Release /p:Platform=Win32

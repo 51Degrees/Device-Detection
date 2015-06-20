@@ -54,3 +54,22 @@
 	<string.h>
 	"51Degrees.h"
 
+1433521399 source:d:\workspace\51degrees-c\src\snprintf\snprintf.c
+	<sys/types.h>
+	<string.h>
+	<stdlib.h>
+	<stdio.h>
+	<stdarg.h>
+	<assert.h>
+	<errno.h>
+
+1434119555 source:d:\workspace\51degrees-c\src\trie\51degrees.c
+	<stdarg.h>
+	<stdint.h>
+	<stdlib.h>
+	<string.h>
+	<math.h>
+	"51Degrees.h"
+
+1434040458 d:\workspace\51degrees-c\src\trie\51degrees.h
+

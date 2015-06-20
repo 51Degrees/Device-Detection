@@ -32,14 +32,20 @@
 #define PROGRESS_MARKS 40
 
 // Number of threads to start for performance analysis.
+#ifndef FIFTYONEDEGREES_NO_THREADING
 #define THREAD_COUNT 4
+#else
+#define THREAD_COUNT 1
+#endif
 
 // Used to control multi threaded performance.
 typedef struct t_performance_state {
 	char* fileName;
 	fiftyoneDegreesWorksetPool *pool;
 	int calibrate;
+#ifndef FIFTYONEDEGREES_NO_THREADING
 	FIFTYONEDEGREES_MUTEX lock;
+#endif
 	int count;
 	int progress;
 	int max;
@@ -68,8 +74,10 @@ void printLoadBar(PERFORMANCE_STATE *state) {
 
 void reportProgress(PERFORMANCE_STATE *state, int count) {
 
+#ifndef FIFTYONEDEGREES_NO_THREADING
 	// Lock the state whilst the counters are updated.
 	FIFTYONEDEGREES_MUTEX_LOCK(state->lock);
+#endif
 
 	// Increase the count.
 	state->count += count;
@@ -77,15 +85,17 @@ void reportProgress(PERFORMANCE_STATE *state, int count) {
 	// Update the user interface.
 	printLoadBar(state);
 
+#ifndef FIFTYONEDEGREES_NO_THREADING
 	// Unlock the signal now that the count has been updated.
 	FIFTYONEDEGREES_MUTEX_UNLOCK(state->lock);
+#endif
 }
 
 // Execute a performance test using a file of null terminated useragent strings
 // as input. If calibrate is true then the file is read but no detections
 // are performed.
 void runPerformanceTest(PERFORMANCE_STATE *state) {
-	char *result = NULL;
+	char *input = NULL, *result = NULL;
 	long valueCount;
 	FILE *inputFilePtr;
 	// long size = 0;
@@ -108,7 +118,7 @@ void runPerformanceTest(PERFORMANCE_STATE *state) {
     }
 
 	if (state->calibrate == 1) {
-		result = (char*)malloc(state->pool->dataSet->header.maxUserAgentLength + 1);
+		input = (char*)malloc(state->pool->dataSet->header.maxUserAgentLength + 1);
 	}
 
 	do {
@@ -118,7 +128,7 @@ void runPerformanceTest(PERFORMANCE_STATE *state) {
 		}
 
 		// Get the next character from the input.
-		result = fgets(state->calibrate == 1 ? result : ws->input, state->pool->dataSet->header.maxUserAgentLength, inputFilePtr);
+		result = fgets(state->calibrate == 0 ? ws->input : input, state->pool->dataSet->header.maxUserAgentLength, inputFilePtr);
 		strtok(result, "\n");
 
 		// Break for an empty string or end of file.
@@ -141,9 +151,13 @@ void runPerformanceTest(PERFORMANCE_STATE *state) {
 					valueCount += (long)(ws->values[v]->nameOffset);
 				}
 			}
+#ifndef FIFTYONEDEGREES_NO_THREADING
 			FIFTYONEDEGREES_MUTEX_LOCK(state->lock);
+#endif
 			state->valueCount += valueCount;
+#ifndef FIFTYONEDEGREES_NO_THREADING
 			FIFTYONEDEGREES_MUTEX_UNLOCK(state->lock);
+#endif
 		}
 
 		count++;
@@ -162,22 +176,26 @@ void runPerformanceTest(PERFORMANCE_STATE *state) {
 	} while(1);
 
 	if (state->calibrate == 1) {
-		free(result);
+		free(input);
 	}
 
 	reportProgress(state, count);
 	fclose(inputFilePtr);
 
+#ifndef FIFTYONEDEGREES_NO_THREADING
 	FIFTYONEDEGREES_THREAD_EXIT;
+#endif
 }
 
 // Perform the test and return the average time.
 double performTest(PERFORMANCE_STATE *state) {
+#ifndef FIFTYONEDEGREES_NO_THREADING
 	FIFTYONEDEGREES_THREAD *threads = (FIFTYONEDEGREES_THREAD*)malloc(sizeof(FIFTYONEDEGREES_THREAD) * state->numberOfThreads);
+    int thread;
+#endif
 	int pass;
 	time_t start, end;
 	fflush(stdout);
-	int thread;
 
 	state->progress = (state->max > 0 ? state->max : INT_MAX) / PROGRESS_MARKS;
 
@@ -190,6 +208,7 @@ double performTest(PERFORMANCE_STATE *state) {
 
 		printf("%s pass %i of %i: \n\n", state->test, pass, state->passes);
 
+#ifndef FIFTYONEDEGREES_NO_THREADING
 		// Create the threads.
 		for (thread = 0; thread < state->numberOfThreads; thread++) {
 			FIFTYONEDEGREES_THREAD_CREATE(threads[thread], (void*)&runPerformanceTest, state);
@@ -199,6 +218,9 @@ double performTest(PERFORMANCE_STATE *state) {
 		for (thread = 0; thread < state->numberOfThreads; thread++) {
 			FIFTYONEDEGREES_THREAD_JOIN(threads[thread]);
 		}
+#else
+        runPerformanceTest(state);
+#endif
 
 		printf("\n\n");
 
@@ -209,7 +231,9 @@ double performTest(PERFORMANCE_STATE *state) {
 		}
 	}
 
+#ifndef FIFTYONEDEGREES_NO_THREADING
     free((void*)threads);
+#endif
 
 	time(&end);
 	return difftime(end, start) / (double)state->passes;
@@ -222,7 +246,9 @@ void performance(char *fileName, fiftyoneDegreesWorksetPool *pool) {
 
 	state.pool = pool;
 	state.fileName = fileName;
+#ifndef FIFTYONEDEGREES_NO_THREADING
 	FIFTYONEDEGREES_MUTEX_CREATE(state.lock);
+#endif
 
 	state.test = "Caching Data";
 	state.calibrate = 1;
@@ -251,7 +277,9 @@ void performance(char *fileName, fiftyoneDegreesWorksetPool *pool) {
 		printf("Cache switches: %d\n", pool->cache->switches);
 	}
 
+#ifndef FIFTYONEDEGREES_NO_THREADING
 	FIFTYONEDEGREES_MUTEX_CLOSE(state.lock);
+#endif
 
 	// Wait for a character to be pressed.
 	fgetc(stdin);
@@ -335,7 +363,7 @@ int main(int argc, char* argv[]) {
 				}
 				fiftyoneDegreesResultsetCacheFree(cache);
 			}
-            fiftyoneDegreesDestroy(&dataSet);
+            fiftyoneDegreesDataSetFree(&dataSet);
         }
         break;
     }
