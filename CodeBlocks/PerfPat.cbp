@@ -16,6 +16,11 @@
 					<Add option="-g" />
 					<Add option="-wd4668" />
 					<Add option="-wd4711" />
+					<Add option="-wd4820" />
+					<Add option="-wd4005" />
+					<Add option="-wd4255" />
+					<Add option="-wd4152" />
+					<Add option="-wd4054" />
 					<Add option="/DHAVE_SNPRINTF" />
 					<Add option="/D_CRT_SECURE_NO_WARNINGS" />
 				</Compiler>
@@ -30,6 +35,11 @@
 					<Add option="-O2" />
 					<Add option="-wd4668" />
 					<Add option="-wd4711" />
+					<Add option="-wd4820" />
+					<Add option="-wd4005" />
+					<Add option="-wd4255" />
+					<Add option="-wd4152" />
+					<Add option="-wd4054" />
 					<Add option="/DHAVE_SNPRINTF" />
 					<Add option="/D_CRT_SECURE_NO_WARNINGS" />
 				</Compiler>

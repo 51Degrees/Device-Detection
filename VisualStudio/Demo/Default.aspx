@@ -4,7 +4,7 @@
 
 <html xmlns="http://www.w3.org/1999/xhtml">
 <head runat="server">
-    <title>51Degrees.mobi Device Detection Demo</title>
+    <title>51Degrees C# / C Device Detection Demo</title>
 </head>
 <body>
     <form id="formMain" runat="server">

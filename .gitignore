@@ -9,6 +9,7 @@
 *.suo
 *.sdf
 *.layout
+*.depend
 *.lic
 *Enterprise*
 *Premium*

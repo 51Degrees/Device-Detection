@@ -14,6 +14,13 @@
 				<Option parameters='&quot;../data/51Degrees-Lite.dat&quot;' />
 				<Compiler>
 					<Add option="-g" />
+					<Add option="-wd4668" />
+					<Add option="-wd4711" />
+					<Add option="-wd4820" />
+					<Add option="-wd4005" />
+					<Add option="-wd4255" />
+					<Add option="-wd4152" />
+					<Add option="-wd4054" />
 					<Add option="/DHAVE_SNPRINTF" />
 					<Add option="/D_CRT_SECURE_NO_WARNINGS" />
 				</Compiler>
@@ -26,6 +33,13 @@
 				<Option parameters='&quot;../data/51Degrees-Lite.dat&quot;' />
 				<Compiler>
 					<Add option="-O2" />
+					<Add option="-wd4668" />
+					<Add option="-wd4711" />
+					<Add option="-wd4820" />
+					<Add option="-wd4005" />
+					<Add option="-wd4255" />
+					<Add option="-wd4152" />
+					<Add option="-wd4054" />
 					<Add option="/DHAVE_SNPRINTF" />
 					<Add option="/D_CRT_SECURE_NO_WARNINGS" />
 				</Compiler>
@@ -42,6 +56,7 @@
 				<Compiler>
 					<Add option="-g" />
 					<Add option="-DHAVE_SNPRINTF" />
+					<Add option="-DFIFTYONEDEGREES_NO_THREADING" />
 				</Compiler>
 			</Target>
 			<Target title="GCC Release">
@@ -52,6 +67,7 @@
 				<Option parameters='&quot;../data/51Degrees-Lite.dat&quot;' />
 				<Compiler>
 					<Add option="-DHAVE_SNPRINTF" />
+					<Add option="-DFIFTYONEDEGREES_NO_THREADING" />
 				</Compiler>
 			</Target>
 		</Build>
@@ -70,9 +86,6 @@
 			<Option compilerVar="CC" />
 		</Unit>
 		<Unit filename="../src/pattern/51Degrees.h" />
-		<Unit filename="../src/snprintf/snprintf.c">
-			<Option compilerVar="CC" />
-		</Unit>
 		<Unit filename="../src/snprintf/snprintf.h" />
 		<Extensions>
 			<code_completion />

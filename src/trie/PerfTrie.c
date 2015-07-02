@@ -6,6 +6,27 @@
 #include "../threading.h"
 #include "51Degrees.h"
 
+/* *********************************************************************
+* This Source Code Form is copyright of 51Degrees Mobile Experts Limited.
+* Copyright 2014 51Degrees Mobile Experts Limited, 5 Charlotte Close,
+* Caversham, Reading, Berkshire, United Kingdom RG4 7BY
+*
+* This Source Code Form is the subject of the following patent
+* applications, owned by 51Degrees Mobile Experts Limited of 5 Charlotte
+* Close, Caversham, Reading, Berkshire, United Kingdom RG4 7BY:
+* European Patent Application No. 13192291.6; and
+* United States Patent Application Nos. 14/085,223 and 14/085,301.
+*
+* This Source Code Form is subject to the terms of the Mozilla Public
+* License, v. 2.0.
+*
+* If a copy of the MPL was not distributed with this file, You can obtain
+* one at http://mozilla.org/MPL/2.0/.
+*
+* This Source Code Form is "Incompatible With Secondary Licenses", as
+* defined by the Mozilla Public License, v. 2.0.
+********************************************************************** */
+
 #ifdef _DEBUG
 #define PASSES 1
 #else
@@ -89,13 +110,10 @@ void runPerformanceTest(void* state) {
 	FILE *inputFilePtr = fopen(perfState->fileName, "r");
 	int count = 0;
 
-	do {
-		// Get the next character from the input.
-		result = fgets(userAgent, BUFFER, inputFilePtr);
+    // Get the next character from the input.
+    result = fgets(userAgent, BUFFER, inputFilePtr);
 
-		// Break for an empty string or end of file.
-		if (result == NULL && feof(inputFilePtr))
-			break;
+	while(result != NULL && !feof(inputFilePtr)) {
 
 		// If we're not calibrating then get the device for the
 		// useragent that has just been read.
@@ -113,7 +131,10 @@ void runPerformanceTest(void* state) {
 			// Reset the local counter.
 			count = 0;
 		}
-	} while (1);
+
+		// Get the next character from the input.
+        result = fgets(userAgent, BUFFER, inputFilePtr);
+	}
 
 	fclose(inputFilePtr);
 

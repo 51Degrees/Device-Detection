@@ -38,36 +38,41 @@ DWORD WINAPI test(LPVOID myThreadData) {
 	char userAgent[1024];
 	char* result;
 	int device = -1;
+	int counter = 0;
 
-	if (fopen_s(&inputFilePtr, data->userAgentsFile, "r") == 0) {
-		do {
+	while (counter < 1000000) {
+		if (fopen_s(&inputFilePtr, data->userAgentsFile, "r") == 0) {
+
 			// Get the next character from the input.
 			result = fgets(userAgent, 1024, inputFilePtr);
 
-			// Break for an empty string or end of file.
-			if (result == NULL && feof(inputFilePtr))
-				break;
+			while (result != NULL || !feof(inputFilePtr)) {
 
-			// If we're not calibrating then get the device for the
-			// useragent that has just been read.
-			if (strlen(userAgent) < 1024 && data->calibrate == 0)
-				device = fiftyoneDegreesGetDeviceOffset(userAgent);
+				counter++;
 
-			// Increase the counter.
-			data->detections++;
+				// If we're not calibrating then get the device for the
+				// useragent that has just been read.
+				if (strlen(userAgent) < 1024 && data->calibrate == 0)
+					device = fiftyoneDegreesGetDeviceOffset(userAgent);
 
-			// Print a progress marker.
-			if (data->detections % PROGRESS == 0) {
-				printf("=");
-			}
+				// Increase the counter.
+				data->detections++;
 
-		} while (1);
+				// Print a progress marker.
+				if (data->detections % PROGRESS == 0) {
+					printf("=");
+				}
 
-		// Do this to ensure the compiler does not remove the test
-		// we're trying to perform.
-		data->device = device;
+				// Get the next character from the input.
+				result = fgets(userAgent, 1024, inputFilePtr);
+			};
 
-		fclose(inputFilePtr);
+			// Do this to ensure the compiler does not remove the test
+			// we're trying to perform.
+			data->device = device;
+
+			fclose(inputFilePtr);
+		}
 	}
 	return 0;
 }
@@ -120,7 +125,7 @@ int _tmain(int argc, _TCHAR* argv[]) {
 	printf("\t#############################################################\n");
     printf("\t#                                                           #\n");
     printf("\t#  This program can be used to test the performance of the  #\n");
-    printf("\t#     51Degrees.mobi 'Trie' C API in a *multi threaded*     #\n");
+    printf("\t#        51Degrees 'Trie' C API in a *multi threaded*       #\n");
 	printf("\t#                      environment.                         #\n");
     printf("\t#                                                           #\n");
     printf("\t#   The test will read a list of User Agents and calculate  #\n");
@@ -129,7 +134,7 @@ int _tmain(int argc, _TCHAR* argv[]) {
 	printf("\t#    Command line arguments should be a trie format data    #\n");
 	printf("\t#   file and a csv file containing a list of user agents.   #\n");
 	printf("\t#      A test file of 1 million can be downloaded from      #\n");
-	printf("\t#            http://51degrees.mobi/million.zip              #\n");
+	printf("\t#            https://51degrees.com/million.zip              #\n");
 	printf("\t#                                                           #\n");
     printf("\t#############################################################");
 
