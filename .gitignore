@@ -9,10 +9,9 @@
 *.suo
 *.sdf
 *.layout
-*Enterprise.dat
-*Premium.dat
-*Enterprise.trie
-*Premium.trie
+*.lic
+*Enterprise*
+*Premium*
 million.csv
 Debug/
 Release/
