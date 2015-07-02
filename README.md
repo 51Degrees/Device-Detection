@@ -2,7 +2,7 @@
 
 [Recent Changes](#recent-changes "Review recent major changes") | [Supported Databases](https://51degrees.com/compare-data-options?utm_source=github&utm_medium=repository&utm_content=home-menu&utm_campaign=c-open-source "Different device databases which can be used with 51Degrees device detection") | [Developer Documention](https://51degrees.com/support/documentation?utm_source=github&utm_medium=repository&utm_content=home-menu&utm_campaign=c-open-source "Full getting started guide and advanced developer documentation") | [Available Properties](https://51degrees.com/resources/property-dictionary?utm_source=github&utm_medium=repository&utm_content=home-menu&utm_campaign=c-open-source "View all available properties and values")
 
-[.NET](https://github.com/51Degrees/.NET-Device-Detection "THE Fastest and most Accurate device detection for .NET") | [Java](https://github.com/51Degrees/Java-Device-Detection "THE Fastest and most Accurate device detection for Java") | [PHP Script](https://github.com/51Degrees/51Degrees-PHP)
+Looking for [.NET](https://github.com/51Degrees/.NET-Device-Detection "THE Fastest and most Accurate device detection for .NET") | [Java](https://github.com/51Degrees/Java-Device-Detection "THE Fastest and most Accurate device detection for Java") | [PHP Script](https://github.com/51Degrees/51Degrees-PHP)?
 
 Use code like...
 
@@ -43,7 +43,7 @@ This package includes the follow examples:
 3. Visual Studio solution with example web site, command line projects and C++
   projects to demonstrate how to access from managed and unmanaged code.
   
-4.  PHP extension.
+4. PHP extension.
 
 Use the following instructions to compile different versions for different 
 target platforms.
@@ -51,7 +51,7 @@ target platforms.
 ### Included Files
 
 makefile - Builds a command line executable under Linux.
-Licence.txt - The licence terms for the files in this zip file.
+LICENSE - The licence terms for all source code and Lite data.
 
 CodeBlocks - project files for CodeBlocks IDE for 5 generic project types.
 
@@ -61,11 +61,13 @@ CodeBlocks - project files for CodeBlocks IDE for 5 generic project types.
   ProcTrie.* - Project files using standard C source.
   Console.* - Project files using standard C source.
 
-data - A folder for external data files.
+data - Open source device data files.
   51Degrees-Lite.dat - uncompressed data file for use with Pattern.
   51Degrees-Lite.Trie - uncompressed data file for use with Trie.
   20000 User Agents.csv - file with 20,000 popular useragents.
- 
+
+**[Compare Device Databases](https://51degrees.com/compare-data-options?utm_source=github&utm_medium=repository&utm_content=home-cta&utm_campaign=c-open-source "Compare different data file options for 51Degrees device detection")**
+
 php/ - Files for PHP extension. See php/README.md for details.
  
 src/ - all generic C files used across multiple platforms.
@@ -212,11 +214,8 @@ Version 3.1.5.2
 
 2. Added two new functions to Trie:
 
-   int fiftyoneDegreesGetRequiredPropertiesCount()
-   Returns how many properties have been loaded in the dataset.
-
-   char** fiftyoneDegreesGetRequiredPropertiesNames()
-   Returns the names of the properties loaded in the dataset.
+  int fiftyoneDegreesGetRequiredPropertiesCount() - Returns how many properties have been loaded in the dataset.
+  char** fiftyoneDegreesGetRequiredPropertiesNames() - Returns the names of the properties loaded in the dataset.
 
 ### Trie Data - Download
 
