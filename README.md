@@ -9,7 +9,8 @@ Use code like...
 ```c
 fiftyoneDegreesDataSet dataSet;
 fiftyoneDegreesWorkset *workSet;
-fiftyoneDegreesInitWithPropertyString("[DATA FILE LOCATION]" , &dataSet, "IsMobile,DeviceType,ScreenInchesDiagonal,PriceBand");
+fiftyoneDegreesInitWithPropertyString("[DATA FILE LOCATION]" , &dataSet, 
+    "IsMobile,DeviceType,ScreenInchesDiagonal,PriceBand");
 workSet = fiftyoneDegreesCreateWorkset(dataSet);
 fiftyoneDegreesMatch(workset, "[YOUR USERAGENT]");
 ```
@@ -239,9 +240,9 @@ Execute the x64Build.bat or x86Build.bat files to compiler a 32 or 64 bit versio
 
 3 DLLs are compiled and placed in the following directories.
 
- 1. Windows/Demo/bin/FiftyOne.Mobile.Detection.Provider.Pattern.dll
- 2. Windows/Demo/bin/FiftyOne.Mobile.Detection.Provider.Trie.dll
- 3. Windows/Demo/bin/FiftyOne.Mobile.Detection.Provider.Interop.dll
+1. Windows/Demo/bin/FiftyOne.Mobile.Detection.Provider.Pattern.dll
+2. Windows/Demo/bin/FiftyOne.Mobile.Detection.Provider.Trie.dll
+3. Windows/Demo/bin/FiftyOne.Mobile.Detection.Provider.Interop.dll
 
 1. The "Pattern" DLL is a self-contained detection provider using the Pattern matching method. The FuncsPatternDll.c file contains the external interfaces.
 
@@ -265,12 +266,9 @@ This will compile ProcPat.exe, PerfPat.exe, ProcTrie.exe and PerfTrie.exe. The T
 
 See Instructions further down this document for more details.
 
-Console.exe   Detection test.
-ProcPat.exe   Stdin and Stdout process.
-ProcTrie.exe
-
-PerfPat.exe   Performance test executable.
-PerfTrie.exe  (GCC only)
+Basic test: [Console.exe](#console)
+Stdin and Stdout process: [ProcPat.exe](#procpat) | [ProcTrie.exe](#proctrie)
+Performance test executables: [PerfPat.exe](#perfpat) | [PerfTrie.exe](#perftrie)
 
 ### Windows Multi Threaded Performance Measurement
 
@@ -278,9 +276,9 @@ A slightly modified version of PerfTrie.exe is created from the FiftyOne.Mobile.
 
 Performance.exe TrieDataFile UserAgentsFile
 
-[Data file path]  A path to a Trie data file
+**[Data file path]**  A path to a Trie data file
 
-[UserAgentsFile] A path to a list of user agents to be used in the performance test.
+**[UserAgentsFile]** A path to a list of user agents to be used in the performance test.
 
 https://51degrees.com/million.zip contains a test file of one million user agents.
 
@@ -314,7 +312,7 @@ Prints out properties and detection information from some precompiled useragent 
 Console.exe [Data file path]
 ```
 
-[Data file path]  A path to a Pattern data file
+**[Data file path]**  A path to a Pattern data file
 
 Example:  
 
@@ -332,9 +330,9 @@ When running type a user agent, or any string for testing, followed by enter to 
 ProcPat [Data file path] [Properties]
 ```
 
-[Data file path]  A path to a Pattern data file
+**[Data file path]** A path to a Pattern data file
 
-[Properties]  A comma separated list of properties to be returned. If not provided Id will be used.
+**[Properties]** A comma separated list of properties to be returned. If not provided Id will be used.
 
 For example: Id,IsMobile will return the Id of the matched device and True or False to indicate if the device is a mobile.
 
@@ -356,13 +354,13 @@ Runs a performance test using a single process and thread using a data file of u
 PerfPat [Data file path] [Useragents file] [Properties]
 ```
 
-[Data file path]  A path to a Pattern data file
+**[Data file path]** A path to a Pattern data file
 
-[Useragents file] A path to a list of user agents to be used in the performance test.
+**[Useragents file]** A path to a list of user agents to be used in the performance test.
 
 http://51Degrees/Million.zip contains a test file of one million user agents for testing purposes.
 
-[Properties]  A comma separated list of properties to be returned. If not provided Id will be used.
+**[Properties]** A comma separated list of properties to be returned. If not provided Id will be used.
 
 For example: Id,IsMobile will return the Id of the matched device and True or False to indicate if the device is a mobile.
 
@@ -382,9 +380,9 @@ When running type a user agent, or any string for testing, followed by enter to 
 ProcTrie DataFile [Properties]
 ```
 
-[TrieDataFile]  A source data file in Trie format. A data file current at the time the zip file was created is included in data folder.
+**[TrieDataFile]** A source data file in Trie format. A data file current at the time the zip file was created is included in data folder.
 
-[Properties]  A comma separated list of properties to be returned. If not provided Id will be used.
+**[Properties]** A comma separated list of properties to be returned. If not provided Id will be used.
 
 For example: Id,IsMobile will return the Id of the matched device and True or False to indicate if the device is a mobile.
 
@@ -408,13 +406,13 @@ This program is only built when using the GCC compiler.
 PerfTrie [Trie data file] [Useragents file] [Properties]
 ```
 
-[Trie data file]  A source data file in Trie format. A data file current at the time the zip file was created is included in data folder.
+**[Trie data file]** A source data file in Trie format. A data file current at the time the zip file was created is included in data folder.
 
-[Useragents file] A path to a list of user agents to be used in the performance test.
+**[Useragents file]** A path to a list of user agents to be used in the performance test.
 
 http://51Degrees/Million.zip contains a test file of one million useragents.
 
-[Properties]  A comma separated list of properties to be returned. If not provided Id will be used.
+**[Properties]** A comma separated list of properties to be returned. If not provided Id will be used.
 
 For example: Id,IsMobile will return the Id of the matched device and True or False to indicate if the device is a mobile.
 
