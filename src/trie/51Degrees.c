@@ -87,6 +87,15 @@ typedef struct t_lookup_header {
 } LOOKUP_HEADER;
 #pragma pack(pop)
 
+// A property including references to HTTP headers.
+#pragma pack(push, 4)
+typedef struct fiftyoneDegrees_property_t {
+	const int32_t stringOffset;
+	const int32_t headerCount;
+	const int32_t headerFirstIndex;
+} fiftyoneDegreesProperty;
+#pragma pack(pop)
+
 // The size of the copyright notice at the top of the data file.
 static int32_t _copyrightSize;
 
@@ -99,6 +108,12 @@ static int32_t _stringsSize;
 // Pointer to the start of the strings data array.
 static char* _strings;
 
+// The size of the HTTP headers data array.
+static int32_t _httpHeadersSize;
+
+// Pointer to the start of the HTTP headers data array.
+static int32_t* _httpHeaders;
+
 // The number of properties contained in the system.
 static int32_t _propertiesCount;
 
@@ -106,7 +121,7 @@ static int32_t _propertiesCount;
 static int32_t _propertiesSize;
 
 // Pointer to the start of the pointers data array.
-static int32_t* _properties;
+static fiftyoneDegreesProperty* _properties;
 
 // Pointer to the start of the devices data array.
 static int32_t* _devices;
@@ -147,16 +162,28 @@ fiftyoneDegreesDataSetInitStatus readStrings(FILE *inputFilePtr) {
     return DATA_SET_INIT_STATUS_SUCCESS;
 }
 
-// Reads the profiles from the file.
+// Reads the HTTP headers from the file.
+fiftyoneDegreesDataSetInitStatus readHttpHeaders(FILE *inputFilePtr) {
+	if (fread(&_httpHeadersSize, sizeof(int32_t), 1, inputFilePtr) != 1)
+		return DATA_SET_INIT_STATUS_CORRUPT_DATA;
+	_httpHeaders = (int32_t*)malloc(_httpHeadersSize);
+	if (_httpHeaders == NULL)
+		return DATA_SET_INIT_STATUS_INSUFFICIENT_MEMORY;
+	if (fread(_httpHeaders, sizeof(BYTE), (size_t)_httpHeadersSize, inputFilePtr) != (size_t)_httpHeadersSize)
+		return DATA_SET_INIT_STATUS_CORRUPT_DATA;
+	return DATA_SET_INIT_STATUS_SUCCESS;
+}
+
+// Reads the properties from the file.
 fiftyoneDegreesDataSetInitStatus readProperties(FILE *inputFilePtr) {
 	if(fread(&_propertiesSize, sizeof(int32_t), 1, inputFilePtr) != 1)
         return DATA_SET_INIT_STATUS_CORRUPT_DATA;
-	_properties = (int32_t*)malloc(_propertiesSize);
+	_properties = (fiftyoneDegreesProperty*)malloc(_propertiesSize);
 	if (_properties == NULL)
         return DATA_SET_INIT_STATUS_INSUFFICIENT_MEMORY;
 	if (fread(_properties, sizeof(BYTE), (size_t)_propertiesSize, inputFilePtr) != (size_t)_propertiesSize)
         return DATA_SET_INIT_STATUS_CORRUPT_DATA;
-	_propertiesCount = _propertiesSize / sizeof(int32_t);
+	_propertiesCount = _propertiesSize / sizeof(fiftyoneDegreesProperty);
 	return DATA_SET_INIT_STATUS_SUCCESS;
 }
 
@@ -219,6 +246,7 @@ void fiftyoneDegreesDestroy(void) {
 	if (_lookupList > 0) free(_lookupList);
 	if (_devices > 0) free(_devices);
 	if (_properties > 0) free(_properties);
+	if (_httpHeaders > 0) free(_httpHeaders);
 	if (_strings > 0) free(_strings);
 }
 
@@ -227,7 +255,7 @@ void fiftyoneDegreesDestroy(void) {
 fiftyoneDegreesDataSetInitStatus readVersion(FILE *inputFilePtr) {
 	uint16_t version;
 	if (fread(&version, sizeof(uint16_t), 1, inputFilePtr) != -1) {
-	   if (version != 3)
+	   if (version != 32)
            return DATA_SET_INIT_STATUS_INCORRECT_VERSION;
        return DATA_SET_INIT_STATUS_SUCCESS;
    }
@@ -265,6 +293,11 @@ fiftyoneDegreesDataSetInitStatus readFile(char* fileName) {
         fclose(inputFilePtr);
         return status;
 	}
+	status = readHttpHeaders(inputFilePtr);
+	if (status != DATA_SET_INIT_STATUS_SUCCESS) {
+		fclose(inputFilePtr);
+		return status;
+	}
     status = readProperties(inputFilePtr);
     if (status != DATA_SET_INIT_STATUS_SUCCESS) {
         fclose(inputFilePtr);
@@ -296,7 +329,7 @@ int getPropertyIndexRange(char *property, size_t length) {
 	int32_t i = 0;
 	for(i = 0; i < _propertiesCount; i++) {
 		if(strncmp(
-			_strings + *(_properties + i),
+			_strings + (_properties + i)->stringOffset,
 			property,
 			length) == 0) {
 			return i;
@@ -338,7 +371,7 @@ void initSpecificProperties(char* properties) {
 			propertyIndex = getPropertyIndexRange(start, (end - start));
 			if (propertyIndex > 0) {
 				*(_requiredProperties + currentIndex) = propertyIndex;
-				*(_requiredPropertiesNames + currentIndex) = _strings + *(_properties + propertyIndex);
+				*(_requiredPropertiesNames + currentIndex) = _strings + (_properties + propertyIndex)->stringOffset;
 				currentIndex++;
 			}
 			start = end + 1;
@@ -376,7 +409,7 @@ void initSpecificPropertiesFromArray(char** properties, int count) {
 		propertyIndex = getPropertyIndexRange(currentProperty, currentLength);
 		if (propertyIndex > 0) {
 			*(_requiredProperties + currentIndex) = propertyIndex;
-			*(_requiredPropertiesNames + currentIndex) = _strings + *(_properties + propertyIndex);
+			*(_requiredPropertiesNames + currentIndex) = _strings + (_properties + propertyIndex)->stringOffset;
 			currentIndex++;
 		}
    }
@@ -396,7 +429,7 @@ void initAllProperties(void) {
 	// Add all the available properties.
 	for(i = 0; i < _propertiesCount; i++) {
 		*(_requiredProperties + i) = i;
-		*(_requiredPropertiesNames + i) = _strings + *(_properties + i);
+		*(_requiredPropertiesNames + i) = _strings + (_properties + i)->stringOffset;
 	}
 }
 
@@ -435,7 +468,7 @@ int fiftyoneDegreesGetPropertyIndex(char *value) {
 	int32_t i;
 	for(i = 0; i < _propertiesCount; i++) {
 		if(strcmp(
-			_strings + *(_properties + i),
+			_strings + (_properties + i)->stringOffset,
 			value) == 0) {
 			return i;
 		}

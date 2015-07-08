@@ -11,7 +11,7 @@
 				<Option object_output="obj/Debug/" />
 				<Option type="1" />
 				<Option compiler="gcc" />
-				<Option parameters='&quot;../data/51Degrees-Lite.dat&quot; IsMobile' />
+				<Option parameters='&quot;../data/51Degrees-LiteV3.2.dat&quot; IsMobile' />
 				<Compiler>
 					<Add option="-g" />
 					<Add option="-DHAVE_SNPRINTF" />
@@ -22,7 +22,7 @@
 				<Option object_output="obj/Release/" />
 				<Option type="1" />
 				<Option compiler="gcc" />
-				<Option parameters='&quot;../data/51Degrees-Lite.dat&quot; IsMobile' />
+				<Option parameters='&quot;../data/51Degrees-LiteV3.2.dat&quot; IsMobile' />
 				<Compiler>
 					<Add option="-O2" />
 					<Add option="-DHAVE_SNPRINTF" />
@@ -33,7 +33,7 @@
 				<Option object_output="obj/Debug/" />
 				<Option type="1" />
 				<Option compiler="msvc10" />
-				<Option parameters='&quot;../data/51Degrees-Lite.dat&quot; IsMobile' />
+				<Option parameters='&quot;../data/51Degrees-LiteV3.2.dat&quot; IsMobile' />
 				<Compiler>
 					<Add option="-g" />
 					<Add option="-wd4668" />
@@ -52,7 +52,7 @@
 				<Option object_output="obj/Release/" />
 				<Option type="1" />
 				<Option compiler="msvc10" />
-				<Option parameters='&quot;../data/51Degrees-Lite.dat&quot; IsMobile' />
+				<Option parameters='&quot;../data/51Degrees-LiteV3.2.dat&quot; IsMobile' />
 				<Compiler>
 					<Add option="-O2" />
 					<Add option="-wd4668" />

@@ -89,6 +89,7 @@ typedef struct fiftyoneDegrees_component_t {
 	const byte componentId; /* The unique Id of the component. */
 	const int32_t nameOffset; /* Offset in the strings data structure to the name */
 	const int32_t defaultProfileOffset; /* Offset in the profiles data structure to the default profile */
+	const int16_t httpHeaderCount; /* The number of http header offsets at httpHeaders */
 } fiftyoneDegreesComponent;
 #pragma pack(pop)
 
@@ -114,12 +115,11 @@ typedef union fiftyoneDegrees_node_index_value_t {
 
 #pragma pack(push, 1)
 typedef struct fiftyoneDegrees_node_index_t {
-	const byte isString; /* True if the value is an offset in the ascii string collection */
+	const int32_t relatedNodeOffset; /* The node offset which the value relates to. Must be converted to absolute value. */
 	union {
 		const byte characters[4];
 		const int32_t integer;
 	} value; /* The value of the index as either an integer or character array */
-	const int32_t relatedNodeOffset; /* The node offset which the value relates to */
 } fiftyoneDegreesNodeIndex;
 #pragma pack(pop)
 
@@ -143,7 +143,7 @@ typedef struct fiftyoneDegrees_node_t {
 	const int32_t characterStringOffset;
 	const int16_t childrenCount;
 	const int16_t numericChildrenCount;
-	const int32_t signatureCount;
+	const int16_t signatureCount;
 } fiftyoneDegreesNode;
 #pragma pack(pop)
 
@@ -231,6 +231,7 @@ typedef struct fiftyoneDegrees_dataset_header_t {
 	const int32_t versionBuild;
 	const int32_t versionRevision;
 	const byte tag[16];
+	const byte export[16];
 	const int32_t copyrightOffset;
 	const int16_t age;
 	const int32_t minUserAgentCount;
@@ -251,6 +252,7 @@ typedef struct fiftyoneDegrees_dataset_header_t {
 	const int32_t jsonBufferLength;
 	const int32_t xmlBufferLength;
 	const int32_t maxSignaturesClosest;
+	const int32_t maxRank;
 	const fiftyoneDegreesEntityHeader strings;
 	const fiftyoneDegreesEntityHeader components;
 	const fiftyoneDegreesEntityHeader maps;
@@ -258,6 +260,8 @@ typedef struct fiftyoneDegrees_dataset_header_t {
 	const fiftyoneDegreesEntityHeader values;
 	const fiftyoneDegreesEntityHeader profiles;
 	const fiftyoneDegreesEntityHeader signatures;
+	const fiftyoneDegreesEntityHeader signatureNodeOffsets;
+	const fiftyoneDegreesEntityHeader nodeRankedSignatureIndexes;
 	const fiftyoneDegreesEntityHeader rankedSignatureIndexes;
 	const fiftyoneDegreesEntityHeader nodes;
 	const fiftyoneDegreesEntityHeader rootNodes;
@@ -266,20 +270,31 @@ typedef struct fiftyoneDegrees_dataset_header_t {
 #pragma pack(pop)
 
 #pragma pack(push, 1)
+typedef struct fiftyoneDegrees_signature_t {
+	const byte nodeCount;
+	const int32_t firstNodeOffsetIndex;
+	const int32_t rank;
+	const byte flags;
+} fiftyoneDegreesSignature;
+#pragma pack(pop)
+
+#pragma pack(push, 1)
 typedef struct fiftyoneDegrees_dataset_t {
 	const fiftyoneDegreesDataSetHeader header;
 	int32_t sizeOfSignature; /* The length in bytes of each signature record */
-	int32_t signatureStartOfNodes; /* The number of bytes to ignore before the nodes start */
-	int32_t signatureStartOfRank; /* The number of bytes to ignore before the signature rank is found */
+	int32_t signatureStartOfStruct; /* The number of bytes to ignore before the signature structure is found */
 	const fiftyoneDegreesProperty **requiredProperties; /* Pointer to properties to be returned */
 	int32_t requiredPropertyCount; /* Number of properties to return */
 	const byte *strings;
-	const fiftyoneDegreesComponent *components;
+	const byte *componentsData;
+	const fiftyoneDegreesComponent **components;
 	const fiftyoneDegreesMap *maps;
 	const fiftyoneDegreesProperty *properties;
 	const fiftyoneDegreesValue *values;
 	const byte *profiles;
 	const byte *signatures;
+	const int32_t *signatureNodeOffsets;
+	const int32_t *nodeRankedSignatureIndexes;
 	const int32_t *rankedSignatureIndexes;
 	const byte *nodes;
 	const fiftyoneDegreesNode **rootNodes;
@@ -319,6 +334,7 @@ typedef struct fiftyoneDegrees_resultset_t {
 	int32_t closestSignatures; /* The total number of closest signatures available */
 	const fiftyoneDegreesProfile *profiles; /* Pointer to a list of profiles returned for the match */
 	int32_t profileCount; /* The number of profiles the match contains */
+	byte *signature; /* The signature found if only one exists */
 	struct fiftyoneDegrees_resultset_t *previous; /* The previous item in the linked list, or NULL if first */
 	struct fiftyoneDegrees_resultset_t *next; /* The next item in the linked list, or NULL if last */
 	fiftyoneDegreesResultsetCacheState state; /* Indicates if the result set is in the active, background or both lists */
@@ -383,13 +399,13 @@ typedef struct fiftyoneDegrees_workset_t {
 	int32_t closestSignatures; /* The total number of closest signatures available */
 	const fiftyoneDegreesProfile **profiles; /* Pointer to a list of profiles returned for the match */
 	int32_t profileCount; /* The number of profiles the match contains */
+	byte *signature; /* The signature found if only one exists */
 	const fiftyoneDegreesValue **values; /* Pointers to values associated with the property requested */
 	int32_t valuesCount; /* Number of values available */
 	char *input; /* An input buffer large enough to store the useragent to be matched */
 	char *targetUserAgent; /* A pointer to the user agent string */
 	char *relevantNodes; /* Pointer to a char array containing the relevant nodes */
 	char *closestNodes; /* Pointer to a char array containing the closest nodes */
-	byte *signature; /* The signature found if only one exists */
 	char *signatureAsString; /* The signature as a string */
 	const fiftyoneDegreesNode **nodes; /* Pointer to a list of nodes related to the match */
 	const fiftyoneDegreesNode **orderedNodes; /* Pointer to a list of nodes in ascending order of signature count */

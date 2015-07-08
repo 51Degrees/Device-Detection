@@ -32,8 +32,5 @@
     <ClInclude Include="..\..\src\cityhash\city.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="..\..\src\threading.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
   </ItemGroup>
 </Project>

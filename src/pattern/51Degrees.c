@@ -37,8 +37,6 @@
 #define snprintf _snprintf
 #endif
 
-
-
 /**
  * DATA STRUCTURES USED ONLY BY FUNCTIONS IN THIS FILE
  */
@@ -76,12 +74,28 @@ fiftyoneDegreesDataSetInitStatus readStrings(FILE *inputFilePtr, fiftyoneDegrees
 }
 
 fiftyoneDegreesDataSetInitStatus readComponents(FILE *inputFilePtr, fiftyoneDegreesDataSet *dataSet) {
-	dataSet->components = (const fiftyoneDegreesComponent*)malloc(dataSet->header.components.length);
+	int index;
+	byte* current;
+	dataSet->componentsData = (const byte*)malloc(dataSet->header.components.length);
+	if (dataSet->componentsData == NULL) {
+		return DATA_SET_INIT_STATUS_INSUFFICIENT_MEMORY;
+	}
+	if (fread((void*)(dataSet->componentsData), dataSet->header.components.length, 1, inputFilePtr) != 1) {
+		return DATA_SET_INIT_STATUS_CORRUPT_DATA;
+	}
+	dataSet->components = (const fiftyoneDegreesComponent**)malloc(
+		dataSet->header.components.count * sizeof(fiftyoneDegreesComponent*));
 	if (dataSet->components == NULL) {
 		return DATA_SET_INIT_STATUS_INSUFFICIENT_MEMORY;
 	}
-	if (fread((void*)(dataSet->components), dataSet->header.components.length, 1, inputFilePtr) != 1) {
-		return DATA_SET_INIT_STATUS_CORRUPT_DATA;
+
+	// Memory has been allocated to the components byte array and the pointers
+	// for each component. Now set the pointers to the start of each component.
+	current = (byte*)dataSet->componentsData;
+	for (index = 0; index < dataSet->header.components.count; index++) {
+		dataSet->components[index] = (const fiftyoneDegreesComponent*)current;
+		current += sizeof(fiftyoneDegreesComponent) +
+			(((const fiftyoneDegreesComponent*)current)->httpHeaderCount * sizeof(int32_t));
 	}
 
 	return DATA_SET_INIT_STATUS_SUCCESS;
@@ -141,6 +155,30 @@ fiftyoneDegreesDataSetInitStatus readSignatures(FILE *inputFilePtr, fiftyoneDegr
 		return DATA_SET_INIT_STATUS_INSUFFICIENT_MEMORY;
 	}
 	if (fread((void*)(dataSet->signatures), dataSet->header.signatures.length, 1, inputFilePtr) != 1) {
+		return DATA_SET_INIT_STATUS_CORRUPT_DATA;
+	}
+
+	return DATA_SET_INIT_STATUS_SUCCESS;
+}
+
+fiftyoneDegreesDataSetInitStatus readSignatureNodeOffsets(FILE *inputFilePtr, fiftyoneDegreesDataSet *dataSet) {
+	dataSet->signatureNodeOffsets = (const int32_t*)malloc(dataSet->header.signatureNodeOffsets.length);
+	if (dataSet->signatureNodeOffsets == NULL) {
+		return DATA_SET_INIT_STATUS_INSUFFICIENT_MEMORY;
+	}
+	if (fread((void*)(dataSet->signatureNodeOffsets), dataSet->header.signatureNodeOffsets.length, 1, inputFilePtr) != 1) {
+		return DATA_SET_INIT_STATUS_CORRUPT_DATA;
+	}
+
+	return DATA_SET_INIT_STATUS_SUCCESS;
+}
+
+fiftyoneDegreesDataSetInitStatus readNodeRankedSignatureIndexes(FILE *inputFilePtr, fiftyoneDegreesDataSet *dataSet) {
+	dataSet->nodeRankedSignatureIndexes = (const int32_t*)malloc(dataSet->header.nodeRankedSignatureIndexes.length);
+	if (dataSet->signatureNodeOffsets == NULL) {
+		return DATA_SET_INIT_STATUS_INSUFFICIENT_MEMORY;
+	}
+	if (fread((void*)(dataSet->nodeRankedSignatureIndexes), dataSet->header.nodeRankedSignatureIndexes.length, 1, inputFilePtr) != 1) {
 		return DATA_SET_INIT_STATUS_CORRUPT_DATA;
 	}
 
@@ -215,7 +253,7 @@ fiftyoneDegreesDataSetInitStatus readDataSet(FILE *inputFilePtr, fiftyoneDegrees
 
 	/* Check the version of the data file */
 	if (dataSet->header.versionMajor != 3 ||
-		dataSet->header.versionMinor != 1) {
+		dataSet->header.versionMinor != 2) {
 		return DATA_SET_INIT_STATUS_INCORRECT_VERSION;
 	}
 
@@ -234,6 +272,10 @@ fiftyoneDegreesDataSetInitStatus readDataSet(FILE *inputFilePtr, fiftyoneDegrees
 	if (status != DATA_SET_INIT_STATUS_SUCCESS) return status;
 	status = readSignatures(inputFilePtr, dataSet);
 	if (status != DATA_SET_INIT_STATUS_SUCCESS) return status;
+	status = readSignatureNodeOffsets(inputFilePtr, dataSet);
+	if (status != DATA_SET_INIT_STATUS_SUCCESS) return status;
+	status = readNodeRankedSignatureIndexes(inputFilePtr, dataSet);
+	if (status != DATA_SET_INIT_STATUS_SUCCESS) return status;
 	status = readRankedSignatureIndexes(inputFilePtr, dataSet);
 	if (status != DATA_SET_INIT_STATUS_SUCCESS) return status;
 	status = readNodes(inputFilePtr, dataSet);
@@ -245,8 +287,12 @@ fiftyoneDegreesDataSetInitStatus readDataSet(FILE *inputFilePtr, fiftyoneDegrees
 
 	/* Set some of the constant fields */
 	dataSet->sizeOfSignature =
-		((dataSet->header.signatureNodesCount + dataSet->header.signatureProfilesCount) * sizeof(int32_t));
-	dataSet->signatureStartOfNodes =
+		(dataSet->header.signatureProfilesCount * sizeof(int32_t)) +
+		sizeof(byte) +
+		sizeof(int32_t) +
+		sizeof(int32_t) +
+		sizeof(byte);
+	dataSet->signatureStartOfStruct =
 		(dataSet->header.signatureProfilesCount * sizeof(int32_t));
 
 	return DATA_SET_INIT_STATUS_SUCCESS;
@@ -262,7 +308,7 @@ fiftyoneDegreesDataSetInitStatus readDataSet(FILE *inputFilePtr, fiftyoneDegrees
  * @return pointer to the component
  */
 const fiftyoneDegreesComponent* getComponent(fiftyoneDegreesDataSet *dataSet, int32_t componentIndex) {
-	return dataSet->components + componentIndex;
+	return dataSet->components[componentIndex];
 }
 
 /**
@@ -350,7 +396,7 @@ const fiftyoneDegreesNodeNumericIndex* getFirstNumericIndexForNode(const fiftyon
  * @param nodeIndex pointer associated with the node required
  */
 const fiftyoneDegreesNode* getNodeFromNodeIndex(const fiftyoneDegreesDataSet *dataSet, const fiftyoneDegreesNodeIndex *nodeIndex) {
-	return (const fiftyoneDegreesNode*)(dataSet->nodes + nodeIndex->relatedNodeOffset);
+	return (const fiftyoneDegreesNode*)(dataSet->nodes + abs(nodeIndex->relatedNodeOffset));
 }
 
 /**
@@ -429,7 +475,7 @@ const fiftyoneDegreesAsciiString* getNodeCharacters(const fiftyoneDegreesDataSet
 void getCharactersForNodeIndex(fiftyoneDegreesWorkset *ws, const fiftyoneDegreesNodeIndex *nodeIndex, fiftyoneDegreesString *string) {
 	int16_t index;
 	const fiftyoneDegreesAsciiString *asciiString;
-	if (nodeIndex->isString != 0) {
+	if (nodeIndex->relatedNodeOffset < 0) {
 
 		asciiString = fiftyoneDegreesGetString(ws->dataSet, nodeIndex->value.integer);
 		/* Set the length of the byte array removing the null terminator */
@@ -444,6 +490,17 @@ void getCharactersForNodeIndex(fiftyoneDegreesWorkset *ws, const fiftyoneDegrees
 		string->length = index;
 		string->value = (byte*)&(nodeIndex->value.characters);
 	}
+}
+
+/**
+* Returns a pointer to the signatures structure containing fixed
+* fields.
+* @param dataSet pointer to the data set
+* @param signature pointer to the start of the signature
+* @return pointer to the signatures structure
+*/
+fiftyoneDegreesSignature* getSignatureStruct(const fiftyoneDegreesDataSet *dataSet, const byte *signature) {
+	return (fiftyoneDegreesSignature*)(signature + dataSet->signatureStartOfStruct);
 }
 
 /**
@@ -469,15 +526,11 @@ const byte* getSignatureByRankedIndex(const fiftyoneDegreesDataSet *dataSet, int
 /**
  * Returns the number of node offsets associated with the signature.
  * @param dataSet pointer to the data set
- * @param nodeOffsets pointer to the node offsets associated with the signature
+ * @param signature pointer to the start of the signature
  * @return the number of nodes associated with the signature
  */
-int32_t getSignatureNodeOffsetsCount(const fiftyoneDegreesDataSet *dataSet, int32_t *nodeOffsets) {
-	int32_t count = 0;
-	while (*(nodeOffsets + count) >= 0 &&
-		count < dataSet->header.signatureNodesCount)
-		count++;
-	return count;
+const int32_t getSignatureNodeOffsetsCount(const fiftyoneDegreesDataSet *dataSet, const byte *signature) {
+	return (const int32_t)(getSignatureStruct(dataSet, signature)->nodeCount);
 }
 
 /**
@@ -497,8 +550,9 @@ int32_t getNodeOffsetFromNode(const fiftyoneDegreesDataSet *dataSet, const fifty
  * @return pointer to the first integer in the node offsets associated with
  *         the signature
  */
-int32_t* getNodeOffsetsFromSignature(const fiftyoneDegreesDataSet *dataSet, const byte *signature) {
-	return (int32_t*)(signature + dataSet->signatureStartOfNodes);
+const int32_t* getNodeOffsetsFromSignature(const fiftyoneDegreesDataSet *dataSet, const byte *signature) {
+	return dataSet->signatureNodeOffsets +
+		getSignatureStruct(dataSet, signature)->firstNodeOffsetIndex;
 }
 
 /**
@@ -507,15 +561,8 @@ int32_t* getNodeOffsetsFromSignature(const fiftyoneDegreesDataSet *dataSet, cons
  * @param signature pointer to the start of a signature structure
  * @returns the rank of the signature if available, or INT_MAX
  */
-int32_t getRankFromSignature(const fiftyoneDegreesDataSet *dataSet, const byte *signature) {
-	int32_t index = (int32_t)(signature - dataSet->signatures) / dataSet->sizeOfSignature;
-	int32_t i;
-	for (i = 0; i < dataSet->header.signatures.count; i++) {
-		if (dataSet->rankedSignatureIndexes[i] == index) {
-			return i;
-		}
-	}
-	return INT_MAX;
+const int32_t getRankFromSignature(const fiftyoneDegreesDataSet *dataSet, const byte *signature) {
+	return getSignatureStruct(dataSet, signature)->rank;
 }
 
 /**
@@ -531,22 +578,12 @@ int32_t* getProfileOffsetsFromSignature(const byte *signature) {
 
 /**
  * Returns a pointer to the first signature index of the node
+ * @param dataSet pointer to the data set
  * @param node pointer whose first signature index is required
  * @return a pointer to the first signature index
  */
-int32_t* getFirstRankedSignatureIndexForNode(const fiftyoneDegreesNode *node) {
-	return (int32_t*)(((byte*)node) + sizeof(fiftyoneDegreesNode) +
-		(node->childrenCount * sizeof(fiftyoneDegreesNodeIndex)) +
-		(node->numericChildrenCount * sizeof(fiftyoneDegreesNodeNumericIndex)));
-}
-
-/**
- * Returns a pointer to the first signature index of the node
- * @param node pointer whose first signature index is required
- * @return a pointer to the first signature index
- */
-int32_t* getFirstSignatureIndexForNode(const fiftyoneDegreesNode *node) {
-	return (int32_t*)(((byte*)node) + sizeof(fiftyoneDegreesNode) +
+const int32_t* getFirstRankedSignatureIndexForNode(const fiftyoneDegreesDataSet *dataSet, const fiftyoneDegreesNode *node) {
+	return dataSet->nodeRankedSignatureIndexes + *(int32_t*)(((byte*)node) + sizeof(fiftyoneDegreesNode) +
 		(node->childrenCount * sizeof(fiftyoneDegreesNodeIndex)) +
 		(node->numericChildrenCount * sizeof(fiftyoneDegreesNodeNumericIndex)));
 }
@@ -582,7 +619,7 @@ void linkedListAdd(fiftyoneDegreesLinkedSignatureList *linkedList, int32_t ranke
  */
 void buildInitialList(fiftyoneDegreesWorkset *ws, const fiftyoneDegreesNode *node) {
 	int32_t index;
-	int32_t *firstSignatureIndex = getFirstRankedSignatureIndexForNode(node);
+	const int32_t *firstSignatureIndex = getFirstRankedSignatureIndexForNode(ws->dataSet, node);
 	for (index = 0; index < node->signatureCount; index++) {
 		linkedListAdd(&(ws->linkedSignatureList), *(firstSignatureIndex + index));
 	}
@@ -637,7 +674,10 @@ void fiftyoneDegreesDataSetFree(const fiftyoneDegreesDataSet *dataSet) {
 	free((void*)(dataSet->requiredProperties));
 	free((void*)(dataSet->strings));
 	free((void*)(dataSet->components));
-	free((void*)(dataSet->maps));
+	free((void*)(dataSet->componentsData));
+	if (dataSet->maps != NULL) {
+		free((void*)(dataSet->maps));
+	}
 	free((void*)(dataSet->properties));
 	free((void*)(dataSet->values));
 	free((void*)(dataSet->profiles));
@@ -834,6 +874,7 @@ void fiftyoneDegreesResultsetCopy(fiftyoneDegreesResultset *dst, const fiftyoneD
 	memcpy((void*)dst->targetUserAgentArray, (void*)src->targetUserAgentArray, RESULTSET_TARGET_USERAGENT_ARRAY_SIZE(src->dataSet->header));
 	dst->targetUserAgentArrayLength = src->targetUserAgentArrayLength;
 	dst->targetUserAgentHashCode = src->targetUserAgentHashCode;
+	dst->signature = src->signature;
 }
 
 /**
@@ -1443,11 +1484,11 @@ int addSignatureNodeToString(fiftyoneDegreesWorkset *ws, const fiftyoneDegreesNo
  * @param signature pointer to be used as the string for the result
  */
 void setSignatureAsString(fiftyoneDegreesWorkset *ws, const byte *signature) {
-	int *nodeOffsets = getNodeOffsetsFromSignature(ws->dataSet, signature);
+	const int32_t *nodeOffsets = getNodeOffsetsFromSignature(ws->dataSet, signature);
+	const int32_t nodeOffsetCount = getSignatureNodeOffsetsCount(ws->dataSet, signature);
 	int index,
 		nullPosition = 0,
-		lastCharacter = 0,
-		nodeOffsetCount = getSignatureNodeOffsetsCount(ws->dataSet, nodeOffsets);
+		lastCharacter = 0;
 	for (index = 0; index < ws->dataSet->header.maxUserAgentLength; index++) {
 		ws->signatureAsString[index] = '_';
 	}
@@ -1628,7 +1669,7 @@ const fiftyoneDegreesNode* getNextNode(fiftyoneDegreesWorkset *ws, const fiftyon
 			middle = lower + (upper - lower) / 2;
 
 			/* Increase the number of strings checked. */
-			if ((children + middle)->isString)
+			if ((children + middle)->relatedNodeOffset < 0)
 				ws->stringsRead++;
 
 			/* Increase the number of nodes checked. */
@@ -1678,8 +1719,8 @@ const fiftyoneDegreesNode* getCompleteNode(fiftyoneDegreesWorkset *ws, const fif
  */
 int32_t compareExact(const byte *signature, fiftyoneDegreesWorkset *ws) {
 	int32_t index, nodeIndex, difference;
-	int32_t *nodeOffsets = getNodeOffsetsFromSignature(ws->dataSet, signature);
-	int32_t signatureNodeOffsetsCount = getSignatureNodeOffsetsCount(ws->dataSet, nodeOffsets);
+	const int32_t *nodeOffsets = getNodeOffsetsFromSignature(ws->dataSet, signature);
+	const int32_t signatureNodeOffsetsCount = getSignatureNodeOffsetsCount(ws->dataSet, signature);
 	int32_t length = signatureNodeOffsetsCount > ws->nodeCount ? ws->nodeCount : signatureNodeOffsetsCount;
 
 	for (index = 0, nodeIndex = ws->nodeCount - 1; index < length; index++, nodeIndex--) {
@@ -1766,7 +1807,8 @@ void setRelevantNodes(fiftyoneDegreesWorkset *ws) {
  */
 void setMatchSignature(fiftyoneDegreesWorkset *ws, const byte *signature) {
 	int32_t index, lastPosition, last = 0, profileIndex;
-	int32_t *signatureNodeOffsets = getNodeOffsetsFromSignature(ws->dataSet, signature);
+	const int32_t *signatureNodeOffsets = getNodeOffsetsFromSignature(ws->dataSet, signature);
+	const int32_t signatureNodeCount = getSignatureNodeOffsetsCount(ws->dataSet, signature);
 	int32_t *signatureProfiles = getProfileOffsetsFromSignature(signature);
 
 	ws->signature = (byte*)signature;
@@ -1780,9 +1822,7 @@ void setMatchSignature(fiftyoneDegreesWorkset *ws, const byte *signature) {
 	}
 
 	/* Set the closest nodes string from the signature found */
-	for (index = 0;
-		index < ws->dataSet->header.signatureNodesCount && *(signatureNodeOffsets + index) >= 0;
-		index++) {
+	for (index = 0; index < signatureNodeCount;	index++) {
 		lastPosition = setNodeString(ws->dataSet,
 			(fiftyoneDegreesNode*)(ws->dataSet->nodes + *(signatureNodeOffsets + index)),
 			ws->closestNodes);
@@ -1812,7 +1852,7 @@ void setMatchDefault(fiftyoneDegreesWorkset *ws) {
 
 	ws->profileCount = 0;
 	for (index = 0; index < ws->dataSet->header.components.count; index++) {
-		profileOffset = (ws->dataSet->components + index)->defaultProfileOffset;
+		profileOffset = ws->dataSet->components[index]->defaultProfileOffset;
 		*(ws->profiles + index) = (fiftyoneDegreesProfile*)(ws->dataSet->profiles + profileOffset);
 		ws->profileCount++;
 	}
@@ -2043,7 +2083,7 @@ const fiftyoneDegreesNode* getCompleteNumericNode(fiftyoneDegreesWorkset *ws, co
 			while (nodeNumericIndex != NULL)
 			{
 				foundNode = getCompleteNumericNode(ws,
-					getNodeByOffset(ws->dataSet, nodeNumericIndex->relatedNodeOffset));
+					getNodeByOffset(ws->dataSet, abs(nodeNumericIndex->relatedNodeOffset)));
 				if (foundNode != NULL)
 				{
 					difference = abs(state.target - nodeNumericIndex->value);
@@ -2155,13 +2195,13 @@ void evaluateNumeric(fiftyoneDegreesWorkset *ws) {
  * @return the count after the node has been evaluated
  */
 int32_t setClosestSignaturesForNode(fiftyoneDegreesWorkset *ws, const fiftyoneDegreesNode *node, int32_t count, int32_t iteration) {
-	fiftyoneDegreesBool                thresholdReached = (ws->nodeCount - iteration) < count;
-	fiftyoneDegreesLinkedSignatureList     *linkedList = &(ws->linkedSignatureList);
+	fiftyoneDegreesBool thresholdReached = (ws->nodeCount - iteration) < count;
+	fiftyoneDegreesLinkedSignatureList *linkedList = &(ws->linkedSignatureList);
 	fiftyoneDegreesLinkedSignatureListItem *current = linkedList->first,
 		*next;
-	int32_t                 index = 0;
-	int32_t                 *firstRankedSignatureIndex = getFirstRankedSignatureIndexForNode(node),
-		*currentRankedSignatureIndex;
+	int32_t index = 0;
+	const int32_t *firstRankedSignatureIndex = getFirstRankedSignatureIndexForNode(ws->dataSet, node);
+	const int32_t *currentRankedSignatureIndex;
 
 	while (index < node->signatureCount &&
 		current != NULL)
@@ -2459,11 +2499,11 @@ int32_t getScoreClosest(fiftyoneDegreesWorkset *ws, const fiftyoneDegreesNode *n
 int32_t getScore(fiftyoneDegreesWorkset *ws,
 	const byte *signature,
 	int16_t lastNodeCharacter) {
-	int32_t *nodeOffsets = getNodeOffsetsFromSignature(ws->dataSet, signature);
-	int32_t count = getSignatureNodeOffsetsCount(ws->dataSet, nodeOffsets),
-		runningScore = ws->startWithInitialScore == 1 ?
-		abs(lastNodeCharacter + 1 - getSignatureLengthFromNodeOffsets(ws->dataSet, *(nodeOffsets + count - 1))) :
-		0,
+	const int32_t *nodeOffsets = getNodeOffsetsFromSignature(ws->dataSet, signature);
+	const int32_t count = getSignatureNodeOffsetsCount(ws->dataSet, signature);
+	int32_t runningScore = ws->startWithInitialScore == 1 ?
+			abs(lastNodeCharacter + 1 - getSignatureLengthFromNodeOffsets(ws->dataSet, *(nodeOffsets + count - 1))) :
+			0,
 		matchNodeIndex = ws->nodeCount - 1,
 		signatureNodeIndex = 0,
 		matchNodeOffset,
@@ -2543,7 +2583,7 @@ const byte* getNextClosestSignatureForSingleNode(fiftyoneDegreesWorkset *ws) {
 	const byte *signature;
 	if (ws->closestNodeRankedSignatureIndex < ws->nodes[0]->signatureCount) {
 		signature = getSignatureByRankedIndex(ws->dataSet,
-			*(getFirstSignatureIndexForNode(ws->nodes[0]) + ws->closestNodeRankedSignatureIndex));
+			*(getFirstRankedSignatureIndexForNode(ws->dataSet, ws->nodes[0]) + ws->closestNodeRankedSignatureIndex));
 		ws->closestNodeRankedSignatureIndex++;
 	}
 	else {

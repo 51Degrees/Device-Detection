@@ -117,8 +117,9 @@ void runPerformanceTest(void* state) {
 
 		// If we're not calibrating then get the device for the
 		// useragent that has just been read.
-		if (strlen(userAgent) < 1024 && perfState->calibrate == 0)
+		if (strlen(userAgent) < 1024 && perfState->calibrate == 0) {
 			device = fiftyoneDegreesGetDeviceOffset(userAgent);
+		}
 
 		// Increase the local counter.
 		count++;
@@ -217,8 +218,8 @@ void performance(char *fileName) {
 	// the device.
 	calibration = performTest(&state, PASSES, "Calibrate"),
 
-		// Process the data file doing the device detection.
-		state.calibrate = 0;
+	// Process the data file doing the device detection.
+	state.calibrate = 0;
 	test = performTest(&state, PASSES, "Detection test");
 
 	// Time to complete.
@@ -289,7 +290,7 @@ int main(int argc, char* argv[]) {
 		case DATA_SET_INIT_STATUS_FILE_NOT_FOUND:
 			printf("Device data file '%s' not found.", argv[1]);
 			break;
-		default: {
+		default:
 			printf("\n\nUseragents file is: %s\n\nData file is: %s\n\n",
 				findFileNames(argv[2]),
 				findFileNames(argv[1]));
@@ -300,8 +301,11 @@ int main(int argc, char* argv[]) {
 
 			performance(argv[2]);
 			fiftyoneDegreesDestroy();
+			
+			// Wait for a character to be pressed.
+			fgetc(stdin);
+
 			break;
-		}
 		}
 	}
 	else {
