@@ -36,13 +36,13 @@ namespace Console_Interop
         {
             // Initialise the pattern provider with a list of 4 properties.
             using (var pattern = new PatternWrapper(
-                new FileInfo("..\\..\\..\\..\\data\\51Degrees-Lite.dat").FullName,
+                new FileInfo("..\\..\\..\\..\\data\\51Degrees-LiteV3.2.dat").FullName,
                     new[] { "Id", "IsTablet", "IsMobile", "ScreenPixelsWidth", "ScreenPixelsHeight" }))
             {
 
                 // Initialise the trie provider with a data file and a list of 4 properties.
                 using (var trie = new TrieWrapper(
-                    new FileInfo("..\\..\\..\\..\\data\\51Degrees-Lite.trie").FullName,
+                    new FileInfo("..\\..\\..\\..\\data\\51Degrees-LiteV3.2.trie").FullName,
                     new[] { "Id", "IsTablet", "IsMobile", "ScreenPixelsWidth", "ScreenPixelsHeight" }))
                 {
 

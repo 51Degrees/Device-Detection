@@ -30,12 +30,12 @@ namespace Demo
     {
         // Initialise the pattern provider with a list of 4 properties.
         private static readonly PatternWrapper _pattern = new PatternWrapper(
-            Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "..\\..\\data\\51Degrees-Lite.dat"),
+            Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "..\\..\\data\\51Degrees-LiteV3.2.dat"),
                 new[] { "Id", "IsMobile", "ScreenPixelsWidth", "ScreenPixelsHeight" });
 
         // Initialise the trie provider with a data file and a list of 4 properties.
         private static readonly TrieWrapper _trie = new TrieWrapper(
-            Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "..\\..\\data\\51Degrees-Lite.trie"),
+            Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "..\\..\\data\\51Degrees-LiteV3.2.trie"),
             new[] { "Id", "IsMobile", "ScreenPixelsWidth", "ScreenPixelsHeight" });
 
         // IMPORTANT: For a full list of properties see: http://51degrees.mobi/products/devicedata/propertydictionary

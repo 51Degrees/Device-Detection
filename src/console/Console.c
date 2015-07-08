@@ -28,6 +28,8 @@
 #endif
 
 char* TARGET_USER_AGENTS[] = {
+	// Unusual
+	"DOSarrest Monitor/1.3 (Linux)",
     // Internet explorer
     "Mozilla/5.0 (Windows NT 6.1; WOW64; Trident/7.0; rv:11.0) like Gecko",
     // Internet explorer (again to test the cache)
