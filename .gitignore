@@ -41,4 +41,10 @@ make-*
 dlmalloc.c
 00*.patch
 *.service
+*.DS_Store
+node_modules/
+build/
+*.dat
+*.trie
+*.log
 
