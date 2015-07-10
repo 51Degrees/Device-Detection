@@ -89,7 +89,7 @@ typedef struct fiftyoneDegrees_component_t {
 	const byte componentId; /* The unique Id of the component. */
 	const int32_t nameOffset; /* Offset in the strings data structure to the name */
 	const int32_t defaultProfileOffset; /* Offset in the profiles data structure to the default profile */
-	const int16_t httpHeaderCount; /* The number of http header offsets at httpHeaders */
+	const uint16_t httpHeaderCount; /* The number of http header offsets at httpHeaderFirstOffset */
 } fiftyoneDegreesComponent;
 #pragma pack(pop)
 
@@ -278,6 +278,13 @@ typedef struct fiftyoneDegrees_signature_t {
 } fiftyoneDegreesSignature;
 #pragma pack(pop)
 
+#pragma pack(push, 4)
+typedef struct fiftyoneDegrees_http_header_t {
+	int32_t headerNameOffset; /* Offset to the string with the header name */
+	char *headerName; /* Pointer to the header name string inforamtion */
+} fiftyoneDegreesHttpHeader;
+#pragma pack(pop)
+
 #pragma pack(push, 1)
 typedef struct fiftyoneDegrees_dataset_t {
 	const fiftyoneDegreesDataSetHeader header;
@@ -299,6 +306,8 @@ typedef struct fiftyoneDegrees_dataset_t {
 	const byte *nodes;
 	const fiftyoneDegreesNode **rootNodes;
 	const fiftyoneDegreesProfileOffset *profileOffsets;
+	int32_t httpHeadersCount; /* Number of unique HTTP headers in the array */
+	fiftyoneDegreesHttpHeader *httpHeaders; /* Array of HTTP headers the data set can process */
 } fiftyoneDegreesDataSet;
 #pragma pack(pop)
 
@@ -382,6 +391,13 @@ struct fiftyoneDegrees_resultset_cache_t {
 };
 #pragma pack(pop)
 
+#pragma pack(push, 4)
+typedef struct fiftyoneDegrees_http_header_workset_t {
+	fiftyoneDegreesHttpHeader *header; /* Pointer to information about the header name and offset */
+	char *headerValue; /* Pointer to the header value */
+} fiftyoneDegreesHttpHeaderWorkset;
+#pragma pack(pop)
+
 #pragma pack(push, 1)
 typedef struct fiftyoneDegrees_workset_t {
 	const fiftyoneDegreesDataSet *dataSet; /* A pointer to the data set to use for the match */
@@ -417,6 +433,9 @@ typedef struct fiftyoneDegrees_workset_t {
 	int(*functionPtrGetScore)(struct fiftyoneDegrees_workset_t *ws, const fiftyoneDegreesNode *node); /* Returns scores for each different node between signature and match */
 	const byte* (*functionPtrNextClosestSignature)(struct fiftyoneDegrees_workset_t *ws); /* Returns the next closest signature */
 	const fiftyoneDegreesResultsetCache *cache; /* Pointer to the cache, or NULL if not available. */
+	const fiftyoneDegreesProfile **tempProfiles; /* Pointer to a list of working profiles used during a multi header match */
+	int32_t importantHeadersCount; /* Number of elements included in the important headers array */
+	fiftyoneDegreesHttpHeaderWorkset *importantHeaders; /* Array of headers that are available and are important to detection */
 } fiftyoneDegreesWorkset;
 #pragma pack(pop)
 
@@ -565,6 +584,17 @@ EXTERNAL void fiftyoneDegreesCSVFree(void* csv);
 * @param userAgent pointer to the target user agent
 */
 EXTERNAL void fiftyoneDegreesMatch(fiftyoneDegreesWorkset *ws, char* userAgent);
+
+/**
+ * Passed array of HTTP header names and values. Sets the workset to
+ * the results for these headers.
+ * @param ws pointer to a work set to be used for the match created via
+ *        createWorkset function
+ * @param httpHeaderNames array of HTTP header names i.e. User-Agent
+ * @param httpHeaderValues array of HTTP header values
+ * @param the number of entires in each array
+ */
+EXTERNAL void fiftyoneDegreesMatchWithHeaders(fiftyoneDegreesWorkset *ws, char **httpHeaderNames, char **httpHeaderValues, int httpHeaderCount);
 
 /**
  * Sets the values associated with the require property index in the workset

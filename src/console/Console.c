@@ -27,7 +27,18 @@
 #define NULL 0
 #endif
 
-char* TARGET_USER_AGENTS[] = {
+#define RANDOM_INDEX(r) rand() / (RAND_MAX / r + 1)
+
+char *HTTP_HEADERS[] = {
+	"User-Agent",
+	"Device-Stock-UA",
+	"x-Device-User-Agent",
+	"X-Device-User-Agent",
+	"X-OperaMini-Phone-UA"
+};
+int HTTP_HEADERS_LENGTH = 5;
+
+char *TARGET_USER_AGENTS[] = {
 	// Unusual
 	"DOSarrest Monitor/1.3 (Linux)",
     // Internet explorer
@@ -47,6 +58,7 @@ char* TARGET_USER_AGENTS[] = {
     // Internet explorer (again to test the cache)
     "Mozilla/5.0 (Windows NT 6.1; WOW64; Trident/7.0; rv:11.0) like Gecko"
 };
+int TARGET_USER_AGENTS_LENGTH = 9;
 
 char* PROPERTIES[] = {
     "IsMobile",
@@ -73,11 +85,57 @@ void print50Columns(char* label, const char* value, int32_t length) {
     printf("\r\n");
 }
 
+void reportResults(fiftyoneDegreesWorkset *ws) {
+	int32_t propertyIndex, valueIndex, profileIndex;
+
+	printf("\r\n\t\t\t*** Detection Results ***\r\n");
+	print50Columns("Target User Agent:\t", ws->targetUserAgent, (int32_t)strlen(ws->targetUserAgent));
+	print50Columns("Relevant Sub Strings:\t", ws->relevantNodes, (int32_t)strlen(ws->relevantNodes));
+	print50Columns("Closest Sub Strings:\t", ws->closestNodes, (int32_t)strlen(ws->closestNodes));
+	printf("Difference:\t\t%d\r\n", ws->difference);
+	printf("Method:\t\t\t%s\r\n",
+		ws->method == EXACT ? "Exact" :
+		ws->method == NUMERIC ? "Numeric" :
+		ws->method == CLOSEST ? "Closest" :
+		ws->method == NEAREST ? "Nearest" :
+		"None");
+	printf("Signature Rank:\t\t%d\r\n", fiftyoneDegreesGetSignatureRank(ws));
+	printf("Root Nodes Evaluated:\t%d\r\n", ws->rootNodesEvaluated);
+	printf("Nodes Evaluated:\t%d\r\n", ws->nodesEvaluated);
+	printf("Strings Read:\t\t%d\r\n", ws->stringsRead);
+	printf("Signatures Read:\t%d\r\n", ws->signaturesRead);
+	printf("Signatures Compared:\t%d\r\n", ws->signaturesCompared);
+	printf("Profiles:\t\t");
+	for (profileIndex = 0; profileIndex < ws->profileCount; profileIndex++) {
+		printf("%d", ws->profiles[profileIndex]->profileId);
+		if (profileIndex < ws->profileCount - 1) {
+			printf("-");
+		}
+	}
+	printf("\r\n");
+	printf("\r\n");
+	printf("\t\t\t*** Example Properties ***\r\n");
+
+	for (propertyIndex = 0; propertyIndex < ws->dataSet->requiredPropertyCount; propertyIndex++) {
+		printf("%s:\t", fiftyoneDegreesGetPropertyName(ws->dataSet, *(ws->dataSet->requiredProperties + propertyIndex)));
+		if (fiftyoneDegreesSetValues(ws, propertyIndex) > 0) {
+			for (valueIndex = 0; valueIndex < ws->valuesCount; valueIndex++) {
+				printf("%s", fiftyoneDegreesGetValueName(ws->dataSet, *(ws->values + valueIndex)));
+				if (valueIndex < ws->valuesCount - 1)
+					printf(", ");
+			}
+		}
+		printf("\r\n");
+	}
+}
+
 void run(fiftyoneDegreesDataSet *dataSet) {
     fiftyoneDegreesWorkset *ws = NULL;
     fiftyoneDegreesResultsetCache *cache = NULL;
 	fiftyoneDegreesWorksetPool *pool = NULL;
-    int32_t index, propertyIndex, valueIndex, profileIndex;
+    int32_t index;
+	char *httpHeaderNames[2];
+	char *httpHeaderValues[2];
 
     printf("Name:\t\t\t%s\r\n", &(fiftyoneDegreesGetString(dataSet, dataSet->header.nameOffset)->firstByte));
     printf("Published:\t\t%d/%d/%d\r\n",
@@ -100,51 +158,21 @@ void run(fiftyoneDegreesDataSet *dataSet) {
             for(index = 0; index < (sizeof(TARGET_USER_AGENTS) / sizeof(char*)); index++)
             {
 				ws = fiftyoneDegreesWorksetPoolGet(pool);
-
 				fiftyoneDegreesMatch(ws, TARGET_USER_AGENTS[index]);
-
-                printf("\r\n\t\t\t*** Detection Results ***\r\n");
-                print50Columns("Target User Agent:\t", ws->targetUserAgent, (int32_t)strlen(ws->targetUserAgent));
-                print50Columns("Relevant Sub Strings:\t", ws->relevantNodes, (int32_t)strlen(ws->relevantNodes));
-                print50Columns("Closest Sub Strings:\t", ws->closestNodes, (int32_t)strlen(ws->closestNodes));
-                printf("Difference:\t\t%d\r\n", ws->difference);
-                printf("Method:\t\t\t%s\r\n",
-                        ws->method == EXACT ? "Exact" :
-                        ws->method == NUMERIC ? "Numeric" :
-                        ws->method == CLOSEST ? "Closest" :
-                        ws->method == NEAREST ? "Nearest" :
-                        "None");
-                printf("Signature Rank:\t\t%d\r\n", fiftyoneDegreesGetSignatureRank(ws));
-                printf("Root Nodes Evaluated:\t%d\r\n", ws->rootNodesEvaluated);
-                printf("Nodes Evaluated:\t%d\r\n", ws->nodesEvaluated);
-                printf("Strings Read:\t\t%d\r\n", ws->stringsRead);
-                printf("Signatures Read:\t%d\r\n", ws->signaturesRead);
-                printf("Signatures Compared:\t%d\r\n", ws->signaturesCompared);
-                printf("Profiles:\t\t");
-                for(profileIndex = 0; profileIndex < ws->profileCount; profileIndex++) {
-                    printf("%d", ws->profiles[profileIndex]->profileId);
-                    if (profileIndex < ws->profileCount - 1) {
-                        printf("-");
-                    }
-                }
-                printf("\r\n");
-                printf("\r\n");
-                printf("\t\t\t*** Example Properties ***\r\n");
-
-                for(propertyIndex = 0; propertyIndex < ws->dataSet->requiredPropertyCount; propertyIndex++) {
-                    printf("%s:\t", fiftyoneDegreesGetPropertyName(ws->dataSet, *(ws->dataSet->requiredProperties + propertyIndex)));
-                    if (fiftyoneDegreesSetValues(ws, propertyIndex) > 0) {
-                        for(valueIndex = 0; valueIndex < ws->valuesCount; valueIndex++) {
-                            printf("%s", fiftyoneDegreesGetValueName(ws->dataSet, *(ws->values + valueIndex)));
-                            if (valueIndex < ws->valuesCount - 1)
-                                printf(", ");
-                        }
-                    }
-                    printf("\r\n");
-                }
-
+				reportResults(ws);
 				fiftyoneDegreesWorksetPoolRelease(pool, ws);
             }
+
+			for (index = 0; index < 5; index++) {
+				httpHeaderNames[0] = HTTP_HEADERS[RANDOM_INDEX(HTTP_HEADERS_LENGTH - 1)];
+				httpHeaderNames[1] = HTTP_HEADERS[RANDOM_INDEX(HTTP_HEADERS_LENGTH - 1)];
+				httpHeaderValues[0] = TARGET_USER_AGENTS[RANDOM_INDEX(TARGET_USER_AGENTS_LENGTH - 2)];
+				httpHeaderValues[1] = TARGET_USER_AGENTS[RANDOM_INDEX(TARGET_USER_AGENTS_LENGTH - 2)];
+				ws = fiftyoneDegreesWorksetPoolGet(pool);
+				fiftyoneDegreesMatchWithHeaders(ws, httpHeaderNames, httpHeaderValues, 2);
+				reportResults(ws);
+				fiftyoneDegreesWorksetPoolRelease(pool, ws);
+			}
 
             if (cache != NULL) {
                 printf("\r\n\t\t\t*** Cache Results ***\r\n");
