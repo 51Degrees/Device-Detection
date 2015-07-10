@@ -73,9 +73,38 @@ fiftyoneDegreesDataSetInitStatus readStrings(FILE *inputFilePtr, fiftyoneDegrees
 	return DATA_SET_INIT_STATUS_SUCCESS;
 }
 
-fiftyoneDegreesDataSetInitStatus readComponents(FILE *inputFilePtr, fiftyoneDegreesDataSet *dataSet) {
+/**
+ * Returns true if the header already exists in the list of headers.
+ * @param dataSet that already contains headers
+ * @param headerOffset to the string containing the name of the header
+ * @return true if the header exists, otherwise false
+ */
+fiftyoneDegreesBool doesHeaderExist(fiftyoneDegreesDataSet *dataSet, int32_t headerOffset) {
 	int index;
-	byte* current;
+	for (index = 0; index < dataSet->httpHeadersCount; index++) {
+		if (headerOffset == dataSet->httpHeaders[index].headerNameOffset) {
+			return TRUE;
+		}
+	}
+	return FALSE;
+}
+
+/**
+* Returns the string offset for the HTTP header index of the component.
+* @param component pointer to the compoent whose header is needed
+* @param index of the header name needed
+* @return the offset in the strings structure to the header namer
+*/
+int32_t getComponentHeaderOffset(const fiftyoneDegreesComponent *component, int index) {
+	int32_t *first = (int32_t*)((byte*)component + sizeof(fiftyoneDegreesComponent));
+	return first[index];
+}
+
+fiftyoneDegreesDataSetInitStatus readComponents(FILE *inputFilePtr, fiftyoneDegreesDataSet *dataSet) {
+	int index, httpHeaderIndex, httpHeadersCount = 0;
+	int32_t httpHeaderOffset;
+	byte *current;
+
 	dataSet->componentsData = (const byte*)malloc(dataSet->header.components.length);
 	if (dataSet->componentsData == NULL) {
 		return DATA_SET_INIT_STATUS_INSUFFICIENT_MEMORY;
@@ -91,11 +120,34 @@ fiftyoneDegreesDataSetInitStatus readComponents(FILE *inputFilePtr, fiftyoneDegr
 
 	// Memory has been allocated to the components byte array and the pointers
 	// for each component. Now set the pointers to the start of each component.
+	// Also count the total possible number of HTTP headers so memory can be 
+	// allocated for this later on.
 	current = (byte*)dataSet->componentsData;
 	for (index = 0; index < dataSet->header.components.count; index++) {
 		dataSet->components[index] = (const fiftyoneDegreesComponent*)current;
+		// Have to take one away because the first offset is included in the 
 		current += sizeof(fiftyoneDegreesComponent) +
-			(((const fiftyoneDegreesComponent*)current)->httpHeaderCount * sizeof(int32_t));
+			(dataSet->components[index]->httpHeaderCount * sizeof(int32_t));
+		httpHeadersCount += dataSet->components[index]->httpHeaderCount;
+	}
+
+	// Now create a list of unique HTTP headers which will be used to identify
+	// which headers should be checked when an array of multiple headers is
+	// passed for detection.
+	dataSet->httpHeaders = (fiftyoneDegreesHttpHeader*)malloc(httpHeadersCount * sizeof(fiftyoneDegreesHttpHeader));
+	if (dataSet->httpHeaders == NULL) {
+		return DATA_SET_INIT_STATUS_INSUFFICIENT_MEMORY;
+	}
+	dataSet->httpHeadersCount = 0;
+	for (index = 0; index < dataSet->header.components.count; index++) {
+		for (httpHeaderIndex = 0; httpHeaderIndex < dataSet->components[index]->httpHeaderCount; httpHeaderIndex++) {
+			httpHeaderOffset = getComponentHeaderOffset(dataSet->components[index], httpHeaderIndex);
+			if (doesHeaderExist(dataSet, httpHeaderOffset) == FALSE) {
+				dataSet->httpHeaders[dataSet->httpHeadersCount].headerNameOffset = httpHeaderOffset;
+				dataSet->httpHeaders[dataSet->httpHeadersCount].headerName = (char*)&(fiftyoneDegreesGetString(dataSet, httpHeaderOffset)->firstByte);
+				dataSet->httpHeadersCount++;
+			}
+		}
 	}
 
 	return DATA_SET_INIT_STATUS_SUCCESS;
@@ -562,7 +614,9 @@ const int32_t* getNodeOffsetsFromSignature(const fiftyoneDegreesDataSet *dataSet
  * @returns the rank of the signature if available, or INT_MAX
  */
 const int32_t getRankFromSignature(const fiftyoneDegreesDataSet *dataSet, const byte *signature) {
-	return getSignatureStruct(dataSet, signature)->rank;
+	return signature != NULL ?
+		getSignatureStruct(dataSet, signature)->rank :
+		INT_MAX;
 }
 
 /**
@@ -675,9 +729,7 @@ void fiftyoneDegreesDataSetFree(const fiftyoneDegreesDataSet *dataSet) {
 	free((void*)(dataSet->strings));
 	free((void*)(dataSet->components));
 	free((void*)(dataSet->componentsData));
-	if (dataSet->maps != NULL) {
-		free((void*)(dataSet->maps));
-	}
+	free((void*)(dataSet->maps));
 	free((void*)(dataSet->properties));
 	free((void*)(dataSet->values));
 	free((void*)(dataSet->profiles));
@@ -1403,7 +1455,9 @@ fiftyoneDegreesWorkset *fiftyoneDegreesWorksetCreate(const fiftyoneDegreesDataSe
 		ws->signatureAsString = (char*)malloc((dataSet->header.maxUserAgentLength + 1) * sizeof(char));
 		ws->values = (const fiftyoneDegreesValue**)malloc(dataSet->header.maxValues * sizeof(const fiftyoneDegreesValue*));
 		ws->profiles = (const fiftyoneDegreesProfile**)malloc(RESULTSET_PROFILES_SIZE(dataSet->header));
+		ws->tempProfiles = (const fiftyoneDegreesProfile**)malloc(RESULTSET_PROFILES_SIZE(dataSet->header));
 		ws->targetUserAgentArray = (byte*)malloc(RESULTSET_TARGET_USERAGENT_ARRAY_SIZE(dataSet->header));
+		ws->importantHeaders = (fiftyoneDegreesHttpHeaderWorkset*)malloc(ws->dataSet->httpHeadersCount * sizeof(fiftyoneDegreesHttpHeaderWorkset));
 
 		// Check all the memory was allocated correctly and also
 		// allocate using the result set method.
@@ -1416,7 +1470,9 @@ fiftyoneDegreesWorkset *fiftyoneDegreesWorksetCreate(const fiftyoneDegreesDataSe
 			ws->signatureAsString == NULL ||
 			ws->values == NULL ||
 			ws->profiles == NULL ||
-			ws->targetUserAgentArray == NULL) {
+			ws->tempProfiles == NULL ||
+			ws->targetUserAgentArray == NULL ||
+			ws->importantHeaders == NULL) {
 
 			// One or more of the workset memory allocations failed.
 			// Free any that worked and return NULL.
@@ -1429,7 +1485,9 @@ fiftyoneDegreesWorkset *fiftyoneDegreesWorksetCreate(const fiftyoneDegreesDataSe
 			if (ws->signatureAsString != NULL) { free((void*)ws->signatureAsString); }
 			if (ws->values != NULL) { free((void*)ws->values); }
 			if (ws->profiles != NULL) { free((void*)ws->profiles); }
+			if (ws->tempProfiles != NULL) { free((void*)ws->tempProfiles); }
 			if (ws->targetUserAgentArray != NULL) { free((void*)ws->targetUserAgentArray); }
+			if (ws->importantHeaders != NULL) { free((void*)ws->importantHeaders); }
 
 			// Free the workset which worked earlier and return NULL.
 			free(ws);
@@ -1457,6 +1515,8 @@ void fiftyoneDegreesWorksetFree(const fiftyoneDegreesWorkset *ws) {
 	free((void*)ws->values);
 	free((void*)ws->targetUserAgentArray);
 	free((void*)ws->profiles);
+	free((void*)ws->tempProfiles);
+	free((void*)ws->importantHeaders);
 	free((void*)ws->linkedSignatureList.items);
 	free((void*)ws);
 }
@@ -1552,6 +1612,19 @@ int32_t insertNodeIntoWorkSet(fiftyoneDegreesWorkset *ws, const fiftyoneDegreesN
  */
 
 /**
+ * Reset the counters for the workset.
+ * @param ws pointer to the workset to be used for the match
+ */
+void resetCounters(fiftyoneDegreesWorkset *ws) {
+	ws->difference = 0;
+	ws->stringsRead = 0;
+	ws->nodesEvaluated = 0;
+	ws->rootNodesEvaluated = 0;
+	ws->signaturesCompared = 0;
+	ws->signaturesRead = 0;
+}
+
+/**
  * Sets the target user agent and resets any other fields to initial values.
  * Must be called before a match commences.
  * @param ws pointer to the workset to be used for the match
@@ -1609,15 +1682,7 @@ void setTargetUserAgentArray(fiftyoneDegreesWorkset *ws, char* userAgent) {
 	ws->linkedSignatureList.count = 0;
 	ws->linkedSignatureList.first = NULL;
 	ws->linkedSignatureList.last = NULL;
-
-	/* Reset the counters */
-	ws->difference = 0;
-	ws->stringsRead = 0;
-	ws->nodesEvaluated = 0;
-	ws->rootNodesEvaluated = 0;
-	ws->signaturesCompared = 0;
-	ws->signaturesRead = 0;
-
+	
 	/* Reset the profiles and signatures */
 	ws->profileCount = 0;
 	ws->signature = NULL;
@@ -2799,16 +2864,15 @@ fiftyoneDegreesResultset *fiftyoneDegreesAddToCache(fiftyoneDegreesWorkset *ws) 
 }
 
 /**
-* Main entry method used for perform a match. First the cache is checked to
-* determine if the userAgent has already been found. If not then detection
-* is performed. The cache is then updated before the resultset is returned.
+* First the cache is checked to determine if the userAgent has already been
+* found. If not then detection is performed. The cache is then updated before
+* the resultset is returned.
 * @param ws pointer to a work set to be used for the match created via
 *        createWorkset function
 * @param userAgent pointer to the target user agent
 */
-void fiftyoneDegreesMatch(fiftyoneDegreesWorkset *ws, char* userAgent) {
+void internalMatch(fiftyoneDegreesWorkset *ws, char* userAgent) {
 	fiftyoneDegreesResultset *rs = NULL;
-
 	setTargetUserAgentArray(ws, userAgent);
 	if (ws->targetUserAgentArrayLength >= ws->dataSet->header.minUserAgentLength) {
 		if (ws->cache != NULL) {
@@ -2876,6 +2940,117 @@ void fiftyoneDegreesMatch(fiftyoneDegreesWorkset *ws, char* userAgent) {
 			// use the workset as the return pointer.
 			fiftyoneDegreesSetMatch(ws);
 		}
+	}
+}
+
+/**
+* Main entry method used for perform a match. First the cache is checked to
+* determine if the userAgent has already been found. If not then detection
+* is performed. The cache is then updated before the resultset is returned.
+* @param ws pointer to a work set to be used for the match created via
+*        createWorkset function
+* @param userAgent pointer to the target user agent
+*/
+void fiftyoneDegreesMatch(fiftyoneDegreesWorkset *ws, char* userAgent) {
+	resetCounters(ws);
+	internalMatch(ws, userAgent);
+}
+
+/**
+ * Sets the array of important headers where an important header exists in both the 
+ * array of provided HTTP headers and the data set.
+ * @param ws pointer to a work set to be used for the match created via
+ *        createWorkset function
+ * @param httpHeaderNames array of HTTP header names i.e. User-Agent
+ * @param httpHeaderValues array of HTTP header values
+ * @param httpHeaderCount the number of entires in each array
+ */
+void setImportantHeaders(fiftyoneDegreesWorkset *ws, char **httpHeaderNames, char **httpHeaderValues, int httpHeaderCount) {
+	int httpHeaderIndex, dataSetHeaderIndex, importantHeaderIndex = 0;
+	for (httpHeaderIndex = 0; httpHeaderIndex < httpHeaderCount; httpHeaderIndex++) {
+		for (dataSetHeaderIndex = 0; dataSetHeaderIndex < ws->dataSet->httpHeadersCount; dataSetHeaderIndex++) {
+			if (strcmp(ws->dataSet->httpHeaders[dataSetHeaderIndex].headerName, httpHeaderNames[httpHeaderIndex]) == 0)
+			{
+				ws->importantHeaders[importantHeaderIndex].header = ws->dataSet->httpHeaders + dataSetHeaderIndex;
+				ws->importantHeaders[importantHeaderIndex].headerValue = httpHeaderValues[httpHeaderIndex];
+				importantHeaderIndex++;
+			}
+		}
+	}
+	ws->importantHeadersCount = importantHeaderIndex;
+}
+
+/**
+ * Looks for for first HTTP header that matches the component. If found then
+ * perform a standard match and returns.
+ * @param ws pointer to a work set to be used for the match created via
+ *        createWorkset function
+ * @param component to find the profile for
+ * @return true if the header was found and processed, otherwise false
+ */
+fiftyoneDegreesBool matchForHttpHeader(fiftyoneDegreesWorkset *ws, const fiftyoneDegreesComponent *component) {
+	int httpHeaderIndex, importantHeaderIndex;
+	int32_t httpHeaderOffset;
+	for (httpHeaderIndex = 0; httpHeaderIndex < component->httpHeaderCount; httpHeaderIndex++) {
+		httpHeaderOffset = getComponentHeaderOffset(component, httpHeaderIndex);
+		for (importantHeaderIndex = 0; importantHeaderIndex < ws->importantHeadersCount; importantHeaderIndex++) {
+			if (ws->importantHeaders[importantHeaderIndex].header->headerNameOffset == httpHeaderOffset) {
+				internalMatch(ws, ws->importantHeaders[importantHeaderIndex].headerValue);
+				return TRUE;
+			}
+		}
+	}
+	return FALSE;
+}
+
+/**
+* Passed array of HTTP header names and values. Sets the workset to
+* the results for these headers.
+* @param ws pointer to a work set to be used for the match created via
+*        createWorkset function
+* @param httpHeaderNames array of HTTP header names i.e. User-Agent
+* @param httpHeaderValues array of HTTP header values
+* @param httpHeaderCount the number of entires in each array
+*/
+void fiftyoneDegreesMatchWithHeaders(fiftyoneDegreesWorkset *ws, char **httpHeaderNames, char **httpHeaderValues, int httpHeaderCount) {
+	int componentIndex, profileIndex = 0;
+
+	setImportantHeaders(ws, httpHeaderNames, httpHeaderValues, httpHeaderCount);
+	if (ws->importantHeadersCount == 0) {
+		// No important headers were found. Set the default match.
+		setMatchDefault(ws);
+		ws->method = NONE;
+	}
+	else if (ws->importantHeadersCount == 1) {
+		// There is only one important header so no need to do anything complex.
+		fiftyoneDegreesMatch(ws, ws->importantHeaders[0].headerValue);
+	}
+	else {
+		// Loop through each component and get the results for the first header
+		// that is also in the list of important headers.
+		resetCounters(ws);
+		for (componentIndex = 0; componentIndex < ws->dataSet->header.components.count; componentIndex++) {
+			if (matchForHttpHeader(ws, ws->dataSet->components[componentIndex])) {
+				ws->tempProfiles[componentIndex] = ws->profiles[componentIndex];
+			}
+			else {
+				ws->tempProfiles[componentIndex] = NULL;
+			}
+		}
+
+		// Now set the profiles being returned based on the temp profiles found
+		// for each of the components.
+		for (componentIndex = 0; componentIndex < ws->dataSet->header.components.count; componentIndex++) {
+			if (ws->tempProfiles[componentIndex] != NULL) {
+				ws->profiles[profileIndex] = ws->tempProfiles[componentIndex];
+				profileIndex++;
+			}
+		}
+		ws->profileCount = profileIndex;
+
+		// Set the signature to NULL because there can be no signature when multi
+		// headers are used.
+		ws->signature = NULL;
 	}
 }
 
