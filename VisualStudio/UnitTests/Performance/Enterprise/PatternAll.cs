@@ -13,7 +13,7 @@ namespace FiftyOne.UnitTests.Performance.Enterprise
 
         protected override string DataFile
         {
-            get { return Constants.Enterprise_PATTERN_V32; }
+            get { return Constants.ENTERPRISE_PATTERN_V32; }
         }
 
         [TestMethod]

@@ -13,7 +13,7 @@ namespace FiftyOne.UnitTests.Performance.Premium
 
         protected override string DataFile
         {
-            get { return Constants.Premium_PATTERN_V32; }
+            get { return Constants.PREMIUM_PATTERN_V32; }
         }
 
         [TestMethod]
