@@ -2,7 +2,7 @@
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using FiftyOne.UnitTests;
 
-namespace UnitTests.API.Lite
+namespace UnitTests.API.Premium
 {
     [TestClass]
     public class Pattern : PatternBase
