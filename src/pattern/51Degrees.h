@@ -143,7 +143,7 @@ typedef struct fiftyoneDegrees_node_t {
 	const int32_t characterStringOffset;
 	const int16_t childrenCount;
 	const int16_t numericChildrenCount;
-	const int16_t signatureCount;
+	const uint16_t signatureCount;
 } fiftyoneDegreesNode;
 #pragma pack(pop)
 
