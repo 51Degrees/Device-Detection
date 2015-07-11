@@ -1633,17 +1633,25 @@ void resetCounters(fiftyoneDegreesWorkset *ws) {
  */
 void setTargetUserAgentArray(fiftyoneDegreesWorkset *ws, char* userAgent) {
 	uint16_t index = 0;
-	ws->targetUserAgent = userAgent;
 	ws->hashCodeSet = 0;
 
-	// If the user agent is longer than the maximum then set to the max length
-	// otherwise use the length of the string.
-	while (userAgent[index] != 0 &&
-		userAgent[index] != '\r' &&
-		userAgent[index] != '\n' &&
-		index < ws->dataSet->header.maxUserAgentLength) {
-		ws->targetUserAgentArray[index] = userAgent[index];
-		index++;
+	if (userAgent != NULL) {
+		// If the user agent is longer than the maximum then set to the max length
+		// otherwise use the length of the string.
+		ws->targetUserAgent = userAgent;
+		while (userAgent[index] != 0 &&
+			userAgent[index] != '\r' &&
+			userAgent[index] != '\n' &&
+			index < ws->dataSet->header.maxUserAgentLength) {
+			ws->targetUserAgentArray[index] = userAgent[index];
+			index++;
+		}
+	}
+	else {
+		// Handle NULL useragents as empty strings to ensure down
+		// stream processing does fail.
+		ws->targetUserAgentArray[index] = 0;
+		ws->targetUserAgent = ws->targetUserAgentArray;
 	}
 	ws->targetUserAgentArrayLength = index;
 
@@ -2937,6 +2945,10 @@ void internalMatch(fiftyoneDegreesWorkset *ws, char* userAgent) {
 			// use the workset as the return pointer.
 			fiftyoneDegreesSetMatch(ws);
 		}
+	}
+	else {
+		setMatchDefault(ws);
+		ws->method = NONE;
 	}
 }
 
