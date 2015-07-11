@@ -11,8 +11,11 @@
 *.layout
 *.depend
 *.lic
+*.pfk
 *Enterprise*
 *Premium*
+*.coverage
+*.opensdf
 million.csv
 Debug/
 Release/
