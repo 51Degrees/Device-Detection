@@ -100,3 +100,15 @@ EXTERN_DLL_EXPORT int __cdecl GetPropertiesCSV(LP workSet, LPCTSTR userAgent, LP
 	// Add the results in CSV form to the string provided.
 	return (int)fiftyoneDegreesProcessDeviceCSV(ws, (char*)csv);
 }
+
+EXTERN_DLL_EXPORT int __cdecl GetPropertiesCSVFromHeaders(LP workSet, LPTSTR httpHeaders, LPTSTR csv)
+{
+	fiftyoneDegreesWorkset *ws = (fiftyoneDegreesWorkset*)workSet;
+
+	// Populate the workset with the results for the provided
+	// HTTP headers.
+	fiftyoneDegreesMatchWithHeadersString(ws, (char*)httpHeaders);
+
+	// Add the results in CSV form to the string provided.
+	return (int)fiftyoneDegreesProcessDeviceCSV(ws, (char*)csv);
+}
