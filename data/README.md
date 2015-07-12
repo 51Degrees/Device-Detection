@@ -1,4 +1,4 @@
-![51Degrees](https://51degrees.com/Portals/0/Logo.png "THE Fastest and Most Accurate Device Detection")**Device Databases**
+![51Degrees](https://51degrees.com/DesktopModules/FiftyOne/Distributor/Logo.ashx?utm_source=github&utm_medium=repository&utm_content=data&utm_campaign=c-open-source "THE Fastest and Most Accurate Device Detection") **Device Databases**
 
 The data files contained in this folder are licenced under the Mozilla Public License 2 and updated monthly.
 
