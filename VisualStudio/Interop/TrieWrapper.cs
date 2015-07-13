@@ -26,6 +26,7 @@ using System.Text;
 using System.Runtime.InteropServices;
 using System.Threading;
 using System.IO;
+using System.Collections.Specialized;
 
 namespace FiftyOne.Mobile.Detection.Provider.Interop
 {
@@ -33,7 +34,7 @@ namespace FiftyOne.Mobile.Detection.Provider.Interop
     /// Class used to wrap functions exposed by the tree matching C
     /// DLL.
     /// </summary>
-    public class TrieWrapper : IDisposable
+    public class TrieWrapper : IWrapper
     {
         #region DLL Imports
 
@@ -166,6 +167,11 @@ namespace FiftyOne.Mobile.Detection.Provider.Interop
         public SortedList<string, List<string>> GetProperties(string userAgent)
         {
             return Utils.GetProperties(GetPropertiesAsCSV(userAgent), 0, 1);
+        }
+
+        public SortedList<string, List<string>> GetProperties(NameValueCollection headers)
+        {
+            throw new NotImplementedException();
         }
 
         /// <summary>

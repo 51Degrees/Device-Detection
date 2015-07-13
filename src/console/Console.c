@@ -1,4 +1,5 @@
 #include <stdio.h>
+#include <stdlib.h>
 #include <string.h>
 #include "../pattern/51Degrees.h"
 
@@ -25,6 +26,11 @@
 
 #ifndef NULL
 #define NULL 0
+#endif
+
+/* Change snprintf to the Microsoft version */
+#ifdef _MSC_VER
+#define snprintf _snprintf
 #endif
 
 #define RANDOM_INDEX(r) rand() / (RAND_MAX / r + 1)
@@ -134,8 +140,10 @@ void run(fiftyoneDegreesDataSet *dataSet) {
     fiftyoneDegreesResultsetCache *cache = NULL;
 	fiftyoneDegreesWorksetPool *pool = NULL;
     int32_t index;
+	size_t httpHeadersSize;
 	char *httpHeaderNames[2];
 	char *httpHeaderValues[2];
+	char *httpHeaders;
 
     printf("Name:\t\t\t%s\r\n", &(fiftyoneDegreesGetString(dataSet, dataSet->header.nameOffset)->firstByte));
     printf("Published:\t\t%d/%d/%d\r\n",
@@ -164,12 +172,32 @@ void run(fiftyoneDegreesDataSet *dataSet) {
             }
 
 			for (index = 0; index < 5; index++) {
+
+				// Use multiple headers as arrays.
 				httpHeaderNames[0] = HTTP_HEADERS[RANDOM_INDEX(HTTP_HEADERS_LENGTH - 1)];
 				httpHeaderNames[1] = HTTP_HEADERS[RANDOM_INDEX(HTTP_HEADERS_LENGTH - 1)];
 				httpHeaderValues[0] = TARGET_USER_AGENTS[RANDOM_INDEX(TARGET_USER_AGENTS_LENGTH - 2)];
 				httpHeaderValues[1] = TARGET_USER_AGENTS[RANDOM_INDEX(TARGET_USER_AGENTS_LENGTH - 2)];
 				ws = fiftyoneDegreesWorksetPoolGet(pool);
-				fiftyoneDegreesMatchWithHeaders(ws, httpHeaderNames, httpHeaderValues, 2);
+				fiftyoneDegreesMatchWithHeadersArray(ws, httpHeaderNames, httpHeaderValues, 2);
+				reportResults(ws);
+				fiftyoneDegreesWorksetPoolRelease(pool, ws);
+
+				// Use multiple headers as a single string.
+				httpHeadersSize = strlen(httpHeaderNames[0]) + 1 +
+					strlen(httpHeaderNames[1]) + 1 +
+					strlen(httpHeaderValues[0]) + 2 +
+					strlen(httpHeaderValues[1]) + 1;
+				httpHeaders = (char*)malloc(httpHeadersSize);
+				snprintf(httpHeaders, httpHeadersSize,
+					"%s %s\r\n%s %s",
+					httpHeaderNames[0],
+					httpHeaderValues[0],
+					httpHeaderNames[1],
+					httpHeaderValues[1]);
+				ws = fiftyoneDegreesWorksetPoolGet(pool);
+				fiftyoneDegreesMatchWithHeadersString(ws, httpHeaders);
+				free((void*)httpHeaders);
 				reportResults(ws);
 				fiftyoneDegreesWorksetPoolRelease(pool, ws);
 			}

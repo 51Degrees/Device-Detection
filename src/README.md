@@ -1,0 +1,2 @@
+![51Degrees](https://51degrees.com/DesktopModules/FiftyOne/Distributor/Logo.ashx?utm_source=github&utm_medium=repository&utm_content=source-code&utm_campaign=c-open-source
+ "THE Fastest and Most Accurate Device Detection") **Device Detection C Code Source Code**
