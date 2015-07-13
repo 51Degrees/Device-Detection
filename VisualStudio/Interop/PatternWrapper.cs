@@ -26,6 +26,8 @@ using System.Runtime.InteropServices;
 using System.Threading;
 using System.Collections.Concurrent;
 using System.IO;
+using System.Collections.Specialized;
+using System.Linq;
 
 namespace FiftyOne.Mobile.Detection.Provider.Interop
 {
@@ -33,7 +35,7 @@ namespace FiftyOne.Mobile.Detection.Provider.Interop
     /// Class used to wrap functions exposed by the pattern matching C
     /// DLL.
     /// </summary>
-    public class PatternWrapper : IDisposable
+    public class PatternWrapper : IWrapper
     {
         #region DLL Imports
         
@@ -79,6 +81,11 @@ namespace FiftyOne.Mobile.Detection.Provider.Interop
             CharSet = CharSet.Ansi)]
         private static extern int GetPropertiesCSV(IntPtr ws, String userAgent, StringBuilder result);
 
+        [DllImport("FiftyOne.Mobile.Detection.Provider.Pattern.dll",
+            CallingConvention = CallingConvention.Cdecl,
+            CharSet = CharSet.Ansi)]
+        private static extern int GetPropertiesCSVFromHeaders(IntPtr ws, StringBuilder httpHeaders, StringBuilder result);
+        
         #endregion
 
         #region Fields
@@ -149,7 +156,7 @@ namespace FiftyOne.Mobile.Detection.Provider.Interop
                             file.FullName));
                 }
             }
-            CsvLength = GetCSVMaxLength(DataSet);
+            CsvLength = GetCSVMaxLength(DataSet) * 50;
             Cache = size > 0 ? ResultsetCacheCreate(DataSet, size) : IntPtr.Zero;
             Pool = WorksetPoolCreate(DataSet, Cache, Environment.ProcessorCount);
         }
@@ -167,6 +174,38 @@ namespace FiftyOne.Mobile.Detection.Provider.Interop
         {
             return Utils.GetProperties(GetPropertiesAsCSV(userAgent), 0, 1);
         }
+        
+        public SortedList<string, List<string>> GetProperties(NameValueCollection headers)
+        {
+            return Utils.GetProperties(GetPropertiesAsCSV(headers), 0, 1);
+        }
+
+        /// <summary>
+        /// Returns the properties for the HTTP headers as a CSV format string.
+        /// </summary>
+        /// <param name="headers"></param>
+        /// <returns></returns>
+        public StringBuilder GetPropertiesAsCSV(NameValueCollection headers)
+        {
+            var result = new StringBuilder(CsvLength);
+            var ws = WorksetPoolGet(Pool);
+            try
+            {
+                var httpHeaders = new StringBuilder();
+                for (int i = 0; i < headers.Count; i++)
+                {
+                    httpHeaders.AppendLine(String.Format("{0} {1}",
+                        headers.Keys[i],
+                        String.Concat(headers.GetValues(i))));
+                }
+                result.Capacity = GetPropertiesCSVFromHeaders(ws, httpHeaders, result);
+            }
+            finally
+            {
+                WorksetPoolRelease(Pool, ws);
+            }
+            return result;
+        }
 
         /// <summary>
         /// Returns the properties for the userAgent as a CSV format string.
@@ -179,7 +218,11 @@ namespace FiftyOne.Mobile.Detection.Provider.Interop
             var ws = WorksetPoolGet(Pool);
             try
             {
-                result.Capacity = GetPropertiesCSV(ws, userAgent, result);
+                GetPropertiesCSV(ws, userAgent, result);
+            }
+            catch(Exception ex)
+            {
+                throw new ArgumentException(userAgent, "userAgent", ex);
             }
             finally
             {

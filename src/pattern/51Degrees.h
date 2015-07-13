@@ -143,7 +143,7 @@ typedef struct fiftyoneDegrees_node_t {
 	const int32_t characterStringOffset;
 	const int16_t childrenCount;
 	const int16_t numericChildrenCount;
-	const int16_t signatureCount;
+	const uint16_t signatureCount;
 } fiftyoneDegreesNode;
 #pragma pack(pop)
 
@@ -594,7 +594,17 @@ EXTERNAL void fiftyoneDegreesMatch(fiftyoneDegreesWorkset *ws, char* userAgent);
  * @param httpHeaderValues array of HTTP header values
  * @param the number of entires in each array
  */
-EXTERNAL void fiftyoneDegreesMatchWithHeaders(fiftyoneDegreesWorkset *ws, char **httpHeaderNames, char **httpHeaderValues, int httpHeaderCount);
+EXTERNAL void fiftyoneDegreesMatchWithHeadersArray(fiftyoneDegreesWorkset *ws, char **httpHeaderNames, char **httpHeaderValues, int httpHeaderCount);
+
+/**
+ * Passed a string where each line contains the HTTP header name and value.
+ * The first space character seperates the HTTP header name at the beginning of 
+ * the line and the value.
+ * @param ws pointer to a work set to be used for the match created via
+ *        createWorkset function
+ * @param httpHeaders is a list of HTTP headers and values on each line
+ */
+EXTERNAL void fiftyoneDegreesMatchWithHeadersString(fiftyoneDegreesWorkset *ws, char *httpHeaders);
 
 /**
  * Sets the values associated with the require property index in the workset
