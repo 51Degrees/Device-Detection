@@ -23,6 +23,7 @@ using FiftyOne.Mobile.Detection.Provider.Interop;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using System;
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.IO;
 using System.Linq;
 using System.Threading;
@@ -87,7 +88,7 @@ namespace FiftyOne.UnitTests
         /// <param name="match">Match of a detection.</param>
         /// <param name="results">The results data for the loop.</param>
         /// <param name="state">State used by the method.</param>
-        public delegate void ProcessMatch(Results results, SortedList<string, List<string>> match, object state);
+        public delegate void ProcessMatch(Results results, IMatchResult match, object state);
 
         /// <summary>
         /// In a single thread loops through the useragents in the file
@@ -103,8 +104,19 @@ namespace FiftyOne.UnitTests
             var results = new Results();
             foreach (var line in userAgents)
             {
-                var properties = provider.GetProperties(line.Trim());
-                method(results, properties, state);
+                try
+                {
+                    using (var match = provider.Match(line.Trim()))
+                    {
+                        method(results, match, state);
+                    }
+                }
+                catch (AccessViolationException ex)
+                {
+                    Console.WriteLine(line);
+                    Console.WriteLine(ex.Message);
+                    Console.WriteLine(ex.StackTrace);
+                }
                 results.Count++;
             }
             ReportTime(results);
@@ -123,14 +135,32 @@ namespace FiftyOne.UnitTests
         internal static Results DetectLoopMultiThreaded(IWrapper provider, IEnumerable<string> userAgents, ProcessMatch method, object state)
         {
             var results = new Results();
-            Parallel.ForEach(userAgents, line =>
+            Parallel.ForEach(userAgents, 
+                new ParallelOptions() { MaxDegreeOfParallelism = Environment.ProcessorCount * 10 },
+                line =>
             {
-                var properties = provider.GetProperties(line.Trim());
-                method(results, properties, state);
-                Interlocked.Increment(ref results.Count);
+                try
+                {
+                    using (var match = provider.Match(line.Trim()))
+                    {
+                        method(results, match, state);
+                    }
+                    Interlocked.Increment(ref results.Count);
+                }
+                catch(AccessViolationException ex)
+                {
+                    Console.WriteLine(line);
+                    Console.WriteLine(ex.Message);
+                    Console.WriteLine(ex.StackTrace);
+                }
             });
             ReportTime(results);
             return results;
+        }
+
+        internal static void ReportChecksum(Results results)
+        {
+            Console.WriteLine("Checksum: '{0}'", results.CheckSum);
         }
 
         internal static void ReportTime(Results results)
@@ -151,9 +181,14 @@ namespace FiftyOne.UnitTests
             }
         }
 
-        public static void DoNothing(Results results, SortedList<string, List<string>> properties, object state)
+        public static void GetAllProperties(Results results, IMatchResult match, object state)
         {
-            // Do nothing.
+            int checkSum = 0;
+            foreach (var propertyName in (IEnumerable<string>)state)
+            {
+                checkSum += match[propertyName].GetHashCode();
+            }
+            Interlocked.Add(ref results.CheckSum, checkSum);
         }
         
         internal static void CheckFileExists(string dataFile)

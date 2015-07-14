@@ -32,12 +32,18 @@ namespace FiftyOne.UnitTests
     {
         protected IWrapper _wrapper;
 
+        protected abstract IWrapper CreateWrapper();
+
         protected abstract string DataFile { get; }
 
-        protected virtual string RequiredProperties { get { return null; } }
+        protected virtual IEnumerable<string> RequiredProperties { get { return _wrapper.AvailableProperties; } }
+        
+        public Base()
+        {
+            _wrapper = CreateWrapper();
+        }
 
-        [TestCleanup]
-        public void Dispose()
+        public virtual void Dispose()
         {
             if (_wrapper != null)
             {

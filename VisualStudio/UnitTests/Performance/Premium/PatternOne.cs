@@ -1,21 +1,45 @@
-﻿using System;
+﻿/* *********************************************************************
+ * This Source Code Form is copyright of 51Degrees Mobile Experts Limited. 
+ * Copyright © 2014 51Degrees Mobile Experts Limited, 5 Charlotte Close,
+ * Caversham, Reading, Berkshire, United Kingdom RG4 7BY
+ * 
+ * This Source Code Form is the subject of the following patent 
+ * applications, owned by 51Degrees Mobile Experts Limited of 5 Charlotte
+ * Close, Caversham, Reading, Berkshire, United Kingdom RG4 7BY: 
+ * European Patent Application No. 13192291.6; and
+ * United States Patent Application Nos. 14/085,223 and 14/085,301.
+ *
+ * This Source Code Form is subject to the terms of the Mozilla Public
+ * License, v. 2.0.
+ * 
+ * If a copy of the MPL was not distributed with this file, You can obtain
+ * one at http://mozilla.org/MPL/2.0/.
+ * 
+ * This Source Code Form is “Incompatible With Secondary Licenses”, as
+ * defined by the Mozilla Public License, v. 2.0.
+ * ********************************************************************* */
+
+using System;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
+using System.Collections.Generic;
 
 namespace FiftyOne.UnitTests.Performance.Premium
 {
     [TestClass]
     public class PatternOne : PatternBase
     {
+        private static readonly string[] REQUIRED_PROPERTIES = new string[] { "IsMobile" };
+
         protected override int MaxInitializeTime
         {
-            get { return 250; }
+            get { return 1000; }
         }
 
-        protected override string RequiredProperties
+        protected override IEnumerable<string> RequiredProperties
         {
             get
             {
-                return "IsMobile";
+                return REQUIRED_PROPERTIES;
             }
         }
 
@@ -27,43 +51,43 @@ namespace FiftyOne.UnitTests.Performance.Premium
         [TestMethod]
         public void PremiumV32Pattern_Performance_InitializeTimeOne()
         {
-            base.InitializeTime();
+            InitializeTime();
         }
         
         [TestMethod]
         public void PremiumV32Pattern_Performance_BadUserAgentsMultiOne()
         {
-            base.BadUserAgentsMulti(1);
+            BadUserAgentsMulti(1);
         }
 
         [TestMethod]
         public void PremiumV32Pattern_Performance_BadUserAgentsSingleOne()
         {
-            base.BadUserAgentsSingle(1);
+            BadUserAgentsSingle(3);
         }
 
         [TestMethod]
         public void PremiumV32Pattern_Performance_UniqueUserAgentsMultiOne()
         {
-            base.UniqueUserAgentsMulti(1);
+            UniqueUserAgentsMulti(1);
         }
 
         [TestMethod]
         public void PremiumV32Pattern_Performance_UniqueUserAgentsSingleOne()
         {
-            base.UniqueUserAgentsSingle(1);
+            UniqueUserAgentsSingle(1);
         }
 
         [TestMethod]
         public void PremiumV32Pattern_Performance_RandomUserAgentsMultiOne()
         {
-            base.RandomUserAgentsMulti(1);
+            RandomUserAgentsMulti(1);
         }
 
         [TestMethod]
         public void PremiumV32Pattern_Performance_RandomUserAgentsSingleOne()
         {
-            base.RandomUserAgentsSingle(1);
+            RandomUserAgentsSingle(1);
         }
     }
 }

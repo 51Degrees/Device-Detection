@@ -28,11 +28,10 @@ namespace FiftyOne.UnitTests
 {
     public abstract class PatternBase : Base
     {
-        [TestInitialize]
-        public void Initialise()
+        protected override IWrapper CreateWrapper()
         {
             Utils.CheckFileExists(DataFile);
-            _wrapper = new PatternWrapper(DataFile, null, 5000);
+            return new PatternWrapper(DataFile, (string)null, 5000);
         }
     }
 }
