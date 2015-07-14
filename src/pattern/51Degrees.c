@@ -37,9 +37,21 @@
 #define snprintf _snprintf
 #endif
 
+/* Indicates that a method will be used by qsort */
+#ifdef _MSC_VER
+/* Needs to be set to __cdecl to prevent optimiser problems */
+#define QSORT_COMPARER __cdecl
+#else
+#define QSORT_COMPARER
+#endif
+
 /**
  * DATA STRUCTURES USED ONLY BY FUNCTIONS IN THIS FILE
  */
+
+/* Used for boolean results */
+#define TRUE 1
+#define FALSE 0
 
 /* Ranges used when performing a numeric match */
 const fiftyoneDegreesRANGE RANGES[] = {
@@ -79,7 +91,7 @@ fiftyoneDegreesDataSetInitStatus readStrings(FILE *inputFilePtr, fiftyoneDegrees
  * @param headerOffset to the string containing the name of the header
  * @return true if the header exists, otherwise false
  */
-fiftyoneDegreesBool doesHeaderExist(fiftyoneDegreesDataSet *dataSet, int32_t headerOffset) {
+byte doesHeaderExist(fiftyoneDegreesDataSet *dataSet, int32_t headerOffset) {
 	int index;
 	for (index = 0; index < dataSet->httpHeadersCount; index++) {
 		if (headerOffset == dataSet->httpHeaders[index].headerNameOffset) {
@@ -120,12 +132,12 @@ fiftyoneDegreesDataSetInitStatus readComponents(FILE *inputFilePtr, fiftyoneDegr
 
 	// Memory has been allocated to the components byte array and the pointers
 	// for each component. Now set the pointers to the start of each component.
-	// Also count the total possible number of HTTP headers so memory can be 
+	// Also count the total possible number of HTTP headers so memory can be
 	// allocated for this later on.
 	current = (byte*)dataSet->componentsData;
 	for (index = 0; index < dataSet->header.components.count; index++) {
 		dataSet->components[index] = (const fiftyoneDegreesComponent*)current;
-		// Have to take one away because the first offset is included in the 
+		// Have to take one away because the first offset is included in the
 		current += sizeof(fiftyoneDegreesComponent) +
 			(dataSet->components[index]->httpHeaderCount * sizeof(int32_t));
 		httpHeadersCount += dataSet->components[index]->httpHeaderCount;
@@ -143,8 +155,8 @@ fiftyoneDegreesDataSetInitStatus readComponents(FILE *inputFilePtr, fiftyoneDegr
 		for (httpHeaderIndex = 0; httpHeaderIndex < dataSet->components[index]->httpHeaderCount; httpHeaderIndex++) {
 			httpHeaderOffset = getComponentHeaderOffset(dataSet->components[index], httpHeaderIndex);
 			if (doesHeaderExist(dataSet, httpHeaderOffset) == FALSE) {
-				dataSet->httpHeaders[dataSet->httpHeadersCount].headerNameOffset = httpHeaderOffset;
-				dataSet->httpHeaders[dataSet->httpHeadersCount].headerName = (char*)&(fiftyoneDegreesGetString(dataSet, httpHeaderOffset)->firstByte);
+				(dataSet->httpHeaders + dataSet->httpHeadersCount)->headerNameOffset = httpHeaderOffset;
+				(dataSet->httpHeaders + dataSet->httpHeadersCount)->headerName = (char*)&(fiftyoneDegreesGetString(dataSet, httpHeaderOffset)->firstByte);
 				dataSet->httpHeadersCount++;
 			}
 		}
@@ -227,7 +239,7 @@ fiftyoneDegreesDataSetInitStatus readSignatureNodeOffsets(FILE *inputFilePtr, fi
 
 fiftyoneDegreesDataSetInitStatus readNodeRankedSignatureIndexes(FILE *inputFilePtr, fiftyoneDegreesDataSet *dataSet) {
 	dataSet->nodeRankedSignatureIndexes = (const int32_t*)malloc(dataSet->header.nodeRankedSignatureIndexes.length);
-	if (dataSet->signatureNodeOffsets == NULL) {
+	if (dataSet->nodeRankedSignatureIndexes == NULL) {
 		return DATA_SET_INIT_STATUS_INSUFFICIENT_MEMORY;
 	}
 	if (fread((void*)(dataSet->nodeRankedSignatureIndexes), dataSet->header.nodeRankedSignatureIndexes.length, 1, inputFilePtr) != 1) {
@@ -394,6 +406,103 @@ int32_t getPropertyIndex(const fiftyoneDegreesDataSet *dataSet, const fiftyoneDe
 }
 
 /**
+* Gets the required property name at the index provided.
+* @param dataset pointer to an initialised dataset
+* @param index of the property required
+* @param propertyName pointer to memory to place the property name
+* @param size of the memory allocated for the name
+* @return the number of bytes written for the property, zero if the property
+*		  does not exist at the index
+*/
+int32_t fiftyoneDegreesGetRequiredPropertyName(const fiftyoneDegreesDataSet *dataSet, int requiredPropertyIndex, char *propertyName, int size) {
+	const fiftyoneDegreesProperty *property;
+	const fiftyoneDegreesAsciiString *name;
+	int written = 0;
+	if (requiredPropertyIndex >= 0 &&
+		requiredPropertyIndex < dataSet->requiredPropertyCount) {
+		property = dataSet->requiredProperties[requiredPropertyIndex];
+		name = fiftyoneDegreesGetString(dataSet, property->nameOffset);
+		if (name->length <= size) {
+			memcpy(
+				propertyName,
+				(char*)(&name->firstByte),
+				name->length);
+			written = name->length;
+		}
+	}
+	return written;
+}
+
+/**
+ * Gets the required property index of the property provided, or -1 if the
+ * property is not available in the dataset.
+ * @param dataset pointer to an initialised dataset
+ * @param propertyName pointer to the name of the property required
+ * @return the index of the property, or -1 if the property does not exist
+ */
+int32_t fiftyoneDegreesGetRequiredPropertyIndex(const fiftyoneDegreesDataSet *dataSet, char *propertyName) {
+	int index;
+	const char *currentPropertyName;
+	for (index = 0; index < dataSet->requiredPropertyCount; index++) {
+		currentPropertyName = fiftyoneDegreesGetPropertyName(
+			dataSet,
+			dataSet->requiredProperties[index]);
+		if (strcmp(currentPropertyName, propertyName) == 0) {
+			return index;
+		}
+	}
+	return -1;
+}
+
+/**
+ * Sets the values character array to the values of the required property
+ * provided. If the values character array is too small then only the values
+ * that can be fitted in are added.
+ * @param ws pointer to a workset configured with the match results
+ * @param requiredPropertyIndex index of the required property
+ * @param values pointer to allocated memory to store the values
+ * @param size the size of the values memory
+ * @return the number of characters written to the values memory
+ */
+int32_t fiftyoneDegreesGetValues(fiftyoneDegreesWorkset *ws, int32_t requiredPropertyIndex, char *values, int32_t size) {
+	int valueIndex;
+	int sizeNeeded = 0;
+	char *currentPosition = (char*)values;
+	const fiftyoneDegreesAsciiString *value;
+	fiftyoneDegreesSetValues(ws, requiredPropertyIndex);
+	for (valueIndex = 0; valueIndex < ws->valuesCount; valueIndex++) {
+		value = fiftyoneDegreesGetString(ws->dataSet, ws->values[valueIndex]->nameOffset);
+		sizeNeeded += currentPosition - values + value->length;
+		if (sizeNeeded <= size) {
+			// Add a value seperator if this isn't the first value in the list.
+			if (valueIndex > 0) {
+				*currentPosition = '|';
+				currentPosition++;
+			}
+			// Copy the value string to the values memory at the current position
+			// appending a seperator or a end of string byte depending on the
+			// remaining characters. Take one from the length because we don't
+			// need the 0 string terminator.
+			memcpy(currentPosition, (char*)&(value->firstByte), value->length - 1);
+			currentPosition += value->length - 1;
+		}
+	}
+	// Terminate the values string.
+	*currentPosition = 0;
+
+	if (sizeNeeded <= size) {
+		// Return the number of bytes written.
+		return currentPosition - values + 1;
+	}
+	else {
+		// Writing the value to the values memory space will result
+		// in an overrun so we can't add any more values. Stop processing
+		// the remaining values.
+		return -sizeNeeded;
+	}
+}
+
+/**
  * Returns the property associated with the name.
  * @param dataSet pointer containing the property required
  * @param name string of the property required
@@ -465,7 +574,7 @@ const fiftyoneDegreesNodeIndex* getNodeIndexesForNode(const fiftyoneDegreesNode*
  * @param node pointer to be checked
  * @return true if the node is complete, otherwise false
  */
-fiftyoneDegreesBool getIsNodeComplete(const fiftyoneDegreesNode* node) {
+byte getIsNodeComplete(const fiftyoneDegreesNode* node) {
 	return node->nextCharacterPosition != SHRT_MIN;
 }
 
@@ -721,9 +830,10 @@ void linkedListRemove(fiftyoneDegreesLinkedSignatureList *linkedList, fiftyoneDe
  */
 
 /**
- * Destroys the data set releasing all memory available.
- * @param dataSet pointer to the data set being destroyed
- */
+* Destroys the data set releasing all memory available. Ensure all worksets
+* cache and pool structs are freed prior to calling this method.
+* @param dataSet pointer to the data set being destroyed
+*/
 void fiftyoneDegreesDataSetFree(const fiftyoneDegreesDataSet *dataSet) {
 	free((void*)(dataSet->requiredProperties));
 	free((void*)(dataSet->strings));
@@ -747,8 +857,10 @@ void setAllProperties(fiftyoneDegreesDataSet *dataSet) {
 	int32_t index;
 	dataSet->requiredPropertyCount = dataSet->header.properties.count;
 	dataSet->requiredProperties = (const fiftyoneDegreesProperty**)malloc(dataSet->requiredPropertyCount * sizeof(fiftyoneDegreesProperty*));
-	for (index = 0; index < dataSet->requiredPropertyCount; index++) {
-		*(dataSet->requiredProperties + index) = dataSet->properties + index;
+	if (dataSet->requiredProperties != NULL) {
+		for (index = 0; index < dataSet->requiredPropertyCount; index++) {
+			*(dataSet->requiredProperties + index) = dataSet->properties + index;
+		}
 	}
 }
 
@@ -770,16 +882,18 @@ void setProperties(fiftyoneDegreesDataSet *dataSet, char** properties, int32_t c
 	dataSet->requiredProperties = (const fiftyoneDegreesProperty**)malloc(count * sizeof(const fiftyoneDegreesProperty*));
 
 	// Add the properties to the list of required properties.
-	for (propertyIndex = 0; propertyIndex < count; propertyIndex++) {
-		requiredPropertyName = *(properties + propertyIndex);
-		requiredPropertyLength = (int16_t)strlen(requiredPropertyName);
-		for (index = 0; index < dataSet->header.properties.count; index++) {
-			propertyName = fiftyoneDegreesGetString(dataSet, (dataSet->properties + index)->nameOffset);
-			if (requiredPropertyLength == propertyName->length - 1 &&
-				memcmp(requiredPropertyName, &propertyName->firstByte, requiredPropertyLength) == 0) {
-				*(dataSet->requiredProperties + dataSet->requiredPropertyCount) = (dataSet->properties + index);
-				dataSet->requiredPropertyCount++;
-				break;
+	if (dataSet->requiredProperties != NULL) {
+		for (propertyIndex = 0; propertyIndex < count; propertyIndex++) {
+			requiredPropertyName = *(properties + propertyIndex);
+			requiredPropertyLength = (int16_t)strlen(requiredPropertyName);
+			for (index = 0; index < dataSet->header.properties.count; index++) {
+				propertyName = fiftyoneDegreesGetString(dataSet, (dataSet->properties + index)->nameOffset);
+				if (requiredPropertyLength == propertyName->length - 1 &&
+					memcmp(requiredPropertyName, &propertyName->firstByte, requiredPropertyLength) == 0) {
+					*(dataSet->requiredProperties + dataSet->requiredPropertyCount) = (dataSet->properties + index);
+					dataSet->requiredPropertyCount++;
+					break;
+				}
 			}
 		}
 	}
@@ -792,7 +906,7 @@ void setProperties(fiftyoneDegreesDataSet *dataSet, char** properties, int32_t c
  */
 int32_t getSeparatorCount(char* input) {
 	int32_t index = 0, count = 0;
-	if (input != NULL) {
+	if (input != NULL && *input != 0) {
 		while (*(input + index) != 0) {
 			if (*(input + index) == ',' ||
 				*(input + index) == '|' ||
@@ -822,32 +936,39 @@ fiftyoneDegreesDataSetInitStatus fiftyoneDegreesInitWithPropertyString(const cha
 	int32_t index, count = 0;
 	char **requiredPropertiesArray = NULL;
 	char *last = requiredProperties;
-	fiftyoneDegreesDataSetInitStatus status;
+	fiftyoneDegreesDataSetInitStatus status = DATA_SET_INIT_STATUS_NOT_SET;
 
 	// Determine if properties were provided.
 	if (requiredPropertyCount > 0) {
 		// Allocate pointers for each of the properties.
 		requiredPropertiesArray = (char**)malloc(requiredPropertyCount * sizeof(char*));
-
-		// Change the input string so that the separators are changed to nulls.
-		for (index = 0; count < requiredPropertyCount; index++) {
-			if (*(requiredProperties + index) == ',' ||
-				*(requiredProperties + index) == '|' ||
-				*(requiredProperties + index) == ' ' ||
-				*(requiredProperties + index) == '\t' ||
-				*(requiredProperties + index) == 0) {
-				*(requiredProperties + index) = 0;
-				*(requiredPropertiesArray + count) = last;
-				last = requiredProperties + index + 1;
-				count++;
+		if (requiredPropertiesArray != NULL) {
+			// Change the input string so that the separators are changed to nulls.
+			for (index = 0; count < requiredPropertyCount; index++) {
+				if (*(requiredProperties + index) == ',' ||
+					*(requiredProperties + index) == '|' ||
+					*(requiredProperties + index) == ' ' ||
+					*(requiredProperties + index) == '\t' ||
+					*(requiredProperties + index) == 0) {
+					*(requiredProperties + index) = 0;
+					requiredPropertiesArray[count] = last;
+					last = requiredProperties + index + 1;
+					count++;
+				}
 			}
+		}
+		else {
+			// Memory could not be allocated for the properties
+			// to be turned into an array.
+			status = DATA_SET_INIT_STATUS_INSUFFICIENT_MEMORY;
 		}
 	}
 
 	status = fiftyoneDegreesInitWithPropertyArray(fileName, dataSet, requiredPropertiesArray, requiredPropertyCount);
-
-	if (requiredPropertiesArray != NULL)
+			
+	if (requiredPropertiesArray != NULL) {
 		free(requiredPropertiesArray);
+	}
 
 	return status;
 }
@@ -1055,9 +1176,10 @@ fiftyoneDegreesWorkset *fiftyoneDegreesWorksetPoolGet(fiftyoneDegreesWorksetPool
 }
 
 /**
- * Frees all worksets in the pool and releases all memory.
- * @param pool pointer to the pool created by fiftyoneDegreesWorksetPoolCreate
- */
+* Frees all worksets in the pool and releases all memory. Ensure all worksets
+* have been released back to the pool before calling this method.
+* @param pool pointer to the pool created by fiftyoneDegreesWorksetPoolCreate
+*/
 void fiftyoneDegreesWorksetPoolFree(fiftyoneDegreesWorksetPool *pool) {
 	int i;
 	for (i = 0; i < pool->available; i++) {
@@ -1129,7 +1251,7 @@ void fiftyoneDegreesResultsetCacheInit(fiftyoneDegreesResultsetCache *rsc) {
 	profileOffset = CACHED_RESULTSET_PROFILES_OFFSET(rsc->dataSet->header);
 	targetUserAgentOffset = CACHED_RESULTSET_TARGET_USERAGENT_ARRAY_OFFSET(rsc->dataSet->header);
 	next = (fiftyoneDegreesResultset*)rsc->resultSets;
-	for (i = 0; i < rsc->total; i++) {
+	for (i = 0; i < rsc->total && next != NULL; i++) {
 		current = next;
 		next = i < rsc->total - 1 ? (fiftyoneDegreesResultset*)((char*)current + rsc->sizeOfResultset) : NULL;
 		current->next = next;
@@ -1203,10 +1325,12 @@ fiftyoneDegreesResultsetCache *fiftyoneDegreesResultsetCacheCreate(const fiftyon
 			if (rsc->active != NULL) { fiftyoneDegreesResultsetCacheListFree(rsc->active); }
 			if (rsc->background != NULL) { fiftyoneDegreesResultsetCacheListFree(rsc->background); }
 			free((void*)rsc);
+			rsc = NULL;
 		}
-
-		// Initialise the linked lists for allocated and free.
-		fiftyoneDegreesResultsetCacheInit(rsc);
+		else {
+			// Initialise the linked lists for allocated and free.
+			fiftyoneDegreesResultsetCacheInit(rsc);
+		}
 	}
 	return rsc;
 }
@@ -1568,7 +1692,7 @@ void setSignatureAsString(fiftyoneDegreesWorkset *ws, const byte *signature) {
  * @param index the should be added at
  */
 void addNodeIntoWorkset(fiftyoneDegreesWorkset *ws, const fiftyoneDegreesNode *node, int32_t index) {
-	*(ws->nodes + index) = node;
+	ws->nodes[index] = node;
 	ws->nodeCount++;
 }
 
@@ -1650,9 +1774,13 @@ void setTargetUserAgentArray(fiftyoneDegreesWorkset *ws, char* userAgent) {
 	else {
 		// Handle NULL useragents as empty strings to ensure down
 		// stream processing does fail.
-		ws->targetUserAgentArray[index] = 0;
-		ws->targetUserAgent = ws->targetUserAgentArray;
+		ws->targetUserAgent = (char*)ws->targetUserAgentArray;
 	}
+	// Set the last index position to null incase the target user agent
+	// is longer than the maximum user agent length. The routine to 
+	// allocate the targetUserAgentArray adds an extra byte for this 
+	// purpose.
+	ws->targetUserAgentArray[index] = 0;
 	ws->targetUserAgentArrayLength = index;
 
 	/* Work out the starting character position */
@@ -1687,7 +1815,7 @@ void setTargetUserAgentArray(fiftyoneDegreesWorkset *ws, char* userAgent) {
 	ws->linkedSignatureList.count = 0;
 	ws->linkedSignatureList.first = NULL;
 	ws->linkedSignatureList.last = NULL;
-	
+
 	/* Reset the profiles and signatures */
 	ws->profileCount = 0;
 	ws->signature = NULL;
@@ -2177,7 +2305,7 @@ const fiftyoneDegreesNode* getCompleteNumericNode(fiftyoneDegreesWorkset *ws, co
  * @param b the second node to test
  * @return true if they overlap, otherwise false
  */
-fiftyoneDegreesBool areNodesOverlapped(const fiftyoneDegreesDataSet *dataSet, const fiftyoneDegreesNode *a, const fiftyoneDegreesNode *b) {
+byte areNodesOverlapped(const fiftyoneDegreesDataSet *dataSet, const fiftyoneDegreesNode *a, const fiftyoneDegreesNode *b) {
 	const fiftyoneDegreesNode *lower = a->position < b->position ? a : b,
 		*higher = lower == b ? a : b,
 		*rootNode = getRootNode(dataSet, lower);
@@ -2196,7 +2324,7 @@ fiftyoneDegreesBool areNodesOverlapped(const fiftyoneDegreesDataSet *dataSet, co
  * @param ws pointer to the work set used for the match
  * @return 1 if the node overlaps, otherwise 0
  */
-fiftyoneDegreesBool isNodeOverlapped(const fiftyoneDegreesNode *node, fiftyoneDegreesWorkset *ws) {
+byte isNodeOverlapped(const fiftyoneDegreesNode *node, fiftyoneDegreesWorkset *ws) {
 	const fiftyoneDegreesNode  *currentNode;
 	int         index;
 	for (index = ws->nodeCount - 1; index >= 0; index--) {
@@ -2265,7 +2393,7 @@ void evaluateNumeric(fiftyoneDegreesWorkset *ws) {
  * @return the count after the node has been evaluated
  */
 int32_t setClosestSignaturesForNode(fiftyoneDegreesWorkset *ws, const fiftyoneDegreesNode *node, int32_t count, int32_t iteration) {
-	fiftyoneDegreesBool thresholdReached = (ws->nodeCount - iteration) < count;
+	byte thresholdReached = (ws->nodeCount - iteration) < count;
 	fiftyoneDegreesLinkedSignatureList *linkedList = &(ws->linkedSignatureList);
 	fiftyoneDegreesLinkedSignatureListItem *current = linkedList->first,
 		*next;
@@ -2350,9 +2478,11 @@ void setClosestSignaturesFinal(fiftyoneDegreesWorkset *ws, int32_t count) {
  * @param b pointer to the second node
  * @return the difference between the nodes
  */
-int nodeSignatureCountCompare(const void * a, const void * b)
+int QSORT_COMPARER nodeSignatureCountCompare(const void *a, const void *b)
 {
-	return (*(fiftyoneDegreesNode**)a)->signatureCount - (*(fiftyoneDegreesNode**)b)->signatureCount;
+	fiftyoneDegreesNode* c1 = (*(fiftyoneDegreesNode**)a);
+	fiftyoneDegreesNode* c2 = (*(fiftyoneDegreesNode**)b);
+	return c1->signatureCount - c2->signatureCount;
 }
 
 /**
@@ -2360,8 +2490,14 @@ int nodeSignatureCountCompare(const void * a, const void * b)
  * @param ws pointer to the work set being used for the match
  */
 void orderNodesOnSignatureCount(fiftyoneDegreesWorkset *ws) {
-	memcpy((void*)ws->orderedNodes, ws->nodes, ws->nodeCount * sizeof(fiftyoneDegreesNode*));
-	qsort((void*)ws->orderedNodes, ws->nodeCount, sizeof(fiftyoneDegreesNode*), (void*)nodeSignatureCountCompare);
+	int32_t nodeIndex;
+	for (nodeIndex = 0; nodeIndex < ws->nodeCount; nodeIndex++) {
+		ws->orderedNodes[nodeIndex] = ws->nodes[nodeIndex];
+	}
+	qsort((void*)ws->orderedNodes, 
+		  (size_t)ws->nodeCount,
+		  sizeof(fiftyoneDegreesNode*),
+		  nodeSignatureCountCompare);
 }
 
 /**
@@ -2371,9 +2507,7 @@ void orderNodesOnSignatureCount(fiftyoneDegreesWorkset *ws) {
  * @param ws pointer to the work set being used for the match
  */
 void fillClosestSignatures(fiftyoneDegreesWorkset *ws) {
-	int32_t     iteration = 2,
-		maxCount = 1,
-		nodeIndex = 1;
+	int32_t iteration = 2, maxCount = 1, nodeIndex = 1;
 	const fiftyoneDegreesNode  *node;
 
 	if (ws->nodeCount == 1) {
@@ -2411,7 +2545,7 @@ void fillClosestSignatures(fiftyoneDegreesWorkset *ws) {
  * @param value to be checked
  * @return 1 if the value is numeric, otherwise 0
  */
-fiftyoneDegreesBool getIsNumeric(byte *value) {
+byte getIsNumeric(byte *value) {
 	return (*value >= (byte)'0' && *value <= (byte)'9');
 }
 
@@ -2973,7 +3107,7 @@ void fiftyoneDegreesMatch(fiftyoneDegreesWorkset *ws, char* userAgent) {
 * @param component to find the profile for
 * @return true if the header was found and processed, otherwise false
 */
-fiftyoneDegreesBool matchForHttpHeader(fiftyoneDegreesWorkset *ws, const fiftyoneDegreesComponent *component) {
+byte matchForHttpHeader(fiftyoneDegreesWorkset *ws, const fiftyoneDegreesComponent *component) {
 	int httpHeaderIndex, importantHeaderIndex;
 	int32_t httpHeaderOffset;
 	for (httpHeaderIndex = 0; httpHeaderIndex < component->httpHeaderCount; httpHeaderIndex++) {
@@ -3044,7 +3178,7 @@ void matchForHttpHeaders(fiftyoneDegreesWorkset *ws) {
 */
 void fiftyoneDegreesMatchWithHeadersArray(fiftyoneDegreesWorkset *ws, char **httpHeaderNames, char **httpHeaderValues, int httpHeaderCount) {
 	int httpHeaderIndex, dataSetHeaderIndex, importantHeaderIndex = 0;
-	for (httpHeaderIndex = 0; 
+	for (httpHeaderIndex = 0;
 		httpHeaderIndex < httpHeaderCount &&
 		importantHeaderIndex < ws->dataSet->httpHeadersCount;
 		httpHeaderIndex++) {
@@ -3072,8 +3206,9 @@ void fiftyoneDegreesMatchWithHeadersArray(fiftyoneDegreesWorkset *ws, char **htt
 */
 void fiftyoneDegreesMatchWithHeadersString(fiftyoneDegreesWorkset *ws, char *httpHeaders) {
 	char *current = httpHeaders, *lastEnd = httpHeaders;
-	int dataSetHeaderIndex, size, importantHeaderIndex = 0;
-	fiftyoneDegreesBool isName = TRUE, isValue = FALSE;
+	int dataSetHeaderIndex, importantHeaderIndex = 0;
+    uint32_t size;
+	byte isName = TRUE, isValue = FALSE;
 	while (*current != 0 &&
 		importantHeaderIndex < ws->dataSet->httpHeadersCount) {
 		if (isName == TRUE && *current == ' ') {
