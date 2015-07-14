@@ -177,17 +177,7 @@ namespace FiftyOne.Mobile.Detection.Provider.Interop
                 {
                     throw new Exception("Could not get workset from pool.");
                 }
-                Console.WriteLine(userAgent);
-                try
-                {
-                    MatchFromUserAgent(_workSet, userAgent);
-                }
-                catch(AccessViolationException ex)
-                {
-                    Console.WriteLine(userAgent);
-                    Console.WriteLine(ex.Message);
-                    Console.WriteLine(ex.StackTrace);
-                }
+                MatchFromUserAgent(_workSet, userAgent);
             }
 
             /// <summary>
@@ -207,16 +197,7 @@ namespace FiftyOne.Mobile.Detection.Provider.Interop
                         headers.Keys[i],
                         String.Concat(headers.GetValues(i))));
                 }
-                try
-                {
-                    MatchFromHeaders(_workSet, httpHeaders);
-                }
-                catch (AccessViolationException ex)
-                {
-                    Console.WriteLine(httpHeaders.ToString());
-                    Console.WriteLine(ex.Message);
-                    Console.WriteLine(ex.StackTrace);
-                }
+                MatchFromHeaders(_workSet, httpHeaders);
             }
 
             /// <summary>
