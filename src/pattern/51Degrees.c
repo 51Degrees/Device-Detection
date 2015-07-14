@@ -965,7 +965,7 @@ fiftyoneDegreesDataSetInitStatus fiftyoneDegreesInitWithPropertyString(const cha
 	}
 
 	status = fiftyoneDegreesInitWithPropertyArray(fileName, dataSet, requiredPropertiesArray, requiredPropertyCount);
-			
+
 	if (requiredPropertiesArray != NULL) {
 		free(requiredPropertiesArray);
 	}
@@ -1777,8 +1777,8 @@ void setTargetUserAgentArray(fiftyoneDegreesWorkset *ws, char* userAgent) {
 		ws->targetUserAgent = (char*)ws->targetUserAgentArray;
 	}
 	// Set the last index position to null incase the target user agent
-	// is longer than the maximum user agent length. The routine to 
-	// allocate the targetUserAgentArray adds an extra byte for this 
+	// is longer than the maximum user agent length. The routine to
+	// allocate the targetUserAgentArray adds an extra byte for this
 	// purpose.
 	ws->targetUserAgentArray[index] = 0;
 	ws->targetUserAgentArrayLength = index;
@@ -1846,7 +1846,7 @@ int32_t compareTo(byte* targetUserAgentArray, int32_t startIndex, fiftyoneDegree
  * @param ws pointer being used for the match
  * @param node pointer of the current node
  * @return pointer to the next node to evaluate, or NULL if none match the
- *        target
+ *         target user agent
  */
 const fiftyoneDegreesNode* getNextNode(fiftyoneDegreesWorkset *ws, const fiftyoneDegreesNode *node) {
 	int32_t upper = node->childrenCount - 1, lower, middle, length, startIndex, comparisonResult;
@@ -2494,7 +2494,7 @@ void orderNodesOnSignatureCount(fiftyoneDegreesWorkset *ws) {
 	for (nodeIndex = 0; nodeIndex < ws->nodeCount; nodeIndex++) {
 		ws->orderedNodes[nodeIndex] = ws->nodes[nodeIndex];
 	}
-	qsort((void*)ws->orderedNodes, 
+	qsort((void*)ws->orderedNodes,
 		  (size_t)ws->nodeCount,
 		  sizeof(fiftyoneDegreesNode*),
 		  nodeSignatureCountCompare);
