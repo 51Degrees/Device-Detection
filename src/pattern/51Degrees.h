@@ -44,9 +44,6 @@
 /* Used to represent bytes */
 typedef unsigned char byte;
 
-/* Single byte boolean representation */
-typedef unsigned char fiftyoneDegreesBool;
-
 /* Used to return the match method */
 typedef enum e_fiftyoneDegrees_MatchMethod {
 	NONE,
@@ -158,11 +155,11 @@ typedef struct fiftyoneDegrees_profile_offset_t {
 typedef struct property_t {
 	const byte componentIndex; /* Index of the component */
 	const byte displayOrder; /* The order the property should be displayed in relative to other properties */
-	const fiftyoneDegreesBool isMandatory; /* True if the property is mandatory and must be provided */
-	const fiftyoneDegreesBool isList; /* True if the property is a list can can return multiple values */
-	const fiftyoneDegreesBool showValues; /* True if the values should be shown in GUIs */
-	const fiftyoneDegreesBool isObsolete; /* True if the property is obsolete and will be removed from future data sets */
-	const fiftyoneDegreesBool show; /* True if the property should be shown in GUIs */
+	const byte isMandatory; /* True if the property is mandatory and must be provided */
+	const byte isList; /* True if the property is a list can can return multiple values */
+	const byte showValues; /* True if the values should be shown in GUIs */
+	const byte isObsolete; /* True if the property is obsolete and will be removed from future data sets */
+	const byte show; /* True if the property should be shown in GUIs */
 	const byte valueType; /* The type of value the property represents */
 	const int32_t defaultValueIndex; /* The default value index for the property */
 	const int32_t nameOffset; /* The offset in the strings structure to the property name */
@@ -219,8 +216,8 @@ typedef struct fiftyoneDegrees_numeric_node_state {
 	int32_t startIndex;
 	int32_t lowIndex;
 	int32_t highIndex;
-	fiftyoneDegreesBool lowInRange;
-	fiftyoneDegreesBool highInRange;
+	byte lowInRange;
+	byte highInRange;
 } fiftyoneDegreesNumericNodeState;
 #pragma pack(pop)
 
@@ -332,7 +329,7 @@ typedef struct fiftyoneDegrees_resultset_t {
 	byte *targetUserAgentArray; /* An array of bytes representing the target user agent */
 	uint16_t targetUserAgentArrayLength; /* The length of the target user agent */
 	uint64_t targetUserAgentHashCode; /* The hash code of the target user agent */
-	fiftyoneDegreesBool hashCodeSet; /* 0 if the hash code has not been calculated */
+	byte hashCodeSet; /* 0 if the hash code has not been calculated */
 	fiftyoneDegreesMatchMethod method; /* The method used to provide the match result */
 	int32_t difference; /* The difference score between the signature found and the target */
 	int32_t rootNodesEvaluated; /* The number of root nodes evaluated */
@@ -404,7 +401,7 @@ typedef struct fiftyoneDegrees_workset_t {
 	byte *targetUserAgentArray; /* An array of bytes representing the target user agent */
 	uint16_t targetUserAgentArrayLength; /* The length of the target user agent */
 	uint64_t targetUserAgentHashCode; /* The hash code of the target user agent */
-	fiftyoneDegreesBool hashCodeSet; /* 0 if the hash code has not been calculated */
+	byte hashCodeSet; /* 0 if the hash code has not been calculated */
 	fiftyoneDegreesMatchMethod method; /* The method used to provide the match result */
 	int32_t difference; /* The difference score between the signature found and the target */
 	int32_t rootNodesEvaluated; /* The number of root nodes evaluated */
@@ -429,7 +426,7 @@ typedef struct fiftyoneDegrees_workset_t {
 	int32_t closestNodeRankedSignatureIndex; /* If a single node is returned the index of the ranked signature to be processed */
 	fiftyoneDegreesLinkedSignatureList linkedSignatureList; /* Linked list of signatures used by Closest match */
 	int16_t nextCharacterPositionIndex;
-	fiftyoneDegreesBool startWithInitialScore; /* True if the NEAREST and CLOSEST methods should start with an initial score */
+	byte startWithInitialScore; /* True if the NEAREST and CLOSEST methods should start with an initial score */
 	int(*functionPtrGetScore)(struct fiftyoneDegrees_workset_t *ws, const fiftyoneDegreesNode *node); /* Returns scores for each different node between signature and match */
 	const byte* (*functionPtrNextClosestSignature)(struct fiftyoneDegrees_workset_t *ws); /* Returns the next closest signature */
 	const fiftyoneDegreesResultsetCache *cache; /* Pointer to the cache, or NULL if not available. */
@@ -483,7 +480,8 @@ EXTERNAL fiftyoneDegreesDataSetInitStatus fiftyoneDegreesInitWithPropertyArray(c
 EXTERNAL fiftyoneDegreesDataSetInitStatus fiftyoneDegreesInitWithPropertyString(const char *fileName, fiftyoneDegreesDataSet *dataSet, char* properties);
 
 /**
- * Destroys the data set releasing all memory available.
+ * Destroys the data set releasing all memory available. Ensure all worksets
+ * cache and pool structs are freed prior to calling this method.
  * @param dataSet pointer to the data set being destroyed
  */
 EXTERNAL void fiftyoneDegreesDataSetFree(const fiftyoneDegreesDataSet *dataSet);
@@ -513,7 +511,8 @@ EXTERNAL void fiftyoneDegreesResultsetCacheFree(const fiftyoneDegreesResultsetCa
 EXTERNAL fiftyoneDegreesWorksetPool *fiftyoneDegreesWorksetPoolCreate(fiftyoneDegreesDataSet *dataSet, fiftyoneDegreesResultsetCache *cache, int32_t size);
 
 /**
- * Frees all worksets in the pool and releases all memory.
+ * Frees all worksets in the pool and releases all memory. Ensure all worksets
+ * have been released back to the pool before calling this method.
  * @param pool pointer to the pool created by fiftyoneDegreesWorksetPoolCreate
  */
 EXTERNAL void fiftyoneDegreesWorksetPoolFree(fiftyoneDegreesWorksetPool *pool);
@@ -625,6 +624,18 @@ EXTERNAL int32_t fiftyoneDegreesSetValues(fiftyoneDegreesWorkset *ws, int32_t re
 EXTERNAL const fiftyoneDegreesAsciiString* fiftyoneDegreesGetString(const fiftyoneDegreesDataSet *dataSet, int32_t offset);
 
 /**
+* Sets the values character array to the values of the required property
+* provided. If the values character array is too small then only the values
+* that can be fitted in are added.
+* @param ws pointer to a workset configured with the match results
+* @param requiredPropertyIndex index of the required property
+* @param values pointer to allocated memory to store the values
+* @param size the size of the values memory
+* @return the number of characters written to the values memory
+*/
+EXTERNAL int32_t fiftyoneDegreesGetValues(fiftyoneDegreesWorkset *ws, int32_t requiredPropertyIndex, char *values, int32_t size);
+
+/**
  * Returns the name of the value provided.
  * @param dataSet pointer to the data set containing the value
  * @param value pointer whose name is required
@@ -640,6 +651,25 @@ EXTERNAL const char* fiftyoneDegreesGetValueName(const fiftyoneDegreesDataSet *d
  */
 EXTERNAL const char* fiftyoneDegreesGetPropertyName(const fiftyoneDegreesDataSet *dataSet, const fiftyoneDegreesProperty *property);
 
+/**
+* Gets the required property name at the index provided.
+* @param dataset pointer to an initialised dataset
+* @param index of the property required
+* @param propertyName pointer to memory to place the property name
+* @param size of the memory allocated for the name
+* @return the number of bytes written for the property
+*/
+EXTERNAL int32_t fiftyoneDegreesGetRequiredPropertyName(const fiftyoneDegreesDataSet *dataSet, int requiredPropertyIndex, char *propertyName, int size);
+
+/**
+* Gets the required property index of the property provided, or -1 if the
+* property is not available in the dataset.
+* @param dataset pointer to an initialised dataset
+* @param propertyName pointer to the name of the property required
+* @return the index of the property, or -1 if the property does not exist
+*/
+EXTERNAL int32_t fiftyoneDegreesGetRequiredPropertyIndex(const fiftyoneDegreesDataSet *dataSet, char *propertyName);
+	
 /**
  * Process the workset results into a CSV string.
  * @param ws pointer to a workset with the results to return in CSV
