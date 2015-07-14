@@ -84,31 +84,37 @@ EXTERN_DLL_EXPORT void __cdecl WorksetPoolRelease(LP pool, LP ws)
 	fiftyoneDegreesWorksetPoolRelease((fiftyoneDegreesWorksetPool*)pool, (fiftyoneDegreesWorkset*)ws);
 }
 
-EXTERN_DLL_EXPORT int __cdecl GetCSVMaxLength(LP dataSet)
+EXTERN_DLL_EXPORT void __cdecl MatchFromUserAgent(LP workSet, LPCTSTR userAgent)
 {
-	return ((fiftyoneDegreesDataSet*)dataSet)->header.csvBufferLength;
+	fiftyoneDegreesMatch((fiftyoneDegreesWorkset*)workSet, (char*)userAgent);
 }
 
-EXTERN_DLL_EXPORT int __cdecl GetPropertiesCSV(LP workSet, LPCTSTR userAgent, LPTSTR csv)
+EXTERN_DLL_EXPORT void __cdecl MatchFromHeaders(LP workSet, LPTSTR httpHeaders)
 {
-	fiftyoneDegreesWorkset *ws = (fiftyoneDegreesWorkset*)workSet;
-
-	// Populate the workset with the results for the provided
-	// user agent.
-	fiftyoneDegreesMatch(ws, (char*)userAgent);
-
-	// Add the results in CSV form to the string provided.
-	return (int)fiftyoneDegreesProcessDeviceCSV(ws, (char*)csv);
+	fiftyoneDegreesMatchWithHeadersString((fiftyoneDegreesWorkset*)workSet, (char*)httpHeaders);
 }
 
-EXTERN_DLL_EXPORT int __cdecl GetPropertiesCSVFromHeaders(LP workSet, LPTSTR httpHeaders, LPTSTR csv)
+EXTERN_DLL_EXPORT int __cdecl GetRequiredPropertyName(LP dataSet, INT requiredPropertyIndex, LPTSTR propertyName, INT size)
 {
-	fiftyoneDegreesWorkset *ws = (fiftyoneDegreesWorkset*)workSet;
+	return fiftyoneDegreesGetRequiredPropertyName(
+		(fiftyoneDegreesDataSet*)dataSet,
+		requiredPropertyIndex,
+		(char*)propertyName,
+		size);
+}
 
-	// Populate the workset with the results for the provided
-	// HTTP headers.
-	fiftyoneDegreesMatchWithHeadersString(ws, (char*)httpHeaders);
+EXTERN_DLL_EXPORT int __cdecl GetRequiredPropertyIndex(LP dataSet, LPCTSTR propertyName) 
+{
+	return fiftyoneDegreesGetRequiredPropertyIndex(
+		(fiftyoneDegreesDataSet*)dataSet,
+		(char*)propertyName);
+}
 
-	// Add the results in CSV form to the string provided.
-	return (int)fiftyoneDegreesProcessDeviceCSV(ws, (char*)csv);
+EXTERN_DLL_EXPORT int __cdecl GetPropertyValues(LP workSet, INT requiredPropertyIndex, LPTSTR values, INT size)
+{
+	return fiftyoneDegreesGetValues(
+		(fiftyoneDegreesWorkset*)workSet,
+		requiredPropertyIndex,
+		(char*)values,
+		size);
 }
