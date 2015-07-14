@@ -23,9 +23,7 @@ using FiftyOne.Mobile.Detection.Provider.Interop;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using System;
 using System.Collections.Generic;
-using System.Diagnostics;
 using System.IO;
-using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 
@@ -181,6 +179,13 @@ namespace FiftyOne.UnitTests
             }
         }
 
+        /// <summary>
+        /// Returns gets all the property values and updates the check sum for
+        /// the values.
+        /// </summary>
+        /// <param name="results"></param>
+        /// <param name="match"></param>
+        /// <param name="state"></param>
         public static void GetAllProperties(Results results, IMatchResult match, object state)
         {
             int checkSum = 0;

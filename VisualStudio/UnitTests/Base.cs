@@ -20,29 +20,48 @@
  * ********************************************************************* */
 
 using FiftyOne.Mobile.Detection.Provider.Interop;
-using Microsoft.VisualStudio.TestTools.UnitTesting;
 using System;
 using System.Collections.Generic;
-using System.Threading.Tasks;
-using System.Linq;
 
 namespace FiftyOne.UnitTests
 {
+    /// <summary>
+    /// Base class for all unit tests.
+    /// </summary>
     public abstract class Base : IDisposable
     {
+        /// <summary>
+        /// The wrapper to use for the tests.
+        /// </summary>
         protected IWrapper _wrapper;
 
+        /// <summary>
+        /// Method used to create the wrapper when the constructor is called.
+        /// </summary>
+        /// <returns></returns>
         protected abstract IWrapper CreateWrapper();
 
+        /// <summary>
+        /// Location of the data file used to create the wrapper.
+        /// </summary>
         protected abstract string DataFile { get; }
 
+        /// <summary>
+        /// Enumeration of required properties from the test.
+        /// </summary>
         protected virtual IEnumerable<string> RequiredProperties { get { return _wrapper.AvailableProperties; } }
         
+        /// <summary>
+        /// Constructs a new instance of the wrapper.
+        /// </summary>
         public Base()
         {
             _wrapper = CreateWrapper();
         }
 
+        /// <summary>
+        /// Disposes of the wrapper ensuring unmanaged resources are released.
+        /// </summary>
         public virtual void Dispose()
         {
             if (_wrapper != null)

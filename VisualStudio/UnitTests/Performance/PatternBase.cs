@@ -20,14 +20,20 @@
  * ********************************************************************* */
 
 using System;
-using Microsoft.VisualStudio.TestTools.UnitTesting;
 using FiftyOne.Mobile.Detection.Provider.Interop;
-using System.Collections.Generic;
 
 namespace FiftyOne.UnitTests.Performance
 {
+    /// <summary>
+    /// Base class for all pattern performance tests.
+    /// </summary>
     public abstract class PatternBase : Base
     {
+        /// <summary>
+        /// Creates a new pattern wrapper recording the time taken
+        /// to construct the wrapper.
+        /// </summary>
+        /// <returns>A new pattern wrapper instance</returns>
         protected override IWrapper CreateWrapper()
         {
             var start = DateTime.UtcNow;

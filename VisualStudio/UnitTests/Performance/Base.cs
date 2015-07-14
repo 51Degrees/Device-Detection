@@ -19,12 +19,8 @@
  * defined by the Mozilla Public License, v. 2.0.
  * ********************************************************************* */
 
-using FiftyOne.Mobile.Detection.Provider.Interop;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using System;
-using System.Collections.Generic;
-using System.Threading.Tasks;
-using System.Linq;
 
 namespace FiftyOne.UnitTests.Performance
 {
@@ -35,8 +31,14 @@ namespace FiftyOne.UnitTests.Performance
         /// </summary>
         protected TimeSpan _testInitializeTime;
 
+        /// <summary>
+        /// Maximum amount of time to initialise the wrapper.
+        /// </summary>
         protected abstract int MaxInitializeTime { get; }
 
+        /// <summary>
+        /// Checks that the initialisation time was within tolerances.
+        /// </summary>
         protected virtual void InitializeTime()
         {
             Assert.IsTrue(_testInitializeTime.TotalMilliseconds < MaxInitializeTime,

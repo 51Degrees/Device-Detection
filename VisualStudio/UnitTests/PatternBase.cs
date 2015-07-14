@@ -19,10 +19,7 @@
  * defined by the Mozilla Public License, v. 2.0.
  * ********************************************************************* */
 
-using System;
-using Microsoft.VisualStudio.TestTools.UnitTesting;
 using FiftyOne.Mobile.Detection.Provider.Interop;
-using System.Collections.Generic;
 
 namespace FiftyOne.UnitTests
 {
