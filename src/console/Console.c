@@ -189,15 +189,17 @@ void run(fiftyoneDegreesDataSet *dataSet) {
 					strlen(httpHeaderValues[0]) + 2 +
 					strlen(httpHeaderValues[1]) + 1;
 				httpHeaders = (char*)malloc(httpHeadersSize);
-				snprintf(httpHeaders, httpHeadersSize,
-					"%s %s\r\n%s %s",
-					httpHeaderNames[0],
-					httpHeaderValues[0],
-					httpHeaderNames[1],
-					httpHeaderValues[1]);
-				ws = fiftyoneDegreesWorksetPoolGet(pool);
-				fiftyoneDegreesMatchWithHeadersString(ws, httpHeaders);
-				free((void*)httpHeaders);
+				if (httpHeaders != NULL) {
+					snprintf(httpHeaders, httpHeadersSize,
+						"%s %s\r\n%s %s",
+						httpHeaderNames[0],
+						httpHeaderValues[0],
+						httpHeaderNames[1],
+						httpHeaderValues[1]);
+					ws = fiftyoneDegreesWorksetPoolGet(pool);
+					fiftyoneDegreesMatchWithHeadersString(ws, httpHeaders);
+					free((void*)httpHeaders);
+				}
 				reportResults(ws);
 				fiftyoneDegreesWorksetPoolRelease(pool, ws);
 			}
