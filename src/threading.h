@@ -88,7 +88,7 @@ typedef struct fiftyoneDegrees_signal_t {
 * Frees the handle provided to the macro.
 */
 #ifdef _MSC_VER
-#define FIFTYONEDEGREES_SIGNAL_CLOSE(s) CloseHandle(s)
+#define FIFTYONEDEGREES_SIGNAL_CLOSE(s) if (s != NULL) { CloseHandle(s); }
 #else
 #define FIFTYONEDEGREES_SIGNAL_CLOSE(s) pthread_cond_destroy(&s.cond); FIFTYONEDEGREES_MUTEX_CLOSE(s.mutex);
 #endif
@@ -133,7 +133,7 @@ typedef struct fiftyoneDegrees_signal_t {
 * Frees the mutex at the pointer provided.
 */
 #ifdef _MSC_VER
-#define FIFTYONEDEGREES_MUTEX_CLOSE(m) CloseHandle(m)
+#define FIFTYONEDEGREES_MUTEX_CLOSE(m) if (m != NULL) { CloseHandle(m); }
 #else
 #define FIFTYONEDEGREES_MUTEX_CLOSE(m) pthread_mutex_destroy((pthread_mutex_t*)&m.mutex);
 #endif
