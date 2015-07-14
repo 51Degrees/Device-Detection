@@ -55,10 +55,10 @@ namespace Console_Interop
                         var line = reader.ReadLine();
                         while (line != null)
                         {
-                            var patternResults = pattern.GetProperties(line.Trim());
-                            var trieResults = trie.GetProperties(line.Trim());
-                            Output(patternResults);
-                            Output(trieResults);
+                            var patternResults = pattern.Match(line.Trim());
+                            // var trieResults = trie.Match(line.Trim());
+                            Output(pattern, patternResults);
+                            // Output(trie, trieResults);
                             line = reader.ReadLine();
                         }
                         Console.WriteLine("Elapsed Time -> {0} seconds", (DateTime.UtcNow - start).TotalSeconds);
@@ -68,7 +68,7 @@ namespace Console_Interop
             Console.ReadKey();
         }
 
-        private static void Output(SortedList<string, List<string>> results)
+        private static void Output(IWrapper wrapper, IMatchResult results)
         {
 #if DEBUG
             using (var writer = new StreamWriter(Console.OpenStandardOutput()))
@@ -77,11 +77,11 @@ namespace Console_Interop
             //using(var writer = new StreamWriter(Stream.Null))
 #endif
             {
-                foreach (var item in results)
+                foreach (var item in wrapper.AvailableProperties)
                 {
                     writer.WriteLine("{0} -> {1}",
-                        item.Key,
-                        String.Join(", ", item.Value));
+                        item,
+                        results[item]);
                 }
             }
         }
