@@ -29,7 +29,7 @@ namespace UnitTests.API.Enterprise
     public class Pattern : PatternBase
     {
         [TestMethod]
-        public void API_NullUserAgent()
+        public void PatternPatternAPI_NullUserAgent()
         {
             using (var result = _wrapper.Match((string)null))
             {
@@ -38,7 +38,7 @@ namespace UnitTests.API.Enterprise
         }
 
         [TestMethod]
-        public void API_EmptyUserAgent()
+        public void PatternPatternAPI_EmptyUserAgent()
         {
             using (var result = _wrapper.Match(String.Empty))
             {
@@ -47,7 +47,7 @@ namespace UnitTests.API.Enterprise
         }
 
         [TestMethod]
-        public void API_LongUserAgent()
+        public void PatternPatternAPI_LongUserAgent()
         {
             var userAgent = String.Join(" ", UserAgentGenerator.GetEnumerable(10, 10));
             using (var result = _wrapper.Match(userAgent))
