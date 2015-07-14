@@ -125,6 +125,11 @@ namespace FiftyOne.Mobile.Detection.Provider.Interop
         #endregion
 
         #region Public Methods
+        
+        public IList<string> AvailableProperties
+        {
+            get { throw new NotImplementedException(); }
+        }
 
         /// <summary>
         /// Returns the properties for the userAgent as a CSV string.
@@ -190,10 +195,5 @@ namespace FiftyOne.Mobile.Detection.Provider.Interop
         }
 
         #endregion
-
-        public IList<string> AvailableProperties
-        {
-            get { throw new NotImplementedException(); }
-        }
     }
 }
