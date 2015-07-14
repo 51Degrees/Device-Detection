@@ -164,12 +164,12 @@ namespace FiftyOne.Mobile.Detection.Provider.Interop
         /// </summary>
         /// <param name="userAgent">The useragent to search for.</param>
         /// <returns>A list of properties.</returns>
-        public SortedList<string, List<string>> GetProperties(string userAgent)
+        public IMatchResult Match(string userAgent)
         {
-            return Utils.GetProperties(GetPropertiesAsCSV(userAgent), 0, 1);
+            throw new NotImplementedException();
         }
 
-        public SortedList<string, List<string>> GetProperties(NameValueCollection headers)
+        public IMatchResult Match(NameValueCollection headers)
         {
             throw new NotImplementedException();
         }
@@ -190,5 +190,10 @@ namespace FiftyOne.Mobile.Detection.Provider.Interop
         }
 
         #endregion
+
+        public IList<string> AvailableProperties
+        {
+            get { throw new NotImplementedException(); }
+        }
     }
 }
