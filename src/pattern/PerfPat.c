@@ -95,55 +95,34 @@ void reportProgress(PERFORMANCE_STATE *state, int count) {
 // as input. If calibrate is true then the file is read but no detections
 // are performed.
 void runPerformanceTest(PERFORMANCE_STATE *state) {
-	char *input = NULL, *result = NULL;
+	char *input = (char*)malloc(state->pool->dataSet->header.maxUserAgentLength + 1);
+	char *result = NULL;
 	long valueCount;
 	FILE *inputFilePtr;
-	// long size = 0;
-	inputFilePtr = fopen(state->fileName, "r");
-	int i, v;
+	int i, v, count = 0;
 	fiftyoneDegreesWorkset *ws = NULL;
-	int count = 0;
 
+    // Open the file and check it's valid.
+    inputFilePtr = fopen(state->fileName, "r");
 	if (inputFilePtr == NULL) {
         printf("Failed to open file with null-terminating user agent strings to fiftyoneDegreesMatch against 51Degrees data file. \n");
         fclose(inputFilePtr);
         exit(0);
 	}
 
-    // Get the size of the file.
-	if (state->max == 0) {
-        fseek(inputFilePtr, 0, SEEK_END);
-        // size = ftell(inputFilePtr);
-        fseek(inputFilePtr, 0, SEEK_SET);
-    }
+    // Get the first entry from the file.
+    result = fgets(input, state->pool->dataSet->header.maxUserAgentLength, inputFilePtr);
 
-	if (state->calibrate == 1) {
-		input = (char*)malloc(state->pool->dataSet->header.maxUserAgentLength + 1);
-	}
+	while(result != NULL && !feof(inputFilePtr)) {
 
-	do {
-		// Get an available workset from the pool of worksets.
-		if (state->calibrate == 0) {
-			ws = fiftyoneDegreesWorksetPoolGet(state->pool);
-		}
-
-		// Get the next character from the input.
-		result = fgets(state->calibrate == 0 ? ws->input : input, state->pool->dataSet->header.maxUserAgentLength, inputFilePtr);
+        // Split the string at carriage returns.
 		strtok(result, "\n");
 
-		// Break for an empty string or end of file.
-		if (result == NULL && feof(inputFilePtr)) {
-			if (state->calibrate == 0) {
-				fiftyoneDegreesWorksetPoolRelease(state->pool, ws);
-			}
-			break;
-		}
-
-		// If we're not calibrating then get the device for the
-		// useragent that has just been read.
+		// If detection should be performed get the result and the property values.
 		if (state->calibrate == 0)
 		{
-			fiftyoneDegreesMatch(ws, ws->input);
+            ws = fiftyoneDegreesWorksetPoolGet(state->pool);
+			fiftyoneDegreesMatch(ws, input);
 			valueCount = 0;
 			for (i = 0; i < ws->dataSet->requiredPropertyCount; i++) {
 				fiftyoneDegreesSetValues(ws, i);
@@ -151,6 +130,7 @@ void runPerformanceTest(PERFORMANCE_STATE *state) {
 					valueCount += (long)(ws->values[v]->nameOffset);
 				}
 			}
+			fiftyoneDegreesWorksetPoolRelease(state->pool, ws);
 #ifndef FIFTYONEDEGREES_NO_THREADING
 			FIFTYONEDEGREES_MUTEX_LOCK(state->lock);
 #endif
@@ -168,16 +148,11 @@ void runPerformanceTest(PERFORMANCE_STATE *state) {
 			count = 0;
 		}
 
-		// Release the workset back to the pool.
-		if (state->calibrate == 0) {
-			fiftyoneDegreesWorksetPoolRelease(state->pool, ws);
-		}
+		// Get the next entry from the data file.
+		result = fgets(input, state->pool->dataSet->header.maxUserAgentLength, inputFilePtr);
+    }
 
-	} while(1);
-
-	if (state->calibrate == 1) {
-		free(input);
-	}
+    free(input);
 
 	reportProgress(state, count);
 	fclose(inputFilePtr);
@@ -353,14 +328,18 @@ int main(int argc, char* argv[]) {
             break;
 		default: {
 			cache = fiftyoneDegreesResultsetCacheCreate(&dataSet, cacheSize);
+            pool = fiftyoneDegreesWorksetPoolCreate(&dataSet, cache, THREAD_COUNT);
+            if (pool != NULL) {
+                printf("\n\nUseragents file is: %s\n", findFileNames(inputFileName));
+                if (pool->cache != NULL) {
+                    printf("Cache Size is: %d\n\n", pool->cache->total);
+                } else {
+                    printf("No Cache\n\n");
+                }
+                performance(inputFileName, pool);
+                fiftyoneDegreesWorksetPoolFree(pool);
+            }
 			if (cache != NULL) {
-				pool = fiftyoneDegreesWorksetPoolCreate(&dataSet, cache, THREAD_COUNT);
-				if (pool != NULL) {
-					printf("\n\nUseragents file is: %s\n", findFileNames(inputFileName));
-					printf("Cache Size is: %d\n\n", pool->cache->total);
-					performance(inputFileName, pool);
-					fiftyoneDegreesWorksetPoolFree(pool);
-				}
 				fiftyoneDegreesResultsetCacheFree(cache);
 			}
             fiftyoneDegreesDataSetFree(&dataSet);
