@@ -28,13 +28,18 @@ namespace FiftyOne.UnitTests.Performance
 {
     public abstract class PatternBase : Base
     {
-        [TestInitialize]
-        public void Initialise()
+        protected override IWrapper CreateWrapper()
         {
             var start = DateTime.UtcNow;
-            Utils.CheckFileExists(DataFile);
-            _wrapper = new PatternWrapper(DataFile, null, 5000);
-            _testInitializeTime = DateTime.UtcNow - start;
+            try
+            {
+                Utils.CheckFileExists(DataFile);
+                return new PatternWrapper(DataFile, String.Empty, 5000);
+            }
+            finally
+            {
+                _testInitializeTime = DateTime.UtcNow - start;
+            }
         }
     }
 }

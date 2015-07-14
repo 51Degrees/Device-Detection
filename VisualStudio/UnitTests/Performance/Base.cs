@@ -44,63 +44,87 @@ namespace FiftyOne.UnitTests.Performance
             Console.WriteLine("{0:0.00}ms", _testInitializeTime.TotalMilliseconds);
         }
 
-        protected Utils.Results BadUserAgentsMulti(int maxDetectionTime)
+        protected Utils.Results BadUserAgentsMulti(int guidanceTime)
         {
             var results = Utils.DetectLoopMultiThreaded(
                 _wrapper,
                 UserAgentGenerator.GetBadUserAgents(),
-                Utils.DoNothing,
-                maxDetectionTime);
+                Utils.GetAllProperties,
+                RequiredProperties);
+            Assert.IsTrue(results.AverageTime.TotalMilliseconds < guidanceTime,
+                String.Format("Average time of '{0:0.000}' ms exceeded guidance time of '{1}' ms",
+                    results.AverageTime.TotalMilliseconds,
+                    guidanceTime));
             return results;
         }
 
-        protected Utils.Results BadUserAgentsSingle(int maxDetectionTime)
+        protected Utils.Results BadUserAgentsSingle(int guidanceTime)
         {
             var results = Utils.DetectLoopSingleThreaded(
                 _wrapper,
                 UserAgentGenerator.GetBadUserAgents(),
-                Utils.DoNothing,
-                maxDetectionTime);
+                Utils.GetAllProperties,
+                RequiredProperties);
+            Assert.IsTrue(results.AverageTime.TotalMilliseconds < guidanceTime,
+                String.Format("Average time of '{0:0.000}' ms exceeded guidance time of '{1}' ms",
+                    results.AverageTime.TotalMilliseconds,
+                    guidanceTime));
             return results;
         }
 
-        protected Utils.Results RandomUserAgentsMulti(int maxDetectionTime)
+        protected Utils.Results RandomUserAgentsMulti(int guidanceTime)
         {
             var results = Utils.DetectLoopMultiThreaded(
                 _wrapper,
                 UserAgentGenerator.GetRandomUserAgents(),
-                Utils.DoNothing,
-                maxDetectionTime);
+                Utils.GetAllProperties,
+                RequiredProperties);
+            Assert.IsTrue(results.AverageTime.TotalMilliseconds < guidanceTime,
+                String.Format("Average time of '{0:0.000}' ms exceeded guidance time of '{1}' ms",
+                    results.AverageTime.TotalMilliseconds,
+                    guidanceTime));
             return results;
         }
 
-        protected Utils.Results RandomUserAgentsSingle(int maxDetectionTime)
+        protected Utils.Results RandomUserAgentsSingle(int guidanceTime)
         {
             var results = Utils.DetectLoopSingleThreaded(
                 _wrapper,
                 UserAgentGenerator.GetRandomUserAgents(),
-                Utils.DoNothing,
-                maxDetectionTime);
+                Utils.GetAllProperties,
+                RequiredProperties);
+            Assert.IsTrue(results.AverageTime.TotalMilliseconds < guidanceTime,
+                String.Format("Average time of '{0:0.000}' ms exceeded guidance time of '{1}' ms",
+                    results.AverageTime.TotalMilliseconds,
+                    guidanceTime));
             return results;
         }
 
-        protected Utils.Results UniqueUserAgentsMulti(int maxDetectionTime)
+        protected Utils.Results UniqueUserAgentsMulti(int guidanceTime)
         {
             var results = Utils.DetectLoopMultiThreaded(
                 _wrapper,
                 UserAgentGenerator.GetUniqueUserAgents(),
-                Utils.DoNothing,
-                maxDetectionTime);
+                Utils.GetAllProperties,
+                RequiredProperties);
+            Assert.IsTrue(results.AverageTime.TotalMilliseconds < guidanceTime,
+                String.Format("Average time of '{0:0.000}' ms exceeded guidance time of '{1}' ms",
+                    results.AverageTime.TotalMilliseconds,
+                    guidanceTime));
             return results;
         }
 
-        protected Utils.Results UniqueUserAgentsSingle(int maxDetectionTime)
+        protected Utils.Results UniqueUserAgentsSingle(int guidanceTime)
         {
             var results = Utils.DetectLoopSingleThreaded(
                 _wrapper,
                 UserAgentGenerator.GetUniqueUserAgents(),
-                Utils.DoNothing,
-                maxDetectionTime);
+                Utils.GetAllProperties,
+                RequiredProperties);
+            Assert.IsTrue(results.AverageTime.TotalMilliseconds < guidanceTime,
+                String.Format("Average time of '{0:0.000}' ms exceeded guidance time of '{1}' ms",
+                    results.AverageTime.TotalMilliseconds,
+                    guidanceTime));
             return results;
         }
     }
