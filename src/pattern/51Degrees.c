@@ -844,9 +844,13 @@ void fiftyoneDegreesDataSetFree(const fiftyoneDegreesDataSet *dataSet) {
 	free((void*)(dataSet->values));
 	free((void*)(dataSet->profiles));
 	free((void*)(dataSet->signatures));
+	free((void*)(dataSet->signatureNodeOffsets));
+	free((void*)(dataSet->nodeRankedSignatureIndexes));
+	free((void*)(dataSet->rankedSignatureIndexes));
 	free((void*)(dataSet->nodes));
 	free((void*)(dataSet->rootNodes));
 	free((void*)(dataSet->profileOffsets));
+	free((void*)(dataSet->httpHeaders));
 }
 
 /**
@@ -1192,7 +1196,6 @@ void fiftyoneDegreesWorksetPoolFree(fiftyoneDegreesWorksetPool *pool) {
 #endif
 	free((void*)pool);
 }
-
 
 /**
  * CACHE METHODS
