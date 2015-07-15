@@ -1634,17 +1634,18 @@ fiftyoneDegreesWorkset *fiftyoneDegreesWorksetCreate(const fiftyoneDegreesDataSe
  * @param pointer to the workset created previously
  */
 void fiftyoneDegreesWorksetFree(const fiftyoneDegreesWorkset *ws) {
+	free((void*)ws->input);
+	free((void*)ws->linkedSignatureList.items);
 	free((void*)ws->nodes);
 	free((void*)ws->orderedNodes);
 	free((void*)ws->relevantNodes);
 	free((void*)ws->closestNodes);
 	free((void*)ws->signatureAsString);
 	free((void*)ws->values);
-	free((void*)ws->targetUserAgentArray);
 	free((void*)ws->profiles);
 	free((void*)ws->tempProfiles);
+	free((void*)ws->targetUserAgentArray);
 	free((void*)ws->importantHeaders);
-	free((void*)ws->linkedSignatureList.items);
 	free((void*)ws);
 }
 
