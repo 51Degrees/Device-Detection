@@ -28,6 +28,11 @@ namespace FiftyOne.Mobile.Detection.Provider.Interop
     public interface IWrapper : IDisposable
     {
         /// <summary>
+        /// A list of the http headers that the wrapper can use for detection.
+        /// </summary>
+        IList<string> HttpHeaders { get; }
+
+        /// <summary>
         /// A list of the properties available from the wrapper.
         /// </summary>
         IList<string> AvailableProperties { get; }

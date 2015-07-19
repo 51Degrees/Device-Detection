@@ -47,6 +47,18 @@ namespace FiftyOne.UnitTests.Performance.Lite
             get { return Constants.LITE_PATTERN_V32; }
         }
 
+        [TestInitialize]
+        public void Initialise()
+        {
+            if (_wrapper == null) { _wrapper = CreateWrapper(); }
+        }
+
+        [TestCleanup]
+        public void CleanUp()
+        {
+            Dispose();
+        }
+
         [TestMethod]
         public void LiteV32Pattern_Performance_InitializeTimeOne()
         {
@@ -62,7 +74,7 @@ namespace FiftyOne.UnitTests.Performance.Lite
         [TestMethod]
         public void LiteV32Pattern_Performance_BadUserAgentsSingleOne()
         {
-            BadUserAgentsSingle(3);
+            BadUserAgentsSingle(1);
         }
 
         [TestMethod]

@@ -28,6 +28,18 @@ namespace UnitTests.API.Lite
     [TestClass]
     public class Pattern : PatternBase
     {
+        [TestInitialize]
+        public void Initialise()
+        {
+            if (_wrapper == null) { _wrapper = CreateWrapper(); }
+        }
+
+        [TestCleanup]
+        public void CleanUp()
+        {
+            Dispose();
+        }
+
         [TestMethod]
         public void LitePatternAPI_NullUserAgent()
         {

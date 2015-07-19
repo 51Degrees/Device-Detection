@@ -24,9 +24,9 @@
 
 #define EXTERN_DLL_EXPORT __declspec(dllexport)
 
-EXTERN_DLL_EXPORT void __cdecl Init(LPCTSTR fileName, LPCTSTR properties)
+EXTERN_DLL_EXPORT int __cdecl InitWithPropertyString(LPCTSTR fileName, LPCTSTR properties)
 {
-	fiftyoneDegreesInitWithPropertyString((char*)fileName, (char*)properties);
+	return fiftyoneDegreesInitWithPropertyString((char*)fileName, (char*)properties);
 }
 
 EXTERN_DLL_EXPORT void __cdecl Destroy()
@@ -34,7 +34,45 @@ EXTERN_DLL_EXPORT void __cdecl Destroy()
 	fiftyoneDegreesDestroy();
 }
 
-EXTERN_DLL_EXPORT int __cdecl GetPropertiesCSV(LPCTSTR userAgent, LPTSTR result, DWORD resultLength)
+EXTERN_DLL_EXPORT void __cdecl FreeMatchResult(LP offsets)
 {
-	return fiftyoneDegreesProcessDeviceCSV(fiftyoneDegreesGetDeviceOffset((char*)userAgent), (char*)result, resultLength);
+	free((void*)offsets);
+}
+
+EXTERN_DLL_EXPORT LP __cdecl MatchFromUserAgent(LPCTSTR userAgent)
+{
+	fiftyoneDegreesDeviceOffsets* offsets = (fiftyoneDegreesDeviceOffsets*)malloc(sizeof(fiftyoneDegreesDeviceOffsets));
+	offsets->size = 1;
+	offsets->firstOffset.deviceOffset = fiftyoneDegreesGetDeviceOffset((char*)userAgent);
+	return (LP)offsets;
+}
+
+EXTERN_DLL_EXPORT LP __cdecl MatchFromHeaders(LPTSTR httpHeaders)
+{
+	return (LP)fiftyoneDegreesGetDeviceOffsetsWithHeadersString((char*)httpHeaders);
+}
+
+EXTERN_DLL_EXPORT int __cdecl GetHttpHeaderName(INT httpHeaderIndex, LPTSTR httpHeader, INT size)
+{
+	return fiftyoneDegreesGetHttpHeaderName(
+		httpHeaderIndex,
+		(char*)httpHeader,
+		size);
+}
+
+EXTERN_DLL_EXPORT int __cdecl GetRequiredPropertyName(INT requiredPropertyIndex, LPTSTR propertyName, INT size)
+{
+	return fiftyoneDegreesGetRequiredPropertyName(
+		requiredPropertyIndex,
+		(char*)propertyName,
+		size);
+}
+
+EXTERN_DLL_EXPORT int __cdecl GetPropertyValues(LP deviceOffsets, INT requiredPropertyIndex, LPTSTR values, INT size)
+{
+	return fiftyoneDegreesGetValueFromOffsets(
+		(fiftyoneDegreesDeviceOffsets*)deviceOffsets,
+		requiredPropertyIndex,
+		(char*)values,
+		size);
 }

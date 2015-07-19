@@ -52,6 +52,8 @@ namespace FiftyOne.Mobile.Detection.Provider.Interop
 
             internal readonly SortedList<string, int> PropertyIndexes = new SortedList<string, int>();
 
+            internal readonly List<string> HttpHeaders = new List<string>();
+
             /// <summary>
             /// Construct the data set from the file provided.
             /// </summary>
@@ -96,6 +98,15 @@ namespace FiftyOne.Mobile.Detection.Provider.Interop
                     PropertyIndexes.Add(property.ToString(), propertyIndex);
                     propertyIndex++;
                 }
+
+                // Initialise the list of http header names.
+                var httpHeaderIndex = 0;
+                var httpHeader = new StringBuilder(256);
+                while (GetHttpHeaderName(DataSetPointer, httpHeaderIndex, httpHeader, httpHeader.Capacity) > 0)
+                {
+                    HttpHeaders.Add(httpHeader.ToString());
+                    httpHeaderIndex++;
+                }
             }
 
             ~Provider()
@@ -135,16 +146,6 @@ namespace FiftyOne.Mobile.Detection.Provider.Interop
                     DataSetFree(DataSetPointer);
                     DataSetPointer = IntPtr.Zero; 
                 }
-            }
-
-            internal int GetPropertyIndex(string propertyName)
-            {
-                int index;
-                if (PropertyIndexes.TryGetValue(propertyName, out index) == false)
-                {
-                    index = -1;
-                }
-                return index;
             }
         }
 
@@ -250,8 +251,8 @@ namespace FiftyOne.Mobile.Detection.Provider.Interop
             {
                 get
                 {
-                    var index = _provider.GetPropertyIndex(propertyName);
-                    if (index >= 0)
+                    int index;
+                    if (_provider.PropertyIndexes.TryGetValue(propertyName, out index))
                     {
                         // Get the number of characters written. If the result is negative
                         // then this indicates that the values string builder needs to be
@@ -308,12 +309,19 @@ namespace FiftyOne.Mobile.Detection.Provider.Interop
         private static extern void WorksetPoolRelease(IntPtr pool, IntPtr ws);
 
         [DllImport("FiftyOne.Mobile.Detection.Provider.Pattern.dll",
-            CallingConvention = CallingConvention.Cdecl)]
+            CallingConvention = CallingConvention.Cdecl,
+            CharSet = CharSet.Ansi)]
         private static extern int GetRequiredPropertyIndex(IntPtr dataSet, String propertyName);
 
         [DllImport("FiftyOne.Mobile.Detection.Provider.Pattern.dll",
-            CallingConvention = CallingConvention.Cdecl)]
+            CallingConvention = CallingConvention.Cdecl,
+            CharSet = CharSet.Ansi)]
         private static extern int GetRequiredPropertyName(IntPtr dataSet, int requiredPropertyIndex, StringBuilder propertyName, int size);
+
+        [DllImport("FiftyOne.Mobile.Detection.Provider.Pattern.dll",
+            CallingConvention = CallingConvention.Cdecl,
+            CharSet = CharSet.Ansi)]
+        private static extern int GetHttpHeaderName(IntPtr dataSet, int httpHeaderIndex, StringBuilder httpHeader, int size);
 
         [DllImport("FiftyOne.Mobile.Detection.Provider.Pattern.dll",
             CallingConvention = CallingConvention.Cdecl,
@@ -366,6 +374,14 @@ namespace FiftyOne.Mobile.Detection.Provider.Interop
         #endregion
 
         #region Public Methods
+
+        /// <summary>
+        /// A list of the http headers that the wrapper can use for detection.
+        /// </summary>
+        public IList<string> HttpHeaders
+        {
+            get { return _provider.HttpHeaders; }
+        }
 
         /// <summary>
         /// A list of properties available from the provider.

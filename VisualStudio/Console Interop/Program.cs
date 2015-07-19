@@ -36,13 +36,13 @@ namespace Console_Interop
         {
             // Initialise the pattern provider with a list of 4 properties.
             using (var pattern = new PatternWrapper(
-                new FileInfo("..\\..\\..\\..\\data\\51Degrees-LiteV3.2.dat").FullName,
+                new FileInfo("..\\..\\..\\..\\data\\51Degrees-LiteV3_2.dat").FullName,
                     new[] { "Id", "IsTablet", "IsMobile", "ScreenPixelsWidth", "ScreenPixelsHeight" }))
             {
 
                 // Initialise the trie provider with a data file and a list of 4 properties.
                 using (var trie = new TrieWrapper(
-                    new FileInfo("..\\..\\..\\..\\data\\51Degrees-LiteV3.2.trie").FullName,
+                    new FileInfo("..\\..\\..\\..\\data\\51Degrees-LiteV3_2.trie").FullName,
                     new[] { "Id", "IsTablet", "IsMobile", "ScreenPixelsWidth", "ScreenPixelsHeight" }))
                 {
 
@@ -55,10 +55,14 @@ namespace Console_Interop
                         var line = reader.ReadLine();
                         while (line != null)
                         {
-                            var patternResults = pattern.Match(line.Trim());
-                            // var trieResults = trie.Match(line.Trim());
-                            Output(pattern, patternResults);
-                            // Output(trie, trieResults);
+                            using (var patternResults = pattern.Match(line.Trim()))
+                            {
+                                Output(pattern, patternResults);
+                            }
+                            using (var trieResults = trie.Match(line.Trim()))
+                            {
+                                Output(trie, trieResults);
+                            }
                             line = reader.ReadLine();
                         }
                         Console.WriteLine("Elapsed Time -> {0} seconds", (DateTime.UtcNow - start).TotalSeconds);

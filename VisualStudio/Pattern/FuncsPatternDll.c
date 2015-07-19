@@ -94,6 +94,15 @@ EXTERN_DLL_EXPORT void __cdecl MatchFromHeaders(LP workSet, LPTSTR httpHeaders)
 	fiftyoneDegreesMatchWithHeadersString((fiftyoneDegreesWorkset*)workSet, (char*)httpHeaders);
 }
 
+EXTERN_DLL_EXPORT int __cdecl GetHttpHeaderName(LP dataSet, INT httpHeaderIndex, LPTSTR httpHeader, INT size)
+{
+	return fiftyoneDegreesGetHttpHeaderName(
+		(fiftyoneDegreesDataSet*)dataSet,
+		httpHeaderIndex,
+		(char*)httpHeader,
+		size);
+}
+
 EXTERN_DLL_EXPORT int __cdecl GetRequiredPropertyName(LP dataSet, INT requiredPropertyIndex, LPTSTR propertyName, INT size)
 {
 	return fiftyoneDegreesGetRequiredPropertyName(

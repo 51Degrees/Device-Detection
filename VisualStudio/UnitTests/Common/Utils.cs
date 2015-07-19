@@ -133,9 +133,7 @@ namespace FiftyOne.UnitTests
         internal static Results DetectLoopMultiThreaded(IWrapper provider, IEnumerable<string> userAgents, ProcessMatch method, object state)
         {
             var results = new Results();
-            Parallel.ForEach(userAgents, 
-                new ParallelOptions() { MaxDegreeOfParallelism = Environment.ProcessorCount * 10 },
-                line =>
+            Parallel.ForEach(userAgents, line =>
             {
                 try
                 {

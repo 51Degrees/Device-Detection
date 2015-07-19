@@ -52,14 +52,6 @@ namespace FiftyOne.UnitTests
         protected virtual IEnumerable<string> RequiredProperties { get { return _wrapper.AvailableProperties; } }
         
         /// <summary>
-        /// Constructs a new instance of the wrapper.
-        /// </summary>
-        public Base()
-        {
-            _wrapper = CreateWrapper();
-        }
-
-        /// <summary>
         /// Disposes of the wrapper ensuring unmanaged resources are released.
         /// </summary>
         public virtual void Dispose()

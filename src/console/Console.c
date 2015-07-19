@@ -241,5 +241,8 @@ int32_t main(int32_t argc, char* argv[]) {
         }
     }
 
+	// Wait for a character to be pressed.
+	fgetc(stdin);
+
     return 0;
 }

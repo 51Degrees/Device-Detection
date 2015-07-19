@@ -662,6 +662,16 @@ EXTERNAL const char* fiftyoneDegreesGetPropertyName(const fiftyoneDegreesDataSet
 EXTERNAL int32_t fiftyoneDegreesGetRequiredPropertyName(const fiftyoneDegreesDataSet *dataSet, int requiredPropertyIndex, char *propertyName, int size);
 
 /**
+* Gets the http header name at the index provided.
+* @param dataset pointer to an initialised dataset
+* @param index of the http header required
+* @param httpHeader pointer to memory to place the http header name
+* @param size of the memory allocated for the name
+* @return the number of bytes written for the http header
+*/
+EXTERNAL int32_t fiftyoneDegreesGetHttpHeaderName(const fiftyoneDegreesDataSet *dataSet, int httpHeaderIndex, char *httpHeader, int size);
+
+/**
 * Gets the required property index of the property provided, or -1 if the
 * property is not available in the dataset.
 * @param dataset pointer to an initialised dataset
