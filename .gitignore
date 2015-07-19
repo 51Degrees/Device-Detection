@@ -12,6 +12,7 @@
 *.depend
 *.lic
 *.pfk
+*.psess
 *Enterprise*
 *Premium*
 *.coverage
