@@ -36,6 +36,18 @@ namespace FiftyOne.UnitTests.Performance.Premium
             get { return Constants.PREMIUM_PATTERN_V32; }
         }
 
+        [TestInitialize]
+        public void Initialise()
+        {
+            if (_wrapper == null) { _wrapper = CreateWrapper(); }
+        }
+
+        [TestCleanup]
+        public void CleanUp()
+        {
+            Dispose();
+        }
+
         [TestMethod]
         public void PremiumV32Pattern_Performance_InitializeTimeAll()
         {
@@ -63,7 +75,7 @@ namespace FiftyOne.UnitTests.Performance.Premium
         [TestMethod]
         public void PremiumV32Pattern_Performance_UniqueUserAgentsSingleAll()
         {
-            UniqueUserAgentsSingle(2);
+            UniqueUserAgentsSingle(1);
         }
 
         [TestMethod]
@@ -75,7 +87,7 @@ namespace FiftyOne.UnitTests.Performance.Premium
         [TestMethod]
         public void PremiumV32Pattern_Performance_RandomUserAgentsSingleAll()
         {
-            RandomUserAgentsSingle(2);
+            RandomUserAgentsSingle(1);
         }
     }
 }

@@ -47,6 +47,18 @@ namespace FiftyOne.UnitTests.Performance.Enterprise
             get { return Constants.ENTERPRISE_PATTERN_V32; }
         }
 
+        [TestInitialize]
+        public void Initialise()
+        {
+            if (_wrapper == null) { _wrapper = CreateWrapper(); }
+        }
+
+        [TestCleanup]
+        public void CleanUp()
+        {
+            Dispose();
+        }
+
         [TestMethod]
         public void EnterpriseV32Pattern_Performance_InitializeTimeOne()
         {

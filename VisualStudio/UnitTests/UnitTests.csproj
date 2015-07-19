@@ -55,6 +55,10 @@
     <Compile Include="API\Premium\Pattern.cs" />
     <Compile Include="Base.cs" />
     <Compile Include="API\Lite\Pattern.cs" />
+    <Compile Include="HttpHeaders\Base.cs" />
+    <Compile Include="HttpHeaders\Combinations.cs" />
+    <Compile Include="HttpHeaders\Enterprise\V32TrieFile.cs" />
+    <Compile Include="HttpHeaders\Premium\V32TrieFile.cs" />
     <Compile Include="PatternBase.cs" />
     <Compile Include="Common\UserAgentGenerator.cs" />
     <Compile Include="Common\Utils.cs" />

@@ -27,6 +27,7 @@ using System.Runtime.InteropServices;
 using System.Threading;
 using System.IO;
 using System.Collections.Specialized;
+using System.Diagnostics;
 
 namespace FiftyOne.Mobile.Detection.Provider.Interop
 {
@@ -36,12 +37,110 @@ namespace FiftyOne.Mobile.Detection.Provider.Interop
     /// </summary>
     public class TrieWrapper : IWrapper
     {
+        #region Classes
+
+        public class MatchResult : IMatchResult
+        {
+            private readonly TrieWrapper _provider;
+
+            /// <summary>
+            /// Memory used to retrieve the values.
+            /// </summary>
+            private readonly StringBuilder Values = new StringBuilder();
+
+            /// <summary>
+            /// Pointer to memory used to determine the offsets.
+            /// </summary>
+            private IntPtr _deviceOffsets;
+
+            /// <summary>
+            /// Constructs a new instance of the match results for the user
+            /// agent provided.
+            /// </summary>
+            /// <param name="provider">Provider configured for device detection</param>
+            /// <param name="userAgent">User agent to be detected</param>
+            internal MatchResult(TrieWrapper provider, string userAgent)
+            {
+                _provider = provider;
+                _deviceOffsets = MatchFromUserAgent(userAgent);
+            }
+
+            /// <summary>
+            /// Constructs a new instance of the match result for the HTTP
+            /// headers provided.
+            /// </summary>
+            /// <param name="provider">Provider configured for device detection</param>
+            /// <param name="headers">HTTP headers of the request for detection</param>
+            internal MatchResult(TrieWrapper provider, NameValueCollection headers)
+            {
+                _provider = provider;
+                var httpHeaders = new StringBuilder();
+                for (int i = 0; i < headers.Count; i++)
+                {
+                    httpHeaders.AppendLine(String.Format("{0} {1}",
+                        headers.Keys[i],
+                        String.Concat(headers.GetValues(i))));
+                }
+                _deviceOffsets = MatchFromHeaders(httpHeaders);
+            }
+
+            ~MatchResult()
+            {
+                Disposing(false);
+            }
+
+            public void Dispose()
+            {
+                Disposing(true);
+                GC.SuppressFinalize(true);
+            }
+
+            protected virtual void Disposing(bool disposing)
+            {
+                if (_deviceOffsets != IntPtr.Zero)
+                {
+                    FreeMatchResult(_deviceOffsets);
+                    _deviceOffsets = IntPtr.Zero;
+                }
+            }
+
+            /// <summary>
+            /// Returns the values for the property provided.
+            /// </summary>
+            /// <param name="propertyName"></param>
+            /// <returns></returns>
+            public string this[string propertyName]
+            {
+                get
+                {
+                    int index;
+                    if (_provider.PropertyIndexes.TryGetValue(propertyName, out index))
+                    {
+                        // Get the number of characters written. If the result is negative
+                        // then this indicates that the values string builder needs to be
+                        // set to the positive value and the method recalled.
+                        var charactersWritten = GetPropertyValues(_deviceOffsets, index, Values, Values.Capacity);
+                        if (charactersWritten < 0)
+                        {
+                            Values.Capacity = Math.Abs(charactersWritten);
+                            charactersWritten = GetPropertyValues(_deviceOffsets, index, Values, Values.Capacity);
+                        }
+                        return Values.ToString();
+                    }
+                    return null;
+                }
+            }
+        }
+
+        #endregion
+
         #region DLL Imports
 
         [DllImport("FiftyOne.Mobile.Detection.Provider.Trie.dll", 
             CallingConvention = CallingConvention.Cdecl, 
-            CharSet = CharSet.Ansi)]
-        private static extern void Init(String fileName, String properties);
+            CharSet = CharSet.Ansi,
+            SetLastError = true)]
+        private static extern int InitWithPropertyString(String fileName, String properties);
 
         [DllImport("FiftyOne.Mobile.Detection.Provider.Trie.dll", 
             CallingConvention = CallingConvention.Cdecl)]
@@ -50,22 +149,37 @@ namespace FiftyOne.Mobile.Detection.Provider.Interop
         [DllImport("FiftyOne.Mobile.Detection.Provider.Trie.dll",
             CallingConvention = CallingConvention.Cdecl,
             CharSet = CharSet.Ansi)]
-        private static extern int GetPropertiesCSV(String userAgent, StringBuilder result, Int32 resultLength);
+        private static extern int GetRequiredPropertyIndex(String propertyName);
 
-        #endregion
+        [DllImport("FiftyOne.Mobile.Detection.Provider.Trie.dll",
+            CallingConvention = CallingConvention.Cdecl,
+            CharSet = CharSet.Ansi)]
+        private static extern int GetRequiredPropertyName(int requiredPropertyIndex, StringBuilder propertyName, int size);
 
-        #region Constants
+        [DllImport("FiftyOne.Mobile.Detection.Provider.Trie.dll",
+            CallingConvention = CallingConvention.Cdecl,
+            CharSet = CharSet.Ansi)]
+        private static extern int GetHttpHeaderName(int httpHeaderIndex, StringBuilder httpHeader, int size);
+        
+        [DllImport("FiftyOne.Mobile.Detection.Provider.Trie.dll",
+            CallingConvention = CallingConvention.Cdecl,
+            CharSet = CharSet.Ansi)]
+        private static extern IntPtr MatchFromUserAgent(String userAgent);
 
-        /// <summary>
-        /// The initial capacity of the buffer used to store the resulting
-        /// properties.
-        /// </summary>
-        private const int DEFAULT_CAPACITY = 8096;
+        [DllImport("FiftyOne.Mobile.Detection.Provider.Trie.dll",
+            CallingConvention = CallingConvention.Cdecl,
+            CharSet = CharSet.Ansi)]
+        private static extern IntPtr MatchFromHeaders(StringBuilder httpHeaders);
 
-        /// <summary>
-        /// The maximum size of the buffer. Anything more than this is too much.
-        /// </summary>
-        private const int MAX_CAPACITY = DEFAULT_CAPACITY * 10;
+        [DllImport("FiftyOne.Mobile.Detection.Provider.Trie.dll",
+            CallingConvention = CallingConvention.Cdecl,
+            CharSet = CharSet.Ansi)]
+        private static extern int GetPropertyValues(IntPtr deviceOffsets, int requiredPropertyIndex, StringBuilder values, int size);
+        
+        [DllImport("FiftyOne.Mobile.Detection.Provider.Trie.dll",
+            CallingConvention = CallingConvention.Cdecl,
+            CharSet = CharSet.Ansi)]
+        private static extern void FreeMatchResult(IntPtr deviceOffsets);
 
         #endregion
 
@@ -80,6 +194,11 @@ namespace FiftyOne.Mobile.Detection.Provider.Interop
         /// Used to lock initialise and destroy calls.
         /// </summary>
         private static object _lock = new Object();
+
+        /// <summary>
+        /// Collection of property names to indexes.
+        /// </summary>
+        internal readonly SortedList<string, int> PropertyIndexes = new SortedList<string, int>();
 
         #endregion
 
@@ -112,77 +231,64 @@ namespace FiftyOne.Mobile.Detection.Provider.Interop
                     var info = new FileInfo(fileName);
                     if (info.Exists == false)
                         throw new ArgumentException(String.Format("File '{0}' can not be found.", info.FullName), "fileName");
-                    Init(info.FullName, properties);
+                    var status = InitWithPropertyString(info.FullName, properties);
+                    if (status != 0)
+                    {
+                        throw new Exception(String.Format(
+                            "Status code '{0}' returned when creating wrapper from file '{1}'.",
+                            status,
+                            fileName));
+                    }
+
+                    // Initialise the list of property names and indexes.
+                    var propertyIndex = 0;
+                    var property = new StringBuilder(256);
+                    while (GetRequiredPropertyName(propertyIndex, property, property.Capacity) > 0)
+                    {
+                        PropertyIndexes.Add(property.ToString(), propertyIndex);
+                        propertyIndex++;
+                    }
+                    
+                    // Initialise the list of http header names.
+                    var httpHeaderIndex = 0;
+                    var httpHeader = new StringBuilder(256);
+                    while (GetHttpHeaderName(httpHeaderIndex, httpHeader, httpHeader.Capacity) > 0)
+                    {
+                        HttpHeaders.Add(httpHeader.ToString());
+                        httpHeaderIndex++;
+                    }
+
                     _instanceCount++;
                 }
                 else
                 {
-                    throw new Exception("Only one instance of the TrieWrapper can be initialised.");
+                    throw new Exception("Due to very high main memory requirements only one instance of the TrieWrapper can be initialised.");
                 }
             }
         }
 
-        #endregion
-
-        #region Public Methods
-        
-        public IList<string> AvailableProperties
-        {
-            get { throw new NotImplementedException(); }
-        }
-
         /// <summary>
-        /// Returns the properties for the userAgent as a CSV string.
+        /// Ensure the memory used by trie has been freed.
         /// </summary>
-        /// <param name="userAgent">The user agent of the device being searched for.</param>
-        /// <returns>A | seperated list of properties.</returns>
-        public StringBuilder GetPropertiesAsCSV(string userAgent)
+        ~TrieWrapper()
         {
-            int length = 0;
-            var result = new StringBuilder(DEFAULT_CAPACITY);
-            do
-            {
-                // Call the DLL to get a CSV string of properties.
-                length = GetPropertiesCSV(
-                    userAgent,
-                    result,
-                    result.Capacity);
-
-                // If the StringBuilder is too small then increase the size
-                // and try again.
-                if (length < 0)
-                {
-                    result.Capacity += DEFAULT_CAPACITY;
-                    // If the capacity is now so large something has gone
-                    // wrong exit the loop.
-                    if (result.Capacity > MAX_CAPACITY)
-                        break;
-                }
-            }
-            while (length < 0);
-
-            return result;
+            Disposing(false);
         }
 
         /// <summary>
-        /// Returns a list of properties and values for the userAgent provided.
-        /// </summary>
-        /// <param name="userAgent">The useragent to search for.</param>
-        /// <returns>A list of properties.</returns>
-        public IMatchResult Match(string userAgent)
-        {
-            throw new NotImplementedException();
-        }
-
-        public IMatchResult Match(NameValueCollection headers)
-        {
-            throw new NotImplementedException();
-        }
-
-        /// <summary>
-        /// Frees all the resource created in the DLL.
+        /// When disposed of correctly ensures all memory is freed.
         /// </summary>
         public void Dispose()
+        {
+            Disposing(true);
+            GC.SuppressFinalize(true);
+        }
+
+        /// <summary>
+        /// If the instance count is zero disposes of the memory.
+        /// </summary>
+        /// <param name="disposing"></param>
+        protected virtual void Disposing(bool disposing)
         {
             lock (_lock)
             {
@@ -192,6 +298,42 @@ namespace FiftyOne.Mobile.Detection.Provider.Interop
                     _instanceCount--;
                 }
             }
+        }
+        
+        #endregion
+
+        #region Public Methods
+
+        /// <summary>
+        /// A list of the http headers that the wrapper can use for detection.
+        /// </summary>
+        public IList<string> HttpHeaders
+        {
+            get { return _httpHeaders; }
+        }
+        private readonly List<string> _httpHeaders = new List<string>();
+
+        /// <summary>
+        /// A list of properties available from the provider.
+        /// </summary>
+        public IList<string> AvailableProperties
+        {
+            get { return PropertyIndexes.Keys; }
+        }
+
+        /// <summary>
+        /// Returns a list of properties and values for the userAgent provided.
+        /// </summary>
+        /// <param name="userAgent">The useragent to search for.</param>
+        /// <returns>A list of properties.</returns>
+        public IMatchResult Match(string userAgent)
+        {
+            return new MatchResult(this, userAgent);
+        }
+
+        public IMatchResult Match(NameValueCollection headers)
+        {
+            return new MatchResult(this, headers);
         }
 
         #endregion

@@ -47,6 +47,18 @@ namespace FiftyOne.UnitTests.Performance.Premium
             get { return Constants.PREMIUM_PATTERN_V32; }
         }
 
+        [TestInitialize]
+        public void Initialise()
+        {
+            if (_wrapper == null) { _wrapper = CreateWrapper(); }
+        }
+
+        [TestCleanup]
+        public void CleanUp()
+        {
+            Dispose();
+        }
+
         [TestMethod]
         public void PremiumV32Pattern_Performance_InitializeTimeOne()
         {

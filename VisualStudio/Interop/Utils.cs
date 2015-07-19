@@ -64,7 +64,6 @@ namespace FiftyOne.Mobile.Detection.Provider.Interop
             var properties = new SortedList<string, List<string>>();
             if (csv != null)
             {
-
                 string fieldName = null;
                 var iterator = GetCsvIterator(csv);
                 while (iterator.MoveNext())

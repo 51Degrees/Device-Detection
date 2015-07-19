@@ -406,6 +406,33 @@ int32_t getPropertyIndex(const fiftyoneDegreesDataSet *dataSet, const fiftyoneDe
 }
 
 /**
+* Gets the http header name at the index provided.
+* @param dataset pointer to an initialised dataset
+* @param index of the http header required
+* @param httpHeader pointer to memory to place the http header name
+* @param size of the memory allocated for the name
+* @return the number of bytes written for the http header
+*/
+int32_t fiftyoneDegreesGetHttpHeaderName(const fiftyoneDegreesDataSet *dataSet, int httpHeaderIndex, char *httpHeader, int size) {
+	const fiftyoneDegreesHttpHeader *uniqueHttpHeader;
+	const fiftyoneDegreesAsciiString *name;
+	int written = 0;
+	if (httpHeaderIndex >= 0 &&
+		httpHeaderIndex < dataSet->httpHeadersCount) {
+		uniqueHttpHeader = dataSet->httpHeaders + httpHeaderIndex;
+		name = fiftyoneDegreesGetString(dataSet, uniqueHttpHeader->headerNameOffset);
+		if (name->length <= size) {
+			memcpy(
+				httpHeader,
+				(char*)(&name->firstByte),
+				name->length);
+			written = name->length;
+		}
+	}
+	return written;
+}
+
+/**
 * Gets the required property name at the index provided.
 * @param dataset pointer to an initialised dataset
 * @param index of the property required

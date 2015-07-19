@@ -18,59 +18,44 @@
  * This Source Code Form is “Incompatible With Secondary Licenses”, as
  * defined by the Mozilla Public License, v. 2.0.
  * ********************************************************************* */
-
 using System;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
-using FiftyOne.UnitTests;
+using System.IO;
+using FiftyOne.Mobile.Detection.Provider.Interop;
 
-namespace UnitTests.API.Premium
+namespace FiftyOne.UnitTests.HttpHeaders.Enterprise
 {
     [TestClass]
-    public class Pattern : PatternBase
+    public class V32TrieFile : Combinations
     {
-        [TestInitialize]
-        public void Initialise()
-        {
-            if (_wrapper == null) { _wrapper = CreateWrapper(); }
-        }
-
-        [TestCleanup]
-        public void CleanUp()
-        {
-            Dispose();
-        }
-
-        [TestMethod]
-        public void EnterprisePatternAPI_NullUserAgent()
-        {
-            using (var result = _wrapper.Match((string)null))
-            {
-                Console.WriteLine(result.ToString());
-            }
-        }
-
-        [TestMethod]
-        public void EnterprisePatternAPI_EmptyUserAgent()
-        {
-            using (var result = _wrapper.Match(String.Empty))
-            {
-                Console.WriteLine(result.ToString());
-            }
-        }
-
-        [TestMethod]
-        public void EnterprisePatternAPI_LongUserAgent()
-        {
-            var userAgent = String.Join(" ", UserAgentGenerator.GetEnumerable(10, 10));
-            using (var result = _wrapper.Match(userAgent))
-            {
-                Console.WriteLine(result.ToString());
-            }
-        }
-
         protected override string DataFile
         {
-            get { return Constants.ENTERPRISE_PATTERN_V32; }
+            get { return Constants.ENTERPRISE_TRIE_V32; }
+        }
+
+        [TestInitialize()]
+        public void CreateDataSet()
+        {
+            Utils.CheckFileExists(DataFile);
+            _provider = new TrieWrapper(DataFile);
+        }
+
+        [TestMethod]
+        public void EnterpriseV32TrieFile_OperaMiniSamsung() 
+        {
+            base.OperaMini_Samsung();
+        }
+
+        [TestMethod]
+        public void EnterpriseV32TrieFile_OperaMini_HTC()
+        {
+            base.OperaMini_HTC();
+        }
+
+        [TestMethod]
+        public void EnterpriseV32TrieFile_OperaMini_iPhone()
+        {
+            base.OperaMini_iPhone();
         }
     }
 }

@@ -43,28 +43,28 @@ namespace Demo
         protected void Page_Init(object sender, EventArgs e)
         {
             // Get properties for the current useragent.
-            var patternProperties = _pattern.GetProperties(Request.UserAgent);
-            var trieProperties = _trie.GetProperties(Request.UserAgent);
+            var patternProperties = _pattern.Match(Request.UserAgent);
+            var trieProperties = _trie.Match(Request.UserAgent);
 
             // Output the properties from each provider.
             var builder = new StringBuilder();
             builder.Append("<table>");
             builder.Append("<tr><th></th><th>Pattern</th><th>Trie</th></tr>");
-            foreach (var property in patternProperties)
+            foreach (var property in _pattern.AvailableProperties)
             {
                 builder.Append("<tr>");
                 builder.Append(String.Format(
                     "<td><b>{0}</b></td>",
-                    property.Key));
+                    property));
                 builder.Append(String.Format(
                     "<td>{0}</td>",
-                    String.Join(",", property.Value)));
+                    patternProperties[property]));
 
                 // Add the tree property if one exists.
-                if (trieProperties.ContainsKey(property.Key))
+                if (trieProperties[property] != null)
                     builder.Append(String.Format(
                         "<td>{0}</td>",
-                        String.Join(",", trieProperties[property.Key])));
+                        trieProperties[property]));
                 else
                     builder.Append("<td></td>");
                 builder.Append("</tr>");

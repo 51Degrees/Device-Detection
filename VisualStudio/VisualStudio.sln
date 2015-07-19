@@ -47,6 +47,11 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "UnitTests", "UnitTests\Unit
 		{1B83A844-3FFC-4414-A101-AEE0008570DA} = {1B83A844-3FFC-4414-A101-AEE0008570DA}
 	EndProjectSection
 EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Solution Items", "Solution Items", "{1039C9C9-E5E2-4954-9B3B-7F175B2A0E4B}"
+	ProjectSection(SolutionItems) = preProject
+		Performance1.psess = Performance1.psess
+	EndProjectSection
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -273,5 +278,8 @@ Global
 		{1B83A844-3FFC-4414-A101-AEE0008570DA} = {007308AB-97D5-493C-B9BD-35EF116A4582}
 		{24E05475-3F1D-41F3-BA47-CA27FC0B945A} = {007308AB-97D5-493C-B9BD-35EF116A4582}
 		{B200CB07-FD50-44DE-A743-6DAC414C20A2} = {007308AB-97D5-493C-B9BD-35EF116A4582}
+	EndGlobalSection
+	GlobalSection(Performance) = preSolution
+		HasPerformanceSessions = true
 	EndGlobalSection
 EndGlobal

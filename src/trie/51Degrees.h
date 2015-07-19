@@ -41,12 +41,27 @@ typedef enum e_fiftyoneDegreesDataSetInitStatus {
 	DATA_SET_INIT_STATUS_NOT_SET
 } fiftyoneDegreesDataSetInitStatus;
 
+/* Relates a http header index to to a device offset */
+typedef struct fiftyoneDegrees_device_offset_t {
+	int httpHeaderOffset; /* Offset to the http header string */
+	int deviceOffset; /* Offset to the device */
+} fiftyoneDegreesDeviceOffset;
+
+/* Used to return results from a device detection operation */
+typedef struct fiftyoneDegrees_device_offsets_t {
+	int size; /* The number of records in the array */
+	fiftyoneDegreesDeviceOffset firstOffset; /* First item in the array of offsets */
+} fiftyoneDegreesDeviceOffsets;
+
 // Initialises the memory using the file and properies provided.
 EXTERNAL fiftyoneDegreesDataSetInitStatus fiftyoneDegreesInitWithPropertyArray(char* fileName, char** properties, int propertyCount);
 EXTERNAL fiftyoneDegreesDataSetInitStatus fiftyoneDegreesInitWithPropertyString(char *fileName, char *properties);
 
 // Returns the offset to a matching device based on the useragent provided.
 EXTERNAL int fiftyoneDegreesGetDeviceOffset(char *userAgent);
+
+// Returns the offsets to a matching devices based on the http headers provided.
+EXTERNAL fiftyoneDegreesDeviceOffsets* fiftyoneDegreesGetDeviceOffsetsWithHeadersString(char *httpHeaders);
 
 // Returns the index of the property requested, or -1 if not available.
 EXTERNAL int fiftyoneDegreesGetPropertyIndex(char *value);
@@ -58,10 +73,19 @@ EXTERNAL char* fiftyoneDegreesGetValue(int deviceOffset, int propertyIndex);
 EXTERNAL int fiftyoneDegreesGetRequiredPropertiesCount(void);
 
 // Returns the names of the properties loaded in the dataset.
-EXTERNAL char ** fiftyoneDegreesGetRequiredPropertiesNames(void);
+EXTERNAL char** fiftyoneDegreesGetRequiredPropertiesNames(void);
 
-// Fress the memory.
+// Frees the memory.
 EXTERNAL void fiftyoneDegreesDestroy(void);
+
+// Sets the http header string to the header name at the index provided.
+EXTERNAL int fiftyoneDegreesGetHttpHeaderName(int httpHeaderIndex, char* httpHeader, int size);
+
+// Sets the propertyname string to the property name at the index provided.
+EXTERNAL int fiftyoneDegreesGetRequiredPropertyName(int requiredPropertyIndex, char* propertyName, int size);
+
+// Sets the values string to the property values for the device offests and index provided.
+EXTERNAL int fiftyoneDegreesGetValueFromOffsets(fiftyoneDegreesDeviceOffsets* deviceOffsets, int requiredPropertyIndex, char* values, int size);
 
 // Converts the device offset to a CSV string returning the number of
 // characters used.
