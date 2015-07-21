@@ -27,18 +27,23 @@ using FiftyOne.Mobile.Detection.Provider.Interop;
 namespace FiftyOne.UnitTests.HttpHeaders.Premium
 {
     [TestClass]
-    public class V32TrieFile : Combinations
+    public class V32TrieFile : TrieBase
     {
         protected override string DataFile
         {
             get { return Constants.PREMIUM_TRIE_V32; }
         }
 
-        [TestInitialize()]
-        public void CreateDataSet()
+        [TestInitialize]
+        public void Initialise()
         {
-            Utils.CheckFileExists(DataFile);
-            _provider = new TrieWrapper(DataFile);
+            if (_wrapper == null) { _wrapper = CreateWrapper(); }
+        }
+
+        [TestCleanup]
+        public void CleanUp()
+        {
+            Dispose();
         }
 
         [TestMethod]
