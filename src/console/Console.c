@@ -95,7 +95,9 @@ void reportResults(fiftyoneDegreesWorkset *ws) {
 	int32_t propertyIndex, valueIndex, profileIndex;
 
 	printf("\r\n\t\t\t*** Detection Results ***\r\n");
-	print50Columns("Target User Agent:\t", ws->targetUserAgent, (int32_t)strlen(ws->targetUserAgent));
+	if (ws->targetUserAgent != NULL) {
+		print50Columns("Target User Agent:\t", ws->targetUserAgent, (int32_t)strlen(ws->targetUserAgent));
+	}
 	print50Columns("Relevant Sub Strings:\t", ws->relevantNodes, (int32_t)strlen(ws->relevantNodes));
 	print50Columns("Closest Sub Strings:\t", ws->closestNodes, (int32_t)strlen(ws->closestNodes));
 	printf("Difference:\t\t%d\r\n", ws->difference);
@@ -180,6 +182,11 @@ void run(fiftyoneDegreesDataSet *dataSet) {
 				httpHeaderValues[1] = TARGET_USER_AGENTS[RANDOM_INDEX(TARGET_USER_AGENTS_LENGTH - 2)];
 				ws = fiftyoneDegreesWorksetPoolGet(pool);
 				fiftyoneDegreesMatchWithHeadersArray(ws, httpHeaderNames, httpHeaderValues, 2);
+				printf("\r\n\t\t\t*** HTTP Headers Array ***\r\n");
+				print50Columns("Header 1 Name:\t\t", httpHeaderNames[0], strlen(httpHeaderNames[0]));
+				print50Columns("Header 1 Value:\t\t", httpHeaderValues[0], strlen(httpHeaderValues[0]));
+				print50Columns("Header 2 Name:\t\t", httpHeaderNames[1], strlen(httpHeaderNames[1]));
+				print50Columns("Header 2 Value:\t\t", httpHeaderValues[1], strlen(httpHeaderValues[1]));
 				reportResults(ws);
 				fiftyoneDegreesWorksetPoolRelease(pool, ws);
 
@@ -198,6 +205,8 @@ void run(fiftyoneDegreesDataSet *dataSet) {
 						httpHeaderValues[1]);
 					ws = fiftyoneDegreesWorksetPoolGet(pool);
 					fiftyoneDegreesMatchWithHeadersString(ws, httpHeaders);
+					printf("\r\n\t\t\t*** HTTP Headers String ***\r\n");
+					print50Columns("HTTP Headers:\t\t", httpHeaders, strlen(httpHeaders));
 					free((void*)httpHeaders);
 				}
 				reportResults(ws);
@@ -235,6 +244,9 @@ int32_t main(int32_t argc, char* argv[]) {
             case DATA_SET_INIT_STATUS_FILE_NOT_FOUND:
                 printf("Device data file '%s' not found.", argv[1]);
                 break;
+			case DATA_SET_INIT_STATUS_NOT_SET:
+				printf("Device data file '%s' could not be loaded.", argv[1]);
+				break;
             default:
                 run(&dataSet);
                 break;
