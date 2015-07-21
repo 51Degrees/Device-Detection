@@ -1025,7 +1025,7 @@ fiftyoneDegreesDataSetInitStatus fiftyoneDegreesInitWithPropertyArray(const char
 #else
 	/* If using Microsoft use the fopen_s method to avoid warning */
 	if (fopen_s(&inputFilePtr, fileName, "rb") != 0) {
-		return -1;
+		return DATA_SET_INIT_STATUS_FILE_NOT_FOUND;
 	}
 #endif
 
@@ -1786,27 +1786,42 @@ void resetCounters(fiftyoneDegreesWorkset *ws) {
  * @param userAgent char pointer to the user agent. Trimmed if longer than
  *        the maximum allowed for matching
  */
-void setTargetUserAgentArray(fiftyoneDegreesWorkset *ws, char* userAgent) {
+void setTargetUserAgentArray(fiftyoneDegreesWorkset *ws, char* userAgent, int userAgentLength) {
 	uint16_t index = 0;
 	ws->hashCodeSet = 0;
 
+	// If the user agent length is not positive then set it
+	// to the maximum length a user agent can be.
+	if (userAgentLength <= 0) {
+		userAgentLength = ws->dataSet->header.maxUserAgentLength;
+	}
+
+	// Copy the characters of the user agent provided into the
+	// target.
 	if (userAgent != NULL) {
-		// If the user agent is longer than the maximum then set to the max length
-		// otherwise use the length of the string.
-		ws->targetUserAgent = userAgent;
+		
 		while (userAgent[index] != 0 &&
-			userAgent[index] != '\r' &&
-			userAgent[index] != '\n' &&
-			index < ws->dataSet->header.maxUserAgentLength) {
-			ws->targetUserAgentArray[index] = userAgent[index];
+			index < userAgentLength) {
+			if (userAgent[index] != '\r' &&
+				userAgent[index] != '\n') {
+				// This is a valid character so add it to the target user agent
+				// array.
+				ws->targetUserAgentArray[index] = userAgent[index];
+			}
+			else {
+				// Not a valid character so use space instead. Will only happen
+				// when the user agent length is provided 
+				ws->targetUserAgentArray[index] = ' ';
+			}
 			index++;
 		}
 	}
-	else {
-		// Handle NULL useragents as empty strings to ensure down
-		// stream processing does fail.
-		ws->targetUserAgent = (char*)ws->targetUserAgentArray;
-	}
+
+	// Set the target user agent to the target user agent array in 
+	// order to deal with user agents that are not null terminated
+	// and the length is provided.
+	ws->targetUserAgent = (char*)ws->targetUserAgentArray;
+
 	// Set the last index position to null incase the target user agent
 	// is longer than the maximum user agent length. The routine to
 	// allocate the targetUserAgentArray adds an extra byte for this
@@ -2893,7 +2908,7 @@ void evaluateSignatures(fiftyoneDegreesWorkset *ws) {
  */
 void evaluate(fiftyoneDegreesWorkset *ws) {
 	const fiftyoneDegreesNode *node;
-	while (ws->nextCharacterPositionIndex > 0 &&
+	while (ws->nextCharacterPositionIndex >= 0 &&
 		ws->nodeCount < ws->dataSet->header.signatureNodesCount) {
 		ws->rootNodesEvaluated++;
 		node = getCompleteNode(ws, *(ws->dataSet->rootNodes + ws->nextCharacterPositionIndex));
@@ -3040,10 +3055,11 @@ fiftyoneDegreesResultset *fiftyoneDegreesAddToCache(fiftyoneDegreesWorkset *ws) 
 * @param ws pointer to a work set to be used for the match created via
 *        createWorkset function
 * @param userAgent pointer to the target user agent
+* @param userAgentLength of the user agent string
 */
-void internalMatch(fiftyoneDegreesWorkset *ws, char* userAgent) {
+void internalMatch(fiftyoneDegreesWorkset *ws, char* userAgent, int userAgentLength) {
 	fiftyoneDegreesResultset *rs = NULL;
-	setTargetUserAgentArray(ws, userAgent);
+	setTargetUserAgentArray(ws, userAgent, userAgentLength);
 	if (ws->targetUserAgentArrayLength >= ws->dataSet->header.minUserAgentLength) {
 		if (ws->cache != NULL) {
 
@@ -3127,7 +3143,7 @@ void internalMatch(fiftyoneDegreesWorkset *ws, char* userAgent) {
 */
 void fiftyoneDegreesMatch(fiftyoneDegreesWorkset *ws, char* userAgent) {
 	resetCounters(ws);
-	internalMatch(ws, userAgent);
+	internalMatch(ws, userAgent, 0);
 }
 
 /**
@@ -3145,7 +3161,9 @@ byte matchForHttpHeader(fiftyoneDegreesWorkset *ws, const fiftyoneDegreesCompone
 		httpHeaderOffset = getComponentHeaderOffset(component, httpHeaderIndex);
 		for (importantHeaderIndex = 0; importantHeaderIndex < ws->importantHeadersCount; importantHeaderIndex++) {
 			if (ws->importantHeaders[importantHeaderIndex].header->headerNameOffset == httpHeaderOffset) {
-				internalMatch(ws, ws->importantHeaders[importantHeaderIndex].headerValue);
+				internalMatch(ws, 
+					ws->importantHeaders[importantHeaderIndex].headerValue, 
+					ws->importantHeaders[importantHeaderIndex].headerValueLength);
 				return TRUE;
 			}
 		}
@@ -3195,6 +3213,7 @@ void matchForHttpHeaders(fiftyoneDegreesWorkset *ws) {
 		// Set the signature to NULL because there can be no signature when multi
 		// headers are used.
 		ws->signature = NULL;
+		ws->targetUserAgent = NULL;
 	}
 }
 
@@ -3218,6 +3237,7 @@ void fiftyoneDegreesMatchWithHeadersArray(fiftyoneDegreesWorkset *ws, char **htt
 			{
 				ws->importantHeaders[importantHeaderIndex].header = ws->dataSet->httpHeaders + dataSetHeaderIndex;
 				ws->importantHeaders[importantHeaderIndex].headerValue = httpHeaderValues[httpHeaderIndex];
+				ws->importantHeaders[importantHeaderIndex].headerValueLength = (int)strlen(httpHeaderValues[httpHeaderIndex]);
 				importantHeaderIndex++;
 				break;
 			}
@@ -3225,6 +3245,71 @@ void fiftyoneDegreesMatchWithHeadersArray(fiftyoneDegreesWorkset *ws, char **htt
 	}
 	ws->importantHeadersCount = importantHeaderIndex;
 	matchForHttpHeaders(ws);
+}
+
+/**
+ * Sets name to the start of the http header name and returns the length of the string.
+ * @param start of the string to be processed
+ * @param value to be set when returned
+ * @returns the number of characters in the value
+ */
+int setNextHttpHeaderName(char* start, char** name) {
+	int index = 0;
+	char *current = start, *lastChar = start;
+	while (*current != 0) {
+		if (*current == ' ') {
+			*name = lastChar;
+			return (int)(current - lastChar);
+		}
+		if (*current == '\r' ||
+			*current == '\n') {
+			lastChar = current + 1;
+		}
+		current++;
+	}
+	return 0;
+}
+
+/**
+ * Sets the value pointer to the start of the next HTTP header value and 
+ * returns the length.
+ * @param start of the string to be processed
+ * @param value to be set when returned
+ * @returns the number of characters in the value
+ */
+int setNextHttpHeaderValue(char* start, char** value) {
+	int index = 0;
+	char *current = start, *lastChar = start;
+	*value = start;
+	while (*current != 0) {
+		if (*current == '\r' ||
+			*current == '\n') {
+			*value = lastChar;
+			break;
+		}
+		current++;
+	}
+	return (int)(current - lastChar);
+}
+
+/**
+ * Return the index of the unique hader, or -1 if the header is not important.
+ * @param dataSet the header is being checked against
+ * @param httpHeaderName of the header being checked
+ * @param length of the header name
+ * @returns the index in the datasets headers of this header or -1 
+ */
+int getUniqueHttpHeaderIndex(const fiftyoneDegreesDataSet *dataSet, char* httpHeaderName, int length) {
+	int uniqueHeaderIndex;
+	const fiftyoneDegreesAsciiString *header;
+	for (uniqueHeaderIndex = 0; uniqueHeaderIndex < dataSet->httpHeadersCount; uniqueHeaderIndex++) {
+		header = fiftyoneDegreesGetString(dataSet, (dataSet->httpHeaders + uniqueHeaderIndex)->headerNameOffset);
+		if (header->length - 1 == length &&
+			memcmp(&(header->firstByte), httpHeaderName, length) == 0) {
+			return uniqueHeaderIndex;
+		}
+	}
+	return -1;
 }
 
 /**
@@ -3236,58 +3321,22 @@ void fiftyoneDegreesMatchWithHeadersArray(fiftyoneDegreesWorkset *ws, char **htt
 * @param httpHeaders is a list of HTTP headers and values on each line
 */
 void fiftyoneDegreesMatchWithHeadersString(fiftyoneDegreesWorkset *ws, char *httpHeaders) {
-	char *current = httpHeaders, *lastEnd = httpHeaders;
-	int dataSetHeaderIndex, importantHeaderIndex = 0;
-    uint32_t size;
-	byte isName = TRUE, isValue = FALSE;
-	while (*current != 0 &&
-		importantHeaderIndex < ws->dataSet->httpHeadersCount) {
-		if (isName == TRUE && *current == ' ') {
-			// This could be an HTTP header we're interested in. Check against
-			// the data set headers to see if it is.
-			for (dataSetHeaderIndex = 0; dataSetHeaderIndex < ws->dataSet->httpHeadersCount; dataSetHeaderIndex++) {
-				size = current - lastEnd;
-				if (strlen(ws->dataSet->httpHeaders[dataSetHeaderIndex].headerName) == size &&
-					memcmp(ws->dataSet->httpHeaders[dataSetHeaderIndex].headerName, lastEnd, size) == 0) {
-					// This is the end of the name. Add it to the current index.
-					ws->importantHeaders[importantHeaderIndex].header = ws->dataSet->httpHeaders + dataSetHeaderIndex;
-					lastEnd = current + 1;
-					isValue = TRUE;
-					isName = FALSE;
-				}
-			}
-			current++;
+	char *headerName, *headerValue;
+	int headerNameLength, headerValueLength, uniqueHeaderIndex = 0;
+	ws->importantHeadersCount = 0;
+	headerNameLength = setNextHttpHeaderName(httpHeaders, &headerName);
+	while (headerNameLength > 0 &&
+		ws->importantHeadersCount < ws->dataSet->httpHeadersCount) {
+		headerValueLength = setNextHttpHeaderValue(headerName + headerNameLength + 1, &headerValue);
+		uniqueHeaderIndex = getUniqueHttpHeaderIndex(ws->dataSet, headerName, headerNameLength);
+		if (uniqueHeaderIndex >= 0) {
+			ws->importantHeaders[ws->importantHeadersCount].header = ws->dataSet->httpHeaders + uniqueHeaderIndex;
+			ws->importantHeaders[ws->importantHeadersCount].headerValue = headerValue;
+			ws->importantHeaders[ws->importantHeadersCount].headerValueLength = headerValueLength;
+			ws->importantHeadersCount++;
 		}
-		else if (*current == '\r' || *current == '\n') {
-			if (isValue == TRUE) {
-				// End of line so record the header value and move to the next
-				// important header index.
-				ws->importantHeaders[importantHeaderIndex].headerValue = lastEnd;
-				importantHeaderIndex++;
-				isValue = FALSE;
-				isName = TRUE;
-			}
-			// Move to the next character which should be the start of a http
-			// header name.
-			current++;
-			while (*current == '\r' || *current == '\n') {
-				current++;
-			}
-			lastEnd = current;
-		}
-		else {
-			current++;
-		}
+		headerNameLength = setNextHttpHeaderName(headerValue + headerValueLength, &headerName);
 	}
-
-	if (isValue == TRUE) {
-		// If the HTTP headers are the end of the string then capture
-		// the last value.
-		ws->importantHeaders[importantHeaderIndex].headerValue = lastEnd;
-		importantHeaderIndex++;
-	}
-
-	ws->importantHeadersCount = importantHeaderIndex;
 	matchForHttpHeaders(ws);
 }
 
