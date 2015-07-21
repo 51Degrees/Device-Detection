@@ -392,6 +392,7 @@ struct fiftyoneDegrees_resultset_cache_t {
 typedef struct fiftyoneDegrees_http_header_workset_t {
 	fiftyoneDegreesHttpHeader *header; /* Pointer to information about the header name and offset */
 	char *headerValue; /* Pointer to the header value */
+	int headerValueLength; /* The length of the header value */
 } fiftyoneDegreesHttpHeaderWorkset;
 #pragma pack(pop)
 
