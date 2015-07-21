@@ -1589,7 +1589,7 @@ SWIGEXPORT void SWIG_init (CV *cv, CPerlObj *);
 #endif
 
  
-#include "pattern/51Degrees.h"
+#include "../../../src/pattern/51Degrees.h"
 #ifdef __cplusplus
 #define EXTERNAL extern "C"
 #else
@@ -3330,7 +3330,7 @@ XS(_wrap_fiftyoneDegreesNode_signatureCount_get) {
     void *argp1 = 0 ;
     int res1 = 0 ;
     int argvi = 0;
-    int16_t result;
+    uint16_t result;
     dXSARGS;
     
     if ((items < 1) || (items > 1)) {
@@ -3341,8 +3341,8 @@ XS(_wrap_fiftyoneDegreesNode_signatureCount_get) {
       SWIG_exception_fail(SWIG_ArgError(res1), "in method '" "fiftyoneDegreesNode_signatureCount_get" "', argument " "1"" of type '" "struct fiftyoneDegrees_node_t *""'"); 
     }
     arg1 = (struct fiftyoneDegrees_node_t *)(argp1);
-    result = (int16_t) ((arg1)->signatureCount);
-    ST(argvi) = SWIG_NewPointerObj((int16_t *)memcpy((int16_t *)malloc(sizeof(int16_t)),&result,sizeof(int16_t)), SWIGTYPE_p_int16_t, SWIG_POINTER_OWN | 0); argvi++ ;
+    result = (uint16_t) ((arg1)->signatureCount);
+    ST(argvi) = SWIG_NewPointerObj((uint16_t *)memcpy((uint16_t *)malloc(sizeof(uint16_t)),&result,sizeof(uint16_t)), SWIGTYPE_p_uint16_t, SWIG_POINTER_OWN | 0); argvi++ ;
     
     XSRETURN(argvi);
   fail:
@@ -3560,7 +3560,7 @@ XS(_wrap_fiftyoneDegreesProperty_isMandatory_get) {
     void *argp1 = 0 ;
     int res1 = 0 ;
     int argvi = 0;
-    fiftyoneDegreesBool result;
+    byte result;
     dXSARGS;
     
     if ((items < 1) || (items > 1)) {
@@ -3571,7 +3571,7 @@ XS(_wrap_fiftyoneDegreesProperty_isMandatory_get) {
       SWIG_exception_fail(SWIG_ArgError(res1), "in method '" "fiftyoneDegreesProperty_isMandatory_get" "', argument " "1"" of type '" "struct property_t *""'"); 
     }
     arg1 = (struct property_t *)(argp1);
-    result = (fiftyoneDegreesBool)(fiftyoneDegreesBool) ((arg1)->isMandatory);
+    result = (byte)(byte) ((arg1)->isMandatory);
     ST(argvi) = SWIG_From_unsigned_SS_char  SWIG_PERL_CALL_ARGS_1((unsigned char)(result)); argvi++ ;
     
     XSRETURN(argvi);
@@ -3588,7 +3588,7 @@ XS(_wrap_fiftyoneDegreesProperty_isList_get) {
     void *argp1 = 0 ;
     int res1 = 0 ;
     int argvi = 0;
-    fiftyoneDegreesBool result;
+    byte result;
     dXSARGS;
     
     if ((items < 1) || (items > 1)) {
@@ -3599,7 +3599,7 @@ XS(_wrap_fiftyoneDegreesProperty_isList_get) {
       SWIG_exception_fail(SWIG_ArgError(res1), "in method '" "fiftyoneDegreesProperty_isList_get" "', argument " "1"" of type '" "struct property_t *""'"); 
     }
     arg1 = (struct property_t *)(argp1);
-    result = (fiftyoneDegreesBool)(fiftyoneDegreesBool) ((arg1)->isList);
+    result = (byte)(byte) ((arg1)->isList);
     ST(argvi) = SWIG_From_unsigned_SS_char  SWIG_PERL_CALL_ARGS_1((unsigned char)(result)); argvi++ ;
     
     XSRETURN(argvi);
@@ -3616,7 +3616,7 @@ XS(_wrap_fiftyoneDegreesProperty_showValues_get) {
     void *argp1 = 0 ;
     int res1 = 0 ;
     int argvi = 0;
-    fiftyoneDegreesBool result;
+    byte result;
     dXSARGS;
     
     if ((items < 1) || (items > 1)) {
@@ -3627,7 +3627,7 @@ XS(_wrap_fiftyoneDegreesProperty_showValues_get) {
       SWIG_exception_fail(SWIG_ArgError(res1), "in method '" "fiftyoneDegreesProperty_showValues_get" "', argument " "1"" of type '" "struct property_t *""'"); 
     }
     arg1 = (struct property_t *)(argp1);
-    result = (fiftyoneDegreesBool)(fiftyoneDegreesBool) ((arg1)->showValues);
+    result = (byte)(byte) ((arg1)->showValues);
     ST(argvi) = SWIG_From_unsigned_SS_char  SWIG_PERL_CALL_ARGS_1((unsigned char)(result)); argvi++ ;
     
     XSRETURN(argvi);
@@ -3644,7 +3644,7 @@ XS(_wrap_fiftyoneDegreesProperty_isObsolete_get) {
     void *argp1 = 0 ;
     int res1 = 0 ;
     int argvi = 0;
-    fiftyoneDegreesBool result;
+    byte result;
     dXSARGS;
     
     if ((items < 1) || (items > 1)) {
@@ -3655,7 +3655,7 @@ XS(_wrap_fiftyoneDegreesProperty_isObsolete_get) {
       SWIG_exception_fail(SWIG_ArgError(res1), "in method '" "fiftyoneDegreesProperty_isObsolete_get" "', argument " "1"" of type '" "struct property_t *""'"); 
     }
     arg1 = (struct property_t *)(argp1);
-    result = (fiftyoneDegreesBool)(fiftyoneDegreesBool) ((arg1)->isObsolete);
+    result = (byte)(byte) ((arg1)->isObsolete);
     ST(argvi) = SWIG_From_unsigned_SS_char  SWIG_PERL_CALL_ARGS_1((unsigned char)(result)); argvi++ ;
     
     XSRETURN(argvi);
@@ -3672,7 +3672,7 @@ XS(_wrap_fiftyoneDegreesProperty_show_get) {
     void *argp1 = 0 ;
     int res1 = 0 ;
     int argvi = 0;
-    fiftyoneDegreesBool result;
+    byte result;
     dXSARGS;
     
     if ((items < 1) || (items > 1)) {
@@ -3683,7 +3683,7 @@ XS(_wrap_fiftyoneDegreesProperty_show_get) {
       SWIG_exception_fail(SWIG_ArgError(res1), "in method '" "fiftyoneDegreesProperty_show_get" "', argument " "1"" of type '" "struct property_t *""'"); 
     }
     arg1 = (struct property_t *)(argp1);
-    result = (fiftyoneDegreesBool)(fiftyoneDegreesBool) ((arg1)->show);
+    result = (byte)(byte) ((arg1)->show);
     ST(argvi) = SWIG_From_unsigned_SS_char  SWIG_PERL_CALL_ARGS_1((unsigned char)(result)); argvi++ ;
     
     XSRETURN(argvi);
@@ -5065,7 +5065,7 @@ XS(_wrap_fiftyoneDegreesNumericNodeState_highIndex_get) {
 XS(_wrap_fiftyoneDegreesNumericNodeState_lowInRange_set) {
   {
     struct fiftyoneDegrees_numeric_node_state *arg1 = (struct fiftyoneDegrees_numeric_node_state *) 0 ;
-    fiftyoneDegreesBool arg2 ;
+    byte arg2 ;
     void *argp1 = 0 ;
     int res1 = 0 ;
     unsigned char val2 ;
@@ -5083,9 +5083,9 @@ XS(_wrap_fiftyoneDegreesNumericNodeState_lowInRange_set) {
     arg1 = (struct fiftyoneDegrees_numeric_node_state *)(argp1);
     ecode2 = SWIG_AsVal_unsigned_SS_char SWIG_PERL_CALL_ARGS_2(ST(1), &val2);
     if (!SWIG_IsOK(ecode2)) {
-      SWIG_exception_fail(SWIG_ArgError(ecode2), "in method '" "fiftyoneDegreesNumericNodeState_lowInRange_set" "', argument " "2"" of type '" "fiftyoneDegreesBool""'");
+      SWIG_exception_fail(SWIG_ArgError(ecode2), "in method '" "fiftyoneDegreesNumericNodeState_lowInRange_set" "', argument " "2"" of type '" "byte""'");
     } 
-    arg2 = (fiftyoneDegreesBool)(val2);
+    arg2 = (byte)(val2);
     if (arg1) (arg1)->lowInRange = arg2;
     ST(argvi) = sv_newmortal();
     
@@ -5105,7 +5105,7 @@ XS(_wrap_fiftyoneDegreesNumericNodeState_lowInRange_get) {
     void *argp1 = 0 ;
     int res1 = 0 ;
     int argvi = 0;
-    fiftyoneDegreesBool result;
+    byte result;
     dXSARGS;
     
     if ((items < 1) || (items > 1)) {
@@ -5116,7 +5116,7 @@ XS(_wrap_fiftyoneDegreesNumericNodeState_lowInRange_get) {
       SWIG_exception_fail(SWIG_ArgError(res1), "in method '" "fiftyoneDegreesNumericNodeState_lowInRange_get" "', argument " "1"" of type '" "struct fiftyoneDegrees_numeric_node_state *""'"); 
     }
     arg1 = (struct fiftyoneDegrees_numeric_node_state *)(argp1);
-    result = (fiftyoneDegreesBool) ((arg1)->lowInRange);
+    result = (byte) ((arg1)->lowInRange);
     ST(argvi) = SWIG_From_unsigned_SS_char  SWIG_PERL_CALL_ARGS_1((unsigned char)(result)); argvi++ ;
     
     XSRETURN(argvi);
@@ -5130,7 +5130,7 @@ XS(_wrap_fiftyoneDegreesNumericNodeState_lowInRange_get) {
 XS(_wrap_fiftyoneDegreesNumericNodeState_highInRange_set) {
   {
     struct fiftyoneDegrees_numeric_node_state *arg1 = (struct fiftyoneDegrees_numeric_node_state *) 0 ;
-    fiftyoneDegreesBool arg2 ;
+    byte arg2 ;
     void *argp1 = 0 ;
     int res1 = 0 ;
     unsigned char val2 ;
@@ -5148,9 +5148,9 @@ XS(_wrap_fiftyoneDegreesNumericNodeState_highInRange_set) {
     arg1 = (struct fiftyoneDegrees_numeric_node_state *)(argp1);
     ecode2 = SWIG_AsVal_unsigned_SS_char SWIG_PERL_CALL_ARGS_2(ST(1), &val2);
     if (!SWIG_IsOK(ecode2)) {
-      SWIG_exception_fail(SWIG_ArgError(ecode2), "in method '" "fiftyoneDegreesNumericNodeState_highInRange_set" "', argument " "2"" of type '" "fiftyoneDegreesBool""'");
+      SWIG_exception_fail(SWIG_ArgError(ecode2), "in method '" "fiftyoneDegreesNumericNodeState_highInRange_set" "', argument " "2"" of type '" "byte""'");
     } 
-    arg2 = (fiftyoneDegreesBool)(val2);
+    arg2 = (byte)(val2);
     if (arg1) (arg1)->highInRange = arg2;
     ST(argvi) = sv_newmortal();
     
@@ -5170,7 +5170,7 @@ XS(_wrap_fiftyoneDegreesNumericNodeState_highInRange_get) {
     void *argp1 = 0 ;
     int res1 = 0 ;
     int argvi = 0;
-    fiftyoneDegreesBool result;
+    byte result;
     dXSARGS;
     
     if ((items < 1) || (items > 1)) {
@@ -5181,7 +5181,7 @@ XS(_wrap_fiftyoneDegreesNumericNodeState_highInRange_get) {
       SWIG_exception_fail(SWIG_ArgError(res1), "in method '" "fiftyoneDegreesNumericNodeState_highInRange_get" "', argument " "1"" of type '" "struct fiftyoneDegrees_numeric_node_state *""'"); 
     }
     arg1 = (struct fiftyoneDegrees_numeric_node_state *)(argp1);
-    result = (fiftyoneDegreesBool) ((arg1)->highInRange);
+    result = (byte) ((arg1)->highInRange);
     ST(argvi) = SWIG_From_unsigned_SS_char  SWIG_PERL_CALL_ARGS_1((unsigned char)(result)); argvi++ ;
     
     XSRETURN(argvi);
@@ -9092,7 +9092,7 @@ XS(_wrap_fiftyoneDegreesResultset_targetUserAgentHashCode_get) {
 XS(_wrap_fiftyoneDegreesResultset_hashCodeSet_set) {
   {
     struct fiftyoneDegrees_resultset_t *arg1 = (struct fiftyoneDegrees_resultset_t *) 0 ;
-    fiftyoneDegreesBool arg2 ;
+    byte arg2 ;
     void *argp1 = 0 ;
     int res1 = 0 ;
     unsigned char val2 ;
@@ -9110,9 +9110,9 @@ XS(_wrap_fiftyoneDegreesResultset_hashCodeSet_set) {
     arg1 = (struct fiftyoneDegrees_resultset_t *)(argp1);
     ecode2 = SWIG_AsVal_unsigned_SS_char SWIG_PERL_CALL_ARGS_2(ST(1), &val2);
     if (!SWIG_IsOK(ecode2)) {
-      SWIG_exception_fail(SWIG_ArgError(ecode2), "in method '" "fiftyoneDegreesResultset_hashCodeSet_set" "', argument " "2"" of type '" "fiftyoneDegreesBool""'");
+      SWIG_exception_fail(SWIG_ArgError(ecode2), "in method '" "fiftyoneDegreesResultset_hashCodeSet_set" "', argument " "2"" of type '" "byte""'");
     } 
-    arg2 = (fiftyoneDegreesBool)(val2);
+    arg2 = (byte)(val2);
     if (arg1) (arg1)->hashCodeSet = arg2;
     ST(argvi) = sv_newmortal();
     
@@ -9132,7 +9132,7 @@ XS(_wrap_fiftyoneDegreesResultset_hashCodeSet_get) {
     void *argp1 = 0 ;
     int res1 = 0 ;
     int argvi = 0;
-    fiftyoneDegreesBool result;
+    byte result;
     dXSARGS;
     
     if ((items < 1) || (items > 1)) {
@@ -9143,7 +9143,7 @@ XS(_wrap_fiftyoneDegreesResultset_hashCodeSet_get) {
       SWIG_exception_fail(SWIG_ArgError(res1), "in method '" "fiftyoneDegreesResultset_hashCodeSet_get" "', argument " "1"" of type '" "struct fiftyoneDegrees_resultset_t *""'"); 
     }
     arg1 = (struct fiftyoneDegrees_resultset_t *)(argp1);
-    result = (fiftyoneDegreesBool) ((arg1)->hashCodeSet);
+    result = (byte) ((arg1)->hashCodeSet);
     ST(argvi) = SWIG_From_unsigned_SS_char  SWIG_PERL_CALL_ARGS_1((unsigned char)(result)); argvi++ ;
     
     XSRETURN(argvi);
@@ -12069,7 +12069,7 @@ XS(_wrap_fiftyoneDegreesWorkset_targetUserAgentHashCode_get) {
 XS(_wrap_fiftyoneDegreesWorkset_hashCodeSet_set) {
   {
     struct fiftyoneDegrees_workset_t *arg1 = (struct fiftyoneDegrees_workset_t *) 0 ;
-    fiftyoneDegreesBool arg2 ;
+    byte arg2 ;
     void *argp1 = 0 ;
     int res1 = 0 ;
     unsigned char val2 ;
@@ -12087,9 +12087,9 @@ XS(_wrap_fiftyoneDegreesWorkset_hashCodeSet_set) {
     arg1 = (struct fiftyoneDegrees_workset_t *)(argp1);
     ecode2 = SWIG_AsVal_unsigned_SS_char SWIG_PERL_CALL_ARGS_2(ST(1), &val2);
     if (!SWIG_IsOK(ecode2)) {
-      SWIG_exception_fail(SWIG_ArgError(ecode2), "in method '" "fiftyoneDegreesWorkset_hashCodeSet_set" "', argument " "2"" of type '" "fiftyoneDegreesBool""'");
+      SWIG_exception_fail(SWIG_ArgError(ecode2), "in method '" "fiftyoneDegreesWorkset_hashCodeSet_set" "', argument " "2"" of type '" "byte""'");
     } 
-    arg2 = (fiftyoneDegreesBool)(val2);
+    arg2 = (byte)(val2);
     if (arg1) (arg1)->hashCodeSet = arg2;
     ST(argvi) = sv_newmortal();
     
@@ -12109,7 +12109,7 @@ XS(_wrap_fiftyoneDegreesWorkset_hashCodeSet_get) {
     void *argp1 = 0 ;
     int res1 = 0 ;
     int argvi = 0;
-    fiftyoneDegreesBool result;
+    byte result;
     dXSARGS;
     
     if ((items < 1) || (items > 1)) {
@@ -12120,7 +12120,7 @@ XS(_wrap_fiftyoneDegreesWorkset_hashCodeSet_get) {
       SWIG_exception_fail(SWIG_ArgError(res1), "in method '" "fiftyoneDegreesWorkset_hashCodeSet_get" "', argument " "1"" of type '" "struct fiftyoneDegrees_workset_t *""'"); 
     }
     arg1 = (struct fiftyoneDegrees_workset_t *)(argp1);
-    result = (fiftyoneDegreesBool) ((arg1)->hashCodeSet);
+    result = (byte) ((arg1)->hashCodeSet);
     ST(argvi) = SWIG_From_unsigned_SS_char  SWIG_PERL_CALL_ARGS_1((unsigned char)(result)); argvi++ ;
     
     XSRETURN(argvi);
@@ -13777,7 +13777,7 @@ XS(_wrap_fiftyoneDegreesWorkset_nextCharacterPositionIndex_get) {
 XS(_wrap_fiftyoneDegreesWorkset_startWithInitialScore_set) {
   {
     struct fiftyoneDegrees_workset_t *arg1 = (struct fiftyoneDegrees_workset_t *) 0 ;
-    fiftyoneDegreesBool arg2 ;
+    byte arg2 ;
     void *argp1 = 0 ;
     int res1 = 0 ;
     unsigned char val2 ;
@@ -13795,9 +13795,9 @@ XS(_wrap_fiftyoneDegreesWorkset_startWithInitialScore_set) {
     arg1 = (struct fiftyoneDegrees_workset_t *)(argp1);
     ecode2 = SWIG_AsVal_unsigned_SS_char SWIG_PERL_CALL_ARGS_2(ST(1), &val2);
     if (!SWIG_IsOK(ecode2)) {
-      SWIG_exception_fail(SWIG_ArgError(ecode2), "in method '" "fiftyoneDegreesWorkset_startWithInitialScore_set" "', argument " "2"" of type '" "fiftyoneDegreesBool""'");
+      SWIG_exception_fail(SWIG_ArgError(ecode2), "in method '" "fiftyoneDegreesWorkset_startWithInitialScore_set" "', argument " "2"" of type '" "byte""'");
     } 
-    arg2 = (fiftyoneDegreesBool)(val2);
+    arg2 = (byte)(val2);
     if (arg1) (arg1)->startWithInitialScore = arg2;
     ST(argvi) = sv_newmortal();
     
@@ -13817,7 +13817,7 @@ XS(_wrap_fiftyoneDegreesWorkset_startWithInitialScore_get) {
     void *argp1 = 0 ;
     int res1 = 0 ;
     int argvi = 0;
-    fiftyoneDegreesBool result;
+    byte result;
     dXSARGS;
     
     if ((items < 1) || (items > 1)) {
@@ -13828,7 +13828,7 @@ XS(_wrap_fiftyoneDegreesWorkset_startWithInitialScore_get) {
       SWIG_exception_fail(SWIG_ArgError(res1), "in method '" "fiftyoneDegreesWorkset_startWithInitialScore_get" "', argument " "1"" of type '" "struct fiftyoneDegrees_workset_t *""'"); 
     }
     arg1 = (struct fiftyoneDegrees_workset_t *)(argp1);
-    result = (fiftyoneDegreesBool) ((arg1)->startWithInitialScore);
+    result = (byte) ((arg1)->startWithInitialScore);
     ST(argvi) = SWIG_From_unsigned_SS_char  SWIG_PERL_CALL_ARGS_1((unsigned char)(result)); argvi++ ;
     
     XSRETURN(argvi);
@@ -15423,7 +15423,7 @@ XS(_wrap_fiftyoneDegreesMatch) {
 }
 
 
-XS(_wrap_fiftyoneDegreesMatchWithHeaders) {
+XS(_wrap_fiftyoneDegreesMatchWithHeadersArray) {
   {
     fiftyoneDegreesWorkset *arg1 = (fiftyoneDegreesWorkset *) 0 ;
     char **arg2 = (char **) 0 ;
@@ -15441,29 +15441,29 @@ XS(_wrap_fiftyoneDegreesMatchWithHeaders) {
     dXSARGS;
     
     if ((items < 4) || (items > 4)) {
-      SWIG_croak("Usage: fiftyoneDegreesMatchWithHeaders(ws,httpHeaderNames,httpHeaderValues,httpHeaderCount);");
+      SWIG_croak("Usage: fiftyoneDegreesMatchWithHeadersArray(ws,httpHeaderNames,httpHeaderValues,httpHeaderCount);");
     }
     res1 = SWIG_ConvertPtr(ST(0), &argp1,SWIGTYPE_p_fiftyoneDegrees_workset_t, 0 |  0 );
     if (!SWIG_IsOK(res1)) {
-      SWIG_exception_fail(SWIG_ArgError(res1), "in method '" "fiftyoneDegreesMatchWithHeaders" "', argument " "1"" of type '" "fiftyoneDegreesWorkset *""'"); 
+      SWIG_exception_fail(SWIG_ArgError(res1), "in method '" "fiftyoneDegreesMatchWithHeadersArray" "', argument " "1"" of type '" "fiftyoneDegreesWorkset *""'"); 
     }
     arg1 = (fiftyoneDegreesWorkset *)(argp1);
     res2 = SWIG_ConvertPtr(ST(1), &argp2,SWIGTYPE_p_p_char, 0 |  0 );
     if (!SWIG_IsOK(res2)) {
-      SWIG_exception_fail(SWIG_ArgError(res2), "in method '" "fiftyoneDegreesMatchWithHeaders" "', argument " "2"" of type '" "char **""'"); 
+      SWIG_exception_fail(SWIG_ArgError(res2), "in method '" "fiftyoneDegreesMatchWithHeadersArray" "', argument " "2"" of type '" "char **""'"); 
     }
     arg2 = (char **)(argp2);
     res3 = SWIG_ConvertPtr(ST(2), &argp3,SWIGTYPE_p_p_char, 0 |  0 );
     if (!SWIG_IsOK(res3)) {
-      SWIG_exception_fail(SWIG_ArgError(res3), "in method '" "fiftyoneDegreesMatchWithHeaders" "', argument " "3"" of type '" "char **""'"); 
+      SWIG_exception_fail(SWIG_ArgError(res3), "in method '" "fiftyoneDegreesMatchWithHeadersArray" "', argument " "3"" of type '" "char **""'"); 
     }
     arg3 = (char **)(argp3);
     ecode4 = SWIG_AsVal_int SWIG_PERL_CALL_ARGS_2(ST(3), &val4);
     if (!SWIG_IsOK(ecode4)) {
-      SWIG_exception_fail(SWIG_ArgError(ecode4), "in method '" "fiftyoneDegreesMatchWithHeaders" "', argument " "4"" of type '" "int""'");
+      SWIG_exception_fail(SWIG_ArgError(ecode4), "in method '" "fiftyoneDegreesMatchWithHeadersArray" "', argument " "4"" of type '" "int""'");
     } 
     arg4 = (int)(val4);
-    fiftyoneDegreesMatchWithHeaders(arg1,arg2,arg3,arg4);
+    fiftyoneDegreesMatchWithHeadersArray(arg1,arg2,arg3,arg4);
     ST(argvi) = sv_newmortal();
     
     
@@ -15475,6 +15475,44 @@ XS(_wrap_fiftyoneDegreesMatchWithHeaders) {
     
     
     
+    SWIG_croak_null();
+  }
+}
+
+
+XS(_wrap_fiftyoneDegreesMatchWithHeadersString) {
+  {
+    fiftyoneDegreesWorkset *arg1 = (fiftyoneDegreesWorkset *) 0 ;
+    char *arg2 = (char *) 0 ;
+    void *argp1 = 0 ;
+    int res1 = 0 ;
+    int res2 ;
+    char *buf2 = 0 ;
+    int alloc2 = 0 ;
+    int argvi = 0;
+    dXSARGS;
+    
+    if ((items < 2) || (items > 2)) {
+      SWIG_croak("Usage: fiftyoneDegreesMatchWithHeadersString(ws,httpHeaders);");
+    }
+    res1 = SWIG_ConvertPtr(ST(0), &argp1,SWIGTYPE_p_fiftyoneDegrees_workset_t, 0 |  0 );
+    if (!SWIG_IsOK(res1)) {
+      SWIG_exception_fail(SWIG_ArgError(res1), "in method '" "fiftyoneDegreesMatchWithHeadersString" "', argument " "1"" of type '" "fiftyoneDegreesWorkset *""'"); 
+    }
+    arg1 = (fiftyoneDegreesWorkset *)(argp1);
+    res2 = SWIG_AsCharPtrAndSize(ST(1), &buf2, NULL, &alloc2);
+    if (!SWIG_IsOK(res2)) {
+      SWIG_exception_fail(SWIG_ArgError(res2), "in method '" "fiftyoneDegreesMatchWithHeadersString" "', argument " "2"" of type '" "char *""'");
+    }
+    arg2 = (char *)(buf2);
+    fiftyoneDegreesMatchWithHeadersString(arg1,arg2);
+    ST(argvi) = sv_newmortal();
+    
+    if (alloc2 == SWIG_NEWOBJ) free((char*)buf2);
+    XSRETURN(argvi);
+  fail:
+    
+    if (alloc2 == SWIG_NEWOBJ) free((char*)buf2);
     SWIG_croak_null();
   }
 }
@@ -15564,6 +15602,73 @@ XS(_wrap_fiftyoneDegreesGetString) {
 }
 
 
+XS(_wrap_fiftyoneDegreesGetValues) {
+  {
+    fiftyoneDegreesWorkset *arg1 = (fiftyoneDegreesWorkset *) 0 ;
+    int32_t arg2 ;
+    char *arg3 = (char *) 0 ;
+    int32_t arg4 ;
+    void *argp1 = 0 ;
+    int res1 = 0 ;
+    void *argp2 ;
+    int res2 = 0 ;
+    int res3 ;
+    char *buf3 = 0 ;
+    int alloc3 = 0 ;
+    void *argp4 ;
+    int res4 = 0 ;
+    int argvi = 0;
+    int32_t result;
+    dXSARGS;
+    
+    if ((items < 4) || (items > 4)) {
+      SWIG_croak("Usage: fiftyoneDegreesGetValues(ws,requiredPropertyIndex,values,size);");
+    }
+    res1 = SWIG_ConvertPtr(ST(0), &argp1,SWIGTYPE_p_fiftyoneDegrees_workset_t, 0 |  0 );
+    if (!SWIG_IsOK(res1)) {
+      SWIG_exception_fail(SWIG_ArgError(res1), "in method '" "fiftyoneDegreesGetValues" "', argument " "1"" of type '" "fiftyoneDegreesWorkset *""'"); 
+    }
+    arg1 = (fiftyoneDegreesWorkset *)(argp1);
+    {
+      res2 = SWIG_ConvertPtr(ST(1), &argp2, SWIGTYPE_p_int32_t,  0 );
+      if (!SWIG_IsOK(res2)) {
+        SWIG_exception_fail(SWIG_ArgError(res2), "in method '" "fiftyoneDegreesGetValues" "', argument " "2"" of type '" "int32_t""'"); 
+      }  
+      if (!argp2) {
+        SWIG_exception_fail(SWIG_ValueError, "invalid null reference " "in method '" "fiftyoneDegreesGetValues" "', argument " "2"" of type '" "int32_t""'");
+      } else {
+        arg2 = *((int32_t *)(argp2));
+      }
+    }
+    res3 = SWIG_AsCharPtrAndSize(ST(2), &buf3, NULL, &alloc3);
+    if (!SWIG_IsOK(res3)) {
+      SWIG_exception_fail(SWIG_ArgError(res3), "in method '" "fiftyoneDegreesGetValues" "', argument " "3"" of type '" "char *""'");
+    }
+    arg3 = (char *)(buf3);
+    {
+      res4 = SWIG_ConvertPtr(ST(3), &argp4, SWIGTYPE_p_int32_t,  0 );
+      if (!SWIG_IsOK(res4)) {
+        SWIG_exception_fail(SWIG_ArgError(res4), "in method '" "fiftyoneDegreesGetValues" "', argument " "4"" of type '" "int32_t""'"); 
+      }  
+      if (!argp4) {
+        SWIG_exception_fail(SWIG_ValueError, "invalid null reference " "in method '" "fiftyoneDegreesGetValues" "', argument " "4"" of type '" "int32_t""'");
+      } else {
+        arg4 = *((int32_t *)(argp4));
+      }
+    }
+    result = fiftyoneDegreesGetValues(arg1,arg2,arg3,arg4);
+    ST(argvi) = SWIG_NewPointerObj((int32_t *)memcpy((int32_t *)malloc(sizeof(int32_t)),&result,sizeof(int32_t)), SWIGTYPE_p_int32_t, SWIG_POINTER_OWN | 0); argvi++ ;
+    
+    if (alloc3 == SWIG_NEWOBJ) free((char*)buf3);
+    XSRETURN(argvi);
+  fail:
+    
+    if (alloc3 == SWIG_NEWOBJ) free((char*)buf3);
+    SWIG_croak_null();
+  }
+}
+
+
 XS(_wrap_fiftyoneDegreesGetValueName) {
   {
     fiftyoneDegreesDataSet *arg1 = (fiftyoneDegreesDataSet *) 0 ;
@@ -15635,6 +15740,104 @@ XS(_wrap_fiftyoneDegreesGetPropertyName) {
   fail:
     
     
+    SWIG_croak_null();
+  }
+}
+
+
+XS(_wrap_fiftyoneDegreesGetRequiredPropertyName) {
+  {
+    fiftyoneDegreesDataSet *arg1 = (fiftyoneDegreesDataSet *) 0 ;
+    int arg2 ;
+    char *arg3 = (char *) 0 ;
+    int arg4 ;
+    void *argp1 = 0 ;
+    int res1 = 0 ;
+    int val2 ;
+    int ecode2 = 0 ;
+    int res3 ;
+    char *buf3 = 0 ;
+    int alloc3 = 0 ;
+    int val4 ;
+    int ecode4 = 0 ;
+    int argvi = 0;
+    int32_t result;
+    dXSARGS;
+    
+    if ((items < 4) || (items > 4)) {
+      SWIG_croak("Usage: fiftyoneDegreesGetRequiredPropertyName(dataSet,requiredPropertyIndex,propertyName,size);");
+    }
+    res1 = SWIG_ConvertPtr(ST(0), &argp1,SWIGTYPE_p_fiftyoneDegrees_dataset_t, 0 |  0 );
+    if (!SWIG_IsOK(res1)) {
+      SWIG_exception_fail(SWIG_ArgError(res1), "in method '" "fiftyoneDegreesGetRequiredPropertyName" "', argument " "1"" of type '" "fiftyoneDegreesDataSet const *""'"); 
+    }
+    arg1 = (fiftyoneDegreesDataSet *)(argp1);
+    ecode2 = SWIG_AsVal_int SWIG_PERL_CALL_ARGS_2(ST(1), &val2);
+    if (!SWIG_IsOK(ecode2)) {
+      SWIG_exception_fail(SWIG_ArgError(ecode2), "in method '" "fiftyoneDegreesGetRequiredPropertyName" "', argument " "2"" of type '" "int""'");
+    } 
+    arg2 = (int)(val2);
+    res3 = SWIG_AsCharPtrAndSize(ST(2), &buf3, NULL, &alloc3);
+    if (!SWIG_IsOK(res3)) {
+      SWIG_exception_fail(SWIG_ArgError(res3), "in method '" "fiftyoneDegreesGetRequiredPropertyName" "', argument " "3"" of type '" "char *""'");
+    }
+    arg3 = (char *)(buf3);
+    ecode4 = SWIG_AsVal_int SWIG_PERL_CALL_ARGS_2(ST(3), &val4);
+    if (!SWIG_IsOK(ecode4)) {
+      SWIG_exception_fail(SWIG_ArgError(ecode4), "in method '" "fiftyoneDegreesGetRequiredPropertyName" "', argument " "4"" of type '" "int""'");
+    } 
+    arg4 = (int)(val4);
+    result = fiftyoneDegreesGetRequiredPropertyName((struct fiftyoneDegrees_dataset_t const *)arg1,arg2,arg3,arg4);
+    ST(argvi) = SWIG_NewPointerObj((int32_t *)memcpy((int32_t *)malloc(sizeof(int32_t)),&result,sizeof(int32_t)), SWIGTYPE_p_int32_t, SWIG_POINTER_OWN | 0); argvi++ ;
+    
+    
+    if (alloc3 == SWIG_NEWOBJ) free((char*)buf3);
+    
+    XSRETURN(argvi);
+  fail:
+    
+    
+    if (alloc3 == SWIG_NEWOBJ) free((char*)buf3);
+    
+    SWIG_croak_null();
+  }
+}
+
+
+XS(_wrap_fiftyoneDegreesGetRequiredPropertyIndex) {
+  {
+    fiftyoneDegreesDataSet *arg1 = (fiftyoneDegreesDataSet *) 0 ;
+    char *arg2 = (char *) 0 ;
+    void *argp1 = 0 ;
+    int res1 = 0 ;
+    int res2 ;
+    char *buf2 = 0 ;
+    int alloc2 = 0 ;
+    int argvi = 0;
+    int32_t result;
+    dXSARGS;
+    
+    if ((items < 2) || (items > 2)) {
+      SWIG_croak("Usage: fiftyoneDegreesGetRequiredPropertyIndex(dataSet,propertyName);");
+    }
+    res1 = SWIG_ConvertPtr(ST(0), &argp1,SWIGTYPE_p_fiftyoneDegrees_dataset_t, 0 |  0 );
+    if (!SWIG_IsOK(res1)) {
+      SWIG_exception_fail(SWIG_ArgError(res1), "in method '" "fiftyoneDegreesGetRequiredPropertyIndex" "', argument " "1"" of type '" "fiftyoneDegreesDataSet const *""'"); 
+    }
+    arg1 = (fiftyoneDegreesDataSet *)(argp1);
+    res2 = SWIG_AsCharPtrAndSize(ST(1), &buf2, NULL, &alloc2);
+    if (!SWIG_IsOK(res2)) {
+      SWIG_exception_fail(SWIG_ArgError(res2), "in method '" "fiftyoneDegreesGetRequiredPropertyIndex" "', argument " "2"" of type '" "char *""'");
+    }
+    arg2 = (char *)(buf2);
+    result = fiftyoneDegreesGetRequiredPropertyIndex((struct fiftyoneDegrees_dataset_t const *)arg1,arg2);
+    ST(argvi) = SWIG_NewPointerObj((int32_t *)memcpy((int32_t *)malloc(sizeof(int32_t)),&result,sizeof(int32_t)), SWIGTYPE_p_int32_t, SWIG_POINTER_OWN | 0); argvi++ ;
+    
+    if (alloc2 == SWIG_NEWOBJ) free((char*)buf2);
+    XSRETURN(argvi);
+  fail:
+    
+    if (alloc2 == SWIG_NEWOBJ) free((char*)buf2);
     SWIG_croak_null();
   }
 }
@@ -15930,7 +16133,7 @@ static swig_type_info _swigt__p_p_property_t = {"_p_p_property_t", "struct prope
 static swig_type_info _swigt__p_property_t = {"_p_property_t", "struct property_t *|property_t *|fiftyoneDegreesProperty *", 0, 0, (void*)"FiftyOneDegrees::PatternV3::fiftyoneDegreesProperty", 0};
 static swig_type_info _swigt__p_uint16_t = {"_p_uint16_t", "uint16_t *", 0, 0, (void*)0, 0};
 static swig_type_info _swigt__p_uint64_t = {"_p_uint64_t", "uint64_t *", 0, 0, (void*)0, 0};
-static swig_type_info _swigt__p_unsigned_char = {"_p_unsigned_char", "unsigned char *|fiftyoneDegreesBool *|byte *", 0, 0, (void*)0, 0};
+static swig_type_info _swigt__p_unsigned_char = {"_p_unsigned_char", "unsigned char *|byte *", 0, 0, (void*)0, 0};
 
 static swig_type_info *swig_type_initial[] = {
   &_swigt__p_FIFTYONEDEGREES_MUTEX,
@@ -16545,11 +16748,15 @@ static swig_command_info swig_commands[] = {
 {"FiftyOneDegrees::PatternV3c::fiftyoneDegreesCSVCreate", _wrap_fiftyoneDegreesCSVCreate},
 {"FiftyOneDegrees::PatternV3c::fiftyoneDegreesCSVFree", _wrap_fiftyoneDegreesCSVFree},
 {"FiftyOneDegrees::PatternV3c::fiftyoneDegreesMatch", _wrap_fiftyoneDegreesMatch},
-{"FiftyOneDegrees::PatternV3c::fiftyoneDegreesMatchWithHeaders", _wrap_fiftyoneDegreesMatchWithHeaders},
+{"FiftyOneDegrees::PatternV3c::fiftyoneDegreesMatchWithHeadersArray", _wrap_fiftyoneDegreesMatchWithHeadersArray},
+{"FiftyOneDegrees::PatternV3c::fiftyoneDegreesMatchWithHeadersString", _wrap_fiftyoneDegreesMatchWithHeadersString},
 {"FiftyOneDegrees::PatternV3c::fiftyoneDegreesSetValues", _wrap_fiftyoneDegreesSetValues},
 {"FiftyOneDegrees::PatternV3c::fiftyoneDegreesGetString", _wrap_fiftyoneDegreesGetString},
+{"FiftyOneDegrees::PatternV3c::fiftyoneDegreesGetValues", _wrap_fiftyoneDegreesGetValues},
 {"FiftyOneDegrees::PatternV3c::fiftyoneDegreesGetValueName", _wrap_fiftyoneDegreesGetValueName},
 {"FiftyOneDegrees::PatternV3c::fiftyoneDegreesGetPropertyName", _wrap_fiftyoneDegreesGetPropertyName},
+{"FiftyOneDegrees::PatternV3c::fiftyoneDegreesGetRequiredPropertyName", _wrap_fiftyoneDegreesGetRequiredPropertyName},
+{"FiftyOneDegrees::PatternV3c::fiftyoneDegreesGetRequiredPropertyIndex", _wrap_fiftyoneDegreesGetRequiredPropertyIndex},
 {"FiftyOneDegrees::PatternV3c::fiftyoneDegreesProcessDeviceCSV", _wrap_fiftyoneDegreesProcessDeviceCSV},
 {"FiftyOneDegrees::PatternV3c::fiftyoneDegreesProcessDeviceJSON", _wrap_fiftyoneDegreesProcessDeviceJSON},
 {"FiftyOneDegrees::PatternV3c::fiftyoneDegreesGetSignatureRank", _wrap_fiftyoneDegreesGetSignatureRank},

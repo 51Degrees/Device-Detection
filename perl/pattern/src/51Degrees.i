@@ -1,6 +1,6 @@
 %module "FiftyOneDegrees::PatternV3"
 %{ 
-#include "pattern/51Degrees.h"
+#include "../../../src/pattern/51Degrees.h"
 #ifdef __cplusplus
 #define EXTERNAL extern "C"
 #else
@@ -13,7 +13,7 @@ DataSetInitStatus getInitStatus() {
 
 %}
 
-%include "pattern/51Degrees.h"
+%include "../../../src/pattern/51Degrees.h"
 %include exception.i
 
 %exception dataSetInitWithPropertyString {
