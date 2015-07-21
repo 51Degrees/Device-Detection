@@ -45,8 +45,6 @@ char *HTTP_HEADERS[] = {
 int HTTP_HEADERS_LENGTH = 5;
 
 char *TARGET_USER_AGENTS[] = {
-	// Unusual
-	"DOSarrest Monitor/1.3 (Linux)",
     // Internet explorer
     "Mozilla/5.0 (Windows NT 6.1; WOW64; Trident/7.0; rv:11.0) like Gecko",
     // Internet explorer (again to test the cache)
@@ -62,7 +60,11 @@ char *TARGET_USER_AGENTS[] = {
     // Modern version of Chrome
     "Mozilla/5.0 (Windows NT 6.3; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/43.0.2357.81 Safari/537.36",
     // Internet explorer (again to test the cache)
-    "Mozilla/5.0 (Windows NT 6.1; WOW64; Trident/7.0; rv:11.0) like Gecko"
+    "Mozilla/5.0 (Windows NT 6.1; WOW64; Trident/7.0; rv:11.0) like Gecko",
+	// Non Mozilla prefixed
+	"Dalvik/2.1.0 (Linux; U; Android 5.0.1; HTC One_M8 Build/LRX22C)",
+	// Unusual
+	"DOSarrest Monitor/1.3 (Linux)"
 };
 int TARGET_USER_AGENTS_LENGTH = 9;
 
@@ -71,7 +73,10 @@ char* PROPERTIES[] = {
     "ScreenPixelsWidth",
     "ScreenPixelsHeight",
     "ScreenMMWidth",
-    "ScreenMMHeight"
+    "ScreenMMHeight",
+	"HardwareVendor",
+	"HardwareFamily",
+	"HardwareModel"
 };
 const int32_t PROPERTIES_COUNT = sizeof(PROPERTIES) / sizeof(char*);
 
