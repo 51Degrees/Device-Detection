@@ -22,6 +22,7 @@
 using System;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using FiftyOne.UnitTests;
+using System.Collections.Specialized;
 
 namespace UnitTests.API.Enterprise
 {
@@ -65,6 +66,23 @@ namespace UnitTests.API.Enterprise
             using (var result = _wrapper.Match(userAgent))
             {
                 Console.WriteLine(result.ToString());
+            }
+        }
+
+        [TestMethod]
+        public void PremiumPatternAPI_HttpHeaders()
+        {
+            var headers = new NameValueCollection();
+            foreach (var header in _wrapper.HttpHeaders)
+            {
+                headers.Add(header, UserAgentGenerator.GetRandomUserAgent(0));
+            }
+            using (var result = _wrapper.Match(headers))
+            {
+                foreach (var property in _wrapper.AvailableProperties)
+                {
+                    Console.WriteLine("{0}: {1}", property, result[property]);
+                }
             }
         }
 

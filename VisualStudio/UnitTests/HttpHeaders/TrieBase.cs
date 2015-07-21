@@ -19,49 +19,16 @@
  * defined by the Mozilla Public License, v. 2.0.
  * ********************************************************************* */
 
-using System;
-using Microsoft.VisualStudio.TestTools.UnitTesting;
-using System.IO;
 using FiftyOne.Mobile.Detection.Provider.Interop;
 
-namespace FiftyOne.UnitTests.HttpHeaders.Enterprise
+namespace FiftyOne.UnitTests.HttpHeaders
 {
-    [TestClass]
-    public class V32TrieFile : TrieBase
+    public abstract class TrieBase : Combinations
     {
-        protected override string DataFile
+        protected override IWrapper CreateWrapper()
         {
-            get { return Constants.ENTERPRISE_TRIE_V32; }
-        }
-
-        [TestInitialize]
-        public void Initialise()
-        {
-            if (_wrapper == null) { _wrapper = CreateWrapper(); }
-        }
-
-        [TestCleanup]
-        public void CleanUp()
-        {
-            Dispose();
-        }
-
-        [TestMethod]
-        public void EnterpriseV32TrieFile_OperaMiniSamsung() 
-        {
-            base.OperaMini_Samsung();
-        }
-
-        [TestMethod]
-        public void EnterpriseV32TrieFile_OperaMini_HTC()
-        {
-            base.OperaMini_HTC();
-        }
-
-        [TestMethod]
-        public void EnterpriseV32TrieFile_OperaMini_iPhone()
-        {
-            base.OperaMini_iPhone();
+            Utils.CheckFileExists(DataFile);
+            return new TrieWrapper(DataFile);
         }
     }
 }
