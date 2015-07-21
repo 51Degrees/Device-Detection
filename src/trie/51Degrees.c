@@ -28,7 +28,7 @@
  ********************************************************************** */
 
 /**
- * PROBLEM MEHODS
+ * PROBLEM METHODS
  */
 
 /* Change snprintf to the Microsoft version */
@@ -441,10 +441,9 @@ void initSpecificPropertiesFromArray(char** properties, int count) {
 	// Create enough memory for the properties.
 	_requiredProperties = (uint32_t*)malloc(_requiredPropertiesCount * sizeof(int));
 	_requiredPropertiesNames = (char**)malloc(_requiredPropertiesCount * sizeof(char*));
-
-
+	
 	// Initialise the requiredProperties array.
-   for (i = 0; i < count; i++ ) {
+	for (i = 0; i < count; i++ ) {
       currentProperty = properties[i];
       currentLength = (int)strlen(currentProperty);
       // If this is a valid property add it to the list.
@@ -645,15 +644,16 @@ int setNextHttpHeaderName(char* start, char** name) {
 int setNextHttpHeaderValue(char* start, char** value) {
 	int index = 0;
 	char *current = start, *lastChar = start;
+	*value = lastChar;
 	while (*current != 0) {
 		if (*current == '\r' ||
 			*current == '\n') {
 			*value = lastChar;
-			return (int)(current - lastChar);
+			break;
 		}
 		current++;
 	}
-	return 0;
+	return (int)(current - lastChar);
 }
 
 // Returns the index of the unique header, or -1 if the header is not important.
