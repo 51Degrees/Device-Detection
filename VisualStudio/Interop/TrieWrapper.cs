@@ -205,20 +205,20 @@ namespace FiftyOne.Mobile.Detection.Provider.Interop
         #region Constructor and Destructor
 
         /// <summary>
-        /// Construct the wrapper creating a workset for each CPU available.
+        /// Construct the wrapper.
         /// </summary>
         /// <param name="fileName">The full path to the file containing device data.</param>
         public TrieWrapper(string fileName) : this(fileName, String.Empty) { }
 
         /// <summary>
-        /// Construct the wrapper creating a workset for each CPU available.
+        /// Construct the wrapper.
         /// </summary>
         /// <param name="fileName">The full path to the file containing device data.</param>
         /// <param name="properties">Array of properties to include in the results.</param>
         public TrieWrapper(string fileName, string[] properties) : this(fileName, String.Join(",", properties)) {}
 
         /// <summary>
-        /// Construct the wrapper creating a workset for each CPU available.
+        /// Construct the wrapper.
         /// </summary>
         /// <param name="fileName">The full path to the file containing device data.</param>
         /// <param name="properties">Comma seperated list of properties to include in the results.</param>
