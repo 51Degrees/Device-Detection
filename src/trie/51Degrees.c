@@ -308,8 +308,19 @@ fiftyoneDegreesDataSetInitStatus readVersion(FILE *inputFilePtr) {
 // Reads the input file into memory returning 1 if it
 // was read unsuccessfully, otherwise 0.
 fiftyoneDegreesDataSetInitStatus readFile(char* fileName) {
+	#define READMETHODS 8
 	fiftyoneDegreesDataSetInitStatus status = DATA_SET_INIT_STATUS_SUCCESS;
 	FILE *inputFilePtr;
+	int readMethod;
+	fiftyoneDegreesDataSetInitStatus(*m[READMETHODS]) (FILE *inputFilePtr);
+	m[0] = readVersion;
+	m[1] = readCopyright;
+	m[2] = readStrings;
+	m[3] = readHttpHeaders;
+	m[4] = readProperties;
+	m[5] = readDevices;
+	m[6] = readLookupList;
+	m[7] = readNodes;
 
 	// Open the file and hold on to the pointer.
 	inputFilePtr = fopen(fileName, "rb");
@@ -320,47 +331,13 @@ fiftyoneDegreesDataSetInitStatus readFile(char* fileName) {
 	}
 	// Read the various data segments if the version is
 	// one we can read.
-    status = readVersion(inputFilePtr);
-    if (status != DATA_SET_INIT_STATUS_SUCCESS) {
-        fclose(inputFilePtr);
-        return status;
-    }
-	status = readCopyright(inputFilePtr);
-	if (status != DATA_SET_INIT_STATUS_SUCCESS) {
-        fclose(inputFilePtr);
-        return status;
+	for (readMethod = 0; readMethod < READMETHODS; readMethod++) {
+		status = m[readMethod](inputFilePtr);
+		if (status != DATA_SET_INIT_STATUS_SUCCESS) {
+			fiftyoneDegreesDestroy();
+			break;
+		}
 	}
-	status = readStrings(inputFilePtr);
-	if (status != DATA_SET_INIT_STATUS_SUCCESS) {
-        fclose(inputFilePtr);
-        return status;
-	}
-	status = readHttpHeaders(inputFilePtr);
-	if (status != DATA_SET_INIT_STATUS_SUCCESS) {
-		fclose(inputFilePtr);
-		return status;
-	}
-    status = readProperties(inputFilePtr);
-    if (status != DATA_SET_INIT_STATUS_SUCCESS) {
-        fclose(inputFilePtr);
-        return status;
-    }
-    status = readDevices(inputFilePtr);
-    if (status != DATA_SET_INIT_STATUS_SUCCESS) {
-        fclose(inputFilePtr);
-        return status;
-    }
-    status = readLookupList(inputFilePtr);
-    if (status != DATA_SET_INIT_STATUS_SUCCESS) {
-
-        fclose(inputFilePtr);
-        return status;
-    }
-	status = readNodes(inputFilePtr);
-	if (status != DATA_SET_INIT_STATUS_SUCCESS) {
-        fclose(inputFilePtr);
-        return status;
-    }
 	fclose(inputFilePtr);
 
 	return status;
@@ -478,17 +455,13 @@ void initAllProperties(void) {
 fiftyoneDegreesDataSetInitStatus fiftyoneDegreesInitWithPropertyString(char* fileName, char* properties) {
 	fiftyoneDegreesDataSetInitStatus status = DATA_SET_INIT_STATUS_SUCCESS;
     status = readFile(fileName);
-    if (status != DATA_SET_INIT_STATUS_SUCCESS) {
-		fiftyoneDegreesDestroy();
-        return status;
-    }
-
-	// If no properties are provided then use all of them.
-	if (properties == NULL || strlen(properties) == 0)
-		initAllProperties();
-	else
-		initSpecificProperties(properties);
-
+	if (status == DATA_SET_INIT_STATUS_SUCCESS) {
+		// If no properties are provided then use all of them.
+		if (properties == NULL || strlen(properties) == 0)
+			initAllProperties();
+		else
+			initSpecificProperties(properties);
+	}
 	return status;
 }
 
