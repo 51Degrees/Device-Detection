@@ -702,4 +702,13 @@ EXTERNAL int32_t fiftyoneDegreesProcessDeviceJSON(fiftyoneDegreesWorkset *ws, ch
  */
 EXTERNAL int32_t fiftyoneDegreesGetSignatureRank(fiftyoneDegreesWorkset *ws);
 
+/**
+* Gets the required property name at the index provided.
+* @param ws pointer to the work set associated with the match
+* @param signatureAsString pointer to memory to place the signature
+* @param size of the memory allocated for the signature
+* @return the number of bytes written for the signature
+*/
+EXTERNAL int32_t fiftyoneDegreesGetSignatureAsString(fiftyoneDegreesWorkset *ws, char *signatureAsString, int size);
+
 #endif // 51DEGREES_H_INCLUDED

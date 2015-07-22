@@ -127,3 +127,27 @@ EXTERN_DLL_EXPORT int __cdecl GetPropertyValues(LP workSet, INT requiredProperty
 		(char*)values,
 		size);
 }
+
+EXTERN_DLL_EXPORT int __cdecl GetUserAgent(LP workSet, LPTSTR values, INT size)
+{
+	return fiftyoneDegreesGetSignatureAsString(
+		(fiftyoneDegreesWorkset*)workSet,
+		(char*)values,
+		size);
+}
+
+EXTERN_DLL_EXPORT int __cdecl GetRank(LP workSet)
+{
+	return fiftyoneDegreesGetSignatureRank(
+		(fiftyoneDegreesWorkset*)workSet);
+}
+
+EXTERN_DLL_EXPORT int __cdecl GetDifference(LP workSet)
+{
+	return ((fiftyoneDegreesWorkset*)workSet)->difference;
+}
+
+EXTERN_DLL_EXPORT int __cdecl GetMethod(LP workSet)
+{
+	return (int)((fiftyoneDegreesWorkset*)workSet)->method;
+}
