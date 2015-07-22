@@ -3350,6 +3350,36 @@ int32_t fiftyoneDegreesGetSignatureRank(fiftyoneDegreesWorkset *ws) {
 }
 
 /**
+* Gets the required property name at the index provided.
+* @param ws pointer to the work set associated with the match
+* @param signatureAsString pointer to memory to place the signature
+* @param size of the memory allocated for the signature
+* @return the number of bytes written for the signature
+*/
+int32_t fiftyoneDegreesGetSignatureAsString(fiftyoneDegreesWorkset *ws, char *signatureAsString, int size) {
+	int32_t length;
+	if (ws->signature != NULL) {
+		setSignatureAsString(ws, ws->signature);
+		length = (int32_t)strlen(ws->signatureAsString);
+		if (length <= size) {
+			// Copy the signature as a string.
+			strcpy(signatureAsString, ws->signatureAsString);
+		}
+		else {
+			// The memory for the string is too short. Return
+			// negative length.
+			length = -length;
+		}
+	}
+	else {
+		// There is no signature so return 0 length.
+		*signatureAsString = 0;
+		length = 0;
+	}
+	return length;
+}
+
+/**
  * Sets the values associated with the require property index in the workset
  * so that an array of values can be read.
  * @param ws pointer to the work set associated with the match
