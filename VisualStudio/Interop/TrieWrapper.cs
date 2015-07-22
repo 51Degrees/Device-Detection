@@ -41,6 +41,8 @@ namespace FiftyOne.Mobile.Detection.Provider.Interop
 
         public class MatchResult : IMatchResult
         {
+            private readonly string _userAgent;
+
             private readonly TrieWrapper _provider;
 
             /// <summary>
@@ -63,6 +65,7 @@ namespace FiftyOne.Mobile.Detection.Provider.Interop
             {
                 _provider = provider;
                 _deviceOffsets = MatchFromUserAgent(userAgent);
+                _userAgent = userAgent;
             }
 
             /// <summary>
@@ -130,6 +133,18 @@ namespace FiftyOne.Mobile.Detection.Provider.Interop
                     return null;
                 }
             }
+
+            public string UserAgent
+            {
+                get 
+                { 
+                    if (_userAgent != null)
+                    {
+                        return _userAgent.Substring(0, GetLastCharacterIndex(_userAgent));
+                    }
+                    return null;
+                }
+            }
         }
 
         #endregion
@@ -165,6 +180,11 @@ namespace FiftyOne.Mobile.Detection.Provider.Interop
             CallingConvention = CallingConvention.Cdecl,
             CharSet = CharSet.Ansi)]
         private static extern IntPtr MatchFromUserAgent(String userAgent);
+
+        [DllImport("FiftyOne.Mobile.Detection.Provider.Trie.dll",
+            CallingConvention = CallingConvention.Cdecl,
+            CharSet = CharSet.Ansi)]
+        private static extern int GetLastCharacterIndex(String userAgent);
 
         [DllImport("FiftyOne.Mobile.Detection.Provider.Trie.dll",
             CallingConvention = CallingConvention.Cdecl,

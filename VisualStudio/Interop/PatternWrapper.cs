@@ -268,6 +268,47 @@ namespace FiftyOne.Mobile.Detection.Provider.Interop
                     return null;
                 }
             }
+
+            /// <summary>
+            /// A string representation of the user agent returned if any.
+            /// </summary>
+            public string UserAgent
+            {
+                get 
+                {
+                    var charactersWritten = GetUserAgent(_workSet, Values, Values.Capacity);
+                    if (charactersWritten < 0)
+                    {
+                        Values.Capacity = Math.Abs(charactersWritten);
+                        charactersWritten = GetUserAgent(_workSet, Values, Values.Capacity);
+                    }
+                    return Values.ToString();
+                }
+            }
+
+            /// <summary>
+            /// Returns the rank of the user agent.
+            /// </summary>
+            public int Rank
+            {
+                get { return GetRank(_workSet); }
+            }
+
+            /// <summary>
+            /// Returns the difference between the matched signature and the target.
+            /// </summary>
+            public int Difference
+            {
+                get { return GetDifference(_workSet); }
+            }
+
+            /// <summary>
+            /// The method used to obtain the match result.
+            /// </summary>
+            public int Method 
+            {
+                get { return GetMethod(_workSet); }
+            }
         }
 
         #endregion
@@ -334,9 +375,27 @@ namespace FiftyOne.Mobile.Detection.Provider.Interop
         private static extern void MatchFromHeaders(IntPtr ws, StringBuilder httpHeaders);
 
         [DllImport("FiftyOne.Mobile.Detection.Provider.Pattern.dll",
-            CallingConvention = CallingConvention.Cdecl)]
+            CallingConvention = CallingConvention.Cdecl,
+            CharSet = CharSet.Ansi)]
         private static extern int GetPropertyValues(IntPtr workSet, int requiredPropertyIndex, StringBuilder values, int size);
-        
+
+        [DllImport("FiftyOne.Mobile.Detection.Provider.Pattern.dll",
+            CallingConvention = CallingConvention.Cdecl,
+            CharSet = CharSet.Ansi)]
+        private static extern int GetUserAgent(IntPtr workSet, StringBuilder userAgent, int size);
+
+        [DllImport("FiftyOne.Mobile.Detection.Provider.Pattern.dll",
+            CallingConvention = CallingConvention.Cdecl)]
+        private static extern int GetRank(IntPtr workSet);
+
+        [DllImport("FiftyOne.Mobile.Detection.Provider.Pattern.dll",
+            CallingConvention = CallingConvention.Cdecl)]
+        private static extern int GetDifference(IntPtr workSet);
+
+        [DllImport("FiftyOne.Mobile.Detection.Provider.Pattern.dll",
+            CallingConvention = CallingConvention.Cdecl)]
+        private static extern int GetMethod(IntPtr workSet);
+
         #endregion
 
         #region Fields
