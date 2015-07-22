@@ -545,17 +545,18 @@ int32_t* getNextNode(NODE_CHILDREN* children, BYTE childIndex) {
 }
 
 // Declaration of main device index function.
-int32_t getDeviceIndexForNode(char* userAgent, int32_t* node, int32_t parentDeviceIndex);
+int32_t getDeviceIndexForNode(char** userAgent, int32_t* node, int32_t parentDeviceIndex);
 
-int32_t getDeviceIndexChildren(char* userAgent, BYTE childIndex, NODE_CHILDREN *children, int parentDeviceIndex) {
+int32_t getDeviceIndexChildren(char** userAgent, BYTE childIndex, NODE_CHILDREN *children, int parentDeviceIndex) {
+	*userAgent = *userAgent + 1;
     return getDeviceIndexForNode(
-        &userAgent[1],
+        userAgent,
         getNextNode(children, childIndex),
         parentDeviceIndex);
 }
 
-int32_t getDeviceIndexFullNode(char* userAgent, NODE_FULL* node) {
-    BYTE childIndex = getChildIndex(*userAgent, node->lookupListOffset);
+int32_t getDeviceIndexFullNode(char** userAgent, NODE_FULL* node) {
+    BYTE childIndex = getChildIndex(**userAgent, node->lookupListOffset);
 
     // If the child index is invalid then return this device index.
     if (childIndex >= node->children.numberOfChildren)
@@ -565,8 +566,8 @@ int32_t getDeviceIndexFullNode(char* userAgent, NODE_FULL* node) {
     return getDeviceIndexChildren(userAgent, childIndex, &(node->children), node->deviceIndex);
 }
 
-int32_t getDeviceIndexNoDeviceNode(char* userAgent, NODE_NO_DEVICE_INDEX* node, int32_t parentDeviceIndex) {
-    BYTE childIndex = getChildIndex(*userAgent, abs(node->lookupListOffset));
+int32_t getDeviceIndexNoDeviceNode(char** userAgent, NODE_NO_DEVICE_INDEX* node, int32_t parentDeviceIndex) {
+    BYTE childIndex = getChildIndex(**userAgent, abs(node->lookupListOffset));
 
     // If the child index is invalid then return this device index.
     if (childIndex >= node->children.numberOfChildren)
@@ -579,7 +580,7 @@ int32_t getDeviceIndexNoDeviceNode(char* userAgent, NODE_NO_DEVICE_INDEX* node, 
 // Gets the index of the device associated with the user agent pointer
 // provided. The method moves right along the user agent by shifting
 // the pointer to the user agent left.
-int32_t getDeviceIndexForNode(char* userAgent, int32_t* node, int32_t parentDeviceIndex) {
+int32_t getDeviceIndexForNode(char** userAgent, int32_t* node, int32_t parentDeviceIndex) {
     if (*node >= 0)
 		return getDeviceIndexFullNode(userAgent, (NODE_FULL*)node);
 	return getDeviceIndexNoDeviceNode(userAgent, (NODE_NO_DEVICE_INDEX*)node, parentDeviceIndex);
@@ -587,11 +588,18 @@ int32_t getDeviceIndexForNode(char* userAgent, int32_t* node, int32_t parentDevi
 
 // Returns the index to a matching device based on the useragent provided.
 int32_t getDeviceIndex(char* userAgent) {
-	return getDeviceIndexForNode(userAgent, _rootNode, -1);
+	return getDeviceIndexForNode(&userAgent, _rootNode, -1);
+}
+
+// Returns the last mactching character index for the user agent provided.
+int fiftyoneDegreesGetLastCharacterIndex(char *userAgent) {
+	char *lastCharacter = userAgent;
+	getDeviceIndexForNode(&lastCharacter, _rootNode, -1);
+	return (int)(lastCharacter - userAgent);
 }
 
 // Returns the offset in the properties list to the first value for the device.
-int32_t fiftyoneDegreesGetDeviceOffset(char* userAgent) {
+int fiftyoneDegreesGetDeviceOffset(char* userAgent) {
     return getDeviceIndex(userAgent) * _propertiesCount;
 }
 
@@ -673,42 +681,38 @@ char* fiftyoneDegreesGetValue(int deviceOffset, int propertyIndex) {
 
 // Sets the http header string to the header name at the index provided.
 int fiftyoneDegreesGetHttpHeaderName(int httpHeaderIndex, char* httpHeader, int size) {
-	int length;
+	int length = 0;
 	if (httpHeaderIndex < _uniqueHttpHeaderCount) {
 		length = (int)strlen(_strings + _uniqueHttpHeaders[httpHeaderIndex]);
 		if (length <= size) {
 			// Copy the string and return the length.
 			strcpy(httpHeader, _strings + _uniqueHttpHeaders[httpHeaderIndex]);
-			return length;
 		}
 		else {
 			// The http header is not large enough. Return it's required length.
 			// as a negative.
-			return -length;
+			length = -length;
 		}
 	}
-	// No property at this index so return 0.
-	return 0;
+	return length;
 }
 
 // Sets the propertyname string to the property name at the index provided.
 int fiftyoneDegreesGetRequiredPropertyName(int requiredPropertyIndex, char* propertyName, int size) {
-	int length;
+	int length = 0;
 	if (requiredPropertyIndex < _requiredPropertiesCount) {
 		length = (int)strlen(_requiredPropertiesNames[requiredPropertyIndex]);
 		if (length <= size) {
 			// Copy the string and return the length.
 			strcpy(propertyName, _requiredPropertiesNames[requiredPropertyIndex]);
-			return length;
 		}
 		else {
 			// The property name is not large enough. Return it's required length.
 			// as a negative.
-			return -length;
+			length = -length;
 		}
 	}
-	// No property at this index so return 0.
-	return 0;
+	return length;
 }
 
 int setValueFromDeviceOffset(int32_t deviceOffset, int32_t propertyIndex, char* values, int size) {
@@ -716,11 +720,11 @@ int setValueFromDeviceOffset(int32_t deviceOffset, int32_t propertyIndex, char* 
 	int length = (int)strlen(value);
 	if (length <= size) {
 		strcpy(values, value);
-		return length;
 	}
 	else {
-		return -length;
+		length = -length;
 	}
+	return length;
 }
 
 // Sets the values string to the property values for the device offests and index provided.
