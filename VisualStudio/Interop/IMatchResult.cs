@@ -26,6 +26,11 @@ namespace FiftyOne.Mobile.Detection.Provider.Interop
     public interface IMatchResult : IDisposable
     {
         /// <summary>
+        /// A string representation of the user agent returned if any.
+        /// </summary>
+        string UserAgent { get; }
+        
+        /// <summary>
         /// Returns the value for the property provided.
         /// </summary>
         /// <param name="propertyName"></param>
