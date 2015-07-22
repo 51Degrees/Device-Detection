@@ -95,4 +95,7 @@ EXTERNAL int fiftyoneDegreesProcessDeviceCSV(int deviceOffset, char* result, int
 // characters used.
 EXTERNAL int fiftyoneDegreesProcessDeviceJSON(int deviceOffset, char* result, int resultLength);
 
+// Returns the last mactching character index for the user agent provided.
+EXTERNAL int fiftyoneDegreesGetLastCharacterIndex(char *userAgent);
+
 #endif // 51DEGREES_H_INCLUDED
