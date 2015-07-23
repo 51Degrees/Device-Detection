@@ -161,7 +161,7 @@ namespace FiftyOne.Mobile.Detection.Provider.Interop
             /// <summary>
             /// Memory used to retrieve the values.
             /// </summary>
-            private readonly StringBuilder Values = new StringBuilder();
+            private readonly StringBuilder StringBuffer = new StringBuilder();
 
             /// <summary>
             /// Constructs a new instance of the match results for the user
@@ -257,13 +257,13 @@ namespace FiftyOne.Mobile.Detection.Provider.Interop
                         // Get the number of characters written. If the result is negative
                         // then this indicates that the values string builder needs to be
                         // set to the positive value and the method recalled.
-                        var charactersWritten = GetPropertyValues(_workSet, index, Values, Values.Capacity);
+                        var charactersWritten = GetPropertyValues(_workSet, index, StringBuffer, StringBuffer.Capacity);
                         if (charactersWritten < 0)
                         {
-                            Values.Capacity = Math.Abs(charactersWritten);
-                            charactersWritten = GetPropertyValues(_workSet, index, Values, Values.Capacity);
+                            StringBuffer.Capacity = Math.Abs(charactersWritten);
+                            charactersWritten = GetPropertyValues(_workSet, index, StringBuffer, StringBuffer.Capacity);
                         }
-                        return Values.ToString();
+                        return StringBuffer.ToString();
                     }
                     return null;
                 }
@@ -276,13 +276,13 @@ namespace FiftyOne.Mobile.Detection.Provider.Interop
             {
                 get 
                 {
-                    var charactersWritten = GetUserAgent(_workSet, Values, Values.Capacity);
+                    var charactersWritten = GetUserAgent(_workSet, StringBuffer, StringBuffer.Capacity);
                     if (charactersWritten < 0)
                     {
-                        Values.Capacity = Math.Abs(charactersWritten);
-                        charactersWritten = GetUserAgent(_workSet, Values, Values.Capacity);
+                        StringBuffer.Capacity = Math.Abs(charactersWritten);
+                        charactersWritten = GetUserAgent(_workSet, StringBuffer, StringBuffer.Capacity);
                     }
-                    return Values.ToString();
+                    return charactersWritten == 0 ? null : StringBuffer.ToString();
                 }
             }
 
@@ -308,6 +308,23 @@ namespace FiftyOne.Mobile.Detection.Provider.Interop
             public int Method 
             {
                 get { return GetMethod(_workSet); }
+            }
+
+            /// <summary>
+            /// The Id of the device.
+            /// </summary>
+            public string DeviceId
+            {
+                get
+                {
+                    var charactersWritten = GetDeviceId(_workSet, StringBuffer, StringBuffer.Capacity);
+                    if (charactersWritten < 0)
+                    {
+                        StringBuffer.Capacity = Math.Abs(charactersWritten);
+                        charactersWritten = GetDeviceId(_workSet, StringBuffer, StringBuffer.Capacity);
+                    }
+                    return StringBuffer.ToString();
+                }
             }
         }
 
@@ -384,6 +401,11 @@ namespace FiftyOne.Mobile.Detection.Provider.Interop
             CharSet = CharSet.Ansi)]
         private static extern int GetUserAgent(IntPtr workSet, StringBuilder userAgent, int size);
 
+        [DllImport("FiftyOne.Mobile.Detection.Provider.Pattern.dll",
+            CallingConvention = CallingConvention.Cdecl,
+            CharSet = CharSet.Ansi)]
+        private static extern int GetDeviceId(IntPtr workSet, StringBuilder deviceId, int size);
+        
         [DllImport("FiftyOne.Mobile.Detection.Provider.Pattern.dll",
             CallingConvention = CallingConvention.Cdecl)]
         private static extern int GetRank(IntPtr workSet);
