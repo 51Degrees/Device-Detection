@@ -499,7 +499,7 @@ int32_t fiftyoneDegreesGetValues(fiftyoneDegreesWorkset *ws, int32_t requiredPro
 	fiftyoneDegreesSetValues(ws, requiredPropertyIndex);
 	for (valueIndex = 0; valueIndex < ws->valuesCount; valueIndex++) {
 		value = fiftyoneDegreesGetString(ws->dataSet, ws->values[valueIndex]->nameOffset);
-		sizeNeeded += currentPosition - values + value->length;
+		sizeNeeded += value->length;
 		if (sizeNeeded <= size) {
 			// Add a value seperator if this isn't the first value in the list.
 			if (valueIndex > 0) {
@@ -511,15 +511,18 @@ int32_t fiftyoneDegreesGetValues(fiftyoneDegreesWorkset *ws, int32_t requiredPro
 			// remaining characters. Take one from the length because we don't
 			// need the 0 string terminator.
 			memcpy(currentPosition, (char*)&(value->firstByte), value->length - 1);
+			// Move to the next position to either write the next value and 
+			// if space remaining the next value string. -1 is used to skip
+			// back from the trailing 0.
 			currentPosition += value->length - 1;
 		}
 	}
-	// Terminate the values string.
-	*currentPosition = 0;
 
 	if (sizeNeeded <= size) {
+		// Write the null terminator.
+		*currentPosition = 0;
 		// Return the number of bytes written.
-		return currentPosition - values + 1;
+		return sizeNeeded;
 	}
 	else {
 		// Writing the value to the values memory space will result
@@ -773,7 +776,7 @@ int32_t* getProfileOffsetsFromSignature(const byte *signature) {
  * @return a pointer to the first signature index
  */
 const int32_t* getFirstRankedSignatureIndexForNode(const fiftyoneDegreesDataSet *dataSet, const fiftyoneDegreesNode *node) {
-	return dataSet->nodeRankedSignatureIndexes + *(int32_t*)(((byte*)node) + sizeof(fiftyoneDegreesNode) +
+	return (int32_t*)(((byte*)node) + sizeof(fiftyoneDegreesNode) +
 		(node->childrenCount * sizeof(fiftyoneDegreesNodeIndex)) +
 		(node->numericChildrenCount * sizeof(fiftyoneDegreesNodeNumericIndex)));
 }
@@ -809,9 +812,19 @@ void linkedListAdd(fiftyoneDegreesLinkedSignatureList *linkedList, int32_t ranke
  */
 void buildInitialList(fiftyoneDegreesWorkset *ws, const fiftyoneDegreesNode *node) {
 	int32_t index;
-	const int32_t *firstSignatureIndex = getFirstRankedSignatureIndexForNode(ws->dataSet, node);
-	for (index = 0; index < node->signatureCount; index++) {
-		linkedListAdd(&(ws->linkedSignatureList), *(firstSignatureIndex + index));
+	const int32_t *rankedSignatureIndex = getFirstRankedSignatureIndexForNode(ws->dataSet, node);
+	if (node->signatureCount == 1) {
+		// Only one signature so the first ranked signature index
+		// is the value for the ranked signature index.
+		linkedListAdd(&(ws->linkedSignatureList), *rankedSignatureIndex);
+	}
+	else {
+		// Multiple signatures so the first ranked signature index
+		// is the index of the first value in the list.
+		rankedSignatureIndex = ws->dataSet->nodeRankedSignatureIndexes + *rankedSignatureIndex;
+		for (index = 0; index < node->signatureCount; index++) {
+			linkedListAdd(&(ws->linkedSignatureList), *(rankedSignatureIndex + index));
+		}
 	}
 }
 
@@ -1705,7 +1718,7 @@ void setSignatureAsString(fiftyoneDegreesWorkset *ws, const byte *signature) {
 		nullPosition = 0,
 		lastCharacter = 0;
 	for (index = 0; index < ws->dataSet->header.maxUserAgentLength; index++) {
-		ws->signatureAsString[index] = '_';
+		ws->signatureAsString[index] = ' ';
 	}
 	for (index = 0; index < nodeOffsetCount; index++) {
 		lastCharacter = addSignatureNodeToString(ws, getNodeByOffset(ws->dataSet, *(nodeOffsets + index)));
@@ -2444,7 +2457,14 @@ int32_t setClosestSignaturesForNode(fiftyoneDegreesWorkset *ws, const fiftyoneDe
 	fiftyoneDegreesLinkedSignatureListItem *current = linkedList->first,
 		*next;
 	int32_t index = 0;
-	const int32_t *firstRankedSignatureIndex = getFirstRankedSignatureIndexForNode(ws->dataSet, node);
+	// If there is only 1 signature then the value is the 
+	// ranked signature index, otherwise it's the index of the first
+	// ranked index in the nodeRankedSignatureIndexes array.
+	const int32_t *firstRankedSignatureIndex = 
+		node->signatureCount == 1 ?
+			getFirstRankedSignatureIndexForNode(ws->dataSet, node) :
+			ws->dataSet->nodeRankedSignatureIndexes + 
+				*getFirstRankedSignatureIndexForNode(ws->dataSet, node);
 	const int32_t *currentRankedSignatureIndex;
 
 	while (index < node->signatureCount &&
@@ -2831,9 +2851,21 @@ void evaluateSignature(fiftyoneDegreesWorkset *ws,
  */
 const byte* getNextClosestSignatureForSingleNode(fiftyoneDegreesWorkset *ws) {
 	const byte *signature;
+	int32_t rankedSignatureIndex;
 	if (ws->closestNodeRankedSignatureIndex < ws->nodes[0]->signatureCount) {
-		signature = getSignatureByRankedIndex(ws->dataSet,
-			*(getFirstRankedSignatureIndexForNode(ws->dataSet, ws->nodes[0]) + ws->closestNodeRankedSignatureIndex));
+		rankedSignatureIndex = *getFirstRankedSignatureIndexForNode(
+			ws->dataSet,
+			ws->nodes[0]);
+		// If there is a count greater than 1 then the value relates
+		// to the first index in the list of node ranked signature
+		// indexes. If the count is 1 then the value is the index.
+		if (ws->nodes[0]->signatureCount > 1) {
+			rankedSignatureIndex = *(ws->dataSet->nodeRankedSignatureIndexes +
+				rankedSignatureIndex + ws->closestNodeRankedSignatureIndex);
+		} 
+		signature = getSignatureByRankedIndex(
+			ws->dataSet,
+			rankedSignatureIndex);
 		ws->closestNodeRankedSignatureIndex++;
 	}
 	else {
@@ -3347,6 +3379,43 @@ void fiftyoneDegreesMatchWithHeadersString(fiftyoneDegreesWorkset *ws, char *htt
  */
 int32_t fiftyoneDegreesGetSignatureRank(fiftyoneDegreesWorkset *ws) {
 	return getRankFromSignature(ws->dataSet, ws->signature);
+}
+
+/**
+* Gets the device id as a string.
+* @param ws pointer to the work set associated with the match
+* @param deviceId pointer to memory to place the device id
+* @param size of the memory allocated for the device id
+* @return the number of bytes written for the device id
+*/
+int32_t fiftyoneDegreesGetDeviceId(fiftyoneDegreesWorkset *ws, char *deviceId, int size) {
+	int32_t length = 0;
+	char *current = deviceId;
+	int profileIndex, profileId;
+
+	// Get the length of the string needed to store the device id where each
+	// profile id needs the number of digits plus one for the seperator or
+	// string terminator.
+	for (profileIndex = 0; profileIndex < ws->profileCount; profileIndex++) {
+		profileId = ws->profiles[profileIndex]->profileId;
+		length += profileId > 0 ? (int)(floor(log10(abs(profileId)))) + 2 : 1;
+	}
+
+	// Set the device id if enough space available.
+	if (length <= size) {
+		for (profileIndex = 0; profileIndex < ws->profileCount; profileIndex++) {
+			if (profileIndex > 0) {
+				*current = '-';
+				current++;
+			}
+			current += snprintf(
+				current,
+				size - (int)(current - deviceId),
+				"%d",
+				ws->profiles[profileIndex]->profileId);
+		}
+	}
+	return length <= size ? length : -length;
 }
 
 /**
