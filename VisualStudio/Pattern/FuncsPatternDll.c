@@ -136,6 +136,14 @@ EXTERN_DLL_EXPORT int __cdecl GetUserAgent(LP workSet, LPTSTR values, INT size)
 		size);
 }
 
+EXTERN_DLL_EXPORT int __cdecl GetDeviceId(LP workSet, LPTSTR values, INT size)
+{
+	return fiftyoneDegreesGetDeviceId(
+		(fiftyoneDegreesWorkset*)workSet,
+		(char*)values,
+		size);
+}
+
 EXTERN_DLL_EXPORT int __cdecl GetRank(LP workSet)
 {
 	return fiftyoneDegreesGetSignatureRank(
