@@ -209,7 +209,7 @@ typedef struct fiftyoneDegrees_entity_header_t {
 
 #pragma pack(push, 2)
 typedef struct fiftyoneDegrees_numeric_node_state {
-	int16_t target;
+	int32_t target;
 	const fiftyoneDegreesNode *node;
 	const fiftyoneDegreesNodeNumericIndex *firstNodeNumericIndex;
 	const fiftyoneDegreesRANGE *range;
