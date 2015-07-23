@@ -66,7 +66,7 @@ const fiftyoneDegreesRANGE RANGES[] = {
 
 const int16_t POWERS[] = { 1, 10, 100, 1000, 10000 };
 
-#define POWERS_COUNT sizeof(POWERS) / sizeof(int32_t)
+#define POWERS_COUNT sizeof(POWERS) / sizeof(int16_t)
 
 #define MIN_CACHE_SIZE 2
 
@@ -2116,6 +2116,7 @@ void setMatchDefault(fiftyoneDegreesWorkset *ws) {
 
 	/* Default the other values as no data available */
 	ws->signature = NULL;
+	*ws->signatureAsString = 0;
 	*ws->closestNodes = 0;
 }
 
@@ -2140,9 +2141,9 @@ void resetNextCharacterPositionIndex(fiftyoneDegreesWorkset *ws) {
  * @param length of the characters from start to conver to a number
  * @return the numeric integer of the characters specified
  */
-int16_t getNumber(const byte *array, int32_t start, int32_t length) {
+int32_t getNumber(const byte *array, int32_t start, int32_t length) {
 	int32_t i, p;
-	int16_t value = 0;
+	int32_t value = 0;
 	for (i = start + length - 1, p = 0; i >= start && p < POWERS_COUNT; i--, p++)
 	{
 		value += POWERS[p] * (array[i] - (byte)'0');
@@ -2244,8 +2245,16 @@ void setNumericNodeState(const fiftyoneDegreesNode *node, fiftyoneDegreesNumeric
 			(state->firstNodeNumericIndex + state->lowIndex)->value >= state->range->lower &&
 			(state->firstNodeNumericIndex + state->lowIndex)->value < state->range->upper;
 		state->highInRange = state->highIndex < node->numericChildrenCount && state->highIndex >= 0 &&
-			(state->firstNodeNumericIndex + state->lowIndex)->value >= state->range->lower &&
-			(state->firstNodeNumericIndex + state->lowIndex)->value < state->range->upper;
+			(state->firstNodeNumericIndex + state->highIndex)->value >= state->range->lower &&
+			(state->firstNodeNumericIndex + state->highIndex)->value < state->range->upper;
+	}
+	else
+	{
+		// As the target is out of valid ranges then
+		// set the low and high in range to false
+		// to ensure no iteration happens.
+		state->lowInRange = 0;
+		state->highInRange = 0;
 	}
 }
 
@@ -2385,7 +2394,7 @@ byte areNodesOverlapped(const fiftyoneDegreesDataSet *dataSet, const fiftyoneDeg
  */
 byte isNodeOverlapped(const fiftyoneDegreesNode *node, fiftyoneDegreesWorkset *ws) {
 	const fiftyoneDegreesNode  *currentNode;
-	int         index;
+	int index;
 	for (index = ws->nodeCount - 1; index >= 0; index--) {
 		currentNode = *(ws->nodes + index);
 		if (currentNode == node ||
@@ -2409,10 +2418,10 @@ void evaluateNumeric(fiftyoneDegreesWorkset *ws) {
 		ws->nodeCount < ws->dataSet->header.signatureNodesCount)
 	{
 		if (existingNodeIndex >= ws->nodeCount ||
-			getRootNode(ws->dataSet, *(ws->nodes + existingNodeIndex))->position < ws->nextCharacterPositionIndex)
+			getRootNode(ws->dataSet, ws->nodes[existingNodeIndex])->position < ws->nextCharacterPositionIndex)
 		{
 			ws->rootNodesEvaluated++;
-			node = getCompleteNumericNode(ws, *((ws->dataSet->rootNodes) + ws->nextCharacterPositionIndex));
+			node = getCompleteNumericNode(ws, ws->dataSet->rootNodes[ws->nextCharacterPositionIndex]);
 			if (node != NULL &&
 				isNodeOverlapped(node, ws) == 0)
 			{
@@ -2433,7 +2442,7 @@ void evaluateNumeric(fiftyoneDegreesWorkset *ws) {
 		{
 			// The next position to evaluate should be to the left
 			// of the existing node already in the list.
-			ws->nextCharacterPositionIndex = (*(ws->nodes + existingNodeIndex))->position;
+			ws->nextCharacterPositionIndex = ws->nodes[existingNodeIndex]->position;
 
 			// Swap the existing node for the next one in the list.
 			existingNodeIndex++;
