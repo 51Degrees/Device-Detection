@@ -29,7 +29,7 @@ using System.Threading.Tasks;
 
 namespace FiftyOne.UnitTests
 {
-    internal static class UserAgentGenerator
+    public static class UserAgentGenerator
     {
         private static readonly string[] _userAgents;
 
@@ -45,7 +45,7 @@ namespace FiftyOne.UnitTests
         /// </summary>
         /// <param name="randomness"></param>
         /// <returns></returns>
-        internal static string GetRandomUserAgent(int randomness)
+        public static string GetRandomUserAgent(int randomness)
         {
             var value = _userAgents[_random.Next(_userAgents.Length)];
             if (randomness > 0)
@@ -64,7 +64,7 @@ namespace FiftyOne.UnitTests
             return value;
         }
 
-        internal static IEnumerable<string> GetEnumerable(int count, int randomness)
+        public static IEnumerable<string> GetEnumerable(int count, int randomness)
         {
             for(int i = 0; i < count; i++)
             {
@@ -79,7 +79,7 @@ namespace FiftyOne.UnitTests
         /// <param name="count">Nmber of user agents to return.</param>
         /// <param name="pattern">Regular expression for the user agents.</param>
         /// <returns></returns>
-        internal static IEnumerable<string> GetEnumerable(int count, string pattern)
+        public static IEnumerable<string> GetEnumerable(int count, string pattern)
         {
             var counter = 0;
             var regex = new Regex(pattern, RegexOptions.Compiled);
@@ -97,17 +97,17 @@ namespace FiftyOne.UnitTests
             }
         }
 
-        internal static IEnumerable<string> GetRandomUserAgents()
+        public static IEnumerable<string> GetRandomUserAgents()
         {
             return UserAgentGenerator.GetEnumerable(20000, 0);
         }
 
-        internal static IEnumerable<string> GetUniqueUserAgents()
+        public static IEnumerable<string> GetUniqueUserAgents()
         {
             return _userAgents;
         }
 
-        internal static IEnumerable<string> GetBadUserAgents()
+        public static IEnumerable<string> GetBadUserAgents()
         {
             return UserAgentGenerator.GetEnumerable(20000, 10);
         }
