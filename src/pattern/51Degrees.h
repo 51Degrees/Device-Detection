@@ -703,12 +703,21 @@ EXTERNAL int32_t fiftyoneDegreesProcessDeviceJSON(fiftyoneDegreesWorkset *ws, ch
 EXTERNAL int32_t fiftyoneDegreesGetSignatureRank(fiftyoneDegreesWorkset *ws);
 
 /**
-* Gets the required property name at the index provided.
+* Gets the signature as a string representing relevent user agent characters.
 * @param ws pointer to the work set associated with the match
 * @param signatureAsString pointer to memory to place the signature
 * @param size of the memory allocated for the signature
 * @return the number of bytes written for the signature
 */
 EXTERNAL int32_t fiftyoneDegreesGetSignatureAsString(fiftyoneDegreesWorkset *ws, char *signatureAsString, int size);
+
+/**
+* Gets the device id as a string.
+* @param ws pointer to the work set associated with the match
+* @param deviceId pointer to memory to place the device id
+* @param size of the memory allocated for the device id
+* @return the number of bytes written for the device id
+*/
+EXTERNAL int32_t fiftyoneDegreesGetDeviceId(fiftyoneDegreesWorkset *ws, char *deviceId, int size);
 
 #endif // 51DEGREES_H_INCLUDED
