@@ -28,7 +28,7 @@ namespace FiftyOne.Reconcile.Lite
     /// Test cases for Lite Pattern data file.
     /// </summary>
     [TestClass]
-    public class Pattern : Base
+    public class Pattern : PatternBase
     {
         protected override string DataFile
         {

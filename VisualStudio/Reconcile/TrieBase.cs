@@ -22,28 +22,28 @@
 using System;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using FiftyOne.Mobile.Detection.Provider.Interop;
-using FiftyOne.Foundation.Mobile.Detection;
-using FiftyOne.Foundation.Mobile.Detection.Factories;
 using System.Collections.Generic;
 using System.Threading.Tasks;
+using FiftyOne.Foundation.Mobile.Detection;
+using FiftyOne.Foundation.Mobile.Detection.Factories;
 
 namespace FiftyOne.Reconcile
 {
     [TestClass]
-    public abstract class Base
+    public abstract class TrieBase
     {
         protected abstract string DataFile { get ; }
 
-        protected PatternWrapper _unmanagedProvider;
-        protected Provider _managedProvider;
+        protected TrieWrapper _unmanagedProvider;
+        protected TrieProvider _managedProvider;
 
         /// <summary>
         /// Create the two providers for managed and unmanaged code.
         /// </summary>
         public virtual void Initialise()
         {
-            _unmanagedProvider = new PatternWrapper(DataFile, String.Empty, 5000);
-            _managedProvider = new Provider(StreamFactory.Create(DataFile, false));
+            _unmanagedProvider = new TrieWrapper(DataFile);
+            _managedProvider = TrieFactory.Create(DataFile);
         }
 
         /// <summary>
@@ -56,44 +56,34 @@ namespace FiftyOne.Reconcile
         {
             Parallel.ForEach(userAgents, userAgent =>
             {
-                var managedMatch = _managedProvider.Match(userAgent.Trim());
-                using (PatternWrapper.MatchResult unmanagedMatch =
-                    (PatternWrapper.MatchResult)_unmanagedProvider.Match(userAgent.Trim()))
+                var managedMatch = _managedProvider.GetDeviceIndex(userAgent.Trim());
+                var managedMatchUserAgent = _managedProvider.GetUserAgent(userAgent.Trim());
+                using (TrieWrapper.MatchResult unmanagedMatch =
+                    (TrieWrapper.MatchResult)_unmanagedProvider.Match(userAgent.Trim()))
                 {
                     // Does not use Equals in order to handle situatons where one
                     // or both of the UserAgent properties are null.
-                    if (managedMatch.UserAgent != unmanagedMatch.UserAgent)
+                    if (managedMatchUserAgent != unmanagedMatch.UserAgent)
                     {
                         Assert.Fail(String.Format(
                             "Different user agents for target user agent '{0}'.\r\n" +
                             "Managed UA: '{1}'\r\n" +
                             "Unmanaged UA: '{2}'",
                             userAgent,
-                            managedMatch.UserAgent,
+                            managedMatchUserAgent,
                             unmanagedMatch.UserAgent));
                     }
-                    if (managedMatch.DeviceId.Equals(
-                        unmanagedMatch.DeviceId) == false)
+                    foreach (var property in _managedProvider.PropertyNames)
                     {
-                        Assert.Fail(String.Format(
-                            "Different device ids for user agent '{0}'.\r\n" +
-                            "Managed Id: '{1}'\r\n" +
-                            "Unmanaged Id: '{2}'",
-                            userAgent,
-                            managedMatch.DeviceId,
-                            unmanagedMatch.DeviceId));
-                    }
-                    foreach (var property in _managedProvider.DataSet.Properties)
-                    {
-                        var managedValue = managedMatch[property].ToString();
-                        var unmanagedValue = unmanagedMatch[property.Name];
+                        var managedValue = _managedProvider.GetPropertyValue(managedMatch, property);
+                        var unmanagedValue = unmanagedMatch[property];
                         if (managedValue.Equals(unmanagedValue) == false)
                         {
                             Assert.Fail(String.Format(
                                 "Different results for property '{0}'.\r\n" +
                                 "Managed value: '{1}'\r\n" +
                                 "Unmanaged value: '{2}'",
-                                property.Name,
+                                property,
                                 managedValue,
                                 unmanagedValue));
                         }
@@ -114,7 +104,7 @@ namespace FiftyOne.Reconcile
         /// <summary>
         /// Ensures any unmanaged memory is freed.
         /// </summary>
-        ~Base()
+        ~TrieBase()
         {
             Disposing(false);
         }
@@ -127,7 +117,7 @@ namespace FiftyOne.Reconcile
         {
             if (_managedProvider != null)
             {
-                _managedProvider.DataSet.Dispose();
+                _managedProvider.Dispose();
                 _managedProvider = null;
             }
             if (_unmanagedProvider != null)

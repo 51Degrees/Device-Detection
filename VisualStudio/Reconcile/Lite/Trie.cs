@@ -22,17 +22,17 @@
 using System;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 
-namespace FiftyOne.Reconcile.Enterprise
+namespace FiftyOne.Reconcile.Lite
 {
     /// <summary>
-    /// Test cases for Enterprise Pattern data file.
+    /// Test cases for Lite Trie data file.
     /// </summary>
     [TestClass]
-    public class Pattern : PatternBase
+    public class Trie : TrieBase
     {
         protected override string DataFile
         {
-            get { return FiftyOne.UnitTests.Constants.ENTERPRISE_PATTERN_V32; }
+            get { return FiftyOne.UnitTests.Constants.LITE_TRIE_V32; }
         }
 
         [TestInitialize]
@@ -48,19 +48,19 @@ namespace FiftyOne.Reconcile.Enterprise
         }
         
         [TestMethod]
-        public void EnterprisePattern_Reconcile_Unique()
+        public void LiteTrie_Reconcile_Unique()
         {
             base.Reconcile(FiftyOne.UnitTests.UserAgentGenerator.GetUniqueUserAgents());
         }
 
         [TestMethod]
-        public void EnterprisePattern_Reconcile_Bad()
+        public void LiteTrie_Reconcile_Bad()
         {
             base.Reconcile(FiftyOne.UnitTests.UserAgentGenerator.GetBadUserAgents());
         }
         
         [TestMethod]
-        public void EnterprisePattern_Reconcile_Random()
+        public void LiteTrie_Reconcile_Random()
         {
             base.Reconcile(FiftyOne.UnitTests.UserAgentGenerator.GetRandomUserAgents());
         }
