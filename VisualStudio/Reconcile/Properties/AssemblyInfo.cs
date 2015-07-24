@@ -5,11 +5,11 @@ using System.Runtime.InteropServices;
 // General Information about an assembly is controlled through the following 
 // set of attributes. Change these attribute values to modify the information
 // associated with an assembly.
-[assembly: AssemblyTitle("51degrees - Interop - Unit Tests")]
-[assembly: AssemblyDescription("51degrees - Interop - Unit Tetss")]
+[assembly: AssemblyTitle("51degrees - Interop - Reconciliation Tests")]
+[assembly: AssemblyDescription("51degrees - Interop - C# & C Reconciliation Tests")]
 [assembly: AssemblyConfiguration("")]
 [assembly: AssemblyCompany("51 Degrees Mobile Experts Limited")]
-[assembly: AssemblyProduct("51degrees - Interop - Unit Tests")]
+[assembly: AssemblyProduct("51degrees - Interop - Reconciliation Tests")]
 [assembly: AssemblyCopyright("Copyright 51 Degrees Mobile Experts Limited 2009 - 2015")]
 [assembly: AssemblyTrademark("51Degrees")]
 [assembly: AssemblyCulture("")]
@@ -20,7 +20,7 @@ using System.Runtime.InteropServices;
 [assembly: ComVisible(false)]
 
 // The following GUID is for the ID of the typelib if this project is exposed to COM
-[assembly: Guid("2a5e2b3d-dd31-4711-a150-1c003513309a")]
+[assembly: Guid("e0f5fb11-20d7-4c63-864e-f5bd82ed687d")]
 
 // Version information for an assembly consists of the following four values:
 //

@@ -27,39 +27,24 @@ using System.Collections.Specialized;
 using System.Linq;
 using System.Text;
 using System.Text.RegularExpressions;
-using System.Threading.Tasks;
 
 namespace FiftyOne.UnitTests.HttpHeaders
 {
-    public abstract class Base : IDisposable
+    public abstract class Base : UnitTests.Base
     {
         internal class Validation : Dictionary<string, Regex>
         {
-            private readonly IWrapper _provider;
-
-            internal Validation(IWrapper provider)
-            {
-                _provider = provider;
-            }
-
             public void Add(string property, string pattern)
             {
                 Add(property, new Regex(pattern, RegexOptions.Compiled));
             }
         }
 
-        protected abstract string DataFile { get; }
-
-        /// <summary>
-        /// The data set to be used for the tests.
-        /// </summary>
-        protected IWrapper _provider;
-        
         internal Utils.Results Process(string userAgentPattern, string devicePattern, Validation state)
         {
             var results = new FiftyOne.UnitTests.Utils.Results();
             var random = new Random(0);
-            var httpHeaders = _provider.HttpHeaders.Where(i => i.Equals("User-Agent") == false).ToArray();
+            var httpHeaders = _wrapper.HttpHeaders.Where(i => i.Equals("User-Agent") == false).ToArray();
 
             // Loop through setting 2 user agent headers.
             var userAgentIterator = UserAgentGenerator.GetEnumerable(20000, userAgentPattern).GetEnumerator();
@@ -70,43 +55,38 @@ namespace FiftyOne.UnitTests.HttpHeaders
                 var headers = new NameValueCollection();
                 headers.Add(httpHeaders[random.Next(httpHeaders.Length)], deviceIterator.Current);
                 headers.Add("User-Agent", userAgentIterator.Current);
-                using (var matchResult = _provider.Match(headers))
+                using (var matchResult = _wrapper.Match(headers))
                 {
-                    Validate(matchResult, state);
+                    Validate(headers, matchResult, state);
                 }
             }
 
             return results;
         }
 
-        private static void Validate(IMatchResult matchResult, Validation validation)
+        private static void Validate(NameValueCollection httpHeaders, IMatchResult matchResult, Validation validation)
         {
-            foreach(var test in validation)
+            foreach (var test in validation)
             {
                 var value = matchResult[test.Key];
                 if (test.Value.IsMatch(value) == false)
                 {
-                    Assert.Fail(String.Format(
-                        "HttpHeader test failed for Property '{0}' and test '{1}' with result '{2}'",
+                    var message = new StringBuilder();
+                    message.AppendFormat(
+                        "HttpHeader test failed for Property '{0}' and test '{1}' with result '{2}'.\r\n",
                         test.Key,
                         test.Value,
-                        value));
+                        value);
+                    for(int i = 0; i < httpHeaders.Count; i++)
+                    {
+                        message.AppendFormat(
+                            "{0}-{1} {2}\r\n",
+                            i,
+                            httpHeaders.GetKey(i),
+                            httpHeaders.GetValues(i));
+                    }
+                    Assert.Fail(message.ToString());
                 }
-            }
-        }
-
-        [TestCleanup]
-        public void Dispose()
-        {
-            Dispose(true);
-            GC.SuppressFinalize(this);
-        }
-
-        protected virtual void Dispose(bool disposing)
-        {
-            if (_provider != null)
-            {
-                _provider.Dispose();
             }
         }
     }
