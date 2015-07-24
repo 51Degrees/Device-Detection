@@ -47,9 +47,9 @@ EXTERN_DLL_EXPORT LP __cdecl MatchFromUserAgent(LPCTSTR userAgent)
 	return (LP)offsets;
 }
 
-EXTERN_DLL_EXPORT int __cdecl GetLastCharacterIndex(LPCTSTR userAgent)
+EXTERN_DLL_EXPORT int __cdecl GetMatchedUserAgentLength(LPCTSTR userAgent)
 {
-	return fiftyoneDegreesGetLastCharacterIndex((char*)userAgent);
+	return fiftyoneDegreesGetMatchedUserAgentLength((char*)userAgent);
 }
 
 EXTERN_DLL_EXPORT LP __cdecl MatchFromHeaders(LPTSTR httpHeaders)
