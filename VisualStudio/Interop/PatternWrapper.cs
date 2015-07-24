@@ -435,9 +435,15 @@ namespace FiftyOne.Mobile.Detection.Provider.Interop
         /// Construct the wrapper creating a workset for each CPU available.
         /// </summary>
         /// <param name="fileName">Path to the data set file.</param>
+        public PatternWrapper(string fileName) : this(fileName, new string[] { }) { }
+
+        /// <summary>
+        /// Construct the wrapper creating a workset for each CPU available.
+        /// </summary>
+        /// <param name="fileName">Path to the data set file.</param>
         /// <param name="properties">Collection of properties to include in the results.</param>
         /// <param name="size">The size of the cache to be used with the wrapper</param>
-        public PatternWrapper(string fileName, IEnumerable<string> properties, int size = 0) 
+        public PatternWrapper(string fileName, IEnumerable<string> properties, int size = 5000) 
             : this(fileName, String.Join(",", properties), size) {}
 
         /// <summary>
@@ -447,7 +453,7 @@ namespace FiftyOne.Mobile.Detection.Provider.Interop
         /// <param name="properties">Comma seperated list of properties to include in the results.
         /// <param name="size">The size of the cache to be used with the wrapper</param>
         /// </param>
-        public PatternWrapper(string fileName, string properties, int size = 0)
+        public PatternWrapper(string fileName, string properties, int size = 5000)
         {
             _provider = new Provider(fileName, properties, size);
         }
