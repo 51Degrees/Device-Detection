@@ -10,7 +10,7 @@ using System.Runtime.InteropServices;
 [assembly: AssemblyConfiguration("")]
 [assembly: AssemblyCompany("51 Degrees Mobile Experts Limited")]
 [assembly: AssemblyProduct("51degrees.mobi - Detection Demo Web Site")]
-[assembly: AssemblyCopyright("Copyright 51 Degrees Mobile Experts Limited 2009 - 2014")]
+[assembly: AssemblyCopyright("Copyright 51 Degrees Mobile Experts Limited 2009 - 2015")]
 [assembly: AssemblyTrademark("51Degrees")]
 [assembly: AssemblyCulture("")]
 
@@ -19,5 +19,5 @@ using System.Runtime.InteropServices;
 // COM, set the ComVisible attribute to true on that type.
 [assembly: ComVisible(false)]
 
-[assembly: AssemblyVersion("3.0.0.0")]
-[assembly: AssemblyFileVersion("3.0.0.0")]
+[assembly: AssemblyVersion("3.2.0.0")]
+[assembly: AssemblyFileVersion("3.2.0.0")]

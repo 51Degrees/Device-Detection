@@ -20,37 +20,42 @@
  ********************************************************************** */
 
 using System;
+using System.Linq;
 using FiftyOne.Mobile.Detection.Provider.Interop;
 using System.Text;
 using System.IO;
 
-namespace Demo
+namespace FiftyOne.Demo.WebSite
 {
     public partial class Default : System.Web.UI.Page
     {
-        // Initialise the pattern provider with a list of 4 properties.
+        // Initialise the pattern provider to return all available properties.
         private static readonly PatternWrapper _pattern = new PatternWrapper(
-            Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "..\\..\\data\\51Degrees-LiteV3.2.dat"),
-                new[] { "Id", "IsMobile", "ScreenPixelsWidth", "ScreenPixelsHeight" });
+            Path.Combine(
+                AppDomain.CurrentDomain.BaseDirectory,
+                "..\\..\\data\\51Degrees-LiteV3.2.dat"));
 
-        // Initialise the trie provider with a data file and a list of 4 properties.
+        // Initialise the trie provider to return all available properties.
         private static readonly TrieWrapper _trie = new TrieWrapper(
-            Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "..\\..\\data\\51Degrees-LiteV3.2.trie"),
-            new[] { "Id", "IsMobile", "ScreenPixelsWidth", "ScreenPixelsHeight" });
+            Path.Combine(
+                AppDomain.CurrentDomain.BaseDirectory, 
+                "..\\..\\data\\51Degrees-LiteV3.2.trie"));
 
-        // IMPORTANT: For a full list of properties see: http://51degrees.mobi/products/devicedata/propertydictionary
+        // IMPORTANT: For a full list of properties see: 
+        // https://51degrees.com/resources/property-dictionary
 
         protected void Page_Init(object sender, EventArgs e)
         {
-            // Get properties for the current useragent.
-            var patternProperties = _pattern.Match(Request.UserAgent);
-            var trieProperties = _trie.Match(Request.UserAgent);
+            // Get properties for the current HTTP headers.
+            var patternProperties = _pattern.Match(Request.Headers);
+            var trieProperties = _trie.Match(Request.Headers);
 
             // Output the properties from each provider.
             var builder = new StringBuilder();
             builder.Append("<table>");
             builder.Append("<tr><th></th><th>Pattern</th><th>Trie</th></tr>");
-            foreach (var property in _pattern.AvailableProperties)
+            foreach (var property in _pattern.AvailableProperties.Where(i =>
+                i.Contains("Javascript") == false).Intersect(_trie.AvailableProperties))
             {
                 builder.Append("<tr>");
                 builder.Append(String.Format(
@@ -59,18 +64,12 @@ namespace Demo
                 builder.Append(String.Format(
                     "<td>{0}</td>",
                     patternProperties[property]));
-
-                // Add the tree property if one exists.
-                if (trieProperties[property] != null)
-                    builder.Append(String.Format(
-                        "<td>{0}</td>",
-                        trieProperties[property]));
-                else
-                    builder.Append("<td></td>");
+                builder.Append(String.Format(
+                    "<td>{0}</td>",
+                    trieProperties[property]));
                 builder.Append("</tr>");
             }
             builder.Append("</table>");
-
             Results.Text = builder.ToString();
         }
     }
