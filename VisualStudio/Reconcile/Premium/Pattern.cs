@@ -28,7 +28,7 @@ namespace FiftyOne.Reconcile.Premium
     /// Test cases for Premium Pattern data file.
     /// </summary>
     [TestClass]
-    public class Pattern : Base
+    public class Pattern : PatternBase
     {
         protected override string DataFile
         {

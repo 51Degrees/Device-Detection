@@ -52,10 +52,14 @@
   </Choose>
   <ItemGroup>
     <Compile Include="Enterprise\Pattern.cs" />
+    <Compile Include="Enterprise\Trie.cs" />
+    <Compile Include="Lite\Trie.cs" />
     <Compile Include="Lite\Pattern.cs" />
+    <Compile Include="Premium\Trie.cs" />
+    <Compile Include="TrieBase.cs" />
     <Compile Include="Premium\Pattern.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
-    <Compile Include="Base.cs" />
+    <Compile Include="PatternBase.cs" />
   </ItemGroup>
   <ItemGroup>
     <ProjectReference Include="..\..\..\.NET-Device-Detection\FoundationV3\FiftyOne.Foundation 4.csproj">
@@ -66,9 +70,9 @@
       <Project>{91afcd8c-4f1c-4372-a179-0fd92ef4b54e}</Project>
       <Name>FiftyOne.Mobile.Detection.Provider.Interop</Name>
     </ProjectReference>
-    <ProjectReference Include="..\UnitTests\UnitTests.csproj">
+    <ProjectReference Include="..\UnitTests\FiftyOne.UnitTests.csproj">
       <Project>{b200cb07-fd50-44de-a743-6dac414c20a2}</Project>
-      <Name>UnitTests</Name>
+      <Name>FiftyOne.UnitTests</Name>
     </ProjectReference>
   </ItemGroup>
   <Choose>
