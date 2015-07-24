@@ -66,7 +66,7 @@ const fiftyoneDegreesRANGE RANGES[] = {
 
 const int16_t POWERS[] = { 1, 10, 100, 1000, 10000 };
 
-#define POWERS_COUNT sizeof(POWERS) / sizeof(int32_t)
+#define POWERS_COUNT sizeof(POWERS) / sizeof(int16_t)
 
 #define MIN_CACHE_SIZE 2
 
@@ -499,7 +499,7 @@ int32_t fiftyoneDegreesGetValues(fiftyoneDegreesWorkset *ws, int32_t requiredPro
 	fiftyoneDegreesSetValues(ws, requiredPropertyIndex);
 	for (valueIndex = 0; valueIndex < ws->valuesCount; valueIndex++) {
 		value = fiftyoneDegreesGetString(ws->dataSet, ws->values[valueIndex]->nameOffset);
-		sizeNeeded += currentPosition - values + value->length;
+		sizeNeeded += value->length;
 		if (sizeNeeded <= size) {
 			// Add a value seperator if this isn't the first value in the list.
 			if (valueIndex > 0) {
@@ -511,15 +511,18 @@ int32_t fiftyoneDegreesGetValues(fiftyoneDegreesWorkset *ws, int32_t requiredPro
 			// remaining characters. Take one from the length because we don't
 			// need the 0 string terminator.
 			memcpy(currentPosition, (char*)&(value->firstByte), value->length - 1);
+			// Move to the next position to either write the next value and 
+			// if space remaining the next value string. -1 is used to skip
+			// back from the trailing 0.
 			currentPosition += value->length - 1;
 		}
 	}
-	// Terminate the values string.
-	*currentPosition = 0;
 
 	if (sizeNeeded <= size) {
+		// Write the null terminator.
+		*currentPosition = 0;
 		// Return the number of bytes written.
-		return currentPosition - values + 1;
+		return sizeNeeded;
 	}
 	else {
 		// Writing the value to the values memory space will result
@@ -773,7 +776,7 @@ int32_t* getProfileOffsetsFromSignature(const byte *signature) {
  * @return a pointer to the first signature index
  */
 const int32_t* getFirstRankedSignatureIndexForNode(const fiftyoneDegreesDataSet *dataSet, const fiftyoneDegreesNode *node) {
-	return dataSet->nodeRankedSignatureIndexes + *(int32_t*)(((byte*)node) + sizeof(fiftyoneDegreesNode) +
+	return (int32_t*)(((byte*)node) + sizeof(fiftyoneDegreesNode) +
 		(node->childrenCount * sizeof(fiftyoneDegreesNodeIndex)) +
 		(node->numericChildrenCount * sizeof(fiftyoneDegreesNodeNumericIndex)));
 }
@@ -809,9 +812,19 @@ void linkedListAdd(fiftyoneDegreesLinkedSignatureList *linkedList, int32_t ranke
  */
 void buildInitialList(fiftyoneDegreesWorkset *ws, const fiftyoneDegreesNode *node) {
 	int32_t index;
-	const int32_t *firstSignatureIndex = getFirstRankedSignatureIndexForNode(ws->dataSet, node);
-	for (index = 0; index < node->signatureCount; index++) {
-		linkedListAdd(&(ws->linkedSignatureList), *(firstSignatureIndex + index));
+	const int32_t *rankedSignatureIndex = getFirstRankedSignatureIndexForNode(ws->dataSet, node);
+	if (node->signatureCount == 1) {
+		// Only one signature so the first ranked signature index
+		// is the value for the ranked signature index.
+		linkedListAdd(&(ws->linkedSignatureList), *rankedSignatureIndex);
+	}
+	else {
+		// Multiple signatures so the first ranked signature index
+		// is the index of the first value in the list.
+		rankedSignatureIndex = ws->dataSet->nodeRankedSignatureIndexes + *rankedSignatureIndex;
+		for (index = 0; index < node->signatureCount; index++) {
+			linkedListAdd(&(ws->linkedSignatureList), *(rankedSignatureIndex + index));
+		}
 	}
 }
 
@@ -1025,7 +1038,7 @@ fiftyoneDegreesDataSetInitStatus fiftyoneDegreesInitWithPropertyArray(const char
 #else
 	/* If using Microsoft use the fopen_s method to avoid warning */
 	if (fopen_s(&inputFilePtr, fileName, "rb") != 0) {
-		return -1;
+		return DATA_SET_INIT_STATUS_FILE_NOT_FOUND;
 	}
 #endif
 
@@ -1705,7 +1718,7 @@ void setSignatureAsString(fiftyoneDegreesWorkset *ws, const byte *signature) {
 		nullPosition = 0,
 		lastCharacter = 0;
 	for (index = 0; index < ws->dataSet->header.maxUserAgentLength; index++) {
-		ws->signatureAsString[index] = '_';
+		ws->signatureAsString[index] = ' ';
 	}
 	for (index = 0; index < nodeOffsetCount; index++) {
 		lastCharacter = addSignatureNodeToString(ws, getNodeByOffset(ws->dataSet, *(nodeOffsets + index)));
@@ -1786,27 +1799,42 @@ void resetCounters(fiftyoneDegreesWorkset *ws) {
  * @param userAgent char pointer to the user agent. Trimmed if longer than
  *        the maximum allowed for matching
  */
-void setTargetUserAgentArray(fiftyoneDegreesWorkset *ws, char* userAgent) {
+void setTargetUserAgentArray(fiftyoneDegreesWorkset *ws, char* userAgent, int userAgentLength) {
 	uint16_t index = 0;
 	ws->hashCodeSet = 0;
 
+	// If the user agent length is not positive then set it
+	// to the maximum length a user agent can be.
+	if (userAgentLength <= 0) {
+		userAgentLength = ws->dataSet->header.maxUserAgentLength;
+	}
+
+	// Copy the characters of the user agent provided into the
+	// target.
 	if (userAgent != NULL) {
-		// If the user agent is longer than the maximum then set to the max length
-		// otherwise use the length of the string.
-		ws->targetUserAgent = userAgent;
+		
 		while (userAgent[index] != 0 &&
-			userAgent[index] != '\r' &&
-			userAgent[index] != '\n' &&
-			index < ws->dataSet->header.maxUserAgentLength) {
-			ws->targetUserAgentArray[index] = userAgent[index];
+			index < userAgentLength) {
+			if (userAgent[index] != '\r' &&
+				userAgent[index] != '\n') {
+				// This is a valid character so add it to the target user agent
+				// array.
+				ws->targetUserAgentArray[index] = userAgent[index];
+			}
+			else {
+				// Not a valid character so use space instead. Will only happen
+				// when the user agent length is provided 
+				ws->targetUserAgentArray[index] = ' ';
+			}
 			index++;
 		}
 	}
-	else {
-		// Handle NULL useragents as empty strings to ensure down
-		// stream processing does fail.
-		ws->targetUserAgent = (char*)ws->targetUserAgentArray;
-	}
+
+	// Set the target user agent to the target user agent array in 
+	// order to deal with user agents that are not null terminated
+	// and the length is provided.
+	ws->targetUserAgent = (char*)ws->targetUserAgentArray;
+
 	// Set the last index position to null incase the target user agent
 	// is longer than the maximum user agent length. The routine to
 	// allocate the targetUserAgentArray adds an extra byte for this
@@ -2088,6 +2116,7 @@ void setMatchDefault(fiftyoneDegreesWorkset *ws) {
 
 	/* Default the other values as no data available */
 	ws->signature = NULL;
+	*ws->signatureAsString = 0;
 	*ws->closestNodes = 0;
 }
 
@@ -2112,9 +2141,9 @@ void resetNextCharacterPositionIndex(fiftyoneDegreesWorkset *ws) {
  * @param length of the characters from start to conver to a number
  * @return the numeric integer of the characters specified
  */
-int16_t getNumber(const byte *array, int32_t start, int32_t length) {
+int32_t getNumber(const byte *array, int32_t start, int32_t length) {
 	int32_t i, p;
-	int16_t value = 0;
+	int32_t value = 0;
 	for (i = start + length - 1, p = 0; i >= start && p < POWERS_COUNT; i--, p++)
 	{
 		value += POWERS[p] * (array[i] - (byte)'0');
@@ -2216,8 +2245,16 @@ void setNumericNodeState(const fiftyoneDegreesNode *node, fiftyoneDegreesNumeric
 			(state->firstNodeNumericIndex + state->lowIndex)->value >= state->range->lower &&
 			(state->firstNodeNumericIndex + state->lowIndex)->value < state->range->upper;
 		state->highInRange = state->highIndex < node->numericChildrenCount && state->highIndex >= 0 &&
-			(state->firstNodeNumericIndex + state->lowIndex)->value >= state->range->lower &&
-			(state->firstNodeNumericIndex + state->lowIndex)->value < state->range->upper;
+			(state->firstNodeNumericIndex + state->highIndex)->value >= state->range->lower &&
+			(state->firstNodeNumericIndex + state->highIndex)->value < state->range->upper;
+	}
+	else
+	{
+		// As the target is out of valid ranges then
+		// set the low and high in range to false
+		// to ensure no iteration happens.
+		state->lowInRange = 0;
+		state->highInRange = 0;
 	}
 }
 
@@ -2357,7 +2394,7 @@ byte areNodesOverlapped(const fiftyoneDegreesDataSet *dataSet, const fiftyoneDeg
  */
 byte isNodeOverlapped(const fiftyoneDegreesNode *node, fiftyoneDegreesWorkset *ws) {
 	const fiftyoneDegreesNode  *currentNode;
-	int         index;
+	int index;
 	for (index = ws->nodeCount - 1; index >= 0; index--) {
 		currentNode = *(ws->nodes + index);
 		if (currentNode == node ||
@@ -2381,10 +2418,10 @@ void evaluateNumeric(fiftyoneDegreesWorkset *ws) {
 		ws->nodeCount < ws->dataSet->header.signatureNodesCount)
 	{
 		if (existingNodeIndex >= ws->nodeCount ||
-			getRootNode(ws->dataSet, *(ws->nodes + existingNodeIndex))->position < ws->nextCharacterPositionIndex)
+			getRootNode(ws->dataSet, ws->nodes[existingNodeIndex])->position < ws->nextCharacterPositionIndex)
 		{
 			ws->rootNodesEvaluated++;
-			node = getCompleteNumericNode(ws, *((ws->dataSet->rootNodes) + ws->nextCharacterPositionIndex));
+			node = getCompleteNumericNode(ws, ws->dataSet->rootNodes[ws->nextCharacterPositionIndex]);
 			if (node != NULL &&
 				isNodeOverlapped(node, ws) == 0)
 			{
@@ -2405,7 +2442,7 @@ void evaluateNumeric(fiftyoneDegreesWorkset *ws) {
 		{
 			// The next position to evaluate should be to the left
 			// of the existing node already in the list.
-			ws->nextCharacterPositionIndex = (*(ws->nodes + existingNodeIndex))->position;
+			ws->nextCharacterPositionIndex = ws->nodes[existingNodeIndex]->position;
 
 			// Swap the existing node for the next one in the list.
 			existingNodeIndex++;
@@ -2429,7 +2466,14 @@ int32_t setClosestSignaturesForNode(fiftyoneDegreesWorkset *ws, const fiftyoneDe
 	fiftyoneDegreesLinkedSignatureListItem *current = linkedList->first,
 		*next;
 	int32_t index = 0;
-	const int32_t *firstRankedSignatureIndex = getFirstRankedSignatureIndexForNode(ws->dataSet, node);
+	// If there is only 1 signature then the value is the 
+	// ranked signature index, otherwise it's the index of the first
+	// ranked index in the nodeRankedSignatureIndexes array.
+	const int32_t *firstRankedSignatureIndex = 
+		node->signatureCount == 1 ?
+			getFirstRankedSignatureIndexForNode(ws->dataSet, node) :
+			ws->dataSet->nodeRankedSignatureIndexes + 
+				*getFirstRankedSignatureIndexForNode(ws->dataSet, node);
 	const int32_t *currentRankedSignatureIndex;
 
 	while (index < node->signatureCount &&
@@ -2816,9 +2860,21 @@ void evaluateSignature(fiftyoneDegreesWorkset *ws,
  */
 const byte* getNextClosestSignatureForSingleNode(fiftyoneDegreesWorkset *ws) {
 	const byte *signature;
+	int32_t rankedSignatureIndex;
 	if (ws->closestNodeRankedSignatureIndex < ws->nodes[0]->signatureCount) {
-		signature = getSignatureByRankedIndex(ws->dataSet,
-			*(getFirstRankedSignatureIndexForNode(ws->dataSet, ws->nodes[0]) + ws->closestNodeRankedSignatureIndex));
+		rankedSignatureIndex = *getFirstRankedSignatureIndexForNode(
+			ws->dataSet,
+			ws->nodes[0]);
+		// If there is a count greater than 1 then the value relates
+		// to the first index in the list of node ranked signature
+		// indexes. If the count is 1 then the value is the index.
+		if (ws->nodes[0]->signatureCount > 1) {
+			rankedSignatureIndex = *(ws->dataSet->nodeRankedSignatureIndexes +
+				rankedSignatureIndex + ws->closestNodeRankedSignatureIndex);
+		} 
+		signature = getSignatureByRankedIndex(
+			ws->dataSet,
+			rankedSignatureIndex);
 		ws->closestNodeRankedSignatureIndex++;
 	}
 	else {
@@ -2893,7 +2949,7 @@ void evaluateSignatures(fiftyoneDegreesWorkset *ws) {
  */
 void evaluate(fiftyoneDegreesWorkset *ws) {
 	const fiftyoneDegreesNode *node;
-	while (ws->nextCharacterPositionIndex > 0 &&
+	while (ws->nextCharacterPositionIndex >= 0 &&
 		ws->nodeCount < ws->dataSet->header.signatureNodesCount) {
 		ws->rootNodesEvaluated++;
 		node = getCompleteNode(ws, *(ws->dataSet->rootNodes + ws->nextCharacterPositionIndex));
@@ -3040,10 +3096,11 @@ fiftyoneDegreesResultset *fiftyoneDegreesAddToCache(fiftyoneDegreesWorkset *ws) 
 * @param ws pointer to a work set to be used for the match created via
 *        createWorkset function
 * @param userAgent pointer to the target user agent
+* @param userAgentLength of the user agent string
 */
-void internalMatch(fiftyoneDegreesWorkset *ws, char* userAgent) {
+void internalMatch(fiftyoneDegreesWorkset *ws, char* userAgent, int userAgentLength) {
 	fiftyoneDegreesResultset *rs = NULL;
-	setTargetUserAgentArray(ws, userAgent);
+	setTargetUserAgentArray(ws, userAgent, userAgentLength);
 	if (ws->targetUserAgentArrayLength >= ws->dataSet->header.minUserAgentLength) {
 		if (ws->cache != NULL) {
 
@@ -3127,7 +3184,7 @@ void internalMatch(fiftyoneDegreesWorkset *ws, char* userAgent) {
 */
 void fiftyoneDegreesMatch(fiftyoneDegreesWorkset *ws, char* userAgent) {
 	resetCounters(ws);
-	internalMatch(ws, userAgent);
+	internalMatch(ws, userAgent, 0);
 }
 
 /**
@@ -3145,7 +3202,9 @@ byte matchForHttpHeader(fiftyoneDegreesWorkset *ws, const fiftyoneDegreesCompone
 		httpHeaderOffset = getComponentHeaderOffset(component, httpHeaderIndex);
 		for (importantHeaderIndex = 0; importantHeaderIndex < ws->importantHeadersCount; importantHeaderIndex++) {
 			if (ws->importantHeaders[importantHeaderIndex].header->headerNameOffset == httpHeaderOffset) {
-				internalMatch(ws, ws->importantHeaders[importantHeaderIndex].headerValue);
+				internalMatch(ws, 
+					ws->importantHeaders[importantHeaderIndex].headerValue, 
+					ws->importantHeaders[importantHeaderIndex].headerValueLength);
 				return TRUE;
 			}
 		}
@@ -3195,6 +3254,7 @@ void matchForHttpHeaders(fiftyoneDegreesWorkset *ws) {
 		// Set the signature to NULL because there can be no signature when multi
 		// headers are used.
 		ws->signature = NULL;
+		ws->targetUserAgent = NULL;
 	}
 }
 
@@ -3218,6 +3278,7 @@ void fiftyoneDegreesMatchWithHeadersArray(fiftyoneDegreesWorkset *ws, char **htt
 			{
 				ws->importantHeaders[importantHeaderIndex].header = ws->dataSet->httpHeaders + dataSetHeaderIndex;
 				ws->importantHeaders[importantHeaderIndex].headerValue = httpHeaderValues[httpHeaderIndex];
+				ws->importantHeaders[importantHeaderIndex].headerValueLength = (int)strlen(httpHeaderValues[httpHeaderIndex]);
 				importantHeaderIndex++;
 				break;
 			}
@@ -3225,6 +3286,71 @@ void fiftyoneDegreesMatchWithHeadersArray(fiftyoneDegreesWorkset *ws, char **htt
 	}
 	ws->importantHeadersCount = importantHeaderIndex;
 	matchForHttpHeaders(ws);
+}
+
+/**
+ * Sets name to the start of the http header name and returns the length of the string.
+ * @param start of the string to be processed
+ * @param value to be set when returned
+ * @returns the number of characters in the value
+ */
+int setNextHttpHeaderName(char* start, char** name) {
+	int index = 0;
+	char *current = start, *lastChar = start;
+	while (*current != 0) {
+		if (*current == ' ') {
+			*name = lastChar;
+			return (int)(current - lastChar);
+		}
+		if (*current == '\r' ||
+			*current == '\n') {
+			lastChar = current + 1;
+		}
+		current++;
+	}
+	return 0;
+}
+
+/**
+ * Sets the value pointer to the start of the next HTTP header value and 
+ * returns the length.
+ * @param start of the string to be processed
+ * @param value to be set when returned
+ * @returns the number of characters in the value
+ */
+int setNextHttpHeaderValue(char* start, char** value) {
+	int index = 0;
+	char *current = start, *lastChar = start;
+	*value = start;
+	while (*current != 0) {
+		if (*current == '\r' ||
+			*current == '\n') {
+			*value = lastChar;
+			break;
+		}
+		current++;
+	}
+	return (int)(current - lastChar);
+}
+
+/**
+ * Return the index of the unique hader, or -1 if the header is not important.
+ * @param dataSet the header is being checked against
+ * @param httpHeaderName of the header being checked
+ * @param length of the header name
+ * @returns the index in the datasets headers of this header or -1 
+ */
+int getUniqueHttpHeaderIndex(const fiftyoneDegreesDataSet *dataSet, char* httpHeaderName, int length) {
+	int uniqueHeaderIndex;
+	const fiftyoneDegreesAsciiString *header;
+	for (uniqueHeaderIndex = 0; uniqueHeaderIndex < dataSet->httpHeadersCount; uniqueHeaderIndex++) {
+		header = fiftyoneDegreesGetString(dataSet, (dataSet->httpHeaders + uniqueHeaderIndex)->headerNameOffset);
+		if (header->length - 1 == length &&
+			memcmp(&(header->firstByte), httpHeaderName, length) == 0) {
+			return uniqueHeaderIndex;
+		}
+	}
+	return -1;
 }
 
 /**
@@ -3236,58 +3362,22 @@ void fiftyoneDegreesMatchWithHeadersArray(fiftyoneDegreesWorkset *ws, char **htt
 * @param httpHeaders is a list of HTTP headers and values on each line
 */
 void fiftyoneDegreesMatchWithHeadersString(fiftyoneDegreesWorkset *ws, char *httpHeaders) {
-	char *current = httpHeaders, *lastEnd = httpHeaders;
-	int dataSetHeaderIndex, importantHeaderIndex = 0;
-    uint32_t size;
-	byte isName = TRUE, isValue = FALSE;
-	while (*current != 0 &&
-		importantHeaderIndex < ws->dataSet->httpHeadersCount) {
-		if (isName == TRUE && *current == ' ') {
-			// This could be an HTTP header we're interested in. Check against
-			// the data set headers to see if it is.
-			for (dataSetHeaderIndex = 0; dataSetHeaderIndex < ws->dataSet->httpHeadersCount; dataSetHeaderIndex++) {
-				size = current - lastEnd;
-				if (strlen(ws->dataSet->httpHeaders[dataSetHeaderIndex].headerName) == size &&
-					memcmp(ws->dataSet->httpHeaders[dataSetHeaderIndex].headerName, lastEnd, size) == 0) {
-					// This is the end of the name. Add it to the current index.
-					ws->importantHeaders[importantHeaderIndex].header = ws->dataSet->httpHeaders + dataSetHeaderIndex;
-					lastEnd = current + 1;
-					isValue = TRUE;
-					isName = FALSE;
-				}
-			}
-			current++;
+	char *headerName, *headerValue;
+	int headerNameLength, headerValueLength, uniqueHeaderIndex = 0;
+	ws->importantHeadersCount = 0;
+	headerNameLength = setNextHttpHeaderName(httpHeaders, &headerName);
+	while (headerNameLength > 0 &&
+		ws->importantHeadersCount < ws->dataSet->httpHeadersCount) {
+		headerValueLength = setNextHttpHeaderValue(headerName + headerNameLength + 1, &headerValue);
+		uniqueHeaderIndex = getUniqueHttpHeaderIndex(ws->dataSet, headerName, headerNameLength);
+		if (uniqueHeaderIndex >= 0) {
+			ws->importantHeaders[ws->importantHeadersCount].header = ws->dataSet->httpHeaders + uniqueHeaderIndex;
+			ws->importantHeaders[ws->importantHeadersCount].headerValue = headerValue;
+			ws->importantHeaders[ws->importantHeadersCount].headerValueLength = headerValueLength;
+			ws->importantHeadersCount++;
 		}
-		else if (*current == '\r' || *current == '\n') {
-			if (isValue == TRUE) {
-				// End of line so record the header value and move to the next
-				// important header index.
-				ws->importantHeaders[importantHeaderIndex].headerValue = lastEnd;
-				importantHeaderIndex++;
-				isValue = FALSE;
-				isName = TRUE;
-			}
-			// Move to the next character which should be the start of a http
-			// header name.
-			current++;
-			while (*current == '\r' || *current == '\n') {
-				current++;
-			}
-			lastEnd = current;
-		}
-		else {
-			current++;
-		}
+		headerNameLength = setNextHttpHeaderName(headerValue + headerValueLength, &headerName);
 	}
-
-	if (isValue == TRUE) {
-		// If the HTTP headers are the end of the string then capture
-		// the last value.
-		ws->importantHeaders[importantHeaderIndex].headerValue = lastEnd;
-		importantHeaderIndex++;
-	}
-
-	ws->importantHeadersCount = importantHeaderIndex;
 	matchForHttpHeaders(ws);
 }
 
@@ -3298,6 +3388,73 @@ void fiftyoneDegreesMatchWithHeadersString(fiftyoneDegreesWorkset *ws, char *htt
  */
 int32_t fiftyoneDegreesGetSignatureRank(fiftyoneDegreesWorkset *ws) {
 	return getRankFromSignature(ws->dataSet, ws->signature);
+}
+
+/**
+* Gets the device id as a string.
+* @param ws pointer to the work set associated with the match
+* @param deviceId pointer to memory to place the device id
+* @param size of the memory allocated for the device id
+* @return the number of bytes written for the device id
+*/
+int32_t fiftyoneDegreesGetDeviceId(fiftyoneDegreesWorkset *ws, char *deviceId, int size) {
+	int32_t length = 0;
+	char *current = deviceId;
+	int profileIndex, profileId;
+
+	// Get the length of the string needed to store the device id where each
+	// profile id needs the number of digits plus one for the seperator or
+	// string terminator.
+	for (profileIndex = 0; profileIndex < ws->profileCount; profileIndex++) {
+		profileId = ws->profiles[profileIndex]->profileId;
+		length += profileId > 0 ? (int)(floor(log10(abs(profileId)))) + 2 : 1;
+	}
+
+	// Set the device id if enough space available.
+	if (length <= size) {
+		for (profileIndex = 0; profileIndex < ws->profileCount; profileIndex++) {
+			if (profileIndex > 0) {
+				*current = '-';
+				current++;
+			}
+			current += snprintf(
+				current,
+				size - (int)(current - deviceId),
+				"%d",
+				ws->profiles[profileIndex]->profileId);
+		}
+	}
+	return length <= size ? length : -length;
+}
+
+/**
+* Gets the required property name at the index provided.
+* @param ws pointer to the work set associated with the match
+* @param signatureAsString pointer to memory to place the signature
+* @param size of the memory allocated for the signature
+* @return the number of bytes written for the signature
+*/
+int32_t fiftyoneDegreesGetSignatureAsString(fiftyoneDegreesWorkset *ws, char *signatureAsString, int size) {
+	int32_t length;
+	if (ws->signature != NULL) {
+		setSignatureAsString(ws, ws->signature);
+		length = (int32_t)strlen(ws->signatureAsString);
+		if (length <= size) {
+			// Copy the signature as a string.
+			strcpy(signatureAsString, ws->signatureAsString);
+		}
+		else {
+			// The memory for the string is too short. Return
+			// negative length.
+			length = -length;
+		}
+	}
+	else {
+		// There is no signature so return 0 length.
+		*signatureAsString = 0;
+		length = 0;
+	}
+	return length;
 }
 
 /**

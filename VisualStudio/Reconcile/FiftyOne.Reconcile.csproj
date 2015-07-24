@@ -3,11 +3,11 @@
   <PropertyGroup>
     <Configuration Condition=" '$(Configuration)' == '' ">Debug</Configuration>
     <Platform Condition=" '$(Platform)' == '' ">AnyCPU</Platform>
-    <ProjectGuid>{B200CB07-FD50-44DE-A743-6DAC414C20A2}</ProjectGuid>
+    <ProjectGuid>{9CB6F357-39D9-4210-B5CD-052200B5C580}</ProjectGuid>
     <OutputType>Library</OutputType>
     <AppDesignerFolder>Properties</AppDesignerFolder>
-    <RootNamespace>UnitTests</RootNamespace>
-    <AssemblyName>UnitTests</AssemblyName>
+    <RootNamespace>FiftyOne.Reconcile</RootNamespace>
+    <AssemblyName>FiftyOne.Reconcile</AssemblyName>
     <TargetFrameworkVersion>v4.0</TargetFrameworkVersion>
     <FileAlignment>512</FileAlignment>
     <ProjectTypeGuids>{3AC096D0-A1C2-E12C-1390-A8335801FDAB};{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}</ProjectTypeGuids>
@@ -34,7 +34,6 @@
     <DefineConstants>TRACE</DefineConstants>
     <ErrorReport>prompt</ErrorReport>
     <WarningLevel>4</WarningLevel>
-    <TreatWarningsAsErrors>true</TreatWarningsAsErrors>
   </PropertyGroup>
   <ItemGroup>
     <Reference Include="System" />
@@ -52,40 +51,26 @@
     </Otherwise>
   </Choose>
   <ItemGroup>
-    <Compile Include="API\Enterprise\Pattern.cs" />
-    <Compile Include="API\Premium\Pattern.cs" />
-    <Compile Include="Base.cs" />
-    <Compile Include="API\Lite\Pattern.cs" />
-    <Compile Include="HttpHeaders\Base.cs" />
-    <Compile Include="HttpHeaders\Combinations.cs" />
-    <Compile Include="HttpHeaders\Enterprise\V32PatternFile.cs" />
-    <Compile Include="HttpHeaders\Enterprise\V32TrieFile.cs" />
-    <Compile Include="HttpHeaders\TrieBase.cs" />
-    <Compile Include="HttpHeaders\PatternBase.cs" />
-    <Compile Include="HttpHeaders\Premium\V32PatternFile.cs" />
-    <Compile Include="HttpHeaders\Premium\V32TrieFile.cs" />
-    <Compile Include="PatternBase.cs" />
-    <Compile Include="Common\UserAgentGenerator.cs" />
-    <Compile Include="Common\Utils.cs" />
-    <Compile Include="Performance\Base.cs" />
-    <Compile Include="Performance\Enterprise\PatternAll.cs" />
-    <Compile Include="Performance\Enterprise\PatternOne.cs" />
-    <Compile Include="Performance\Lite\PatternOne.cs" />
-    <Compile Include="Performance\Lite\PatternAll.cs" />
-    <Compile Include="Performance\PatternBase.cs" />
-    <Compile Include="Performance\Premium\PatternAll.cs" />
-    <Compile Include="Performance\Premium\PatternOne.cs" />
-    <Compile Include="Performance\TrieBase.cs" />
+    <Compile Include="Enterprise\Pattern.cs" />
+    <Compile Include="Lite\Pattern.cs" />
+    <Compile Include="Premium\Pattern.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
-    <Compile Include="Properties\Constants.cs" />
+    <Compile Include="Base.cs" />
   </ItemGroup>
   <ItemGroup>
+    <ProjectReference Include="..\..\..\.NET-Device-Detection\FoundationV3\FiftyOne.Foundation 4.csproj">
+      <Project>{9d658044-fb65-4939-8449-a3a1debbb31a}</Project>
+      <Name>FiftyOne.Foundation 4</Name>
+    </ProjectReference>
     <ProjectReference Include="..\Interop\FiftyOne.Mobile.Detection.Provider.Interop.csproj">
       <Project>{91afcd8c-4f1c-4372-a179-0fd92ef4b54e}</Project>
       <Name>FiftyOne.Mobile.Detection.Provider.Interop</Name>
     </ProjectReference>
+    <ProjectReference Include="..\UnitTests\UnitTests.csproj">
+      <Project>{b200cb07-fd50-44de-a743-6dac414c20a2}</Project>
+      <Name>UnitTests</Name>
+    </ProjectReference>
   </ItemGroup>
-  <ItemGroup />
   <Choose>
     <When Condition="'$(VisualStudioVersion)' == '10.0' And '$(IsCodedUITest)' == 'True'">
       <ItemGroup>

@@ -27,22 +27,22 @@ using System.Threading.Tasks;
 
 namespace FiftyOne.UnitTests
 {
-    internal class Constants
+    public class Constants
     {
-        internal const string GOOD_USERAGENTS_FILE = "../../../../data/20000 User Agents.csv";
+        public const string GOOD_USERAGENTS_FILE = "../../../../data/20000 User Agents.csv";
 
-        internal const string LITE_PATTERN_V32 = "../../../../data/51Degrees-LiteV3_2.dat";
+        public const string LITE_PATTERN_V32 = "../../../../data/51Degrees-LiteV3.2.dat";
 
-        internal const string LITE_TRIE_V32 = "../../../../data/51Degrees-LiteV3_2.trie";
+        public const string LITE_TRIE_V32 = "../../../../data/51Degrees-LiteV3.2.trie";
 
-        internal const string ENTERPRISE_PATTERN_V32 = "../../../../data/51Degrees-EnterpriseV3_2.dat";
+        public const string ENTERPRISE_PATTERN_V32 = "../../../../data/51Degrees-EnterpriseV3.2.dat";
 
-        internal const string ENTERPRISE_TRIE_V32 = "../../../../data/51Degrees-EnterpriseV3_2.trie";
+        public const string ENTERPRISE_TRIE_V32 = "../../../../data/51Degrees-EnterpriseV3.2.trie";
 
-        internal const string PREMIUM_PATTERN_V32 = "../../../../data/51Degrees-PremiumV3_2.dat";
+        public const string PREMIUM_PATTERN_V32 = "../../../../data/51Degrees-PremiumV3.2.dat";
 
-        internal const string PREMIUM_TRIE_V32 = "../../../../data/51Degrees-PremiumV3_2.trie";
+        public const string PREMIUM_TRIE_V32 = "../../../../data/51Degrees-PremiumV3.2.trie";
 
-        internal const int USERAGENT_COUNT = 20000;
+        public const int USERAGENT_COUNT = 20000;
     }
 }

@@ -19,22 +19,16 @@
  * defined by the Mozilla Public License, v. 2.0.
  * ********************************************************************* */
 
-using System;
+using FiftyOne.Mobile.Detection.Provider.Interop;
 
-namespace FiftyOne.Mobile.Detection.Provider.Interop
+namespace FiftyOne.UnitTests.HttpHeaders
 {
-    public interface IMatchResult : IDisposable
+    public abstract class PatternBase : Combinations
     {
-        /// <summary>
-        /// A string representation of the user agent returned if any.
-        /// </summary>
-        string UserAgent { get; }
-        
-        /// <summary>
-        /// Returns the value for the property provided.
-        /// </summary>
-        /// <param name="propertyName"></param>
-        /// <returns></returns>
-        string this[string propertyName] { get; }
+        protected override IWrapper CreateWrapper()
+        {
+            Utils.CheckFileExists(DataFile);
+            return new PatternWrapper(DataFile, (string)null, 5000);
+        }
     }
 }

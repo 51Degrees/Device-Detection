@@ -21,47 +21,48 @@
 
 using System;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
-using System.IO;
-using FiftyOne.Mobile.Detection.Provider.Interop;
 
-namespace FiftyOne.UnitTests.HttpHeaders.Enterprise
+namespace FiftyOne.Reconcile.Enterprise
 {
+    /// <summary>
+    /// Test cases for Enterprise Pattern data file.
+    /// </summary>
     [TestClass]
-    public class V32TrieFile : TrieBase
+    public class Pattern : Base
     {
         protected override string DataFile
         {
-            get { return Constants.ENTERPRISE_TRIE_V32; }
+            get { return FiftyOne.UnitTests.Constants.ENTERPRISE_PATTERN_V32; }
         }
 
         [TestInitialize]
-        public void Initialise()
+        public override void Initialise()
         {
-            if (_wrapper == null) { _wrapper = CreateWrapper(); }
+            base.Initialise();
         }
 
         [TestCleanup]
         public void CleanUp()
         {
-            Dispose();
+            base.Dispose();
+        }
+        
+        [TestMethod]
+        public void EnterprisePattern_Reconcile_Unique()
+        {
+            base.Reconcile(FiftyOne.UnitTests.UserAgentGenerator.GetUniqueUserAgents());
         }
 
         [TestMethod]
-        public void EnterpriseV32TrieFile_OperaMiniSamsung() 
+        public void EnterprisePattern_Reconcile_Bad()
         {
-            base.OperaMini_Samsung();
+            base.Reconcile(FiftyOne.UnitTests.UserAgentGenerator.GetBadUserAgents());
         }
-
+        
         [TestMethod]
-        public void EnterpriseV32TrieFile_OperaMini_HTC()
+        public void EnterprisePattern_Reconcile_Random()
         {
-            base.OperaMini_HTC();
-        }
-
-        [TestMethod]
-        public void EnterpriseV32TrieFile_OperaMini_iPhone()
-        {
-            base.OperaMini_iPhone();
+            base.Reconcile(FiftyOne.UnitTests.UserAgentGenerator.GetRandomUserAgents());
         }
     }
 }

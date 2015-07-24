@@ -73,7 +73,10 @@ package FiftyOneDegrees::PatternV3;
 *fiftyoneDegreesGetValueName = *FiftyOneDegrees::PatternV3c::fiftyoneDegreesGetValueName;
 *fiftyoneDegreesGetPropertyName = *FiftyOneDegrees::PatternV3c::fiftyoneDegreesGetPropertyName;
 *fiftyoneDegreesGetRequiredPropertyName = *FiftyOneDegrees::PatternV3c::fiftyoneDegreesGetRequiredPropertyName;
+<<<<<<< HEAD
 *fiftyoneDegreesGetHttpHeaderName = *FiftyOneDegrees::PatternV3c::fiftyoneDegreesGetHttpHeaderName;
+=======
+>>>>>>> 41bbd2473a03e8215ce2c21197a50a9dd00c5630
 *fiftyoneDegreesGetRequiredPropertyIndex = *FiftyOneDegrees::PatternV3c::fiftyoneDegreesGetRequiredPropertyIndex;
 *fiftyoneDegreesProcessDeviceCSV = *FiftyOneDegrees::PatternV3c::fiftyoneDegreesProcessDeviceCSV;
 *fiftyoneDegreesProcessDeviceJSON = *FiftyOneDegrees::PatternV3c::fiftyoneDegreesProcessDeviceJSON;
