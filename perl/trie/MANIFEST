@@ -1,0 +1,14 @@
+Changes
+Makefile.PL
+MANIFEST
+README.txt
+src/trie/51Degrees.c
+src/trie/51Degrees.h
+src/51Degrees.i
+src/51Degrees_wrap.c
+src/snprintf/snprintf.h
+src/snprintf/snprintf.c
+t/FiftyOneDegrees-Trie.t
+lib/FiftyOneDegrees/TrieV3.pm
+examples/test.pl
+data/ReadMe.txt
