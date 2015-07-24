@@ -44,14 +44,14 @@ fiftyoneDegreesDataSetInitStatus getInitStatus() {
 %newobject getMatch;
 %inline %{
 
-  void destroyDataset(long dataSet) {
-	destroy((DataSet*)dataSet);
+  void freeDataset(long dataSet) {
+	fiftyoneDegreesDataSetFree((fiftyoneDegreesDataSet*)dataSet);
   }
 
   long dataSetInitWithPropertyString(char* fileName, char* propertyString) {
 	fiftyoneDegreesDataSet *ds = NULL;
 	ds = (fiftyoneDegreesDataSet*)malloc(sizeof(fiftyoneDegreesDataSet));
-	initStatus = initWithPropertyString((char*)fileName, ds, propertyString);
+	initStatus = fiftyoneDegreesInitWithPropertyString((char*)fileName, ds, propertyString);
 	if (initStatus != DATA_SET_INIT_STATUS_SUCCESS)
 	{
 		free(ds);
@@ -60,27 +60,41 @@ fiftyoneDegreesDataSetInitStatus getInitStatus() {
 	return (long)ds;
   }
 
-
-  char* getMatch(long dataSet, char* userAgent) {
+long cacheInitWithDataSet(long dataSet) {
         fiftyoneDegreesResultsetCache *cache = NULL;
-	fiftyoneDegreesWorksetPool *pool = NULL;
-	fiftyoneDegreesWorkset *ws = NULL;
+        cache = fiftyoneDegreesResultsetCacheCreate((fiftyoneDegreesDataSet*)dataSet, 10);
 
-        cache = fiftyoneDegreesResultsetCacheCreate((fiftyoneDegreesDataSet*)dataSet, 50);
-        if (cache != NULL) {
-		pool = fiftyoneDegreesWorksetPoolCreate((fiftyoneDegreesDataSet*)dataSet, cache, 10);
-		if (pool != NULL) {
-                     ws = fiftyoneDegreesWorksetPoolGet(pool);
-                     fiftyoneDegreesMatch(ws, userAgent);
-                     char *output = (char *) malloc(50000);
-                     processDeviceJSON(ws, output, 50000);
-                     fiftyoneDegreesWorksetPoolRelease(pool, ws);
-	             fiftyoneDegreesWorksetPoolFree(pool);
-                }
-	fiftyoneDegreesResultsetCacheFree(cache);
-       }
+	return (long)cache;
+  }
 
-    return output;
+  void freeCache(long cache) {
+	fiftyoneDegreesResultsetCacheFree((fiftyoneDegreesResultsetCache*)cache);
+  }
+
+
+long poolInitWithDataSet(long dataSet, long cache) {
+        fiftyoneDegreesWorksetPool *pool = NULL;
+ pool = fiftyoneDegreesWorksetPoolCreate((fiftyoneDegreesDataSet*)dataSet, (fiftyoneDegreesResultsetCache*)cache, 50);
+
+	return (long)pool;
+  }
+
+  void freePool(long pool) {
+	fiftyoneDegreesWorksetPoolFree((fiftyoneDegreesWorksetPool*)pool);
+  }
+
+  void freeJSON(char* output){
+        fiftyoneDegreesJSONFree(output);
+  }
+
+  char* getMatch(long pool, char* userAgent) {
+	fiftyoneDegreesWorkset *ws = fiftyoneDegreesWorksetPoolGet((fiftyoneDegreesWorksetPool*)pool);
+        
+        fiftyoneDegreesMatch(ws, userAgent);  
+        char *output = fiftyoneDegreesJSONCreate(ws);                 
+        int32_t jsout = fiftyoneDegreesProcessDeviceJSON(ws, output);
+       
+        return output;
   }
   
 %}

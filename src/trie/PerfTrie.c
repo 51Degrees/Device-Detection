@@ -299,14 +299,17 @@ int main(int argc, char* argv[]) {
 			printf("\nPress enter to start performance tests.\n");
 			fgetc(stdin);
 
+			// Run the performance tests.
 			performance(argv[2]);
-			fiftyoneDegreesDestroy();
-			
-			// Wait for a character to be pressed.
-			fgetc(stdin);
 
 			break;
 		}
+
+		// Free the memory used by the trie detector.
+		fiftyoneDegreesDestroy();
+
+		// Wait for a character to be pressed.
+		fgetc(stdin);
 	}
 	else {
 		printf("Not enough arguments supplied. Expecting: path/to/trie_file path/to/test_file property1,property2(optional)\n");

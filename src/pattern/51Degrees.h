@@ -209,7 +209,7 @@ typedef struct fiftyoneDegrees_entity_header_t {
 
 #pragma pack(push, 2)
 typedef struct fiftyoneDegrees_numeric_node_state {
-	int16_t target;
+	int32_t target;
 	const fiftyoneDegreesNode *node;
 	const fiftyoneDegreesNodeNumericIndex *firstNodeNumericIndex;
 	const fiftyoneDegreesRANGE *range;
@@ -392,6 +392,7 @@ struct fiftyoneDegrees_resultset_cache_t {
 typedef struct fiftyoneDegrees_http_header_workset_t {
 	fiftyoneDegreesHttpHeader *header; /* Pointer to information about the header name and offset */
 	char *headerValue; /* Pointer to the header value */
+	int headerValueLength; /* The length of the header value */
 } fiftyoneDegreesHttpHeaderWorkset;
 #pragma pack(pop)
 
@@ -700,5 +701,23 @@ EXTERNAL int32_t fiftyoneDegreesProcessDeviceJSON(fiftyoneDegreesWorkset *ws, ch
  * @returns the rank of the signature if available, or INT_MAX
  */
 EXTERNAL int32_t fiftyoneDegreesGetSignatureRank(fiftyoneDegreesWorkset *ws);
+
+/**
+* Gets the signature as a string representing relevent user agent characters.
+* @param ws pointer to the work set associated with the match
+* @param signatureAsString pointer to memory to place the signature
+* @param size of the memory allocated for the signature
+* @return the number of bytes written for the signature
+*/
+EXTERNAL int32_t fiftyoneDegreesGetSignatureAsString(fiftyoneDegreesWorkset *ws, char *signatureAsString, int size);
+
+/**
+* Gets the device id as a string.
+* @param ws pointer to the work set associated with the match
+* @param deviceId pointer to memory to place the device id
+* @param size of the memory allocated for the device id
+* @return the number of bytes written for the device id
+*/
+EXTERNAL int32_t fiftyoneDegreesGetDeviceId(fiftyoneDegreesWorkset *ws, char *deviceId, int size);
 
 #endif // 51DEGREES_H_INCLUDED
