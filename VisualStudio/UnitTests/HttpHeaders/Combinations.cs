@@ -33,7 +33,7 @@ namespace FiftyOne.UnitTests.HttpHeaders
             base.Process(
                 "(?i)Opera Mini",
                 "(?i)SAMSUNG GT-I", 
-                new Validation(_provider) {
+                new Validation() {
                     { "BrowserName", "Opera" },
                     { "HardwareVendor", "Samsung" },
                 });
@@ -44,7 +44,7 @@ namespace FiftyOne.UnitTests.HttpHeaders
             base.Process(
                 "(?i)Opera Mini",
                 @"^Mozilla/5\.0 \(iPhone; CPU iPhone OS ",
-                new Validation(_provider) {
+                new Validation() {
                     { "BrowserName", "Opera" },
                     { "HardwareVendor", "Apple" },
                 });
@@ -55,7 +55,7 @@ namespace FiftyOne.UnitTests.HttpHeaders
             base.Process(
                 "(?i)Opera Mini",
                 " HTC ",
-                new Validation(_provider) {
+                new Validation() {
                     { "BrowserName", "Opera" },
                     { "HardwareVendor", "HTC" },
                 });

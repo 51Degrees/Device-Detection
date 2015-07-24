@@ -36,14 +36,14 @@ namespace Console_Interop
         {
             // Initialise the pattern provider with a list of 4 properties.
             using (var pattern = new PatternWrapper(
-                new FileInfo("..\\..\\..\\..\\data\\51Degrees-LiteV3_2.dat").FullName,
-                    new[] { "Id", "IsTablet", "IsMobile", "ScreenPixelsWidth", "ScreenPixelsHeight" }))
+                new FileInfo("..\\..\\..\\..\\data\\51Degrees-LiteV3.2.dat").FullName,
+                    new[] { "Id", "DeviceType", "IsMobile", "ScreenPixelsWidth", "ScreenPixelsHeight" }))
             {
 
                 // Initialise the trie provider with a data file and a list of 4 properties.
                 using (var trie = new TrieWrapper(
-                    new FileInfo("..\\..\\..\\..\\data\\51Degrees-LiteV3_2.trie").FullName,
-                    new[] { "Id", "IsTablet", "IsMobile", "ScreenPixelsWidth", "ScreenPixelsHeight" }))
+                    new FileInfo("..\\..\\..\\..\\data\\51Degrees-LiteV3.2.trie").FullName,
+                    new[] { "Id", "DeviceType", "IsMobile", "ScreenPixelsWidth", "ScreenPixelsHeight" }))
                 {
 
                     // IMPORTANT: For a full list of properties see: https://51degrees.com/resources/property-dictionary
@@ -57,7 +57,7 @@ namespace Console_Interop
                         {
                             using (var patternResults = pattern.Match(line.Trim()))
                             {
-                                Output(pattern, patternResults);
+                                Output(pattern, (PatternWrapper.MatchResult)patternResults);
                             }
                             using (var trieResults = trie.Match(line.Trim()))
                             {
@@ -72,21 +72,23 @@ namespace Console_Interop
             Console.ReadKey();
         }
 
+        private static void Output(PatternWrapper wrapper, PatternWrapper.MatchResult results)
+        {
+            Output((IWrapper)wrapper, (IMatchResult)results);
+            Console.WriteLine("Rank -> {0}", results.Rank);
+            Console.WriteLine("Difference -> {0}", results.Difference);
+            Console.WriteLine("Method -> {0}", results.Method);
+        }
+
         private static void Output(IWrapper wrapper, IMatchResult results)
         {
-#if DEBUG
-            using (var writer = new StreamWriter(Console.OpenStandardOutput()))
-#else
-            using (var writer = new StreamWriter(Console.OpenStandardOutput()))
-            //using(var writer = new StreamWriter(Stream.Null))
-#endif
+            Console.WriteLine(wrapper.GetType().Name);
+            Console.WriteLine("UserAgent -> {0}", results.UserAgent);
+            foreach (var item in wrapper.AvailableProperties)
             {
-                foreach (var item in wrapper.AvailableProperties)
-                {
-                    writer.WriteLine("{0} -> {1}",
-                        item,
-                        results[item]);
-                }
+                Console.WriteLine("{0} -> {1}",
+                    item,
+                    results[item]);
             }
         }
     }

@@ -54,7 +54,18 @@ namespace FiftyOne.UnitTests
         /// <summary>
         /// Disposes of the wrapper ensuring unmanaged resources are released.
         /// </summary>
-        public virtual void Dispose()
+        public void Dispose()
+        {
+            Dispose(true);
+            GC.SuppressFinalize(this);
+        }
+
+        ~Base()
+        {
+            Dispose(false);
+        }
+
+        protected virtual void Dispose(bool disposing)
         {
             if (_wrapper != null)
             {
