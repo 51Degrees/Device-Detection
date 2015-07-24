@@ -140,7 +140,7 @@ namespace FiftyOne.Mobile.Detection.Provider.Interop
                 { 
                     if (_userAgent != null)
                     {
-                        return _userAgent.Substring(0, GetLastCharacterIndex(_userAgent));
+                        return _userAgent.Substring(0, GetMatchedUserAgentLength(_userAgent));
                     }
                     return null;
                 }
@@ -184,7 +184,7 @@ namespace FiftyOne.Mobile.Detection.Provider.Interop
         [DllImport("FiftyOne.Mobile.Detection.Provider.Trie.dll",
             CallingConvention = CallingConvention.Cdecl,
             CharSet = CharSet.Ansi)]
-        private static extern int GetLastCharacterIndex(String userAgent);
+        private static extern int GetMatchedUserAgentLength(String userAgent);
 
         [DllImport("FiftyOne.Mobile.Detection.Provider.Trie.dll",
             CallingConvention = CallingConvention.Cdecl,
