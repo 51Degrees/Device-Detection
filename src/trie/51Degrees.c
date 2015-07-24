@@ -180,6 +180,7 @@ fiftyoneDegreesDataSetInitStatus readHttpHeaders(FILE *inputFilePtr) {
 		return DATA_SET_INIT_STATUS_CORRUPT_DATA;
 	
 	// Set the unique HTTP header names;
+	_uniqueHttpHeaderCount = 0;
 	_uniqueHttpHeaders = (int32_t*)malloc(_httpHeadersSize);
 	for (headerIndex = 0; headerIndex < (int)(_httpHeadersSize / sizeof(int32_t)); headerIndex++) {
 		for (uniqueHeaderIndex = 0; uniqueHeaderIndex < _uniqueHttpHeaderCount; uniqueHeaderIndex++) {
@@ -591,8 +592,8 @@ int32_t getDeviceIndex(char* userAgent) {
 	return getDeviceIndexForNode(&userAgent, _rootNode, -1);
 }
 
-// Returns the last mactching character index for the user agent provided.
-int fiftyoneDegreesGetLastCharacterIndex(char *userAgent) {
+// Returns the number of characters which matched in the trie.
+int fiftyoneDegreesGetMatchedUserAgentLength(char *userAgent) {
 	char *lastCharacter = userAgent;
 	getDeviceIndexForNode(&lastCharacter, _rootNode, -1);
 	return (int)(lastCharacter - userAgent);
