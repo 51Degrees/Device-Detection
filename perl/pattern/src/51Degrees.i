@@ -6,8 +6,8 @@
 #else
 #define EXTERNAL
 #endif
-DataSetInitStatus initStatus;
-DataSetInitStatus getInitStatus() {
+fiftyoneDegreesDataSetInitStatus initStatus;
+fiftyoneDegreesDataSetInitStatus getInitStatus() {
   return initStatus;
 }
 
@@ -19,7 +19,7 @@ DataSetInitStatus getInitStatus() {
 %exception dataSetInitWithPropertyString {
     
  	$action; 
- 	DataSetInitStatus initStatus = getInitStatus();
+ 	fiftyoneDegreesDataSetInitStatus initStatus = getInitStatus();
     switch (initStatus) {
       case DATA_SET_INIT_STATUS_SUCCESS: // nothing to do
       break;
@@ -49,8 +49,8 @@ DataSetInitStatus getInitStatus() {
   }
 
   long dataSetInitWithPropertyString(char* fileName, char* propertyString) {
-	DataSet *ds = NULL;
-	ds = (DataSet*)malloc(sizeof(DataSet));
+	fiftyoneDegreesDataSet *ds = NULL;
+	ds = (fiftyoneDegreesDataSet*)malloc(sizeof(fiftyoneDegreesDataSet));
 	initStatus = initWithPropertyString((char*)fileName, ds, propertyString);
 	if (initStatus != DATA_SET_INIT_STATUS_SUCCESS)
 	{
@@ -66,9 +66,9 @@ DataSetInitStatus getInitStatus() {
 	fiftyoneDegreesWorksetPool *pool = NULL;
 	fiftyoneDegreesWorkset *ws = NULL;
 
-        cache = fiftyoneDegreesResultsetCacheCreate((DataSet*)dataSet, 50);
+        cache = fiftyoneDegreesResultsetCacheCreate((fiftyoneDegreesDataSet*)dataSet, 50);
         if (cache != NULL) {
-		pool = fiftyoneDegreesWorksetPoolCreate((DataSet*)dataSet, cache, 10);
+		pool = fiftyoneDegreesWorksetPoolCreate((fiftyoneDegreesDataSet*)dataSet, cache, 10);
 		if (pool != NULL) {
                      ws = fiftyoneDegreesWorksetPoolGet(pool);
                      fiftyoneDegreesMatch(ws, userAgent);
