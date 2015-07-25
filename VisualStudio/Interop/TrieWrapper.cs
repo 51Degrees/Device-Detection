@@ -295,6 +295,7 @@ namespace FiftyOne.Mobile.Detection.Provider.Interop
                         status,
                         fileName));
                 }
+                _fileName = fileName;
 
                 // Initialise the list of property names and indexes.
                 var propertyIndex = 0;
