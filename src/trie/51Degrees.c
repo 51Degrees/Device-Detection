@@ -269,28 +269,40 @@ void fiftyoneDegreesDestroy(void) {
 		_copyright = NULL;
 	}
 	if (_requiredProperties != NULL) {
-		free(_requiredProperties); _requiredProperties = NULL;
+		free(_requiredProperties);
+		_requiredProperties = NULL;
+	}
+	if (_requiredPropertiesNames != NULL) {
+		free(_requiredPropertiesNames); 
+		_requiredPropertiesNames = NULL;
 	}
 	if (_rootNode != NULL) {
-		free(_rootNode); _rootNode = NULL;
+		free(_rootNode); 
+		_rootNode = NULL;
 	}
 	if (_lookupList != NULL) {
-		free(_lookupList); _lookupList = NULL;
+		free(_lookupList); 
+		_lookupList = NULL;
 	}
 	if (_devices != NULL) {
-		free(_devices); _devices = NULL;
+		free(_devices);
+		_devices = NULL;
 	}
 	if (_properties != NULL) {
-		free(_properties); _properties = NULL;
+		free(_properties);
+		_properties = NULL;
 	}
 	if (_uniqueHttpHeaders != NULL) {
-		free(_uniqueHttpHeaders); _uniqueHttpHeaders = NULL;
+		free(_uniqueHttpHeaders); 
+		_uniqueHttpHeaders = NULL;
 	}
 	if (_httpHeaders != NULL) {
-		free(_httpHeaders); _httpHeaders = NULL;
+		free(_httpHeaders); 
+		_httpHeaders = NULL;
 	}
 	if (_strings != NULL) {
-		free(_strings); _strings = NULL;
+		free(_strings); 
+		_strings = NULL;
 	}
 }
 
