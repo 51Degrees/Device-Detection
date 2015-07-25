@@ -172,6 +172,7 @@ namespace FiftyOne.Mobile.Detection.Provider.Interop
             internal MatchResult(Provider provider, string userAgent)
             {
                 _provider = provider;
+                _provider.AllWorksetsReleased.Reset();
                 Interlocked.Increment(ref _provider.AllocatedWorksets);
                 _workSet = WorksetPoolGet(provider.PoolPointer);
                 if (IntPtr.Zero == _workSet)
@@ -190,6 +191,8 @@ namespace FiftyOne.Mobile.Detection.Provider.Interop
             internal MatchResult(Provider provider, NameValueCollection headers)
             {
                 _provider = provider;
+                _provider.AllWorksetsReleased.Reset();
+                Interlocked.Increment(ref _provider.AllocatedWorksets);
                 _workSet = WorksetPoolGet(provider.PoolPointer);
                 var httpHeaders = new StringBuilder();
                 for (int i = 0; i < headers.Count; i++)
