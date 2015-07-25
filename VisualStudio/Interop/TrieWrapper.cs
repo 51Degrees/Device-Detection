@@ -64,6 +64,8 @@ namespace FiftyOne.Mobile.Detection.Provider.Interop
             internal MatchResult(TrieWrapper provider, string userAgent)
             {
                 _provider = provider;
+                AllDeviceOffsetsReleased.Reset();
+                Interlocked.Increment(ref AllocatedDeviceOffsets);
                 _deviceOffsets = MatchFromUserAgent(userAgent);
                 _userAgent = userAgent;
             }
@@ -76,7 +78,9 @@ namespace FiftyOne.Mobile.Detection.Provider.Interop
             /// <param name="headers">HTTP headers of the request for detection</param>
             internal MatchResult(TrieWrapper provider, NameValueCollection headers)
             {
-                _provider = provider;
+                _provider = provider; 
+                AllDeviceOffsetsReleased.Reset();
+                Interlocked.Increment(ref AllocatedDeviceOffsets); 
                 var httpHeaders = new StringBuilder();
                 for (int i = 0; i < headers.Count; i++)
                 {
@@ -104,6 +108,18 @@ namespace FiftyOne.Mobile.Detection.Provider.Interop
                 {
                     FreeMatchResult(_deviceOffsets);
                     _deviceOffsets = IntPtr.Zero;
+
+                    // Reduce the number of device offsets that are allocated.
+                    Interlocked.Decrement(ref AllocatedDeviceOffsets);
+                    // If the allocated device offsets are now zero then signal
+                    // the provider to release the memory used
+                    // if it's being disposed of. Needed to ensure that
+                    // all device detection is completed before disposing of 
+                    // the provider.
+                    if (AllocatedDeviceOffsets == 0)
+                    {
+                        AllDeviceOffsetsReleased.Set();
+                    }
                 }
             }
 
@@ -205,6 +221,10 @@ namespace FiftyOne.Mobile.Detection.Provider.Interop
 
         #region Fields
 
+        internal static readonly AutoResetEvent AllDeviceOffsetsReleased = new AutoResetEvent(true);
+
+        internal static int AllocatedDeviceOffsets = 0;
+
         /// <summary>
         /// The number of instances of the wrapper.
         /// </summary>
@@ -219,6 +239,12 @@ namespace FiftyOne.Mobile.Detection.Provider.Interop
         /// Collection of property names to indexes.
         /// </summary>
         internal readonly SortedList<string, int> PropertyIndexes = new SortedList<string, int>();
+
+        /// <summary>
+        /// The name of the file used to create the current 
+        /// single underlying provider.
+        /// </summary>
+        private static string _fileName;
 
         #endregion
 
@@ -246,44 +272,48 @@ namespace FiftyOne.Mobile.Detection.Provider.Interop
         {
             lock(_lock)
             {
-                if (_instanceCount == 0)
+                var info = new FileInfo(fileName);
+                if (info.Exists == false)
                 {
-                    var info = new FileInfo(fileName);
-                    if (info.Exists == false)
-                        throw new ArgumentException(String.Format("File '{0}' can not be found.", info.FullName), "fileName");
-                    var status = InitWithPropertyString(info.FullName, properties);
-                    if (status != 0)
-                    {
-                        throw new Exception(String.Format(
-                            "Status code '{0}' returned when creating wrapper from file '{1}'.",
-                            status,
-                            fileName));
-                    }
+                    throw new ArgumentException(String.Format(
+                        "File '{0}' can not be found.",
+                        info.FullName), "fileName");
+                }
+                if (_fileName != null &&
+                    _fileName.Equals(fileName) == false)
+                {
+                    throw new ArgumentException(String.Format(
+                        "Trie has already been initialised with file name '{0}'. " +
+                        "Multiple providers with different file sources can not be created.",
+                        _fileName), "fileName");
+                }
+                var status = InitWithPropertyString(info.FullName, properties);
+                if (status != 0)
+                {
+                    throw new Exception(String.Format(
+                        "Status code '{0}' returned when creating wrapper from file '{1}'.",
+                        status,
+                        fileName));
+                }
 
-                    // Initialise the list of property names and indexes.
-                    var propertyIndex = 0;
-                    var property = new StringBuilder(256);
-                    while (GetRequiredPropertyName(propertyIndex, property, property.Capacity) > 0)
-                    {
-                        PropertyIndexes.Add(property.ToString(), propertyIndex);
-                        propertyIndex++;
-                    }
+                // Initialise the list of property names and indexes.
+                var propertyIndex = 0;
+                var property = new StringBuilder(256);
+                while (GetRequiredPropertyName(propertyIndex, property, property.Capacity) > 0)
+                {
+                    PropertyIndexes.Add(property.ToString(), propertyIndex);
+                    propertyIndex++;
+                }
                     
-                    // Initialise the list of http header names.
-                    var httpHeaderIndex = 0;
-                    var httpHeader = new StringBuilder(256);
-                    while (GetHttpHeaderName(httpHeaderIndex, httpHeader, httpHeader.Capacity) > 0)
-                    {
-                        HttpHeaders.Add(httpHeader.ToString());
-                        httpHeaderIndex++;
-                    }
-
-                    _instanceCount++;
-                }
-                else
+                // Initialise the list of http header names.
+                var httpHeaderIndex = 0;
+                var httpHeader = new StringBuilder(256);
+                while (GetHttpHeaderName(httpHeaderIndex, httpHeader, httpHeader.Capacity) > 0)
                 {
-                    throw new Exception("Due to very high main memory requirements only one instance of the TrieWrapper can be initialised.");
+                    HttpHeaders.Add(httpHeader.ToString());
+                    httpHeaderIndex++;
                 }
+                _instanceCount++;
             }
         }
 
@@ -300,8 +330,8 @@ namespace FiftyOne.Mobile.Detection.Provider.Interop
         /// </summary>
         public void Dispose()
         {
-            Disposing(true);
             GC.SuppressFinalize(true);
+            Disposing(true);
         }
 
         /// <summary>
@@ -312,11 +342,13 @@ namespace FiftyOne.Mobile.Detection.Provider.Interop
         {
             lock (_lock)
             {
-                if (_instanceCount > 0)
+                if (_instanceCount == 1)
                 {
+                    AllDeviceOffsetsReleased.WaitOne();
                     Destroy();
-                    _instanceCount--;
+                    Debug.WriteLine("Freed Trie Data");
                 }
+                _instanceCount--;
             }
         }
         
