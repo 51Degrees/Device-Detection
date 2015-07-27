@@ -98,6 +98,7 @@ namespace FiftyOne.Mobile.Detection.Provider.Interop
                         headers.Keys[i],
                         String.Concat(headers.GetValues(i))));
                 }
+                _userAgent = headers["User-Agent"];
                 _deviceOffsets = MatchFromHeaders(httpHeaders);
             }
 
