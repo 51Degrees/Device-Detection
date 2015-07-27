@@ -47,11 +47,6 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "FiftyOne.UnitTests", "UnitT
 		{1B83A844-3FFC-4414-A101-AEE0008570DA} = {1B83A844-3FFC-4414-A101-AEE0008570DA}
 	EndProjectSection
 EndProject
-Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Solution Items", "Solution Items", "{1039C9C9-E5E2-4954-9B3B-7F175B2A0E4B}"
-	ProjectSection(SolutionItems) = preProject
-		Performance1.psess = Performance1.psess
-	EndProjectSection
-EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "FiftyOne.Foundation 4", "..\..\.NET-Device-Detection\FoundationV3\FiftyOne.Foundation 4.csproj", "{9D658044-FB65-4939-8449-A3A1DEBBB31A}"
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "FiftyOne.Reconcile", "Reconcile\FiftyOne.Reconcile.csproj", "{9CB6F357-39D9-4210-B5CD-052200B5C580}"
