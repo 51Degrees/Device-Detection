@@ -21,7 +21,6 @@
 
 using System;
 using System.Collections.Generic;
-using System.Linq;
 using System.Text;
 using System.Runtime.InteropServices;
 using System.Threading;
@@ -39,10 +38,21 @@ namespace FiftyOne.Mobile.Detection.Provider.Interop
     {
         #region Classes
 
+        /// <summary>
+        /// The results of a device detection match. Must be disposed before the 
+        /// provider used to create it is disposed.
+        /// </summary>
         public class MatchResult : IMatchResult
         {
+            /// <summary>
+            /// Reference of the user agent used to create the results. Needed
+            /// if the matched useragent characters are needed.
+            /// </summary>
             private readonly string _userAgent;
 
+            /// <summary>
+            /// Reference of the provider used to create the results.
+            /// </summary>
             private readonly TrieWrapper _provider;
 
             /// <summary>
@@ -91,17 +101,28 @@ namespace FiftyOne.Mobile.Detection.Provider.Interop
                 _deviceOffsets = MatchFromHeaders(httpHeaders);
             }
 
+            /// <summary>
+            /// Ensures any unmanaged memory is freed if dispose didn't run
+            /// for any reason.
+            /// </summary>
             ~MatchResult()
             {
                 Disposing(false);
             }
 
+            /// <summary>
+            /// Frees unmanged memory when the instance is disposed.
+            /// </summary>
             public void Dispose()
             {
                 Disposing(true);
                 GC.SuppressFinalize(true);
             }
 
+            /// <summary>
+            /// Releases the pointer to the workset back to the pool.
+            /// </summary>
+            /// <param name="disposing"></param>
             protected virtual void Disposing(bool disposing)
             {
                 if (_deviceOffsets != IntPtr.Zero)
@@ -127,7 +148,7 @@ namespace FiftyOne.Mobile.Detection.Provider.Interop
             /// Returns the values for the property provided.
             /// </summary>
             /// <param name="propertyName"></param>
-            /// <returns></returns>
+            /// <returns>Value of the property, otherwise null.</returns>
             public string this[string propertyName]
             {
                 get
@@ -150,6 +171,9 @@ namespace FiftyOne.Mobile.Detection.Provider.Interop
                 }
             }
 
+            /// <summary>
+            /// A string representation of the user agent returned if any.
+            /// </summary>
             public string UserAgent
             {
                 get 
@@ -221,8 +245,16 @@ namespace FiftyOne.Mobile.Detection.Provider.Interop
 
         #region Fields
 
-        internal static readonly AutoResetEvent AllDeviceOffsetsReleased = new AutoResetEvent(true);
+        /// <summary>
+        /// Used to synchronise the releasing of unmanaged memory resources.
+        /// </summary>
+        internal static readonly AutoResetEvent AllDeviceOffsetsReleased = 
+            new AutoResetEvent(true);
 
+        /// <summary>
+        /// The number of allocated device offsets. Used to ensure they've
+        /// all been disposed of before the provider is disposed.
+        /// </summary>
         internal static int AllocatedDeviceOffsets = 0;
 
         /// <summary>
