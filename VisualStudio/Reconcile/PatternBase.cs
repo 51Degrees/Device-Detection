@@ -83,6 +83,27 @@ namespace FiftyOne.Reconcile
                             managedMatch.DeviceId,
                             unmanagedMatch.DeviceId));
                     }
+                    if (managedMatch.Difference != unmanagedMatch.Difference)
+                    {
+                        Assert.Fail(String.Format(
+                            "Difference values differ user agent '{0}'.\r\n" +
+                            "Managed Difference: '{1}'\r\n" +
+                            "Unmanaged Difference: '{2}'",
+                            userAgent,
+                            managedMatch.Difference,
+                            unmanagedMatch.Difference));
+                    }
+                    if (managedMatch.Signature != null &&
+                        managedMatch.Signature.Rank != unmanagedMatch.Rank)
+                    {
+                        Assert.Fail(String.Format(
+                            "Different ranks for user agent '{0}'.\r\n" +
+                            "Managed Rank: '{1}'\r\n" +
+                            "Unmanaged Rank: '{2}'",
+                            userAgent,
+                            managedMatch.Signature.Rank,
+                            unmanagedMatch.Rank));
+                    }
                     foreach (var property in _managedProvider.DataSet.Properties)
                     {
                         var managedValue = managedMatch[property].ToString();
