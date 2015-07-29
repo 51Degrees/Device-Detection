@@ -1,11 +1,7 @@
-
-This Source Code Form is copyright of Yorkshire, Inc.
-Copyright © 2014 Yorkshire, Inc,
-Guiyang, Guizhou, China
-
 This Source Code Form is copyright of 51Degrees Mobile Experts Limited.
-Copyright © 2014 51Degrees Mobile Experts Limited, 5 Charlotte Close,
-Caversham, Reading, Berkshire, United Kingdom RG4 7BY
+Copyright 2014 51Degrees Mobile Experts Limited, 5 Charlotte Close,
+Caversham, Reading, Berkshire, United Kingdom RG4 7BY and Yorkshire,
+Inc. Copyright 2014 Yorkshire, Inc, Guiyang, Guizhou, China
 
 This Source Code Form is the subject of the following patent
 applications, owned by 51Degrees Mobile Experts Limited of 5 Charlotte
@@ -19,5 +15,5 @@ License, v. 2.0.
 If a copy of the MPL was not distributed with this file, You can obtain
 one at http://mozilla.org/MPL/2.0/.
 
-This Source Code Form is “Incompatible With Secondary Licenses”, as
+This Source Code Form is "Incompatible With Secondary Licenses", as
 defined by the Mozilla Public License, v. 2.0.
