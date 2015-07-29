@@ -1877,6 +1877,7 @@ void setTargetUserAgentArray(fiftyoneDegreesWorkset *ws, char* userAgent, int us
 
 	/* Reset the profiles and signatures */
 	ws->profileCount = 0;
+	ws->closestSignatures = 0;
 	ws->signature = NULL;
 }
 
