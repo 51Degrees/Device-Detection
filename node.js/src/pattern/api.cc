@@ -1,7 +1,8 @@
 /* *********************************************************************
 * This Source Code Form is copyright of 51Degrees Mobile Experts Limited.
 * Copyright 2014 51Degrees Mobile Experts Limited, 5 Charlotte Close,
-* Caversham, Reading, Berkshire, United Kingdom RG4 7BY
+* Caversham, Reading, Berkshire, United Kingdom RG4 7BY and Yorkshire,
+* Inc. Copyright 2014 Yorkshire, Inc, Guiyang, Guizhou, China
 *
 * This Source Code Form is the subject of the following patent
 * applications, owned by 51Degrees Mobile Experts Limited of 5 Charlotte
@@ -51,6 +52,14 @@ PatternParser::PatternParser(char *filename, char *requiredProperties) :
 PatternParser(filename, requiredProperties, DEFAULT_CACHE_SIZE, DEFAULT_POOL_SIZE) {}
 
 PatternParser::~PatternParser() {
+	Disposing(false);
+}
+
+void PatternParser::Dispose() {
+	Disposing(true);
+}
+
+void PatternParser::Disposing(bool disposing) {
 	if (pool != NULL) {
 		fiftyoneDegreesWorksetPoolFree(pool);
 		pool = NULL;
@@ -65,21 +74,38 @@ PatternParser::~PatternParser() {
 	}
 }
 
-fiftyoneDegreesWorkset* PatternParser::GetWorkset() {
-	return fiftyoneDegreesWorksetPoolGet(pool);
-}
-
-void PatternParser::ReleaseWorkset(fiftyoneDegreesWorkset *ws) {
-	fiftyoneDegreesWorksetPoolRelease(pool, ws);
-}
-
 void PatternParser::Init(Handle<Object> target) {
 	NanScope();
 	Local<FunctionTemplate> t = NanNew<FunctionTemplate>(New);
 	// TODO(Yorkie): will remove
 	t->InstanceTemplate()->SetInternalFieldCount(1);
 	NODE_SET_PROTOTYPE_METHOD(t, "parse", Parse);
+	NODE_SET_PROTOTYPE_METHOD(t, "availableProperties", AvailableProperties);
+	NODE_SET_PROTOTYPE_METHOD(t, "dispose", Dispose);
 	target->Set(NanNew<v8::String>("PatternParser"), t->GetFunction());
+}
+
+NAN_METHOD(PatternParser::Dispose) {}
+
+NAN_METHOD(PatternParser::AvailableProperties) {
+	NanScope();
+	int requiredPropertyIndex;
+	
+	// convert v8 objects to c/c++ types
+	PatternParser *parser = ObjectWrap::Unwrap<PatternParser>(args.This());
+	
+	// prepare the array with sufficient elements to store the required properties
+	v8::Local<v8::Array> availableProperties = NanNew<v8::Array>(parser->dataSet->requiredPropertyCount);
+
+	// add the available properties to the array
+	for (requiredPropertyIndex = 0; requiredPropertyIndex < parser->dataSet->requiredPropertyCount; requiredPropertyIndex++) {
+		availableProperties->Set(requiredPropertyIndex, NanNew<String>(fiftyoneDegreesGetPropertyName(
+			parser->dataSet,
+			parser->dataSet->requiredProperties[requiredPropertyIndex])));
+	}
+
+	// return the array of property names
+	NanReturnValue(availableProperties);
 }
 
 NAN_METHOD(PatternParser::New) {
@@ -122,7 +148,8 @@ NAN_METHOD(PatternParser::Parse) {
 	Local<Object> result = NanNew<Object>();
 	v8::String::Utf8Value v8_input(args[0]->ToString());
 
-	fiftyoneDegreesWorkset *ws = parser->GetWorkset();
+	// get a workset from the pool of available worksets
+	fiftyoneDegreesWorkset *ws = fiftyoneDegreesWorksetPoolGet(parser->pool);
 	
 	// here we should initialize the ws->input by hand for avoiding
 	// memory incropted.
@@ -137,7 +164,7 @@ NAN_METHOD(PatternParser::Parse) {
 	if (ws->profileCount > 0) {
 
 		// here we fetch ID
-		int32_t propertyIndex, valueIndex, profileIndex;
+		int32_t requiredPropertyIndex, valueIndex, profileIndex;
 		int idSize = ws->profileCount * 5 + (ws->profileCount - 1) + 1;
 		char *ids = (char*)malloc(idSize);
 		char *pos = ids;
@@ -151,25 +178,39 @@ NAN_METHOD(PatternParser::Parse) {
 		free(ids);
 
 		// build JSON
-		for (propertyIndex = 0;
-			propertyIndex < ws->dataSet->requiredPropertyCount;
-			propertyIndex++) {
+		for (requiredPropertyIndex = 0;
+			requiredPropertyIndex < ws->dataSet->requiredPropertyCount;
+			requiredPropertyIndex++) {
 
-			if (fiftyoneDegreesSetValues(ws, propertyIndex) <= 0)
+			if (fiftyoneDegreesSetValues(ws, requiredPropertyIndex) <= 0)
 				break;
 
 			const char *key = fiftyoneDegreesGetPropertyName(ws->dataSet,
-				*(ws->dataSet->requiredProperties + propertyIndex));
+				*(ws->dataSet->requiredProperties + requiredPropertyIndex));
 
 			if (ws->valuesCount == 1) {
 				const char *val = fiftyoneDegreesGetValueName(ws->dataSet, *(ws->values));
-				// convert string to boolean
-				if (strcmp(val, "True") == 0)
-					result->Set(NanNew<v8::String>(key), NanTrue());
-				else if (strcmp(val, "False") == 0)
-					result->Set(NanNew<v8::String>(key), NanFalse());
-				else
-					result->Set(NanNew<v8::String>(key), NanNew<v8::String>(val));
+				switch (ws->dataSet->requiredProperties[requiredPropertyIndex]->valueType) {
+					case 1 : // Integer
+						result->Set(NanNew<v8::String>(key), NanNew<v8::Integer>(atoi(val)));
+						break;
+					case 2 : // Double
+						result->Set(NanNew<v8::String>(key), NanNew<v8::Number>(std::stod(val)));
+						break;
+					case 3 : // Boolean
+						if (strcmp(val, "True") == 0) {
+							result->Set(NanNew<v8::String>(key), NanTrue());
+						}
+						else {
+							result->Set(NanNew<v8::String>(key), NanFalse());
+						}
+						break;
+					case 0: // String
+					case 4 : // Javascript code
+					default:
+						result->Set(NanNew<v8::String>(key), NanNew<v8::String>(val));
+						break;
+				}
 			}
 			else {
 				Local<Array> vals = NanNew<Array>(ws->valuesCount - 1);
@@ -183,7 +224,12 @@ NAN_METHOD(PatternParser::Parse) {
 
 		Local<Object> meta = NanNew<Object>();
 		meta->Set(NanNew<v8::String>("difference"), NanNew<v8::Integer>(ws->difference));
-		meta->Set(NanNew<v8::String>("method"), NanNew<v8::Integer>(ws->method));
+		meta->Set(NanNew<v8::String>("method"), NanNew<v8::String>(
+			ws->method == EXACT ? "Exact" :
+			ws->method == NUMERIC ? "Numeric" :
+			ws->method == CLOSEST ? "Closest" :
+			ws->method == NEAREST ? "Nearest" :
+			"None"));
 		meta->Set(NanNew<v8::String>("rank"), NanNew<v8::Integer>(fiftyoneDegreesGetSignatureRank(ws)));
 		meta->Set(NanNew<v8::String>("rootNodesEvaluated"), NanNew<v8::Integer>(ws->rootNodesEvaluated));
 		meta->Set(NanNew<v8::String>("nodesEvaluated"), NanNew<v8::Integer>(ws->nodesEvaluated));
@@ -198,7 +244,7 @@ NAN_METHOD(PatternParser::Parse) {
 	}
 
 	// Release the work set back into the pool.
-	parser->ReleaseWorkset(ws);
+	fiftyoneDegreesWorksetPoolRelease(parser->pool, ws);
 
 	NanReturnValue(result);
 }
