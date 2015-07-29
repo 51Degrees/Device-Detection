@@ -24,4 +24,4 @@ Release/
 bin/
 obj/
 node.js/build/
-node.js/node_module/
+node.js/node_modules/
