@@ -228,7 +228,7 @@ typedef struct fiftyoneDegrees_dataset_header_t {
 	const int32_t versionBuild;
 	const int32_t versionRevision;
 	const byte tag[16];
-	const byte export[16];
+	const byte exportTag[16];
 	const int32_t copyrightOffset;
 	const int16_t age;
 	const int32_t minUserAgentCount;
