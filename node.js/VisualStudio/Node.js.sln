@@ -12,6 +12,7 @@ EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Solution Items", "Solution Items", "{23DE97C7-22B2-4C76-82D0-DA1EFCC08771}"
 	ProjectSection(SolutionItems) = preProject
 		..\binding.gyp = ..\binding.gyp
+		..\License.txt = ..\License.txt
 		..\README.md = ..\README.md
 	EndProjectSection
 EndProject
