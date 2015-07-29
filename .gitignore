@@ -13,6 +13,7 @@
 *.lic
 *.pfk
 *.psess
+doxygen/
 *Enterprise*
 *Premium*
 *.coverage
@@ -22,3 +23,5 @@ Debug/
 Release/
 bin/
 obj/
+node.js/build/
+node.js/node_module/
