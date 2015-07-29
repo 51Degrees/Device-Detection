@@ -1,0 +1,72 @@
+﻿
+Microsoft Visual Studio Solution File, Format Version 12.00
+# Visual Studio 2013
+VisualStudioVersion = 12.0.30723.0
+MinimumVisualStudioVersion = 10.0.40219.1
+Project("{9092AA53-FB77-4645-B42D-1CCCA6BD08BD}") = "FiftyOne.WebSite", "FiftyOne.WebSite\FiftyOne.WebSite.njsproj", "{31506302-A24F-44FF-A5E9-66AA187A4681}"
+	ProjectSection(ProjectDependencies) = postProject
+		{39C4BE4D-7DF7-32EE-ED1A-BF50BD98869D} = {39C4BE4D-7DF7-32EE-ED1A-BF50BD98869D}
+		{B2AED4AD-F160-1D0F-B038-4C829827478A} = {B2AED4AD-F160-1D0F-B038-4C829827478A}
+	EndProjectSection
+EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Solution Items", "Solution Items", "{23DE97C7-22B2-4C76-82D0-DA1EFCC08771}"
+	ProjectSection(SolutionItems) = preProject
+		..\binding.gyp = ..\binding.gyp
+		README.md = README.md
+	EndProjectSection
+EndProject
+Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "pattern", "..\build\pattern.vcxproj", "{39C4BE4D-7DF7-32EE-ED1A-BF50BD98869D}"
+EndProject
+Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "trie", "..\build\trie.vcxproj", "{B2AED4AD-F160-1D0F-B038-4C829827478A}"
+EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Build", "Build", "{A9BFB10D-B84B-481A-A49A-546C913E9FC2}"
+EndProject
+Global
+	GlobalSection(SolutionConfigurationPlatforms) = preSolution
+		Debug|Any CPU = Debug|Any CPU
+		Debug|Mixed Platforms = Debug|Mixed Platforms
+		Debug|x64 = Debug|x64
+		Release|Any CPU = Release|Any CPU
+		Release|Mixed Platforms = Release|Mixed Platforms
+		Release|x64 = Release|x64
+	EndGlobalSection
+	GlobalSection(ProjectConfigurationPlatforms) = postSolution
+		{31506302-A24F-44FF-A5E9-66AA187A4681}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{31506302-A24F-44FF-A5E9-66AA187A4681}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{31506302-A24F-44FF-A5E9-66AA187A4681}.Debug|Mixed Platforms.ActiveCfg = Debug|Any CPU
+		{31506302-A24F-44FF-A5E9-66AA187A4681}.Debug|Mixed Platforms.Build.0 = Debug|Any CPU
+		{31506302-A24F-44FF-A5E9-66AA187A4681}.Debug|x64.ActiveCfg = Debug|Any CPU
+		{31506302-A24F-44FF-A5E9-66AA187A4681}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{31506302-A24F-44FF-A5E9-66AA187A4681}.Release|Any CPU.Build.0 = Release|Any CPU
+		{31506302-A24F-44FF-A5E9-66AA187A4681}.Release|Mixed Platforms.ActiveCfg = Release|Any CPU
+		{31506302-A24F-44FF-A5E9-66AA187A4681}.Release|Mixed Platforms.Build.0 = Release|Any CPU
+		{31506302-A24F-44FF-A5E9-66AA187A4681}.Release|x64.ActiveCfg = Release|Any CPU
+		{39C4BE4D-7DF7-32EE-ED1A-BF50BD98869D}.Debug|Any CPU.ActiveCfg = Debug|x64
+		{39C4BE4D-7DF7-32EE-ED1A-BF50BD98869D}.Debug|Mixed Platforms.ActiveCfg = Debug|x64
+		{39C4BE4D-7DF7-32EE-ED1A-BF50BD98869D}.Debug|Mixed Platforms.Build.0 = Debug|x64
+		{39C4BE4D-7DF7-32EE-ED1A-BF50BD98869D}.Debug|x64.ActiveCfg = Debug|x64
+		{39C4BE4D-7DF7-32EE-ED1A-BF50BD98869D}.Debug|x64.Build.0 = Debug|x64
+		{39C4BE4D-7DF7-32EE-ED1A-BF50BD98869D}.Release|Any CPU.ActiveCfg = Release|x64
+		{39C4BE4D-7DF7-32EE-ED1A-BF50BD98869D}.Release|Mixed Platforms.ActiveCfg = Release|x64
+		{39C4BE4D-7DF7-32EE-ED1A-BF50BD98869D}.Release|Mixed Platforms.Build.0 = Release|x64
+		{39C4BE4D-7DF7-32EE-ED1A-BF50BD98869D}.Release|x64.ActiveCfg = Release|x64
+		{39C4BE4D-7DF7-32EE-ED1A-BF50BD98869D}.Release|x64.Build.0 = Release|x64
+		{B2AED4AD-F160-1D0F-B038-4C829827478A}.Debug|Any CPU.ActiveCfg = Debug|x64
+		{B2AED4AD-F160-1D0F-B038-4C829827478A}.Debug|Mixed Platforms.ActiveCfg = Debug|x64
+		{B2AED4AD-F160-1D0F-B038-4C829827478A}.Debug|Mixed Platforms.Build.0 = Debug|x64
+		{B2AED4AD-F160-1D0F-B038-4C829827478A}.Debug|x64.ActiveCfg = Debug|x64
+		{B2AED4AD-F160-1D0F-B038-4C829827478A}.Debug|x64.Build.0 = Debug|x64
+		{B2AED4AD-F160-1D0F-B038-4C829827478A}.Release|Any CPU.ActiveCfg = Release|x64
+		{B2AED4AD-F160-1D0F-B038-4C829827478A}.Release|Mixed Platforms.ActiveCfg = Release|x64
+		{B2AED4AD-F160-1D0F-B038-4C829827478A}.Release|Mixed Platforms.Build.0 = Release|x64
+		{B2AED4AD-F160-1D0F-B038-4C829827478A}.Release|x64.ActiveCfg = Release|x64
+		{B2AED4AD-F160-1D0F-B038-4C829827478A}.Release|x64.Build.0 = Release|x64
+	EndGlobalSection
+	GlobalSection(SolutionProperties) = preSolution
+		HideSolutionNode = FALSE
+	EndGlobalSection
+	GlobalSection(NestedProjects) = preSolution
+		{39C4BE4D-7DF7-32EE-ED1A-BF50BD98869D} = {A9BFB10D-B84B-481A-A49A-546C913E9FC2}
+		{B2AED4AD-F160-1D0F-B038-4C829827478A} = {A9BFB10D-B84B-481A-A49A-546C913E9FC2}
+	EndGlobalSection
+EndGlobal
