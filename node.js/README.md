@@ -33,7 +33,7 @@ Windows        | Mac/Linux
 
 * `options.onupdated` {Function} if auto updated, you will get call at this function
 
-for more information, you could move to [51Degrees Node.js documentation](https://51degrees.com/support/documentation/nodejs)
+for more information, you could move to [51Degrees Node.js documentation](https://51degrees.com/support/documentation/nodejs?utm_source=github&utm_medium=repository&utm_content=home-cta&utm_campaign=c-open-source)
 
 ##### `parser.parse(userAgent)`
 
