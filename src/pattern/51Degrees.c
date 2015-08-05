@@ -3220,6 +3220,7 @@ byte matchForHttpHeader(fiftyoneDegreesWorkset *ws, const fiftyoneDegreesCompone
 */
 void matchForHttpHeaders(fiftyoneDegreesWorkset *ws) {
 	int componentIndex, profileIndex = 0;
+	int32_t differenceTotal = 0;
 	fiftyoneDegreesMatchMethod worstMethod = EXACT;
 	if (ws->importantHeadersCount == 0) {
 		// No important headers were found. Set the default match.
@@ -3234,9 +3235,10 @@ void matchForHttpHeaders(fiftyoneDegreesWorkset *ws) {
 		// Loop through each component and get the results for the first header
 		// that is also in the list of important headers.
 		resetCounters(ws);
-
 		for (componentIndex = 0; componentIndex < ws->dataSet->header.components.count; componentIndex++) {
+			ws->difference = 0;
 			if (matchForHttpHeader(ws, ws->dataSet->components[componentIndex])) {
+				differenceTotal += ws->difference;
 				if ((int)ws->method > (int)worstMethod) {
 					worstMethod = ws->method;
 				}
@@ -3264,6 +3266,7 @@ void matchForHttpHeaders(fiftyoneDegreesWorkset *ws) {
 
 		// Use the worst method used in the resulting workset.
 		ws->method = worstMethod;
+		ws->difference = differenceTotal;
 	}
 }
 
