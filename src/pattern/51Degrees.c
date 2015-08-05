@@ -3220,6 +3220,7 @@ byte matchForHttpHeader(fiftyoneDegreesWorkset *ws, const fiftyoneDegreesCompone
 */
 void matchForHttpHeaders(fiftyoneDegreesWorkset *ws) {
 	int componentIndex, profileIndex = 0;
+	fiftyoneDegreesMatchMethod worstMethod = EXACT;
 	if (ws->importantHeadersCount == 0) {
 		// No important headers were found. Set the default match.
 		setMatchDefault(ws);
@@ -3233,8 +3234,12 @@ void matchForHttpHeaders(fiftyoneDegreesWorkset *ws) {
 		// Loop through each component and get the results for the first header
 		// that is also in the list of important headers.
 		resetCounters(ws);
+
 		for (componentIndex = 0; componentIndex < ws->dataSet->header.components.count; componentIndex++) {
 			if (matchForHttpHeader(ws, ws->dataSet->components[componentIndex])) {
+				if ((int)ws->method > (int)worstMethod) {
+					worstMethod = ws->method;
+				}
 				ws->tempProfiles[componentIndex] = ws->profiles[componentIndex];
 			}
 			else {
@@ -3251,11 +3256,14 @@ void matchForHttpHeaders(fiftyoneDegreesWorkset *ws) {
 			}
 		}
 		ws->profileCount = profileIndex;
-
+		
 		// Set the signature to NULL because there can be no signature when multi
 		// headers are used.
 		ws->signature = NULL;
 		ws->targetUserAgent = NULL;
+
+		// Use the worst method used in the resulting workset.
+		ws->method = worstMethod;
 	}
 }
 
