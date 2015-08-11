@@ -45,8 +45,11 @@ fiftyoneDegreesDataSetInitStatus getInitStatus() {
 
 %inline %{
 
+  void destroy(){
+      fiftyoneDegreesDestroy();
+  } 
   void dataSetInitWithPropertyString(char *fileName, char* properties) {
-	initStatus = (DataSetInitStatus)fiftyoneDegreesInitWithPropertyString(fileName, properties);
+	initStatus = (fiftyoneDegreesDataSetInitStatus)fiftyoneDegreesInitWithPropertyString(fileName, properties);
 	if (initStatus != DATA_SET_INIT_STATUS_SUCCESS) {
 	  fiftyoneDegreesDestroy();
 	}

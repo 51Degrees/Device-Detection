@@ -7,10 +7,11 @@ my $filename;
 my $propertyList;
 my $userAgentString;
 
-my $r = GetOptions('filename|f=s' => \$filename,
-                   'properties|p=s' => \$propertyList,
-                   'ua=s' => \$userAgentString);
+#my $r = GetOptions('filename|f=s' => \$filename,
+#                   'properties|p=s' => \$propertyList,
+#                   'ua=s' => \$userAgentString);
 
+$filename //= "/home/fod/Device-Detection/data/51Degrees-LiteV3.2.trie";
 $userAgentString //= "Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/35.0.1916.114 Safari/537.36";
 
 $propertyList //= "Id,BrowserName,BrowserVendor,BrowserVersion,CookiesCapable,IsTablet,IsMobile,IsCrawler";
