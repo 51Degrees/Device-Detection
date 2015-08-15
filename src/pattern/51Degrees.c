@@ -511,7 +511,7 @@ int32_t fiftyoneDegreesGetValues(fiftyoneDegreesWorkset *ws, int32_t requiredPro
 			// remaining characters. Take one from the length because we don't
 			// need the 0 string terminator.
 			memcpy(currentPosition, (char*)&(value->firstByte), value->length - 1);
-			// Move to the next position to either write the next value and 
+			// Move to the next position to either write the next value and
 			// if space remaining the next value string. -1 is used to skip
 			// back from the trailing 0.
 			currentPosition += value->length - 1;
@@ -1812,7 +1812,7 @@ void setTargetUserAgentArray(fiftyoneDegreesWorkset *ws, char* userAgent, int us
 	// Copy the characters of the user agent provided into the
 	// target.
 	if (userAgent != NULL) {
-		
+
 		while (userAgent[index] != 0 &&
 			index < userAgentLength) {
 			if (userAgent[index] != '\r' &&
@@ -1823,14 +1823,14 @@ void setTargetUserAgentArray(fiftyoneDegreesWorkset *ws, char* userAgent, int us
 			}
 			else {
 				// Not a valid character so use space instead. Will only happen
-				// when the user agent length is provided 
+				// when the user agent length is provided
 				ws->targetUserAgentArray[index] = ' ';
 			}
 			index++;
 		}
 	}
 
-	// Set the target user agent to the target user agent array in 
+	// Set the target user agent to the target user agent array in
 	// order to deal with user agents that are not null terminated
 	// and the length is provided.
 	ws->targetUserAgent = (char*)ws->targetUserAgentArray;
@@ -2467,13 +2467,13 @@ int32_t setClosestSignaturesForNode(fiftyoneDegreesWorkset *ws, const fiftyoneDe
 	fiftyoneDegreesLinkedSignatureListItem *current = linkedList->first,
 		*next;
 	int32_t index = 0;
-	// If there is only 1 signature then the value is the 
+	// If there is only 1 signature then the value is the
 	// ranked signature index, otherwise it's the index of the first
 	// ranked index in the nodeRankedSignatureIndexes array.
-	const int32_t *firstRankedSignatureIndex = 
+	const int32_t *firstRankedSignatureIndex =
 		node->signatureCount == 1 ?
 			getFirstRankedSignatureIndexForNode(ws->dataSet, node) :
-			ws->dataSet->nodeRankedSignatureIndexes + 
+			ws->dataSet->nodeRankedSignatureIndexes +
 				*getFirstRankedSignatureIndexForNode(ws->dataSet, node);
 	const int32_t *currentRankedSignatureIndex;
 
@@ -2872,7 +2872,7 @@ const byte* getNextClosestSignatureForSingleNode(fiftyoneDegreesWorkset *ws) {
 		if (ws->nodes[0]->signatureCount > 1) {
 			rankedSignatureIndex = *(ws->dataSet->nodeRankedSignatureIndexes +
 				rankedSignatureIndex + ws->closestNodeRankedSignatureIndex);
-		} 
+		}
 		signature = getSignatureByRankedIndex(
 			ws->dataSet,
 			rankedSignatureIndex);
@@ -3203,8 +3203,8 @@ byte matchForHttpHeader(fiftyoneDegreesWorkset *ws, const fiftyoneDegreesCompone
 		httpHeaderOffset = getComponentHeaderOffset(component, httpHeaderIndex);
 		for (importantHeaderIndex = 0; importantHeaderIndex < ws->importantHeadersCount; importantHeaderIndex++) {
 			if (ws->importantHeaders[importantHeaderIndex].header->headerNameOffset == httpHeaderOffset) {
-				internalMatch(ws, 
-					ws->importantHeaders[importantHeaderIndex].headerValue, 
+				internalMatch(ws,
+					ws->importantHeaders[importantHeaderIndex].headerValue,
 					ws->importantHeaders[importantHeaderIndex].headerValueLength);
 				return TRUE;
 			}
@@ -3258,7 +3258,7 @@ void matchForHttpHeaders(fiftyoneDegreesWorkset *ws) {
 			}
 		}
 		ws->profileCount = profileIndex;
-		
+
 		// Set the signature to NULL because there can be no signature when multi
 		// headers are used.
 		ws->signature = NULL;
@@ -3307,7 +3307,6 @@ void fiftyoneDegreesMatchWithHeadersArray(fiftyoneDegreesWorkset *ws, char **htt
  * @returns the number of characters in the value
  */
 int setNextHttpHeaderName(char* start, char** name) {
-	int index = 0;
 	char *current = start, *lastChar = start;
 	while (*current != 0) {
 		if (*current == ' ') {
@@ -3324,14 +3323,13 @@ int setNextHttpHeaderName(char* start, char** name) {
 }
 
 /**
- * Sets the value pointer to the start of the next HTTP header value and 
+ * Sets the value pointer to the start of the next HTTP header value and
  * returns the length.
  * @param start of the string to be processed
  * @param value to be set when returned
  * @returns the number of characters in the value
  */
 int setNextHttpHeaderValue(char* start, char** value) {
-	int index = 0;
 	char *current = start, *lastChar = start;
 	*value = start;
 	while (*current != 0) {
@@ -3350,7 +3348,7 @@ int setNextHttpHeaderValue(char* start, char** value) {
  * @param dataSet the header is being checked against
  * @param httpHeaderName of the header being checked
  * @param length of the header name
- * @returns the index in the datasets headers of this header or -1 
+ * @returns the index in the datasets headers of this header or -1
  */
 int getUniqueHttpHeaderIndex(const fiftyoneDegreesDataSet *dataSet, char* httpHeaderName, int length) {
 	int uniqueHeaderIndex;
