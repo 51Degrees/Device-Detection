@@ -178,7 +178,7 @@ fiftyoneDegreesDataSetInitStatus readHttpHeaders(FILE *inputFilePtr) {
 		return DATA_SET_INIT_STATUS_INSUFFICIENT_MEMORY;
 	if (fread(_httpHeaders, sizeof(BYTE), (size_t)_httpHeadersSize, inputFilePtr) != (size_t)_httpHeadersSize)
 		return DATA_SET_INIT_STATUS_CORRUPT_DATA;
-	
+
 	// Set the unique HTTP header names;
 	_uniqueHttpHeaderCount = 0;
 	_uniqueHttpHeaders = (int32_t*)malloc(_httpHeadersSize);
@@ -273,15 +273,15 @@ void fiftyoneDegreesDestroy(void) {
 		_requiredProperties = NULL;
 	}
 	if (_requiredPropertiesNames != NULL) {
-		free(_requiredPropertiesNames); 
+		free(_requiredPropertiesNames);
 		_requiredPropertiesNames = NULL;
 	}
 	if (_rootNode != NULL) {
-		free(_rootNode); 
+		free(_rootNode);
 		_rootNode = NULL;
 	}
 	if (_lookupList != NULL) {
-		free(_lookupList); 
+		free(_lookupList);
 		_lookupList = NULL;
 	}
 	if (_devices != NULL) {
@@ -293,15 +293,15 @@ void fiftyoneDegreesDestroy(void) {
 		_properties = NULL;
 	}
 	if (_uniqueHttpHeaders != NULL) {
-		free(_uniqueHttpHeaders); 
+		free(_uniqueHttpHeaders);
 		_uniqueHttpHeaders = NULL;
 	}
 	if (_httpHeaders != NULL) {
-		free(_httpHeaders); 
+		free(_httpHeaders);
 		_httpHeaders = NULL;
 	}
 	if (_strings != NULL) {
-		free(_strings); 
+		free(_strings);
 		_strings = NULL;
 	}
 }
@@ -431,7 +431,7 @@ void initSpecificPropertiesFromArray(char** properties, int count) {
 	// Create enough memory for the properties.
 	_requiredProperties = (uint32_t*)malloc(_requiredPropertiesCount * sizeof(int));
 	_requiredPropertiesNames = (char**)malloc(_requiredPropertiesCount * sizeof(char*));
-	
+
 	// Initialise the requiredProperties array.
 	for (i = 0; i < count; i++ ) {
       currentProperty = properties[i];
@@ -618,7 +618,6 @@ int fiftyoneDegreesGetDeviceOffset(char* userAgent) {
 
 // Sets name to the start of the http header name and returns the length of the string.
 int setNextHttpHeaderName(char* start, char** name) {
-	int index = 0;
 	char *current = start, *lastChar = start;
 	while (*current != 0) {
 		if (*current == ' ') {
@@ -636,7 +635,6 @@ int setNextHttpHeaderName(char* start, char** name) {
 
 // Sets the value pointer to the start of the next HTTP header value and returns the length.
 int setNextHttpHeaderValue(char* start, char** value) {
-	int index = 0;
 	char *current = start, *lastChar = start;
 	*value = lastChar;
 	while (*current != 0) {
@@ -747,7 +745,7 @@ int fiftyoneDegreesGetValueFromOffsets(fiftyoneDegreesDeviceOffsets* deviceOffse
 	fiftyoneDegreesProperty *property;
 	if (deviceOffsets->size == 1) {
 		return setValueFromDeviceOffset(
-			deviceOffsets->firstOffset.deviceOffset, 
+			deviceOffsets->firstOffset.deviceOffset,
 			*(_requiredProperties + requiredPropertyIndex),
 			values,
 			size);
