@@ -90,9 +90,6 @@
 		<Unit filename="../src/pattern/PerfPat.c">
 			<Option compilerVar="CC" />
 		</Unit>
-		<Unit filename="../src/snprintf/snprintf.c">
-			<Option compilerVar="CC" />
-		</Unit>
 		<Unit filename="../src/snprintf/snprintf.h" />
 		<Unit filename="../src/threading.h" />
 		<Extensions>

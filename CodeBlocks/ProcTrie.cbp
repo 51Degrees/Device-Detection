@@ -70,9 +70,6 @@
 		<Compiler>
 			<Add option="-Wall" />
 		</Compiler>
-		<Unit filename="../src/snprintf/snprintf.c">
-			<Option compilerVar="CC" />
-		</Unit>
 		<Unit filename="../src/snprintf/snprintf.h" />
 		<Unit filename="../src/trie/51Degrees.c">
 			<Option compilerVar="CC" />

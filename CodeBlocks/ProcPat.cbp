@@ -81,9 +81,6 @@
 		<Unit filename="../src/pattern/ProcPat.c">
 			<Option compilerVar="CC" />
 		</Unit>
-		<Unit filename="../src/snprintf/snprintf.c">
-			<Option compilerVar="CC" />
-		</Unit>
 		<Unit filename="../src/snprintf/snprintf.h" />
 		<Extensions>
 			<code_completion />
