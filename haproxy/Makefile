@@ -43,6 +43,8 @@
 #
 # Options can be forced by specifying "USE_xxx=1" or can be disabled by using
 # "USE_xxx=" (empty string).
+USE_51DEGREES=1 51DEGREES_SRC=../Device-Detection/src/pattern
+
 #
 # Variables useful for packagers :
 #   CC is set to "gcc" by default and is used for compilation only.
@@ -100,7 +102,7 @@ DOCDIR = $(PREFIX)/doc/haproxy
 # following list (use the default "generic" if uncertain) :
 #    generic, linux22, linux24, linux24e, linux26, solaris,
 #    freebsd, openbsd, netbsd, cygwin, custom, aix51, aix52
-TARGET =
+TARGET = generic
 
 #### TARGET CPU
 # Use CPU=<cpu_name> to optimize for a particular CPU, among the following
@@ -145,7 +147,7 @@ SMALL_OPTS =
 # Currently defined DEBUG macros include DEBUG_FULL, DEBUG_MEMORY, DEBUG_FSM,
 # DEBUG_HASH and DEBUG_AUTH. Please check sources for exact meaning or do not
 # use at all.
-DEBUG =
+DEBUG=-DDEBUG_FULL
 
 #### Trace options
 # Use TRACE=1 to trace function calls to file "trace.out" or to stderr if not
@@ -631,6 +633,7 @@ ifneq ($(USE_51DEGREES),)
 51DEGREES_SRC =
 51DEGREES_INC = $(51DEGREES_SRC)
 51DEGREES_LIB = $(51DEGREES_SRC)
+OPTIONS_OBJS    += $(51DEGREES_LIB)/../cityhash/city.o
 OPTIONS_OBJS    += $(51DEGREES_LIB)/51Degrees.o
 OPTIONS_OBJS    += src/51d.o
 OPTIONS_CFLAGS  += -DUSE_51DEGREES $(if $(51DEGREES_INC),-I$(51DEGREES_INC))
