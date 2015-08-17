@@ -104,17 +104,16 @@ static int _51d_cache_size(char **args, int section_type, struct proxy *curpx,
 	return 0;
 }
 
-static int _51d_conv_check(struct arg *arg, struct sample_conv *conv,
-                           const char *file, int line, char **err)
+static int _51d_fetch_check(struct arg *arg, char **err_msg)
 {
 	if (global._51degrees.data_file_path)
 		return 1;
 
-	memprintf(err, "51Degrees data file is not specified (parameter '51degrees-data-file')");
+	memprintf(err_msg, "51Degrees data file is not specified (parameter '51degrees-data-file')");
 	return 0;
 }
 
-static int _51d_conv(const struct arg *args, struct sample *smp, void *private)
+static int _51d_fetch(const struct arg *args, struct sample *smp, const char *kw, void *private)
 {
 	int i;
 	char no_data[] = "NoData";  /* response when no data could be found */
@@ -332,15 +331,15 @@ static struct cfg_kw_list _51dcfg_kws = {{ }, {
 }};
 
 /* Note: must not be declared <const> as its list will be overwritten */
-static struct sample_conv_kw_list conv_kws = {ILH, {
-	{ "51d", _51d_conv, ARG5(1,STR,STR,STR,STR,STR), _51d_conv_check, SMP_T_STR, SMP_T_STR },
+static struct sample_fetch_kw_list sample_fetch_keywords = {ILH, {
+	{ "51d", _51d_fetch, ARG5(1,STR,STR,STR,STR,STR), _51d_fetch_check, SMP_T_STR, SMP_USE_HRQHV },
 	{ NULL, NULL, 0, 0, 0 },
 }};
 
 __attribute__((constructor))
 static void __51d_init(void)
 {
-	/* register sample fetch and format conversion keywords */
-	sample_register_convs(&conv_kws);
+	/* register sample fetch keywords */
+	sample_register_fetches(&sample_fetch_keywords);
 	cfg_register_keywords(&_51dcfg_kws);
 }
