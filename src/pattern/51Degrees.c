@@ -3301,7 +3301,9 @@ void fiftyoneDegreesMatchWithHeadersArray(fiftyoneDegreesWorkset *ws, char **htt
 }
 
 /**
- * Sets name to the start of the http header name and returns the length of the string.
+ * Sets name to the start of the http header name and returns the length of
+ * the string. A space or colon are used to identify the end of the header
+ * name.
  * @param start of the string to be processed
  * @param value to be set when returned
  * @returns the number of characters in the value
@@ -3309,7 +3311,8 @@ void fiftyoneDegreesMatchWithHeadersArray(fiftyoneDegreesWorkset *ws, char **htt
 int setNextHttpHeaderName(char* start, char** name) {
 	char *current = start, *lastChar = start;
 	while (*current != 0) {
-		if (*current == ' ') {
+		if (*current == ' ' ||
+            *current == ':') {
 			*name = lastChar;
 			return (int)(current - lastChar);
 		}
@@ -3330,8 +3333,19 @@ int setNextHttpHeaderName(char* start, char** name) {
  * @returns the number of characters in the value
  */
 int setNextHttpHeaderValue(char* start, char** value) {
-	char *current = start, *lastChar = start;
-	*value = start;
+	char *lastChar = start, *current;
+
+	// Move to the first non-space character.
+	while (*lastChar == ' ' &&
+           *lastChar != 0) {
+        lastChar++;
+	}
+
+	// Set the value to the start character.
+	*value = lastChar;
+	current = lastChar;
+
+	// Loop until end of line or end of string.
 	while (*current != 0) {
 		if (*current == '\r' ||
 			*current == '\n') {
