@@ -61,7 +61,7 @@ EXTERNAL fiftyoneDegreesDataSetInitStatus fiftyoneDegreesInitWithPropertyString(
 EXTERNAL int fiftyoneDegreesGetDeviceOffset(char *userAgent);
 
 // Returns the offsets to a matching devices based on the http headers provided.
-EXTERNAL fiftyoneDegreesDeviceOffsets* fiftyoneDegreesGetDeviceOffsetsWithHeadersString(char *httpHeaders);
+EXTERNAL fiftyoneDegreesDeviceOffsets* fiftyoneDegreesGetDeviceOffsetsWithHeadersString(char *httpHeaders, int size);
 
 // Returns the index of the property requested, or -1 if not available.
 EXTERNAL int fiftyoneDegreesGetPropertyIndex(char *value);
