@@ -627,8 +627,7 @@ int fiftyoneDegreesGetDeviceOffset(char* userAgent) {
  */
 int setNextHttpHeaderName(char* start, char* end, char** name) {
 	char *current = start, *lastChar = start;
-	while (current <= end &&
-            *current != 0) {
+	while (current <= end) {
 		if (*current == ' ' ||
             *current == ':') {
 			*name = lastChar;
@@ -655,8 +654,7 @@ int setNextHttpHeaderValue(char* start, char *end, char** value) {
 	char *lastChar = start, *current;
 
 	// Move to the first non-space character.
-	while (lastChar <= end &&
-            *lastChar != 0 && (
+	while (lastChar <= end && (
             *lastChar == ' ' ||
             *lastChar == ':')) {
         lastChar++;
@@ -667,8 +665,7 @@ int setNextHttpHeaderValue(char* start, char *end, char** value) {
 	current = lastChar;
 
 	// Loop until end of line or end of string.
-	while (current <= end &&
-            *current != 0) {
+	while (current <= end) {
 		if (*current == '\r' ||
 			*current == '\n') {
 			*value = lastChar;
@@ -692,7 +689,7 @@ int getUniqueHttpHeaderIndex(char* httpHeaderName, int length) {
 }
 
 // Returns the offsets to a matching devices based on the http headers provided.
-fiftyoneDegreesDeviceOffsets* fiftyoneDegreesGetDeviceOffsetsWithHeadersString(char *httpHeaders, int32_t size) {
+fiftyoneDegreesDeviceOffsets* fiftyoneDegreesGetDeviceOffsetsWithHeadersString(char *httpHeaders, size_t size) {
 	char *headerName, *headerValue, *endOfHeaders = httpHeaders + size;
 	int headerNameLength, headerValueLength, uniqueHeaderIndex = 0;
 	fiftyoneDegreesDeviceOffsets* offsets = (fiftyoneDegreesDeviceOffsets*)malloc(_uniqueHttpHeaderCount * sizeof(fiftyoneDegreesDeviceOffsets));

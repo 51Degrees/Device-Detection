@@ -3311,8 +3311,7 @@ void fiftyoneDegreesMatchWithHeadersArray(fiftyoneDegreesWorkset *ws, char **htt
  */
 int setNextHttpHeaderName(char* start, char* end, char** name) {
 	char *current = start, *lastChar = start;
-	while (current <= end &&
-            *current != 0) {
+	while (current <= end) {
 		if (*current == ' ' ||
             *current == ':') {
 			*name = lastChar;
@@ -3339,8 +3338,7 @@ int setNextHttpHeaderValue(char* start, char *end, char** value) {
 	char *lastChar = start, *current;
 
 	// Move to the first non-space character.
-	while (lastChar <= end &&
-            *lastChar != 0 && (
+	while (lastChar <= end && (
             *lastChar == ' ' ||
             *lastChar == ':')) {
         lastChar++;
@@ -3351,8 +3349,7 @@ int setNextHttpHeaderValue(char* start, char *end, char** value) {
 	current = lastChar;
 
 	// Loop until end of line or end of string.
-	while (current <= end &&
-            *current != 0) {
+	while (current <= end) {
 		if (*current == '\r' ||
 			*current == '\n') {
 			*value = lastChar;
@@ -3392,7 +3389,7 @@ int getUniqueHttpHeaderIndex(const fiftyoneDegreesDataSet *dataSet, char* httpHe
  * @param httpHeaders is a list of HTTP headers and values on each line
  * @param size is the valid characters in the httpHeaders string
  */
-int32_t fiftyoneDegreesSetHttpHeaders(fiftyoneDegreesWorkset *ws, char *httpHeaders, int32_t size) {
+int32_t fiftyoneDegreesSetHttpHeaders(fiftyoneDegreesWorkset *ws, char *httpHeaders, size_t size) {
 	char *headerName, *headerValue, *endOfHeaders = httpHeaders + size;
 	int headerNameLength, headerValueLength, uniqueHeaderIndex = 0;
 	ws->importantHeadersCount = 0;
@@ -3421,7 +3418,7 @@ int32_t fiftyoneDegreesSetHttpHeaders(fiftyoneDegreesWorkset *ws, char *httpHead
  * @param httpHeaders is a list of HTTP headers and values on each line
  * @param size is the valid characters in the httpHeaders string
  */
-void fiftyoneDegreesMatchWithHeadersString(fiftyoneDegreesWorkset *ws, char *httpHeaders, int32_t size) {
+void fiftyoneDegreesMatchWithHeadersString(fiftyoneDegreesWorkset *ws, char *httpHeaders, size_t size) {
     fiftyoneDegreesSetHttpHeaders(ws, httpHeaders, size);
 	fiftyoneDegreesMatchForHttpHeaders(ws);
 }
