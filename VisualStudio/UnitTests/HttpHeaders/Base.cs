@@ -32,6 +32,8 @@ namespace FiftyOne.UnitTests.HttpHeaders
 {
     public abstract class Base : UnitTests.Base
     {
+        private const int TEST_ITERATIONS = 100000;
+
         internal class Validation : Dictionary<string, Regex>
         {
             public void Add(string property, string pattern)
@@ -47,8 +49,8 @@ namespace FiftyOne.UnitTests.HttpHeaders
             var httpHeaders = _wrapper.HttpHeaders.Where(i => i.Equals("User-Agent") == false).ToArray();
 
             // Loop through setting 2 user agent headers.
-            var userAgentIterator = UserAgentGenerator.GetEnumerable(20000, userAgentPattern).GetEnumerator();
-            var deviceIterator = UserAgentGenerator.GetEnumerable(20000, devicePattern).GetEnumerator();
+            var userAgentIterator = UserAgentGenerator.GetEnumerable(TEST_ITERATIONS, userAgentPattern).GetEnumerator();
+            var deviceIterator = UserAgentGenerator.GetEnumerable(TEST_ITERATIONS, devicePattern).GetEnumerator();
             while(userAgentIterator.MoveNext() &&
                 deviceIterator.MoveNext())
             {
