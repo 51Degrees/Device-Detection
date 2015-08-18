@@ -14,8 +14,10 @@
 *.pfk
 *.psess
 doxygen/
-*Enterprise*
-*Premium*
+*Enterprise*.dat
+*Premium*.dat
+*Enterprise*.trie
+*Premium*.trie
 *.coverage
 *.opensdf
 million.csv
