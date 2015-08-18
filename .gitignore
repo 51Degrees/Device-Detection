@@ -30,3 +30,4 @@ node.js/node_modules/
 .ntvs_analysis.dat
 VisualStudio/TestResults
 *.nupkg
+*.user

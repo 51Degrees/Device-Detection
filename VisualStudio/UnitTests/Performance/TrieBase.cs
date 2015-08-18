@@ -19,6 +19,7 @@
  * defined by the Mozilla Public License, v. 2.0.
  * ********************************************************************* */
 
+using FiftyOne.Mobile.Detection.Provider.Interop;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -27,7 +28,28 @@ using System.Threading.Tasks;
 
 namespace FiftyOne.UnitTests.Performance
 {
-    class TrieBase
+    /// <summary>
+    /// Base class for all trie performance tests.
+    /// </summary>
+    public abstract class TrieBase : Base
     {
+        /// <summary>
+        /// Creates a new trie wrapper recording the time taken
+        /// to construct the wrapper.
+        /// </summary>
+        /// <returns>A new trie wrapper instance</returns>
+        protected override IWrapper CreateWrapper()
+        {
+            var start = DateTime.UtcNow;
+            try
+            {
+                Utils.CheckFileExists(DataFile);
+                return new TrieWrapper(DataFile, String.Empty);
+            }
+            finally
+            {
+                _testInitializeTime = DateTime.UtcNow - start;
+            }
+        }
     }
 }
