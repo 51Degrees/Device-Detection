@@ -146,7 +146,7 @@ void run(fiftyoneDegreesDataSet *dataSet) {
     fiftyoneDegreesWorkset *ws = NULL;
     fiftyoneDegreesResultsetCache *cache = NULL;
 	fiftyoneDegreesWorksetPool *pool = NULL;
-    int32_t index;
+	int32_t index, httpHeadersLength;
 	size_t httpHeadersSize;
 	char *httpHeaderNames[2];
 	char *httpHeaderValues[2];
@@ -202,16 +202,16 @@ void run(fiftyoneDegreesDataSet *dataSet) {
 					strlen(httpHeaderValues[1]) + 1;
 				httpHeaders = (char*)malloc(httpHeadersSize);
 				if (httpHeaders != NULL) {
-					snprintf(httpHeaders, httpHeadersSize,
+					httpHeadersLength = snprintf(httpHeaders, httpHeadersSize,
 						"%s %s\r\n%s %s",
 						httpHeaderNames[0],
 						httpHeaderValues[0],
 						httpHeaderNames[1],
 						httpHeaderValues[1]);
 					ws = fiftyoneDegreesWorksetPoolGet(pool);
-					fiftyoneDegreesMatchWithHeadersString(ws, httpHeaders);
+					fiftyoneDegreesMatchWithHeadersString(ws, httpHeaders, httpHeadersLength);
 					printf("\r\n\t\t\t*** HTTP Headers String ***\r\n");
-					print50Columns("HTTP Headers:\t\t", httpHeaders, strlen(httpHeaders));
+					print50Columns("HTTP Headers:\t\t", httpHeaders, httpHeadersLength);
 					free((void*)httpHeaders);
 				}
 				reportResults(ws);
