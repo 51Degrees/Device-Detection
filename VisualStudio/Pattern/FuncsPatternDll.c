@@ -21,6 +21,7 @@
 
 #include "..\..\src\pattern\51Degrees.h"
 #include "Windows.h"
+#include <string.h>
 
 #define EXTERN_DLL_EXPORT __declspec(dllexport)
 
@@ -91,7 +92,7 @@ EXTERN_DLL_EXPORT void __cdecl MatchFromUserAgent(LP workSet, LPCTSTR userAgent)
 
 EXTERN_DLL_EXPORT void __cdecl MatchFromHeaders(LP workSet, LPTSTR httpHeaders)
 {
-	fiftyoneDegreesMatchWithHeadersString((fiftyoneDegreesWorkset*)workSet, (char*)httpHeaders);
+	fiftyoneDegreesMatchWithHeadersString((fiftyoneDegreesWorkset*)workSet, (char*)httpHeaders, strlen((char*)httpHeaders));
 }
 
 EXTERN_DLL_EXPORT int __cdecl GetHttpHeaderName(LP dataSet, INT httpHeaderIndex, LPTSTR httpHeader, INT size)
