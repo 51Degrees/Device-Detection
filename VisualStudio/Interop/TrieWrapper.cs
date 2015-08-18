@@ -364,8 +364,8 @@ namespace FiftyOne.Mobile.Detection.Provider.Interop
         /// </summary>
         public void Dispose()
         {
-            GC.SuppressFinalize(true);
             Disposing(true);
+            GC.SuppressFinalize(true);
         }
 
         /// <summary>
@@ -383,6 +383,7 @@ namespace FiftyOne.Mobile.Detection.Provider.Interop
                     Debug.WriteLine("Freed Trie Data");
                 }
                 _instanceCount--;
+                _fileName = null;
             }
         }
         
