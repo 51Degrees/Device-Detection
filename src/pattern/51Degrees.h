@@ -605,7 +605,7 @@ EXTERNAL void fiftyoneDegreesMatchWithHeadersArray(fiftyoneDegreesWorkset *ws, c
  * @param httpHeaders is a list of HTTP headers and values on each line
  * @param length number of characters in the headers array to consider
  */
-EXTERNAL void fiftyoneDegreesMatchWithHeadersString(fiftyoneDegreesWorkset *ws, char *httpHeaders, int32_t length);
+EXTERNAL void fiftyoneDegreesMatchWithHeadersString(fiftyoneDegreesWorkset *ws, char *httpHeaders, size_t length);
 
 /**
  * Passed a string where each line contains the HTTP header name and value.
@@ -616,7 +616,7 @@ EXTERNAL void fiftyoneDegreesMatchWithHeadersString(fiftyoneDegreesWorkset *ws, 
  * @param httpHeaders is a list of HTTP headers and values on each line
  * @param length number of characters in the headers array to consider
  */
-EXTERNAL int32_t fiftyoneDegreesSetHttpHeaders(fiftyoneDegreesWorkset *ws, char *httpHeaders, int32_t length);
+EXTERNAL int32_t fiftyoneDegreesSetHttpHeaders(fiftyoneDegreesWorkset *ws, char *httpHeaders, size_t length);
 
 /**
  * Sets the workset for the important headers included in the workset.
