@@ -28,7 +28,7 @@ namespace FiftyOne.UnitTests.Performance.Premium
     {
         protected override int MaxInitializeTime
         {
-            get { return 750; }
+            get { return 7500; }
         }
 
         protected override string DataFile

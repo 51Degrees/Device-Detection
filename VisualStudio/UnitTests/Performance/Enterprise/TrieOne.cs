@@ -31,7 +31,7 @@ namespace FiftyOne.UnitTests.Performance.Enterprise
 
         protected override int MaxInitializeTime
         {
-            get { return 1000; }
+            get { return 7500; }
         }
 
         protected override IEnumerable<string> RequiredProperties
