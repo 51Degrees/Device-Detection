@@ -144,6 +144,11 @@ void freeMatch(char* output){
         fiftyoneDegreesJSONFree(output);
   }
 
+   char* getEnv(char* userEnv) {
+
+        return "Test";
+
+  }
 
 %}
 
