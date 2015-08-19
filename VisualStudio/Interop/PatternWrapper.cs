@@ -233,7 +233,7 @@ namespace FiftyOne.Mobile.Detection.Provider.Interop
                 var httpHeaders = new StringBuilder();
                 for (int i = 0; i < headers.Count; i++)
                 {
-                    httpHeaders.AppendLine(String.Format("{0} {1}",
+                    httpHeaders.AppendLine(String.Format("{0}: {1}",
                         headers.Keys[i],
                         String.Concat(headers.GetValues(i))));
                 }
