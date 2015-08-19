@@ -2554,11 +2554,14 @@ void setClosestSignaturesFinal(fiftyoneDegreesWorkset *ws, int32_t count) {
  * @param b pointer to the second node
  * @return the difference between the nodes
  */
-int QSORT_COMPARER nodeSignatureCountCompare(const void *a, const void *b)
-{
+int QSORT_COMPARER nodeSignatureCountCompare(const void *a, const void *b) {
 	fiftyoneDegreesNode* c1 = (*(fiftyoneDegreesNode**)a);
 	fiftyoneDegreesNode* c2 = (*(fiftyoneDegreesNode**)b);
-	return c1->signatureCount - c2->signatureCount;
+	int difference = c1->signatureCount - c2->signatureCount;
+	if (difference == 0) {
+		difference = c1->position - c2->position;
+	}
+	return difference;
 }
 
 /**
