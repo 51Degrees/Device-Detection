@@ -174,14 +174,17 @@ fiftyoneDegreesDataSetInitStatus readHttpHeaders(FILE *inputFilePtr) {
 	if (fread(&_httpHeadersSize, sizeof(int32_t), 1, inputFilePtr) != 1)
 		return DATA_SET_INIT_STATUS_CORRUPT_DATA;
 	_httpHeaders = (int32_t*)malloc(_httpHeadersSize);
-	if (_httpHeaders == NULL)
+	_uniqueHttpHeaders = (int32_t*)malloc(_httpHeadersSize);
+	if (_httpHeaders == NULL || _uniqueHttpHeaders == NULL) {
+		if (_httpHeaders != NULL) { free(_httpHeaders); }
+		if (_uniqueHttpHeaders != NULL) { free(_uniqueHttpHeaders); }
 		return DATA_SET_INIT_STATUS_INSUFFICIENT_MEMORY;
+	}
 	if (fread(_httpHeaders, sizeof(BYTE), (size_t)_httpHeadersSize, inputFilePtr) != (size_t)_httpHeadersSize)
 		return DATA_SET_INIT_STATUS_CORRUPT_DATA;
 
 	// Set the unique HTTP header names;
 	_uniqueHttpHeaderCount = 0;
-	_uniqueHttpHeaders = (int32_t*)malloc(_httpHeadersSize);
 	for (headerIndex = 0; headerIndex < (int)(_httpHeadersSize / sizeof(int32_t)); headerIndex++) {
 		for (uniqueHeaderIndex = 0; uniqueHeaderIndex < _uniqueHttpHeaderCount; uniqueHeaderIndex++) {
 			if (*(_uniqueHttpHeaders + uniqueHeaderIndex) == *(_httpHeaders + headerIndex)) {
