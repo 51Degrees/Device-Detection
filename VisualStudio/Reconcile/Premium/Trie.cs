@@ -19,37 +19,50 @@
  * defined by the Mozilla Public License, v. 2.0.
  * ********************************************************************* */
 
-using FiftyOne.Mobile.Detection.Provider.Interop;
 using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
+using Microsoft.VisualStudio.TestTools.UnitTesting;
 
-namespace FiftyOne.UnitTests.Performance
+namespace FiftyOne.Reconcile.Premium
 {
     /// <summary>
-    /// Base class for all trie performance tests.
+    /// Test cases for Premium Trie data file.
     /// </summary>
-    public abstract class TrieBase : Base
+    [TestClass]
+    public class Trie : TrieBase
     {
-        /// <summary>
-        /// Creates a new trie wrapper recording the time taken
-        /// to construct the wrapper.
-        /// </summary>
-        /// <returns>A new trie wrapper instance</returns>
-        protected override IWrapper CreateWrapper()
+        protected override string DataFile
         {
-            var start = DateTime.UtcNow;
-            try
-            {
-                Utils.CheckFileExists(DataFile);
-                return new TrieWrapper(DataFile, String.Empty);
-            }
-            finally
-            {
-                _testInitializeTime = DateTime.UtcNow - start;
-            }
+            get { return FiftyOne.UnitTests.Constants.PREMIUM_TRIE_V32; }
+        }
+
+        [TestInitialize]
+        public override void Initialise()
+        {
+            base.Initialise();
+        }
+
+        [TestCleanup]
+        public void CleanUp()
+        {
+            base.Dispose();
+        }
+        
+        [TestMethod]
+        public void PremiumTrie_Reconcile_Unique()
+        {
+            base.Reconcile(FiftyOne.UnitTests.UserAgentGenerator.GetUniqueUserAgents());
+        }
+
+        [TestMethod]
+        public void PremiumTrie_Reconcile_Bad()
+        {
+            base.Reconcile(FiftyOne.UnitTests.UserAgentGenerator.GetBadUserAgents());
+        }
+        
+        [TestMethod]
+        public void PremiumTrie_Reconcile_Random()
+        {
+            base.Reconcile(FiftyOne.UnitTests.UserAgentGenerator.GetRandomUserAgents());
         }
     }
 }
