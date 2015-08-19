@@ -32,7 +32,7 @@ namespace FiftyOne.UnitTests.HttpHeaders
 {
     public abstract class Base : UnitTests.Base
     {
-        private const int TEST_ITERATIONS = 100000;
+        private const int TEST_ITERATIONS = 20000;
 
         internal class Validation : Dictionary<string, Regex>
         {
