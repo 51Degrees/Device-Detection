@@ -67,6 +67,8 @@ package FiftyOneDegrees::PatternV3;
 *fiftyoneDegreesMatch = *FiftyOneDegrees::PatternV3c::fiftyoneDegreesMatch;
 *fiftyoneDegreesMatchWithHeadersArray = *FiftyOneDegrees::PatternV3c::fiftyoneDegreesMatchWithHeadersArray;
 *fiftyoneDegreesMatchWithHeadersString = *FiftyOneDegrees::PatternV3c::fiftyoneDegreesMatchWithHeadersString;
+*fiftyoneDegreesSetHttpHeaders = *FiftyOneDegrees::PatternV3c::fiftyoneDegreesSetHttpHeaders;
+*fiftyoneDegreesMatchForHttpHeaders = *FiftyOneDegrees::PatternV3c::fiftyoneDegreesMatchForHttpHeaders;
 *fiftyoneDegreesSetValues = *FiftyOneDegrees::PatternV3c::fiftyoneDegreesSetValues;
 *fiftyoneDegreesGetString = *FiftyOneDegrees::PatternV3c::fiftyoneDegreesGetString;
 *fiftyoneDegreesGetValues = *FiftyOneDegrees::PatternV3c::fiftyoneDegreesGetValues;
@@ -84,6 +86,7 @@ package FiftyOneDegrees::PatternV3;
 *dataSetProvider = *FiftyOneDegrees::PatternV3c::dataSetProvider;
 *getMatch = *FiftyOneDegrees::PatternV3c::getMatch;
 *freeMatch = *FiftyOneDegrees::PatternV3c::freeMatch;
+*getEnv = *FiftyOneDegrees::PatternV3c::getEnv;
 
 ############# Class : FiftyOneDegrees::PatternV3::fiftyoneDegreesRANGE ##############
 
