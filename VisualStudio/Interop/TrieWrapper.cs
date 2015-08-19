@@ -404,12 +404,20 @@ namespace FiftyOne.Mobile.Detection.Provider.Interop
                     if (_instanceCount == 1 &&
                         _fileName != null)
                     {
+                        // Wait for any detections to complete.
                         AllDeviceOffsetsReleased.WaitOne();
+
+                        // Clear down any static data and free memory.
                         HttpHeaders.Clear();
                         PropertyIndexes.Clear();
                         _fileName = null;
                         Destroy();
                         _disposed = true;
+
+                        // Set so that the next wrapper to be disposed of
+                        // does not get stuck if no detections are performed.
+                        AllDeviceOffsetsReleased.Set();
+
                         Debug.WriteLine("Freed Trie Data");
                     }
                     _instanceCount--;
