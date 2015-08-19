@@ -94,9 +94,14 @@ namespace FiftyOne.Mobile.Detection.Provider.Interop
                 var httpHeaders = new StringBuilder();
                 for (int i = 0; i < headers.Count; i++)
                 {
-                    httpHeaders.AppendLine(String.Format("{0}: {1}",
-                        headers.Keys[i],
-                        String.Concat(headers.GetValues(i))));
+                    // Include the HTTP header in the string buffer if 
+                    // its one that's important to device detection.
+                    if (provider.HttpHeaders.BinarySearch(headers.Keys[i]) >= 0)
+                    {
+                        httpHeaders.AppendLine(String.Format("{0}: {1}",
+                            headers.Keys[i],
+                            String.Concat(headers.GetValues(i))));
+                    }
                 }
                 _userAgent = headers["User-Agent"];
                 _deviceOffsets = MatchFromHeaders(httpHeaders);
@@ -363,6 +368,7 @@ namespace FiftyOne.Mobile.Detection.Provider.Interop
                         HttpHeaders.Add(httpHeader.ToString());
                         httpHeaderIndex++;
                     }
+                    HttpHeaders.Sort();
 
                     _fileName = fileName;
                 }
@@ -433,7 +439,7 @@ namespace FiftyOne.Mobile.Detection.Provider.Interop
         /// <summary>
         /// A list of the http headers that the wrapper can use for detection.
         /// </summary>
-        public IList<string> HttpHeaders
+        public List<string> HttpHeaders
         {
             get { return _httpHeaders; }
         }
