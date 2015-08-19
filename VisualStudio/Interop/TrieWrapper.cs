@@ -94,7 +94,7 @@ namespace FiftyOne.Mobile.Detection.Provider.Interop
                 var httpHeaders = new StringBuilder();
                 for (int i = 0; i < headers.Count; i++)
                 {
-                    httpHeaders.AppendLine(String.Format("{0} {1}",
+                    httpHeaders.AppendLine(String.Format("{0}: {1}",
                         headers.Keys[i],
                         String.Concat(headers.GetValues(i))));
                 }
@@ -279,6 +279,13 @@ namespace FiftyOne.Mobile.Detection.Provider.Interop
         /// </summary>
         private static string _fileName;
 
+        /// <summary>
+        /// Set to true when dispose has run for the wrapper
+        /// as sometimes the finaliser still runs even when
+        /// requested not to.
+        /// </summary>
+        private bool _disposed = false;
+
         #endregion
 
         #region Constructor and Destructor
@@ -305,6 +312,7 @@ namespace FiftyOne.Mobile.Detection.Provider.Interop
         {
             lock(_lock)
             {
+                // Check the file exists before trying to load it.
                 var info = new FileInfo(fileName);
                 if (info.Exists == false)
                 {
@@ -312,6 +320,10 @@ namespace FiftyOne.Mobile.Detection.Provider.Interop
                         "File '{0}' can not be found.",
                         info.FullName), "fileName");
                 }
+
+                // If a file has already been loaded then check it's the 
+                // same name as the one being used for this instance. Only
+                // one file can be loaded at a time.
                 if (_fileName != null &&
                     _fileName.Equals(fileName) == false)
                 {
@@ -320,33 +332,44 @@ namespace FiftyOne.Mobile.Detection.Provider.Interop
                         "Multiple providers with different file sources can not be created.",
                         _fileName), "fileName");
                 }
-                var status = InitWithPropertyString(info.FullName, properties);
-                if (status != 0)
-                {
-                    throw new Exception(String.Format(
-                        "Status code '{0}' returned when creating wrapper from file '{1}'.",
-                        status,
-                        fileName));
-                }
-                _fileName = fileName;
 
-                // Initialise the list of property names and indexes.
-                var propertyIndex = 0;
-                var property = new StringBuilder(256);
-                while (GetRequiredPropertyName(propertyIndex, property, property.Capacity) > 0)
+                // Only initialise the memory if the file has not already
+                // been loaded into memory.
+                if (_fileName == null)
                 {
-                    PropertyIndexes.Add(property.ToString(), propertyIndex);
-                    propertyIndex++;
+                    var status = InitWithPropertyString(info.FullName, properties);
+                    if (status != 0)
+                    {
+                        throw new Exception(String.Format(
+                            "Status code '{0}' returned when creating wrapper from file '{1}'.",
+                            status,
+                            fileName));
+                    }
+
+                    // Initialise the list of property names and indexes.
+                    var propertyIndex = 0;
+                    var property = new StringBuilder(256);
+                    while (GetRequiredPropertyName(propertyIndex, property, property.Capacity) > 0)
+                    {
+                        PropertyIndexes.Add(property.ToString(), propertyIndex);
+                        propertyIndex++;
+                    }
+
+                    // Initialise the list of http header names.
+                    var httpHeaderIndex = 0;
+                    var httpHeader = new StringBuilder(256);
+                    while (GetHttpHeaderName(httpHeaderIndex, httpHeader, httpHeader.Capacity) > 0)
+                    {
+                        HttpHeaders.Add(httpHeader.ToString());
+                        httpHeaderIndex++;
+                    }
+
+                    _fileName = fileName;
                 }
-                    
-                // Initialise the list of http header names.
-                var httpHeaderIndex = 0;
-                var httpHeader = new StringBuilder(256);
-                while (GetHttpHeaderName(httpHeaderIndex, httpHeader, httpHeader.Capacity) > 0)
-                {
-                    HttpHeaders.Add(httpHeader.ToString());
-                    httpHeaderIndex++;
-                }
+
+                // Increase the number of wrapper instances that have
+                // been created. Used when the wrapper is disposed to 
+                // determine if the memory used should be released.
                 _instanceCount++;
             }
         }
@@ -376,14 +399,22 @@ namespace FiftyOne.Mobile.Detection.Provider.Interop
         {
             lock (_lock)
             {
-                if (_instanceCount == 1)
+                if (_disposed == false)
                 {
-                    AllDeviceOffsetsReleased.WaitOne();
-                    Destroy();
-                    Debug.WriteLine("Freed Trie Data");
+                    if (_instanceCount == 1 &&
+                        _fileName != null)
+                    {
+                        AllDeviceOffsetsReleased.WaitOne();
+                        HttpHeaders.Clear();
+                        PropertyIndexes.Clear();
+                        _fileName = null;
+                        Destroy();
+                        _disposed = true;
+                        Debug.WriteLine("Freed Trie Data");
+                    }
+                    _instanceCount--;
+                    _disposed = true;
                 }
-                _instanceCount--;
-                _fileName = null;
             }
         }
         
