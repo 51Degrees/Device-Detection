@@ -1928,6 +1928,16 @@ SWIG_AsVal_int SWIG_PERL_DECL_ARGS_2(SV * obj, int *val)
 }
 
 
+SWIGINTERNINLINE int
+SWIG_AsVal_size_t SWIG_PERL_DECL_ARGS_2(SV * obj, size_t *val)
+{
+  unsigned long v;
+  int res = SWIG_AsVal_unsigned_SS_long SWIG_PERL_CALL_ARGS_2(obj, val ? &v : 0);
+  if (SWIG_IsOK(res) && val) *val = (size_t)(v);
+  return res;
+}
+
+
 
  /*
   * This method is exposed to the PERL and is used to free all pools, cache
@@ -1995,6 +2005,11 @@ void freeMatch(char* output){
         fiftyoneDegreesJSONFree(output);
   }
 
+   char* getEnv(char* userEnv) {
+
+        return "Test";
+
+  }
 
 
 #ifdef __cplusplus
@@ -15572,16 +15587,19 @@ XS(_wrap_fiftyoneDegreesMatchWithHeadersString) {
   {
     fiftyoneDegreesWorkset *arg1 = (fiftyoneDegreesWorkset *) 0 ;
     char *arg2 = (char *) 0 ;
+    size_t arg3 ;
     void *argp1 = 0 ;
     int res1 = 0 ;
     int res2 ;
     char *buf2 = 0 ;
     int alloc2 = 0 ;
+    size_t val3 ;
+    int ecode3 = 0 ;
     int argvi = 0;
     dXSARGS;
     
-    if ((items < 2) || (items > 2)) {
-      SWIG_croak("Usage: fiftyoneDegreesMatchWithHeadersString(ws,httpHeaders);");
+    if ((items < 3) || (items > 3)) {
+      SWIG_croak("Usage: fiftyoneDegreesMatchWithHeadersString(ws,httpHeaders,length);");
     }
     res1 = SWIG_ConvertPtr(ST(0), &argp1,SWIGTYPE_p_fiftyoneDegrees_workset_t, 0 |  0 );
     if (!SWIG_IsOK(res1)) {
@@ -15593,14 +15611,97 @@ XS(_wrap_fiftyoneDegreesMatchWithHeadersString) {
       SWIG_exception_fail(SWIG_ArgError(res2), "in method '" "fiftyoneDegreesMatchWithHeadersString" "', argument " "2"" of type '" "char *""'");
     }
     arg2 = (char *)(buf2);
-    fiftyoneDegreesMatchWithHeadersString(arg1,arg2);
+    ecode3 = SWIG_AsVal_size_t SWIG_PERL_CALL_ARGS_2(ST(2), &val3);
+    if (!SWIG_IsOK(ecode3)) {
+      SWIG_exception_fail(SWIG_ArgError(ecode3), "in method '" "fiftyoneDegreesMatchWithHeadersString" "', argument " "3"" of type '" "size_t""'");
+    } 
+    arg3 = (size_t)(val3);
+    fiftyoneDegreesMatchWithHeadersString(arg1,arg2,arg3);
     ST(argvi) = sv_newmortal();
     
     if (alloc2 == SWIG_NEWOBJ) free((char*)buf2);
+    
     XSRETURN(argvi);
   fail:
     
     if (alloc2 == SWIG_NEWOBJ) free((char*)buf2);
+    
+    SWIG_croak_null();
+  }
+}
+
+
+XS(_wrap_fiftyoneDegreesSetHttpHeaders) {
+  {
+    fiftyoneDegreesWorkset *arg1 = (fiftyoneDegreesWorkset *) 0 ;
+    char *arg2 = (char *) 0 ;
+    size_t arg3 ;
+    void *argp1 = 0 ;
+    int res1 = 0 ;
+    int res2 ;
+    char *buf2 = 0 ;
+    int alloc2 = 0 ;
+    size_t val3 ;
+    int ecode3 = 0 ;
+    int argvi = 0;
+    int32_t result;
+    dXSARGS;
+    
+    if ((items < 3) || (items > 3)) {
+      SWIG_croak("Usage: fiftyoneDegreesSetHttpHeaders(ws,httpHeaders,length);");
+    }
+    res1 = SWIG_ConvertPtr(ST(0), &argp1,SWIGTYPE_p_fiftyoneDegrees_workset_t, 0 |  0 );
+    if (!SWIG_IsOK(res1)) {
+      SWIG_exception_fail(SWIG_ArgError(res1), "in method '" "fiftyoneDegreesSetHttpHeaders" "', argument " "1"" of type '" "fiftyoneDegreesWorkset *""'"); 
+    }
+    arg1 = (fiftyoneDegreesWorkset *)(argp1);
+    res2 = SWIG_AsCharPtrAndSize(ST(1), &buf2, NULL, &alloc2);
+    if (!SWIG_IsOK(res2)) {
+      SWIG_exception_fail(SWIG_ArgError(res2), "in method '" "fiftyoneDegreesSetHttpHeaders" "', argument " "2"" of type '" "char *""'");
+    }
+    arg2 = (char *)(buf2);
+    ecode3 = SWIG_AsVal_size_t SWIG_PERL_CALL_ARGS_2(ST(2), &val3);
+    if (!SWIG_IsOK(ecode3)) {
+      SWIG_exception_fail(SWIG_ArgError(ecode3), "in method '" "fiftyoneDegreesSetHttpHeaders" "', argument " "3"" of type '" "size_t""'");
+    } 
+    arg3 = (size_t)(val3);
+    result = fiftyoneDegreesSetHttpHeaders(arg1,arg2,arg3);
+    ST(argvi) = SWIG_NewPointerObj((int32_t *)memcpy((int32_t *)malloc(sizeof(int32_t)),&result,sizeof(int32_t)), SWIGTYPE_p_int32_t, SWIG_POINTER_OWN | 0); argvi++ ;
+    
+    if (alloc2 == SWIG_NEWOBJ) free((char*)buf2);
+    
+    XSRETURN(argvi);
+  fail:
+    
+    if (alloc2 == SWIG_NEWOBJ) free((char*)buf2);
+    
+    SWIG_croak_null();
+  }
+}
+
+
+XS(_wrap_fiftyoneDegreesMatchForHttpHeaders) {
+  {
+    fiftyoneDegreesWorkset *arg1 = (fiftyoneDegreesWorkset *) 0 ;
+    void *argp1 = 0 ;
+    int res1 = 0 ;
+    int argvi = 0;
+    dXSARGS;
+    
+    if ((items < 1) || (items > 1)) {
+      SWIG_croak("Usage: fiftyoneDegreesMatchForHttpHeaders(ws);");
+    }
+    res1 = SWIG_ConvertPtr(ST(0), &argp1,SWIGTYPE_p_fiftyoneDegrees_workset_t, 0 |  0 );
+    if (!SWIG_IsOK(res1)) {
+      SWIG_exception_fail(SWIG_ArgError(res1), "in method '" "fiftyoneDegreesMatchForHttpHeaders" "', argument " "1"" of type '" "fiftyoneDegreesWorkset *""'"); 
+    }
+    arg1 = (fiftyoneDegreesWorkset *)(argp1);
+    fiftyoneDegreesMatchForHttpHeaders(arg1);
+    ST(argvi) = sv_newmortal();
+    
+    XSRETURN(argvi);
+  fail:
+    
     SWIG_croak_null();
   }
 }
@@ -16328,6 +16429,35 @@ XS(_wrap_freeMatch) {
 }
 
 
+XS(_wrap_getEnv) {
+  {
+    char *arg1 = (char *) 0 ;
+    int res1 ;
+    char *buf1 = 0 ;
+    int alloc1 = 0 ;
+    int argvi = 0;
+    char *result = 0 ;
+    dXSARGS;
+    
+    if ((items < 1) || (items > 1)) {
+      SWIG_croak("Usage: getEnv(userEnv);");
+    }
+    res1 = SWIG_AsCharPtrAndSize(ST(0), &buf1, NULL, &alloc1);
+    if (!SWIG_IsOK(res1)) {
+      SWIG_exception_fail(SWIG_ArgError(res1), "in method '" "getEnv" "', argument " "1"" of type '" "char *""'");
+    }
+    arg1 = (char *)(buf1);
+    result = (char *)getEnv(arg1);
+    ST(argvi) = SWIG_FromCharPtr((const char *)result); argvi++ ;
+    if (alloc1 == SWIG_NEWOBJ) free((char*)buf1);
+    XSRETURN(argvi);
+  fail:
+    if (alloc1 == SWIG_NEWOBJ) free((char*)buf1);
+    SWIG_croak_null();
+  }
+}
+
+
 
 /* -------- TYPE CONVERSION AND EQUIVALENCE RULES (BEGIN) -------- */
 
@@ -17001,6 +17131,8 @@ static swig_command_info swig_commands[] = {
 {"FiftyOneDegrees::PatternV3c::fiftyoneDegreesMatch", _wrap_fiftyoneDegreesMatch},
 {"FiftyOneDegrees::PatternV3c::fiftyoneDegreesMatchWithHeadersArray", _wrap_fiftyoneDegreesMatchWithHeadersArray},
 {"FiftyOneDegrees::PatternV3c::fiftyoneDegreesMatchWithHeadersString", _wrap_fiftyoneDegreesMatchWithHeadersString},
+{"FiftyOneDegrees::PatternV3c::fiftyoneDegreesSetHttpHeaders", _wrap_fiftyoneDegreesSetHttpHeaders},
+{"FiftyOneDegrees::PatternV3c::fiftyoneDegreesMatchForHttpHeaders", _wrap_fiftyoneDegreesMatchForHttpHeaders},
 {"FiftyOneDegrees::PatternV3c::fiftyoneDegreesSetValues", _wrap_fiftyoneDegreesSetValues},
 {"FiftyOneDegrees::PatternV3c::fiftyoneDegreesGetString", _wrap_fiftyoneDegreesGetString},
 {"FiftyOneDegrees::PatternV3c::fiftyoneDegreesGetValues", _wrap_fiftyoneDegreesGetValues},
@@ -17018,6 +17150,7 @@ static swig_command_info swig_commands[] = {
 {"FiftyOneDegrees::PatternV3c::dataSetProvider", _wrap_dataSetProvider},
 {"FiftyOneDegrees::PatternV3c::getMatch", _wrap_getMatch},
 {"FiftyOneDegrees::PatternV3c::freeMatch", _wrap_freeMatch},
+{"FiftyOneDegrees::PatternV3c::getEnv", _wrap_getEnv},
 {0,0}
 };
 /* -----------------------------------------------------------------------------
