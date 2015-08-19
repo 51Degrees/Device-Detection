@@ -598,13 +598,32 @@ EXTERNAL void fiftyoneDegreesMatchWithHeadersArray(fiftyoneDegreesWorkset *ws, c
 
 /**
  * Passed a string where each line contains the HTTP header name and value.
- * The first space character seperates the HTTP header name at the beginning of 
+ * The first space character seperates the HTTP header name at the beginning of
  * the line and the value.
  * @param ws pointer to a work set to be used for the match created via
  *        createWorkset function
  * @param httpHeaders is a list of HTTP headers and values on each line
+ * @param length number of characters in the headers array to consider
  */
-EXTERNAL void fiftyoneDegreesMatchWithHeadersString(fiftyoneDegreesWorkset *ws, char *httpHeaders);
+EXTERNAL void fiftyoneDegreesMatchWithHeadersString(fiftyoneDegreesWorkset *ws, char *httpHeaders, size_t length);
+
+/**
+ * Passed a string where each line contains the HTTP header name and value.
+ * The first space character and/or colon seperates the HTTP header name
+ * at the beginning of the line and the value. Does not perform a device
+ * detection. Use fiftyoneDegreesMatchForHttpHeaders to complete a match.
+ * @param ws pointer to a work set to have important headers set
+ * @param httpHeaders is a list of HTTP headers and values on each line
+ * @param length number of characters in the headers array to consider
+ */
+EXTERNAL int32_t fiftyoneDegreesSetHttpHeaders(fiftyoneDegreesWorkset *ws, char *httpHeaders, size_t length);
+
+/**
+ * Sets the workset for the important headers included in the workset.
+ * @param ws pointer to a work set to be used for the match created via
+ *        createWorkset function
+ */
+EXTERNAL void fiftyoneDegreesMatchForHttpHeaders(fiftyoneDegreesWorkset *ws);
 
 /**
  * Sets the values associated with the require property index in the workset
@@ -680,7 +699,7 @@ EXTERNAL int32_t fiftyoneDegreesGetHttpHeaderName(const fiftyoneDegreesDataSet *
 * @return the index of the property, or -1 if the property does not exist
 */
 EXTERNAL int32_t fiftyoneDegreesGetRequiredPropertyIndex(const fiftyoneDegreesDataSet *dataSet, char *propertyName);
-	
+
 /**
  * Process the workset results into a CSV string.
  * @param ws pointer to a workset with the results to return in CSV

@@ -20,29 +20,48 @@
  * ********************************************************************* */
 
 using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
+using Microsoft.VisualStudio.TestTools.UnitTesting;
+using System.IO;
+using FiftyOne.Mobile.Detection.Provider.Interop;
 
-namespace FiftyOne.UnitTests
+namespace FiftyOne.UnitTests.HttpHeaders.Premium
 {
-    public class Constants
+    [TestClass]
+    public class V32PatternFile : HttpHeaders.PatternBase
     {
-        public const string GOOD_USERAGENTS_FILE = "../../../../../data/20000 User Agents.csv";
+        protected override string DataFile
+        {
+            get { return Constants.PREMIUM_PATTERN_V32; }
+        }
 
-        public const string LITE_PATTERN_V32 = "../../../../../data/51Degrees-LiteV3.2.dat";
+        [TestInitialize]
+        public void Initialise()
+        {
+            if (_wrapper == null) { _wrapper = CreateWrapper(); }
+        }
 
-        public const string LITE_TRIE_V32 = "../../../../../data/51Degrees-LiteV3.2.trie";
+        [TestCleanup]
+        public void CleanUp()
+        {
+            Dispose();
+        }
 
-        public const string ENTERPRISE_PATTERN_V32 = "../../../../../data/51Degrees-EnterpriseV3.2.dat";
+        [TestMethod]
+        public void PremiumV32PatternFile_OperaMiniSamsung() 
+        {
+            base.OperaMini_Samsung();
+        }
 
-        public const string ENTERPRISE_TRIE_V32 = "../../../../../data/51Degrees-EnterpriseV3.2.trie";
+        [TestMethod]
+        public void PremiumV32PatternFile_OperaMini_HTC()
+        {
+            base.OperaMini_HTC();
+        }
 
-        public const string PREMIUM_PATTERN_V32 = "../../../../../data/51Degrees-PremiumV3.2.dat";
-
-        public const string PREMIUM_TRIE_V32 = "../../../../../data/51Degrees-PremiumV3.2.trie";
-
-        public const int USERAGENT_COUNT = 20000;
+        [TestMethod]
+        public void PremiumV32PatternFile_OperaMini_iPhone()
+        {
+            base.OperaMini_iPhone();
+        }
     }
 }

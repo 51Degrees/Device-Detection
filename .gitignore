@@ -14,8 +14,10 @@
 *.pfk
 *.psess
 doxygen/
-*Enterprise*
-*Premium*
+*Enterprise*.dat
+*Premium*.dat
+*Enterprise*.trie
+*Premium*.trie
 *.coverage
 *.opensdf
 million.csv
@@ -28,4 +30,8 @@ node.js/node_modules/
 .ntvs_analysis.dat
 VisualStudio/TestResults
 *.nupkg
+<<<<<<< HEAD
 /php/nbproject/private/
+=======
+*.user
+>>>>>>> aaf54219dbf1cff2304b40469c66e4621dcc5260

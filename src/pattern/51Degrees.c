@@ -3214,11 +3214,11 @@ byte matchForHttpHeader(fiftyoneDegreesWorkset *ws, const fiftyoneDegreesCompone
 }
 
 /**
-* Sets the workset for the important headers included in the workset.
-* @param ws pointer to a work set to be used for the match created via
-*        createWorkset function
-*/
-void matchForHttpHeaders(fiftyoneDegreesWorkset *ws) {
+ * Sets the workset for the important headers included in the workset.
+ * @param ws pointer to a work set to be used for the match created via
+ *        createWorkset function
+ */
+void fiftyoneDegreesMatchForHttpHeaders(fiftyoneDegreesWorkset *ws) {
 	int componentIndex, profileIndex = 0;
 	int32_t differenceTotal = 0;
 	fiftyoneDegreesMatchMethod worstMethod = EXACT;
@@ -3271,14 +3271,14 @@ void matchForHttpHeaders(fiftyoneDegreesWorkset *ws) {
 }
 
 /**
-* Passed array of HTTP header names and values. Sets the workset to
-* the results for these headers.
-* @param ws pointer to a work set to be used for the match created via
-*        createWorkset function
-* @param httpHeaderNames array of HTTP header names i.e. User-Agent
-* @param httpHeaderValues array of HTTP header values
-* @param httpHeaderCount the number of entires in each array
-*/
+ * Passed array of HTTP header names and values. Sets the workset to
+ * the results for these headers.
+ * @param ws pointer to a work set to be used for the match created via
+ *        createWorkset function
+ * @param httpHeaderNames array of HTTP header names i.e. User-Agent
+ * @param httpHeaderValues array of HTTP header values
+ * @param httpHeaderCount the number of entires in each array
+ */
 void fiftyoneDegreesMatchWithHeadersArray(fiftyoneDegreesWorkset *ws, char **httpHeaderNames, char **httpHeaderValues, int httpHeaderCount) {
 	int httpHeaderIndex, dataSetHeaderIndex, importantHeaderIndex = 0;
 	for (httpHeaderIndex = 0;
@@ -3297,19 +3297,23 @@ void fiftyoneDegreesMatchWithHeadersArray(fiftyoneDegreesWorkset *ws, char **htt
 		}
 	}
 	ws->importantHeadersCount = importantHeaderIndex;
-	matchForHttpHeaders(ws);
+	fiftyoneDegreesMatchForHttpHeaders(ws);
 }
 
 /**
- * Sets name to the start of the http header name and returns the length of the string.
+ * Sets name to the start of the http header name and returns the length of
+ * the string. A space or colon are used to identify the end of the header
+ * name.
  * @param start of the string to be processed
+ * @param end of the string to be processed
  * @param value to be set when returned
  * @returns the number of characters in the value
  */
-int setNextHttpHeaderName(char* start, char** name) {
+int setNextHttpHeaderName(char* start, char* end, char** name) {
 	char *current = start, *lastChar = start;
-	while (*current != 0) {
-		if (*current == ' ') {
+	while (current <= end) {
+		if (*current == ' ' ||
+            *current == ':') {
 			*name = lastChar;
 			return (int)(current - lastChar);
 		}
@@ -3326,13 +3330,26 @@ int setNextHttpHeaderName(char* start, char** name) {
  * Sets the value pointer to the start of the next HTTP header value and
  * returns the length.
  * @param start of the string to be processed
+ * @param end of the string to be processed
  * @param value to be set when returned
  * @returns the number of characters in the value
  */
-int setNextHttpHeaderValue(char* start, char** value) {
-	char *current = start, *lastChar = start;
-	*value = start;
-	while (*current != 0) {
+int setNextHttpHeaderValue(char* start, char *end, char** value) {
+	char *lastChar = start, *current;
+
+	// Move to the first non-space character.
+	while (lastChar <= end && (
+            *lastChar == ' ' ||
+            *lastChar == ':')) {
+        lastChar++;
+	}
+
+	// Set the value to the start character.
+	*value = lastChar;
+	current = lastChar;
+
+	// Loop until end of line or end of string.
+	while (current <= end) {
 		if (*current == '\r' ||
 			*current == '\n') {
 			*value = lastChar;
@@ -3364,21 +3381,22 @@ int getUniqueHttpHeaderIndex(const fiftyoneDegreesDataSet *dataSet, char* httpHe
 }
 
 /**
-* Passed a string where each line contains the HTTP header name and value.
-* The first space character seperates the HTTP header name at the beginning of
-* the line and the value.
-* @param ws pointer to a work set to be used for the match created via
-*        createWorkset function
-* @param httpHeaders is a list of HTTP headers and values on each line
-*/
-void fiftyoneDegreesMatchWithHeadersString(fiftyoneDegreesWorkset *ws, char *httpHeaders) {
-	char *headerName, *headerValue;
+ * Passed a string where each line contains the HTTP header name and value.
+ * The first space character and/or colon seperates the HTTP header name
+ * at the beginning of the line and the value. Does not perform a device
+ * detection. Use fiftyoneDegreesMatchForHttpHeaders to complete a match.
+ * @param ws pointer to a work set to have important headers set
+ * @param httpHeaders is a list of HTTP headers and values on each line
+ * @param size is the valid characters in the httpHeaders string
+ */
+int32_t fiftyoneDegreesSetHttpHeaders(fiftyoneDegreesWorkset *ws, char *httpHeaders, size_t size) {
+	char *headerName, *headerValue, *endOfHeaders = httpHeaders + size;
 	int headerNameLength, headerValueLength, uniqueHeaderIndex = 0;
 	ws->importantHeadersCount = 0;
-	headerNameLength = setNextHttpHeaderName(httpHeaders, &headerName);
+	headerNameLength = setNextHttpHeaderName(httpHeaders, endOfHeaders, &headerName);
 	while (headerNameLength > 0 &&
 		ws->importantHeadersCount < ws->dataSet->httpHeadersCount) {
-		headerValueLength = setNextHttpHeaderValue(headerName + headerNameLength + 1, &headerValue);
+		headerValueLength = setNextHttpHeaderValue(headerName + headerNameLength, endOfHeaders, &headerValue);
 		uniqueHeaderIndex = getUniqueHttpHeaderIndex(ws->dataSet, headerName, headerNameLength);
 		if (uniqueHeaderIndex >= 0) {
 			ws->importantHeaders[ws->importantHeadersCount].header = ws->dataSet->httpHeaders + uniqueHeaderIndex;
@@ -3386,9 +3404,23 @@ void fiftyoneDegreesMatchWithHeadersString(fiftyoneDegreesWorkset *ws, char *htt
 			ws->importantHeaders[ws->importantHeadersCount].headerValueLength = headerValueLength;
 			ws->importantHeadersCount++;
 		}
-		headerNameLength = setNextHttpHeaderName(headerValue + headerValueLength, &headerName);
+		headerNameLength = setNextHttpHeaderName(headerValue + headerValueLength, endOfHeaders, &headerName);
 	}
-	matchForHttpHeaders(ws);
+	return ws->importantHeadersCount;
+}
+
+/**
+ * Passed a string where each line contains the HTTP header name and value.
+ * The first space character seperates the HTTP header name at the beginning of
+ * the line and the value.
+ * @param ws pointer to a work set to be used for the match created via
+ *        createWorkset function
+ * @param httpHeaders is a list of HTTP headers and values on each line
+ * @param size is the valid characters in the httpHeaders string
+ */
+void fiftyoneDegreesMatchWithHeadersString(fiftyoneDegreesWorkset *ws, char *httpHeaders, size_t size) {
+    fiftyoneDegreesSetHttpHeaders(ws, httpHeaders, size);
+	fiftyoneDegreesMatchForHttpHeaders(ws);
 }
 
 /**
