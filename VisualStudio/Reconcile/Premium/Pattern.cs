@@ -56,7 +56,7 @@ namespace FiftyOne.Reconcile.Premium
         [TestMethod]
         public void PremiumPattern_Reconcile_Bad()
         {
-            base.Reconcile(FiftyOne.UnitTests.UserAgentGenerator.GetBadUserAgents());
+            base.Reconcile(FiftyOne.UnitTests.UserAgentGenerator.GetBadUserAgents(100000));
         }
         
         [TestMethod]
