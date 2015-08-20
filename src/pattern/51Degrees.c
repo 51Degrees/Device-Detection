@@ -3371,14 +3371,43 @@ int setNextHttpHeaderValue(char* start, char *end, char** value) {
  * @returns the index in the datasets headers of this header or -1
  */
 int getUniqueHttpHeaderIndex(const fiftyoneDegreesDataSet *dataSet, char* httpHeaderName, int length) {
-	int uniqueHeaderIndex;
+	int uniqueHeaderIndex, i;
+        char *httpcmp, *httpfix = "HTTP_", *temp_head, *temp_datahead;
 	const fiftyoneDegreesAsciiString *header;
 	for (uniqueHeaderIndex = 0; uniqueHeaderIndex < dataSet->httpHeadersCount; uniqueHeaderIndex++) {
 		header = fiftyoneDegreesGetString(dataSet, (dataSet->httpHeaders + uniqueHeaderIndex)->headerNameOffset);
-		if (header->length - 1 == length &&
+//Check if header is from a Perl or PHP wrapper in the form of HTTP_*
+//Remove the HTTP_ prefix and convert to lower case
+		strncpy(httpcmp, httpHeaderName, 5);
+                if (strncmp(httpcmp,httpfix,5)==0){
+                //Remove the HTTP_ prefix and reduce the length of string by 5
+                    strncpy(temp_head, httpHeaderName+5, length-5);
+                    //Convert to lower case and replace _ with -
+                    for(i=0;i<=strlen(temp_head);i++){
+                        if (temp_head[i]>=65 && temp_head[i]<=90)
+                            temp_head[i]=temp_head[i]+32;
+                        if (temp_head[i]==95)
+                           temp_head[i]=45; 
+                    }
+                    temp_datahead = header;
+                    
+                    for(i=0;i<=strlen(temp_datahead);i++){
+                        if (temp_datahead[i]>=65 && temp_datahead[i]<=90)
+                            temp_datahead[i]=temp_datahead[i]+32;
+                    }
+                    
+                     if (header->length - 1 == length &&
+			strncmp(temp_datahead, temp_head, length) == 0) {
+			return uniqueHeaderIndex;
+                     }
+  
+                }else{
+                //Else use previous logic
+                    if (header->length - 1 == length &&
 			memcmp(&(header->firstByte), httpHeaderName, length) == 0) {
 			return uniqueHeaderIndex;
-		}
+                    }
+                }
 	}
 	return -1;
 }
