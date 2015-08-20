@@ -85,8 +85,8 @@ package FiftyOneDegrees::PatternV3;
 *freeDataset = *FiftyOneDegrees::PatternV3c::freeDataset;
 *dataSetProvider = *FiftyOneDegrees::PatternV3c::dataSetProvider;
 *getMatch = *FiftyOneDegrees::PatternV3c::getMatch;
+*getMatchWithHeaders = *FiftyOneDegrees::PatternV3c::getMatchWithHeaders;
 *freeMatch = *FiftyOneDegrees::PatternV3c::freeMatch;
-*getEnv = *FiftyOneDegrees::PatternV3c::getEnv;
 
 ############# Class : FiftyOneDegrees::PatternV3::fiftyoneDegreesRANGE ##############
 

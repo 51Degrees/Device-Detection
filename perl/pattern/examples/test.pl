@@ -41,6 +41,7 @@ my $userAgentString;
 $filename //= "/home/fod/Device-Detection/data/51Degrees-LiteV3.2.dat";
 #User Agent string can be changed here
 $userAgentString = "Mozilla/5.0 (Linux; U; Android 4.1.2; de-de; GT-N8020 Build/JZO54K) AppleWebKit/534.30 (KHTML, like Gecko) Version/4.0 Safari/534.30";
+my $userHeaderString = "HTTP_USER_AGENT Mozilla/5.0 (Linux; U; Android 4.1.2; de-de; GT-N8020 Build/JZO54K) AppleWebKit/534.30 (KHTML, like Gecko) Version/4.0 Safari/534.30";
 #ProperyList can be changed here
 $propertyList //= "Id,BrowserName,BrowserVendor,BrowserVersion,CookiesCapable,IsTablet,IsMobile,IsCrawler";
 
@@ -56,7 +57,7 @@ FiftyOneDegrees::PatternV3::dataSetProvider($filename, $propertyList, 5000, 10);
 
 # After creating a data set provider, the getMatch method can be executed.
 $matchPointer = FiftyOneDegrees::PatternV3::getMatch($userAgentString);
-
+#$matchPointer = FiftyOneDegrees::PatternV3::getMatchWithHeaders($userHe##ing);
 # get available properties
 
 

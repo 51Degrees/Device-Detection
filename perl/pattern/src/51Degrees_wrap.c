@@ -1999,17 +1999,25 @@ void freeDataset() {
         return output;
 
   }
+   
+      char* getMatchWithHeaders(char* userHeader) {
+ 
+        fiftyoneDegreesWorkset *ws = fiftyoneDegreesWorksetPoolGet(pool);
+        fiftyoneDegreesMatchWithHeadersString(ws, userHeader, strlen(userHeader)); 
+        char *output = (char *) malloc(50000);
+        output = fiftyoneDegreesJSONCreate(ws);
+        int32_t jsout = fiftyoneDegreesProcessDeviceJSON(ws, output); 
+        fiftyoneDegreesWorksetPoolRelease(pool, ws);
+        return output;
+
+  }
   
 
 void freeMatch(char* output){
         fiftyoneDegreesJSONFree(output);
   }
 
-   char* getEnv(char* userEnv) {
 
-        return "Test";
-
-  }
 
 
 #ifdef __cplusplus
@@ -16401,6 +16409,36 @@ XS(_wrap_getMatch) {
 }
 
 
+XS(_wrap_getMatchWithHeaders) {
+  {
+    char *arg1 = (char *) 0 ;
+    int res1 ;
+    char *buf1 = 0 ;
+    int alloc1 = 0 ;
+    int argvi = 0;
+    char *result = 0 ;
+    dXSARGS;
+    
+    if ((items < 1) || (items > 1)) {
+      SWIG_croak("Usage: getMatchWithHeaders(userHeader);");
+    }
+    res1 = SWIG_AsCharPtrAndSize(ST(0), &buf1, NULL, &alloc1);
+    if (!SWIG_IsOK(res1)) {
+      SWIG_exception_fail(SWIG_ArgError(res1), "in method '" "getMatchWithHeaders" "', argument " "1"" of type '" "char *""'");
+    }
+    arg1 = (char *)(buf1);
+    result = (char *)getMatchWithHeaders(arg1);
+    ST(argvi) = SWIG_FromCharPtr((const char *)result); argvi++ ;
+    if (alloc1 == SWIG_NEWOBJ) free((char*)buf1);
+    free((char*)result);
+    XSRETURN(argvi);
+  fail:
+    if (alloc1 == SWIG_NEWOBJ) free((char*)buf1);
+    SWIG_croak_null();
+  }
+}
+
+
 XS(_wrap_freeMatch) {
   {
     char *arg1 = (char *) 0 ;
@@ -16420,35 +16458,6 @@ XS(_wrap_freeMatch) {
     arg1 = (char *)(buf1);
     freeMatch(arg1);
     ST(argvi) = sv_newmortal();
-    if (alloc1 == SWIG_NEWOBJ) free((char*)buf1);
-    XSRETURN(argvi);
-  fail:
-    if (alloc1 == SWIG_NEWOBJ) free((char*)buf1);
-    SWIG_croak_null();
-  }
-}
-
-
-XS(_wrap_getEnv) {
-  {
-    char *arg1 = (char *) 0 ;
-    int res1 ;
-    char *buf1 = 0 ;
-    int alloc1 = 0 ;
-    int argvi = 0;
-    char *result = 0 ;
-    dXSARGS;
-    
-    if ((items < 1) || (items > 1)) {
-      SWIG_croak("Usage: getEnv(userEnv);");
-    }
-    res1 = SWIG_AsCharPtrAndSize(ST(0), &buf1, NULL, &alloc1);
-    if (!SWIG_IsOK(res1)) {
-      SWIG_exception_fail(SWIG_ArgError(res1), "in method '" "getEnv" "', argument " "1"" of type '" "char *""'");
-    }
-    arg1 = (char *)(buf1);
-    result = (char *)getEnv(arg1);
-    ST(argvi) = SWIG_FromCharPtr((const char *)result); argvi++ ;
     if (alloc1 == SWIG_NEWOBJ) free((char*)buf1);
     XSRETURN(argvi);
   fail:
@@ -17149,8 +17158,8 @@ static swig_command_info swig_commands[] = {
 {"FiftyOneDegrees::PatternV3c::freeDataset", _wrap_freeDataset},
 {"FiftyOneDegrees::PatternV3c::dataSetProvider", _wrap_dataSetProvider},
 {"FiftyOneDegrees::PatternV3c::getMatch", _wrap_getMatch},
+{"FiftyOneDegrees::PatternV3c::getMatchWithHeaders", _wrap_getMatchWithHeaders},
 {"FiftyOneDegrees::PatternV3c::freeMatch", _wrap_freeMatch},
-{"FiftyOneDegrees::PatternV3c::getEnv", _wrap_getEnv},
 {0,0}
 };
 /* -----------------------------------------------------------------------------
