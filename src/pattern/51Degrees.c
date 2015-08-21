@@ -3364,7 +3364,8 @@ int setNextHttpHeaderValue(char* start, char *end, char** value) {
 }
 
 /**
- * Return the index of the unique hader, or -1 if the header is not important.
+ * Return the index of the unique header, or -1 if the header is not important.
+ * Check for headers from Perl and PHp with HTTP_ prefixes
  * @param dataSet the header is being checked against
  * @param httpHeaderName of the header being checked
  * @param length of the header name
@@ -3372,36 +3373,39 @@ int setNextHttpHeaderValue(char* start, char *end, char** value) {
  */
 int getUniqueHttpHeaderIndex(const fiftyoneDegreesDataSet *dataSet, char* httpHeaderName, int length) {
 	int uniqueHeaderIndex, i;
-        char *httpcmp, *httpfix = "HTTP_", *temp_head, *temp_datahead;
-	const fiftyoneDegreesAsciiString *header;
+        char  *httpfix,  *temp_datahead;
+        
+        httpfix = "HTTP_";
+      	const fiftyoneDegreesAsciiString *header;
+        
 	for (uniqueHeaderIndex = 0; uniqueHeaderIndex < dataSet->httpHeadersCount; uniqueHeaderIndex++) {
 		header = fiftyoneDegreesGetString(dataSet, (dataSet->httpHeaders + uniqueHeaderIndex)->headerNameOffset);
 //Check if header is from a Perl or PHP wrapper in the form of HTTP_*
 //Remove the HTTP_ prefix and convert to lower case
-		strncpy(httpcmp, httpHeaderName, 5);
-                if (strncmp(httpcmp,httpfix,5)==0){
+
+                if (strncmp(httpHeaderName,httpfix,5)==0){
+                    
                 //Remove the HTTP_ prefix and reduce the length of string by 5
-                    strncpy(temp_head, httpHeaderName+5, length-5);
                     //Convert to lower case and replace _ with -
-                    for(i=0;i<=strlen(temp_head);i++){
-                        if (temp_head[i]>=65 && temp_head[i]<=90)
-                            temp_head[i]=temp_head[i]+32;
-                        if (temp_head[i]==95)
-                           temp_head[i]=45; 
+                    for(i=5;i<=length;i++){
+                        if (httpHeaderName[i]>=65 && httpHeaderName[i]<=90)
+                            httpHeaderName[i]=httpHeaderName[i]+32;
+                        if (httpHeaderName[i]==95)
+                           httpHeaderName[i]=45; 
                     }
-                    temp_datahead = header;
-                    
+                    temp_datahead = (&header->firstByte);
+                     
                     for(i=0;i<=strlen(temp_datahead);i++){
-                        if (temp_datahead[i]>=65 && temp_datahead[i]<=90)
-                            temp_datahead[i]=temp_datahead[i]+32;
+                        if ((temp_datahead[i])>=65 && (temp_datahead[i])<=90)
+                            (temp_datahead[i])= (temp_datahead[i])+32;
                     }
-                    
-                     if (header->length - 1 == length &&
-			strncmp(temp_datahead, temp_head, length) == 0) {
-			return uniqueHeaderIndex;
+
+                    if	(strncmp(temp_datahead, httpHeaderName+5, length-5) == 0) {
+     			return uniqueHeaderIndex;
                      }
   
                 }else{
+
                 //Else use previous logic
                     if (header->length - 1 == length &&
 			memcmp(&(header->firstByte), httpHeaderName, length) == 0) {
@@ -3409,12 +3413,13 @@ int getUniqueHttpHeaderIndex(const fiftyoneDegreesDataSet *dataSet, char* httpHe
                     }
                 }
 	}
+
 	return -1;
 }
 
 /**
  * Passed a string where each line contains the HTTP header name and value.
- * The first space character and/or colon seperates the HTTP header name
+ * The first space character and/or colon separates the HTTP header name
  * at the beginning of the line and the value. Does not perform a device
  * detection. Use fiftyoneDegreesMatchForHttpHeaders to complete a match.
  * @param ws pointer to a work set to have important headers set

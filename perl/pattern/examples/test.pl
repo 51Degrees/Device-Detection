@@ -41,6 +41,7 @@ my $userAgentString;
 $filename //= "/home/fod/Device-Detection/data/51Degrees-LiteV3.2.dat";
 #User Agent string can be changed here
 $userAgentString = "Mozilla/5.0 (Linux; U; Android 4.1.2; de-de; GT-N8020 Build/JZO54K) AppleWebKit/534.30 (KHTML, like Gecko) Version/4.0 Safari/534.30";
+#my $userHeaderString = "User-Agent Mozilla/5.0 (Linux; U; Android 4.1.2; de-de; GT-N8020 Build/JZO54K) AppleWebKit/534.30 (KHTML, like Gecko) Version/4.0 Safari/534.30";
 my $userHeaderString = "HTTP_USER_AGENT Mozilla/5.0 (Linux; U; Android 4.1.2; de-de; GT-N8020 Build/JZO54K) AppleWebKit/534.30 (KHTML, like Gecko) Version/4.0 Safari/534.30";
 #ProperyList can be changed here
 $propertyList //= "Id,BrowserName,BrowserVendor,BrowserVersion,CookiesCapable,IsTablet,IsMobile,IsCrawler";
@@ -52,12 +53,13 @@ die "DATa file does not exist! usage: $filename -f <dat filename>\n" unless -e (
 eval {
 # For pattern a data set provider need to be created.
 # Pass in data filename, property lis, cache size and pool size
-FiftyOneDegrees::PatternV3::dataSetProvider($filename, $propertyList, 5000, 10);
+FiftyOneDegrees::PatternV3::dataSetProvider($filename, $propertyList, 10, 20);
 
 
 # After creating a data set provider, the getMatch method can be executed.
-$matchPointer = FiftyOneDegrees::PatternV3::getMatch($userAgentString);
-#$matchPointer = FiftyOneDegrees::PatternV3::getMatchWithHeaders($userHe##ing);
+#$matchPointer = FiftyOneDegrees::PatternV3::getMatch($userAgentString);
+#for ($i=1;$i<1000000;$i++){
+$matchPointer = FiftyOneDegrees::PatternV3::getMatchWithHeaders($userHeaderString);
 # get available properties
 
 
@@ -69,8 +71,8 @@ my %properties = %{ decode_json($matchPointer) };
 	say $key . ": " . $value;
     }
 # Free the Match method references
-FiftyOneDegrees::PatternV3::freeMatch($matchPointer);
-        
+#FiftyOneDegrees::PatternV3::freeMatch($matchPointer);
+ #}       
 # Free all the memory used by the data set provider
 FiftyOneDegrees::PatternV3::freeDataset();
        
