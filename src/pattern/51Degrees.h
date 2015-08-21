@@ -1,6 +1,6 @@
 /* *********************************************************************
  * This Source Code Form is copyright of 51Degrees Mobile Experts Limited.
- * Copyright © 2014 51Degrees Mobile Experts Limited, 5 Charlotte Close,
+ * Copyright ï¿½ 2014 51Degrees Mobile Experts Limited, 5 Charlotte Close,
  * Caversham, Reading, Berkshire, United Kingdom RG4 7BY
  *
  * This Source Code Form is the subject of the following patent
@@ -421,6 +421,7 @@ typedef struct fiftyoneDegrees_workset_t {
 	char *relevantNodes; /* Pointer to a char array containing the relevant nodes */
 	char *closestNodes; /* Pointer to a char array containing the closest nodes */
 	char *signatureAsString; /* The signature as a string */
+        char *tempheaderlowercase; /* temp variable to store http header name */
 	const fiftyoneDegreesNode **nodes; /* Pointer to a list of nodes related to the match */
 	const fiftyoneDegreesNode **orderedNodes; /* Pointer to a list of nodes in ascending order of signature count */
 	int32_t nodeCount; /* The number of nodes referenced by **nodes */
