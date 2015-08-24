@@ -710,8 +710,8 @@ int headerCompare(char *httpHeaderName, const char *uniqueHeader, int length) {
 // Returns the index of the unique header, or -1 if the header is not important.
 int getUniqueHttpHeaderIndex(char* httpHeaderName, int length) {
 	int uniqueHeaderIndex;
-	const char *httpPrefix = "HTTP_";
-	const int httpPrefixLength = 5;
+	static const char httpPrefix[] = "HTTP_";
+	static const int httpPrefixLength = sizeof(httpPrefix) - 1;
 	char *adjustedHttpHeaderName;
 
 	// Check if header is from a Perl or PHP wrapper in the form of HTTP_*

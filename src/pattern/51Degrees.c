@@ -3400,8 +3400,8 @@ int headerCompare(char *httpHeaderName, const fiftyoneDegreesAsciiString *unique
  */
 int getUniqueHttpHeaderIndex(const fiftyoneDegreesDataSet *dataSet, char* httpHeaderName, int length) {
 	int uniqueHeaderIndex;
-	const char *httpPrefix = "HTTP_";
-	const int httpPrefixLength = 5;
+	static const char httpPrefix[] = "HTTP_";
+	static const int httpPrefixLength = sizeof(httpPrefix) - 1;
 	char *adjustedHttpHeaderName;
 	const fiftyoneDegreesAsciiString *header;
 
