@@ -685,7 +685,8 @@ int getUniqueHttpHeaderIndex(char* httpHeaderName, int length) {
 	for (uniqueHeaderIndex = 0; uniqueHeaderIndex < _uniqueHttpHeaderCount; uniqueHeaderIndex++) {
 		if (strlen(_strings + _uniqueHttpHeaders[uniqueHeaderIndex]) == length &&
 			memcmp(_strings + _uniqueHttpHeaders[uniqueHeaderIndex], httpHeaderName, length) == 0) {
-			return uniqueHeaderIndex;
+		    printf("string = %s\n", _strings);	
+                    return uniqueHeaderIndex;
 		}
 	}
 	return -1;
