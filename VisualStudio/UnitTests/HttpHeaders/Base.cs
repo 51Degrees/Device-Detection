@@ -55,8 +55,33 @@ namespace FiftyOne.UnitTests.HttpHeaders
                 deviceIterator.MoveNext())
             {
                 var headers = new NameValueCollection();
-                headers.Add(httpHeaders[random.Next(httpHeaders.Length)], deviceIterator.Current);
-                headers.Add("User-Agent", userAgentIterator.Current);
+                switch(random.Next(4))
+                {
+                    case 0:
+                        // Use PHP and Perl HTTP header formats.
+                        var header = httpHeaders[random.Next(httpHeaders.Length)]; 
+                        header = header.ToUpperInvariant();
+                        header = header.Replace("-", "_");
+                        headers.Add("HTTP_" + header, deviceIterator.Current);
+                        headers.Add("HTTP_USER_AGENT", userAgentIterator.Current);
+                        break;
+                    case 1:
+                        // Capitialise HTTP headers.
+                        headers.Add(httpHeaders[random.Next(httpHeaders.Length)].ToUpperInvariant(), deviceIterator.Current);
+                        headers.Add("User-Agent".ToUpperInvariant(), userAgentIterator.Current);
+                        break;
+                    case 2:
+                        // Lower HTTP headers.
+                        headers.Add(httpHeaders[random.Next(httpHeaders.Length)].ToLowerInvariant(), deviceIterator.Current);
+                        headers.Add("User-Agent".ToLowerInvariant(), userAgentIterator.Current);
+                        break;
+                    default:
+                        // Use standard unaltered formats.
+                        headers.Add(httpHeaders[random.Next(httpHeaders.Length)], deviceIterator.Current);
+                        headers.Add("User-Agent", userAgentIterator.Current);
+                        break;
+                }
+
                 using (var matchResult = _wrapper.Match(headers))
                 {
                     Validate(headers, matchResult, state);
@@ -85,7 +110,7 @@ namespace FiftyOne.UnitTests.HttpHeaders
                             "{0}-{1} {2}\r\n",
                             i,
                             httpHeaders.GetKey(i),
-                            httpHeaders.GetValues(i));
+                            httpHeaders.GetValues(i).FirstOrDefault());
                     }
                     Assert.Fail(message.ToString());
                 }
