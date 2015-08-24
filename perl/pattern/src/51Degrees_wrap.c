@@ -13483,6 +13483,78 @@ XS(_wrap_fiftyoneDegreesWorkset_signatureAsString_get) {
 }
 
 
+XS(_wrap_fiftyoneDegreesWorkset_tempheaderlowercase_set) {
+  {
+    fiftyoneDegreesWorkset *arg1 = (fiftyoneDegreesWorkset *) 0 ;
+    char *arg2 = (char *) 0 ;
+    void *argp1 = 0 ;
+    int res1 = 0 ;
+    int res2 ;
+    char *buf2 = 0 ;
+    int alloc2 = 0 ;
+    int argvi = 0;
+    dXSARGS;
+    
+    if ((items < 2) || (items > 2)) {
+      SWIG_croak("Usage: fiftyoneDegreesWorkset_tempheaderlowercase_set(self,tempheaderlowercase);");
+    }
+    res1 = SWIG_ConvertPtr(ST(0), &argp1,SWIGTYPE_p_fiftyoneDegrees_workset_t, 0 |  0 );
+    if (!SWIG_IsOK(res1)) {
+      SWIG_exception_fail(SWIG_ArgError(res1), "in method '" "fiftyoneDegreesWorkset_tempheaderlowercase_set" "', argument " "1"" of type '" "fiftyoneDegreesWorkset *""'"); 
+    }
+    arg1 = (fiftyoneDegreesWorkset *)(argp1);
+    res2 = SWIG_AsCharPtrAndSize(ST(1), &buf2, NULL, &alloc2);
+    if (!SWIG_IsOK(res2)) {
+      SWIG_exception_fail(SWIG_ArgError(res2), "in method '" "fiftyoneDegreesWorkset_tempheaderlowercase_set" "', argument " "2"" of type '" "char *""'");
+    }
+    arg2 = (char *)(buf2);
+    if (arg1->tempheaderlowercase) free((char*)arg1->tempheaderlowercase);
+    if (arg2) {
+      size_t size = strlen((const char *)(arg2)) + 1;
+      arg1->tempheaderlowercase = (char *)(char *)memcpy((char *)malloc((size)*sizeof(char)), (const char *)(arg2), sizeof(char)*(size));
+    } else {
+      arg1->tempheaderlowercase = 0;
+    }
+    ST(argvi) = sv_newmortal();
+    
+    if (alloc2 == SWIG_NEWOBJ) free((char*)buf2);
+    XSRETURN(argvi);
+  fail:
+    
+    if (alloc2 == SWIG_NEWOBJ) free((char*)buf2);
+    SWIG_croak_null();
+  }
+}
+
+
+XS(_wrap_fiftyoneDegreesWorkset_tempheaderlowercase_get) {
+  {
+    fiftyoneDegreesWorkset *arg1 = (fiftyoneDegreesWorkset *) 0 ;
+    void *argp1 = 0 ;
+    int res1 = 0 ;
+    int argvi = 0;
+    char *result = 0 ;
+    dXSARGS;
+    
+    if ((items < 1) || (items > 1)) {
+      SWIG_croak("Usage: fiftyoneDegreesWorkset_tempheaderlowercase_get(self);");
+    }
+    res1 = SWIG_ConvertPtr(ST(0), &argp1,SWIGTYPE_p_fiftyoneDegrees_workset_t, 0 |  0 );
+    if (!SWIG_IsOK(res1)) {
+      SWIG_exception_fail(SWIG_ArgError(res1), "in method '" "fiftyoneDegreesWorkset_tempheaderlowercase_get" "', argument " "1"" of type '" "fiftyoneDegreesWorkset *""'"); 
+    }
+    arg1 = (fiftyoneDegreesWorkset *)(argp1);
+    result = (char *) ((arg1)->tempheaderlowercase);
+    ST(argvi) = SWIG_FromCharPtr((const char *)result); argvi++ ;
+    
+    XSRETURN(argvi);
+  fail:
+    
+    SWIG_croak_null();
+  }
+}
+
+
 XS(_wrap_fiftyoneDegreesWorkset_nodes_set) {
   {
     fiftyoneDegreesWorkset *arg1 = (fiftyoneDegreesWorkset *) 0 ;
@@ -17076,6 +17148,8 @@ static swig_command_info swig_commands[] = {
 {"FiftyOneDegrees::PatternV3c::fiftyoneDegreesWorkset_closestNodes_get", _wrap_fiftyoneDegreesWorkset_closestNodes_get},
 {"FiftyOneDegrees::PatternV3c::fiftyoneDegreesWorkset_signatureAsString_set", _wrap_fiftyoneDegreesWorkset_signatureAsString_set},
 {"FiftyOneDegrees::PatternV3c::fiftyoneDegreesWorkset_signatureAsString_get", _wrap_fiftyoneDegreesWorkset_signatureAsString_get},
+{"FiftyOneDegrees::PatternV3c::fiftyoneDegreesWorkset_tempheaderlowercase_set", _wrap_fiftyoneDegreesWorkset_tempheaderlowercase_set},
+{"FiftyOneDegrees::PatternV3c::fiftyoneDegreesWorkset_tempheaderlowercase_get", _wrap_fiftyoneDegreesWorkset_tempheaderlowercase_get},
 {"FiftyOneDegrees::PatternV3c::fiftyoneDegreesWorkset_nodes_set", _wrap_fiftyoneDegreesWorkset_nodes_set},
 {"FiftyOneDegrees::PatternV3c::fiftyoneDegreesWorkset_nodes_get", _wrap_fiftyoneDegreesWorkset_nodes_get},
 {"FiftyOneDegrees::PatternV3c::fiftyoneDegreesWorkset_orderedNodes_set", _wrap_fiftyoneDegreesWorkset_orderedNodes_set},

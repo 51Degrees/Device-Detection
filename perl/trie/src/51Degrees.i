@@ -65,8 +65,12 @@ fiftyoneDegreesDataSetInitStatus getInitStatus() {
   
    char* getMatchWithHeaders(char* userHeader) {
     char output[50000];
+    fiftyoneDegreesDeviceOffsets *deviceoffset;
+    int js_int;
     if (strlen(userHeader) > 0) {
-      fiftyoneDegreesProcessDeviceJSON(fiftyoneDegreesGetDeviceOffsetsWithHeadersString(userHeader, strlen(userHeader)), output, 50000);
+      deviceoffset = fiftyoneDegreesGetDeviceOffsetsWithHeadersString(userHeader, strlen(userHeader));
+      js_int = fiftyoneDegreesGetValueFromOffsets(deviceoffset, 0, output, 5000 );
+      fiftyoneDegreesProcessDeviceJSON(js_int, output, 50000);
       return output;
     }
   }

@@ -22,7 +22,7 @@ die "Trie DAT file does not exist! usage: $0 -f <Trie dat filename>\n" unless -e
 # Initialize Trie library
 eval {
 	FiftyOneDegrees::TrieV3::dataSetInitWithPropertyString($filename, $propertyList);
-        my $json = FiftyOneDegrees::PatternV3::getMatchWithHeaders($userHeaderString);
+        my $json = FiftyOneDegrees::TrieV3::getMatchWithHeaders($userHeaderString);
 #	my $json = FiftyOneDegrees::TrieV3::getMatch($userAgentString);
 	
 	say "=== Data Output ===";
