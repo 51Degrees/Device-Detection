@@ -1590,6 +1590,8 @@ use vars qw(@ISA %OWNER %ITERATORS %BLESSEDMEMBERS);
 *swig_closestNodes_set = *FiftyOneDegrees::PatternV3c::fiftyoneDegreesWorkset_closestNodes_set;
 *swig_signatureAsString_get = *FiftyOneDegrees::PatternV3c::fiftyoneDegreesWorkset_signatureAsString_get;
 *swig_signatureAsString_set = *FiftyOneDegrees::PatternV3c::fiftyoneDegreesWorkset_signatureAsString_set;
+*swig_tempheaderlowercase_get = *FiftyOneDegrees::PatternV3c::fiftyoneDegreesWorkset_tempheaderlowercase_get;
+*swig_tempheaderlowercase_set = *FiftyOneDegrees::PatternV3c::fiftyoneDegreesWorkset_tempheaderlowercase_set;
 *swig_nodes_get = *FiftyOneDegrees::PatternV3c::fiftyoneDegreesWorkset_nodes_get;
 *swig_nodes_set = *FiftyOneDegrees::PatternV3c::fiftyoneDegreesWorkset_nodes_set;
 *swig_orderedNodes_get = *FiftyOneDegrees::PatternV3c::fiftyoneDegreesWorkset_orderedNodes_get;
