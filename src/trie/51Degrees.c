@@ -4,6 +4,7 @@
 #include <stdlib.h>
 #include <string.h>
 #include <math.h>
+#include <ctype.h>
 #include "51Degrees.h"
 
 /* *********************************************************************
@@ -679,12 +680,53 @@ int setNextHttpHeaderValue(char* start, char *end, char** value) {
 	return (int)(current - lastChar);
 }
 
+
+/**
+* Compares two header strings for case insensitive equality and where -
+* are replaced with _. The http header name must be the same length
+* as the unique header.
+* @param httpHeaderName string to be checked for equality
+* @param uniqueHeader the unique HTTP header to be compared
+* @param length of the strings
+* @returns 0 if both strings are equal, otherwise the different between
+*          the first mismatched characters
+*/
+int headerCompare(char *httpHeaderName, const char *uniqueHeader, int length) {
+	int index, difference;
+	for (index = 0; index < length; index++) {
+		if (httpHeaderName[index] == '_') {
+			difference = '-' - uniqueHeader[index];
+		}
+		else {
+			difference = tolower(httpHeaderName[index]) - tolower(uniqueHeader[index]);
+		}
+		if (difference != 0) {
+			return difference;
+		}
+	}
+	return 0;
+}
+
 // Returns the index of the unique header, or -1 if the header is not important.
 int getUniqueHttpHeaderIndex(char* httpHeaderName, int length) {
 	int uniqueHeaderIndex;
+	const char *httpPrefix = "HTTP_";
+	const int httpPrefixLength = 5;
+	char *adjustedHttpHeaderName;
+
+	// Check if header is from a Perl or PHP wrapper in the form of HTTP_*
+	// and if present skip these characters.
+	if (strncmp(httpHeaderName, httpPrefix, httpPrefixLength) == 0) {
+		adjustedHttpHeaderName = httpHeaderName + httpPrefixLength;
+		length -= httpPrefixLength;
+	}
+	else {
+		adjustedHttpHeaderName = httpHeaderName;
+	}
+
 	for (uniqueHeaderIndex = 0; uniqueHeaderIndex < _uniqueHttpHeaderCount; uniqueHeaderIndex++) {
 		if (strlen(_strings + _uniqueHttpHeaders[uniqueHeaderIndex]) == length &&
-			memcmp(_strings + _uniqueHttpHeaders[uniqueHeaderIndex], httpHeaderName, length) == 0) {
+			headerCompare(adjustedHttpHeaderName, _strings + _uniqueHttpHeaders[uniqueHeaderIndex], length) == 0) {
 			return uniqueHeaderIndex;
 		}
 	}
