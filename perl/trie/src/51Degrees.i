@@ -62,6 +62,14 @@ fiftyoneDegreesDataSetInitStatus getInitStatus() {
       return output;
     }
   }
+  
+   char* getMatchWithHeaders(char* userHeader) {
+    char output[50000];
+    if (strlen(userHeader) > 0) {
+      fiftyoneDegreesProcessDeviceJSON(fiftyoneDegreesGetDeviceOffsetsWithHeadersString(userHeader, strlen(userHeader)), output, 50000);
+      return output;
+    }
+  }
 
 %}
 

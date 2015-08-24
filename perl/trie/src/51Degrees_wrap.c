@@ -1763,6 +1763,66 @@ SWIG_AsCharPtrAndSize(SV *obj, char** cptr, size_t* psize, int *alloc)
 
 
 
+SWIGINTERN int
+SWIG_AsVal_unsigned_SS_long SWIG_PERL_DECL_ARGS_2(SV *obj, unsigned long *val) 
+{
+  if (SvUOK(obj)) {
+    UV v = SvUV(obj);
+    if (v >= 0 && v <= ULONG_MAX) {
+      if (val) *val = v;
+      return SWIG_OK;
+    } else {
+      return SWIG_OverflowError;
+    }
+  } else  if (SvIOK(obj)) {
+    IV v = SvIV(obj);
+    if (v >= 0 && v <= ULONG_MAX) {
+      if (val) *val = v;
+      return SWIG_OK;
+    } else {
+      return SWIG_OverflowError;
+    }
+  } else {
+    int dispatch = 0;
+    const char *nptr = SvPV_nolen(obj);
+    if (nptr) {
+      char *endptr;
+      unsigned long v;
+      errno = 0;
+      v = strtoul(nptr, &endptr,0);
+      if (errno == ERANGE) {
+	errno = 0;
+	return SWIG_OverflowError;
+      } else {
+	if (*endptr == '\0') {
+	  if (val) *val = v;
+	  return SWIG_Str2NumCast(SWIG_OK);
+	}
+      }
+    }
+    if (!dispatch) {
+      double d;
+      int res = SWIG_AddCast(SWIG_AsVal_double SWIG_PERL_CALL_ARGS_2(obj,&d));
+      if (SWIG_IsOK(res) && SWIG_CanCastAsInteger(&d, 0, ULONG_MAX)) {
+	if (val) *val = (unsigned long)(d);
+	return res;
+      }
+    }
+  }
+  return SWIG_TypeError;
+}
+
+
+SWIGINTERNINLINE int
+SWIG_AsVal_size_t SWIG_PERL_DECL_ARGS_2(SV * obj, size_t *val)
+{
+  unsigned long v;
+  int res = SWIG_AsVal_unsigned_SS_long SWIG_PERL_CALL_ARGS_2(obj, val ? &v : 0);
+  if (SWIG_IsOK(res) && val) *val = (size_t)(v);
+  return res;
+}
+
+
 SWIGINTERNINLINE SV *
 SWIG_FromCharPtrAndSize(const char* carray, size_t size)
 {
@@ -1798,6 +1858,14 @@ SWIG_FromCharPtr(const char *cptr)
     char output[50000];
     if (strlen(userAgent) > 0) {
       fiftyoneDegreesProcessDeviceJSON(fiftyoneDegreesGetDeviceOffset(userAgent), output, 50000);
+      return output;
+    }
+  }
+  
+   char* getMatchWithHeaders(char* userHeader) {
+    char output[50000];
+    if (strlen(userAgent) > 0) {
+      fiftyoneDegreesProcessDeviceJSON(fiftyoneDegreesGetDeviceOffsetsWithHeadersString(userHeader, strlen(userHeader)), output, 50000);
       return output;
     }
   }
@@ -2303,27 +2371,37 @@ XS(_wrap_fiftyoneDegreesGetDeviceOffset) {
 XS(_wrap_fiftyoneDegreesGetDeviceOffsetsWithHeadersString) {
   {
     char *arg1 = (char *) 0 ;
+    size_t arg2 ;
     int res1 ;
     char *buf1 = 0 ;
     int alloc1 = 0 ;
+    size_t val2 ;
+    int ecode2 = 0 ;
     int argvi = 0;
     fiftyoneDegreesDeviceOffsets *result = 0 ;
     dXSARGS;
     
-    if ((items < 1) || (items > 1)) {
-      SWIG_croak("Usage: fiftyoneDegreesGetDeviceOffsetsWithHeadersString(httpHeaders);");
+    if ((items < 2) || (items > 2)) {
+      SWIG_croak("Usage: fiftyoneDegreesGetDeviceOffsetsWithHeadersString(httpHeaders,length);");
     }
     res1 = SWIG_AsCharPtrAndSize(ST(0), &buf1, NULL, &alloc1);
     if (!SWIG_IsOK(res1)) {
       SWIG_exception_fail(SWIG_ArgError(res1), "in method '" "fiftyoneDegreesGetDeviceOffsetsWithHeadersString" "', argument " "1"" of type '" "char *""'");
     }
     arg1 = (char *)(buf1);
-    result = (fiftyoneDegreesDeviceOffsets *)fiftyoneDegreesGetDeviceOffsetsWithHeadersString(arg1);
+    ecode2 = SWIG_AsVal_size_t SWIG_PERL_CALL_ARGS_2(ST(1), &val2);
+    if (!SWIG_IsOK(ecode2)) {
+      SWIG_exception_fail(SWIG_ArgError(ecode2), "in method '" "fiftyoneDegreesGetDeviceOffsetsWithHeadersString" "', argument " "2"" of type '" "size_t""'");
+    } 
+    arg2 = (size_t)(val2);
+    result = (fiftyoneDegreesDeviceOffsets *)fiftyoneDegreesGetDeviceOffsetsWithHeadersString(arg1,arg2);
     ST(argvi) = SWIG_NewPointerObj(SWIG_as_voidptr(result), SWIGTYPE_p_fiftyoneDegrees_device_offsets_t, 0 | SWIG_SHADOW); argvi++ ;
     if (alloc1 == SWIG_NEWOBJ) free((char*)buf1);
+    
     XSRETURN(argvi);
   fail:
     if (alloc1 == SWIG_NEWOBJ) free((char*)buf1);
+    
     SWIG_croak_null();
   }
 }
@@ -2841,6 +2919,35 @@ XS(_wrap_getMatch) {
 }
 
 
+XS(_wrap_getMatchWithHeaders) {
+  {
+    char *arg1 = (char *) 0 ;
+    int res1 ;
+    char *buf1 = 0 ;
+    int alloc1 = 0 ;
+    int argvi = 0;
+    char *result = 0 ;
+    dXSARGS;
+    
+    if ((items < 1) || (items > 1)) {
+      SWIG_croak("Usage: getMatchWithHeaders(userHeader);");
+    }
+    res1 = SWIG_AsCharPtrAndSize(ST(0), &buf1, NULL, &alloc1);
+    if (!SWIG_IsOK(res1)) {
+      SWIG_exception_fail(SWIG_ArgError(res1), "in method '" "getMatchWithHeaders" "', argument " "1"" of type '" "char *""'");
+    }
+    arg1 = (char *)(buf1);
+    result = (char *)getMatchWithHeaders(arg1);
+    ST(argvi) = SWIG_FromCharPtr((const char *)result); argvi++ ;
+    if (alloc1 == SWIG_NEWOBJ) free((char*)buf1);
+    XSRETURN(argvi);
+  fail:
+    if (alloc1 == SWIG_NEWOBJ) free((char*)buf1);
+    SWIG_croak_null();
+  }
+}
+
+
 
 /* -------- TYPE CONVERSION AND EQUIVALENCE RULES (BEGIN) -------- */
 
@@ -2915,6 +3022,7 @@ static swig_command_info swig_commands[] = {
 {"FiftyOneDegrees::TrieV3c::destroy", _wrap_destroy},
 {"FiftyOneDegrees::TrieV3c::dataSetInitWithPropertyString", _wrap_dataSetInitWithPropertyString},
 {"FiftyOneDegrees::TrieV3c::getMatch", _wrap_getMatch},
+{"FiftyOneDegrees::TrieV3c::getMatchWithHeaders", _wrap_getMatchWithHeaders},
 {0,0}
 };
 /* -----------------------------------------------------------------------------
