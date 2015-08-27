@@ -598,7 +598,7 @@ EXTERNAL void fiftyoneDegreesMatchWithHeadersArray(fiftyoneDegreesWorkset *ws, c
 
 /**
  * Passed a string where each line contains the HTTP header name and value.
- * The first space character seperates the HTTP header name at the beginning of 
+ * The first space character seperates the HTTP header name at the beginning of
  * the line and the value.
  * @param ws pointer to a work set to be used for the match created via
  *        createWorkset function
@@ -680,7 +680,7 @@ EXTERNAL int32_t fiftyoneDegreesGetHttpHeaderName(const fiftyoneDegreesDataSet *
 * @return the index of the property, or -1 if the property does not exist
 */
 EXTERNAL int32_t fiftyoneDegreesGetRequiredPropertyIndex(const fiftyoneDegreesDataSet *dataSet, char *propertyName);
-	
+
 /**
  * Process the workset results into a CSV string.
  * @param ws pointer to a workset with the results to return in CSV
@@ -719,5 +719,15 @@ EXTERNAL int32_t fiftyoneDegreesGetSignatureAsString(fiftyoneDegreesWorkset *ws,
 * @return the number of bytes written for the device id
 */
 EXTERNAL int32_t fiftyoneDegreesGetDeviceId(fiftyoneDegreesWorkset *ws, char *deviceId, int size);
+
+/**
+ * OBSOLETE METHODS - RETAINED FOR BACKWARDS COMPAITABILITY
+ */
+
+EXTERNAL fiftyoneDegreesWorkset* fiftyoneDegreesCreateWorkset(const fiftyoneDegreesDataSet *dataSet);
+
+EXTERNAL void fiftyoneDegreesFreeWorkset(const fiftyoneDegreesWorkset *ws);
+
+EXTERNAL void fiftyoneDegreesDestroy(const fiftyoneDegreesDataSet *dataSet);
 
 #endif // 51DEGREES_H_INCLUDED
