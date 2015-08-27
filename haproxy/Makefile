@@ -5,7 +5,6 @@
 #
 # Valid USE_* options are the following. Most of them are automatically set by
 # the TARGET, others have to be explictly specified :
-#   USE_CTTPROXY         : enable CTTPROXY on Linux (needs kernel patch).
 #   USE_DLMALLOC         : enable use of dlmalloc (see DLMALLOC_SRC)
 #   USE_EPOLL            : enable epoll() on Linux 2.6. Automatic.
 #   USE_GETSOCKNAME      : enable getsockname() on Linux 2.2. Automatic.
@@ -145,7 +144,7 @@ SMALL_OPTS =
 # Currently defined DEBUG macros include DEBUG_FULL, DEBUG_MEMORY, DEBUG_FSM,
 # DEBUG_HASH and DEBUG_AUTH. Please check sources for exact meaning or do not
 # use at all.
-DEBUG=-DDEBUG_FULL
+DEBUG =
 
 #### Trace options
 # Use TRACE=1 to trace function calls to file "trace.out" or to stderr if not
@@ -179,7 +178,7 @@ EXTRA =
 # feed CPU_CFLAGS, which in turn feed CFLAGS, so it is not mandatory to use
 # them. You should not have to change these options. Better use CPU_CFLAGS or
 # even CFLAGS instead.
-CPU_CFLAGS.generic    =
+CPU_CFLAGS.generic    = -O2
 CPU_CFLAGS.native     = -O2 -march=native
 CPU_CFLAGS.i586       = -O2 -march=i586
 CPU_CFLAGS.i686       = -O2 -march=i686
@@ -426,12 +425,6 @@ OPTIONS_CFLAGS += -DCONFIG_HAP_LINUX_SPLICE
 BUILD_OPTIONS  += $(call ignore_implicit,USE_LINUX_SPLICE)
 endif
 
-ifneq ($(USE_CTTPROXY),)
-OPTIONS_CFLAGS += -DCONFIG_HAP_CTTPROXY
-OPTIONS_OBJS   += src/cttproxy.o
-BUILD_OPTIONS  += $(call ignore_implicit,USE_CTTPROXY)
-endif
-
 ifneq ($(USE_TPROXY),)
 OPTIONS_CFLAGS += -DTPROXY
 BUILD_OPTIONS  += $(call ignore_implicit,USE_TPROXY)
@@ -595,6 +588,7 @@ endif
 ifneq ($(USE_LUA),)
 check_lua_lib = $(shell echo "int main(){}" | $(CC) -o /dev/null -x c - $(2) -l$(1) 2>/dev/null && echo $(1))
 
+BUILD_OPTIONS   += $(call ignore_implicit,USE_LUA)
 OPTIONS_CFLAGS  += -DUSE_LUA $(if $(LUA_INC),-I$(LUA_INC))
 LUA_LD_FLAGS := $(if $(LUA_LIB),-L$(LUA_LIB))
 ifeq ($(LUA_LIB_NAME),)
@@ -636,7 +630,7 @@ OPTIONS_OBJS    += $(51DEGREES_LIB)/51Degrees.o
 OPTIONS_OBJS    += src/51d.o
 OPTIONS_CFLAGS  += -DUSE_51DEGREES $(if $(51DEGREES_INC),-I$(51DEGREES_INC))
 BUILD_OPTIONS   += $(call ignore_implicit,USE_51DEGREES)
-OPTIONS_LDFLAGS += $(if $(51DEGREES_LIB),-L$(51DEGREES_LIB)) -lm
+OPTIONS_LDFLAGS += $(if $(51DEGREES_LIB),-L$(51DEGREES_LIB)) -lz -lm
 endif
 
 ifneq ($(USE_PCRE)$(USE_STATIC_PCRE)$(USE_PCRE_JIT),)
