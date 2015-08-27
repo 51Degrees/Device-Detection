@@ -52,8 +52,7 @@
 
 /* list of last checks to perform, depending on config options */
 #define LSTCHK_CAP_BIND	0x00000001	/* check that we can bind to any port */
-#define LSTCHK_CTTPROXY	0x00000002	/* check that tproxy is enabled */
-#define LSTCHK_NETADM	0x00000004	/* check that we have CAP_NET_ADMIN */
+#define LSTCHK_NETADM	0x00000002	/* check that we have CAP_NET_ADMIN */
 
 /* Global tuning options */
 /* available polling mechanisms */
@@ -192,7 +191,7 @@ struct global {
 		char *data_file_path;
 #ifdef FIFTYONEDEGREES_H_PATTERN_INCLUDED
 		fiftyoneDegreesDataSet data_set; /* data set used with the pattern detection method. */
-		fiftyoneDegreesWorksetPool *pool; /* pool of worksets to avoid creating a new one for each request. */
+        fiftyoneDegreesWorksetPool *pool; /* pool of worksets to avoid creating a new one for each request. */
 #endif
 		int cache_size;
 	} _51degrees;
