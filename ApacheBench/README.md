@@ -8,11 +8,11 @@ A version of the Apache Benchmarking tool modified to randomly generate User-Age
 
 The tool is used to stress device detection solutions by providing unique unlikely User-Agents during benchmarking. The original implementation repeated a single set of HTTP headers for every test.
 
-## New Arguement
+## New Argument
 
 This version can be provided with a text file containing User-Agents where each User-Agent is a single line in the file. Each request will select a User-Agent at random and further modify up to 10 random characters.
 
-Use the U arguement to specify a source of User-Agents. The following example uses the standard User Agents CSV file included in this repository.
+Use the U argument to specify a source of User-Agents. The following example uses the standard User Agents CSV file included in this repository.
 
 ```
 ./ab -c 10 -n 10000 -U "../data/20000 User Agents.csv" http://127.0.0.1:8081/
