@@ -313,7 +313,10 @@ int init_51degrees(void)
 	switch (_51d_dataset_status) {
 		case DATA_SET_INIT_STATUS_SUCCESS:
 #ifdef FIFTYONEDEGREES_H_PATTERN_INCLUDED
-            global._51degrees.pool = fiftyoneDegreesWorksetPoolCreate(&global._51degrees.data_set, NULL, 10);
+            /* only 1 workset in the pool because HAProxy is currently single threaded
+             * this value should be set to the number of threads in future versions.
+             */
+            global._51degrees.pool = fiftyoneDegreesWorksetPoolCreate(&global._51degrees.data_set, NULL, 1);
 #endif
 			break;
 		case DATA_SET_INIT_STATUS_INSUFFICIENT_MEMORY:
