@@ -6,7 +6,7 @@
 
 A version of the Apache Benchmarking tool modified to randomly generate User-Agent headers. For more information on the original project including building this version see the [Apache HTTP server benchmarking tool](http://httpd.apache.org/docs/2.2/programs/ab.html) documentation.
 
-The tool is used to stress device detection solutions by providing unique unlikely User-Agents during benchmarking. The original implementation repeated a single set of HTTP headers for every test.
+The tool is used to stress device detection solutions by providing unique unlikely User-Agents during benchmarking. The original implementation was poorly suited to device detection testing as it repeated a single set of HTTP headers for every test.
 
 ## New Argument
 
