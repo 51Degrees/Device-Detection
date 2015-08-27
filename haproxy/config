@@ -4,6 +4,7 @@ global
     51degrees-data-file ../Device-Detection/data/51Degrees-LiteV3.2.dat
     51degrees-property-name-list IsTablet DeviceType IsMobile
     51degrees-property-separator ,
+    51degrees-cache-size 5000
     defaults
     mode http
     timeout connect 5000ms
