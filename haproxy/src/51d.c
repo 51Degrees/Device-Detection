@@ -160,6 +160,7 @@ static int _51d_fetch(const struct arg *args, struct sample *smp, const char *kw
 #ifdef FIFTYONEDEGREES_H_PATTERN_INCLUDED
 	fiftyoneDegreesWorkset* ws; /* workset for detection */
 	struct lru64 *lru = NULL;
+	char *cacheEntry;
 #endif
 #ifdef FIFTYONEDEGREES_H_TRIE_INCLUDED
 	char valuesBuffer[1024];
@@ -268,7 +269,10 @@ static int _51d_fetch(const struct arg *args, struct sample *smp, const char *kw
 	fiftyoneDegreesWorksetPoolRelease(global._51degrees.pool, ws);
 	if (lru) {
 		smp->flags |= SMP_F_CONST;
-		lru64_commit(lru, smp->data.u.str.str, global._51degrees.data_file_path, 0, free);
+		cacheEntry = (char*)malloc(smp->data.u.str.len + 1);
+		if (memcpy(cacheEntry, smp->data.u.str.str, smp->data.u.str.len + 1) > 0) {
+            lru64_commit(lru, cacheEntry, global._51degrees.data_file_path, 0, free);
+		}
 	}
 #endif
 #ifdef FIFTYONEDEGREES_H_TRIE_INCLUDED
