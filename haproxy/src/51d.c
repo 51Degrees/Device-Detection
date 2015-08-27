@@ -8,9 +8,7 @@
 #include <proto/sample.h>
 #include <import/xxhash.h>
 #include <import/lru.h>
-
 #include <import/51d.h>
-#include "../../Device-Detection/src/pattern/51Degrees.h"
 
 struct _51d_property_names {
 	struct list list;
@@ -196,8 +194,8 @@ static int _51d_fetch(const struct arg *args, struct sample *smp, const char *kw
 		                _51d_lru_tree, global._51degrees.data_file_path, 0);
 		if (lru && lru->domain) {
 			smp->flags |= SMP_F_CONST;
-			smp->data.str.str = lru->data;
-			smp->data.str.len = strlen(smp->data.str.str);
+			smp->data.u.str.str = lru->data;
+			smp->data.u.str.len = strlen(lru->data);
 			return 1;
 		}
 	}
@@ -263,14 +261,14 @@ static int _51d_fetch(const struct arg *args, struct sample *smp, const char *kw
 		temp->str[temp->len] = '\0';
 	}
 
-	smp->data.str.str = temp->str;
-	smp->data.str.len = strlen(smp->data.str.str);
+	smp->data.u.str.str = temp->str;
+	smp->data.u.str.len = strlen(temp->str);
 
 #ifdef FIFTYONEDEGREES_H_PATTERN_INCLUDED
 	fiftyoneDegreesWorksetPoolRelease(global._51degrees.pool, ws);
 	if (lru) {
 		smp->flags |= SMP_F_CONST;
-		lru64_commit(lru, smp->data.str.str, global._51degrees.data_file_path, 0, free);
+		lru64_commit(lru, smp->data.u.str.str, global._51degrees.data_file_path, 0, free);
 	}
 #endif
 #ifdef FIFTYONEDEGREES_H_TRIE_INCLUDED
