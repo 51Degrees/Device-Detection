@@ -41,9 +41,10 @@ namespace FiftyOne.UnitTests.Performance
         /// </summary>
         protected virtual void InitializeTime()
         {
-            Assert.IsTrue(_testInitializeTime.TotalMilliseconds < MaxInitializeTime,
-                String.Format("Initialisation time greater than '{0}' ms", MaxInitializeTime));
-            Console.WriteLine("{0:0.00}ms", _testInitializeTime.TotalMilliseconds);
+            Assert.IsTrue(_testInitializeTime.TotalMilliseconds < MaxInitializeTime, 
+                String.Format("Initialisation '{0}' ms greater than max allowed of '{1}' ms", 
+                    (int)_testInitializeTime.TotalMilliseconds,
+                    MaxInitializeTime));
         }
 
         protected Utils.Results BadUserAgentsMulti(int guidanceTime)

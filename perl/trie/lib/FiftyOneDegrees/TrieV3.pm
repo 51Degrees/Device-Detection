@@ -67,6 +67,7 @@ package FiftyOneDegrees::TrieV3;
 *destroy = *FiftyOneDegrees::TrieV3c::destroy;
 *dataSetInitWithPropertyString = *FiftyOneDegrees::TrieV3c::dataSetInitWithPropertyString;
 *getMatch = *FiftyOneDegrees::TrieV3c::getMatch;
+*getMatchWithHeaders = *FiftyOneDegrees::TrieV3c::getMatchWithHeaders;
 
 ############# Class : FiftyOneDegrees::TrieV3::fiftyoneDegreesDeviceOffset ##############
 

@@ -129,6 +129,7 @@ namespace FiftyOne.Mobile.Detection.Provider.Interop
                     HttpHeaders.Add(httpHeader.ToString());
                     httpHeaderIndex++;
                 }
+                HttpHeaders.Sort();
             }
 
             /// <summary>
@@ -233,7 +234,7 @@ namespace FiftyOne.Mobile.Detection.Provider.Interop
                 var httpHeaders = new StringBuilder();
                 for (int i = 0; i < headers.Count; i++)
                 {
-                    httpHeaders.AppendLine(String.Format("{0} {1}",
+                    httpHeaders.AppendLine(String.Format("{0}: {1}",
                         headers.Keys[i],
                         String.Concat(headers.GetValues(i))));
                 }
@@ -507,7 +508,7 @@ namespace FiftyOne.Mobile.Detection.Provider.Interop
         /// <summary>
         /// A list of the http headers that the wrapper can use for detection.
         /// </summary>
-        public IList<string> HttpHeaders
+        public List<string> HttpHeaders
         {
             get { return _provider.HttpHeaders; }
         }

@@ -19,50 +19,75 @@
  * defined by the Mozilla Public License, v. 2.0.
  * ********************************************************************* */
 
-using System;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 
-namespace FiftyOne.Reconcile.Premium
+namespace FiftyOne.UnitTests.Performance.Enterprise
 {
-    /// <summary>
-    /// Test cases for Premium Pattern data file.
-    /// </summary>
     [TestClass]
-    public class Pattern : PatternBase
+    public class TrieAll : TrieBase
     {
+        protected override int MaxInitializeTime
+        {
+            get { return 7500; }
+        }
+
         protected override string DataFile
         {
-            get { return FiftyOne.UnitTests.Constants.PREMIUM_PATTERN_V32; }
+            get { return Constants.ENTERPRISE_TRIE_V32; }
         }
 
         [TestInitialize]
-        public override void Initialise()
+        public void Initialise()
         {
-            base.Initialise();
+            if (_wrapper == null) { _wrapper = CreateWrapper(); }
         }
 
         [TestCleanup]
         public void CleanUp()
         {
-            base.Dispose();
-        }
-        
-        [TestMethod]
-        public void PremiumPattern_Reconcile_Unique()
-        {
-            base.Reconcile(FiftyOne.UnitTests.UserAgentGenerator.GetUniqueUserAgents());
+            Dispose();
         }
 
         [TestMethod]
-        public void PremiumPattern_Reconcile_Bad()
+        public void EnterpriseV32Trie_Performance_InitializeTimeAll()
         {
-            base.Reconcile(FiftyOne.UnitTests.UserAgentGenerator.GetBadUserAgents(100000));
+            InitializeTime();
         }
         
         [TestMethod]
-        public void PremiumPattern_Reconcile_Random()
+        public void EnterpriseV32Trie_Performance_BadUserAgentsMultiAll()
         {
-            base.Reconcile(FiftyOne.UnitTests.UserAgentGenerator.GetRandomUserAgents());
+            BadUserAgentsMulti(2);
+        }
+
+        [TestMethod]
+        public void EnterpriseV32Trie_Performance_BadUserAgentsSingleAll()
+        {
+            BadUserAgentsSingle(4);
+        }
+
+        [TestMethod]
+        public void EnterpriseV32Trie_Performance_UniqueUserAgentsMultiAll()
+        {
+            UniqueUserAgentsMulti(1);
+        }
+
+        [TestMethod]
+        public void EnterpriseV32Trie_Performance_UniqueUserAgentsSingleAll()
+        {
+            UniqueUserAgentsSingle(3);
+        }
+
+        [TestMethod]
+        public void EnterpriseV32Trie_Performance_RandomUserAgentsMultiAll()
+        {
+            RandomUserAgentsMulti(1);
+        }
+
+        [TestMethod]
+        public void EnterpriseV32Trie_Performance_RandomUserAgentsSingleAll()
+        {
+            RandomUserAgentsSingle(3);
         }
     }
 }

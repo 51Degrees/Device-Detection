@@ -7,7 +7,7 @@ WriteMakefile(
     VERSION      => '3.2.0.0',
     OBJECT            => '../../src/trie/51Degrees.o src/51Degrees_wrap.o',
     LDFROM          => '51Degrees.o 51Degrees_wrap.o',
-    #C                 => ['trie/51Degrees.c', '51Degrees_wrap.c'],
+    #C                 => ['../../src/trie/51Degrees.c', '51Degrees_wrap.c'],
     CC                 => "gcc",
     LD                 => "gcc",
     LIBS            => ['-lm'],

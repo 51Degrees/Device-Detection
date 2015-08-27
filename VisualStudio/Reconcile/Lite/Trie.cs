@@ -56,7 +56,7 @@ namespace FiftyOne.Reconcile.Lite
         [TestMethod]
         public void LiteTrie_Reconcile_Bad()
         {
-            base.Reconcile(FiftyOne.UnitTests.UserAgentGenerator.GetBadUserAgents());
+            base.Reconcile(FiftyOne.UnitTests.UserAgentGenerator.GetBadUserAgents(100000));
         }
         
         [TestMethod]

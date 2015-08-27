@@ -75,6 +75,7 @@ fiftyoneDegreesWorksetPool* pool ;
     }
 }
 %newobject getMatch;
+%newobject getMatchWithHeaders;
 %newobject createJSON;
 %inline %{
 
@@ -138,11 +139,24 @@ void freeDataset() {
         return output;
 
   }
+   
+      char* getMatchWithHeaders(char* userHeader) {
+ 
+        fiftyoneDegreesWorkset *ws = fiftyoneDegreesWorksetPoolGet(pool);
+        fiftyoneDegreesMatchWithHeadersString(ws, userHeader, strlen(userHeader)); 
+        char *output = (char *) malloc(50000);
+        output = fiftyoneDegreesJSONCreate(ws);
+        int32_t jsout = fiftyoneDegreesProcessDeviceJSON(ws, output); 
+        fiftyoneDegreesWorksetPoolRelease(pool, ws);
+        return output;
+
+  }
   
 
 void freeMatch(char* output){
         fiftyoneDegreesJSONFree(output);
   }
+
 
 
 %}
