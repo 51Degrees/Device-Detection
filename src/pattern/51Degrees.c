@@ -1,10 +1,10 @@
 #include <stdlib.h>
 #include <stdio.h>
-#include "../cityhash/city.h"
 #include <string.h>
 #include <limits.h>
 #include <math.h>
 #include <time.h>
+#include "../cityhash/city.h"
 #include "51Degrees.h"
 
 /* *********************************************************************
@@ -3695,4 +3695,20 @@ int32_t fiftyoneDegreesProcessDeviceJSON(fiftyoneDegreesWorkset *ws, char* json)
 			"\"}");
 	}
 	return (int32_t)(currentPos - json);
+}
+
+/**
+ * OBSOLETE METHODS - RETAINED FOR BACKWARDS COMPAITABILITY
+ */
+
+fiftyoneDegreesWorkset* fiftyoneDegreesCreateWorkset(const fiftyoneDegreesDataSet *dataSet) {
+    return fiftyoneDegreesWorksetCreate(dataSet, NULL);
+}
+
+void fiftyoneDegreesFreeWorkset(const fiftyoneDegreesWorkset *ws) {
+    fiftyoneDegreesWorksetFree(ws);
+}
+
+void fiftyoneDegreesDestroy(const fiftyoneDegreesDataSet *dataSet) {
+    fiftyoneDegreesDataSetFree(dataSet);
 }
