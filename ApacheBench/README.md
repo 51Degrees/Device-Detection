@@ -8,6 +8,14 @@ A version of the Apache Benchmarking tool modified to randomly generate User-Age
 
 The tool is used to stress device detection solutions by providing unique unlikely User-Agents during benchmarking. The original implementation was poorly suited to device detection testing as it repeated a single set of HTTP headers for every test.
 
+## Dependencies
+
+The ab executable is dependent on the Apache Portable Runtime (APR). The simplest method to install APR on Ubuntu is by using the following command.
+
+```
+sudo apt-get install apache2-dev libapr1-dev libaprutil1-dev
+```
+
 ## New Argument
 
 This version can be provided with a text file containing User-Agents where each User-Agent is a single line in the file. Each request will select a User-Agent at random and further modify up to 10 random characters.
