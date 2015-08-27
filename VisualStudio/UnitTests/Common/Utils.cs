@@ -201,7 +201,7 @@ namespace FiftyOne.UnitTests
                 Assert.Inconclusive(
                     "Data file '{0}' could not be found. " +
                     "See https://51degrees.com/compare-data-options to complete this test.",
-                    dataFile);
+                    new FileInfo(dataFile).FullName);
             }
         }
     }

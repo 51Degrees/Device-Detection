@@ -21,48 +21,47 @@
 
 using System;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
+using System.IO;
+using FiftyOne.Mobile.Detection.Provider.Interop;
 
-namespace FiftyOne.Reconcile.Premium
+namespace FiftyOne.UnitTests.HttpHeaders.Enterprise
 {
-    /// <summary>
-    /// Test cases for Premium Pattern data file.
-    /// </summary>
     [TestClass]
-    public class Pattern : PatternBase
+    public class V32PatternFile : HttpHeaders.PatternBase
     {
         protected override string DataFile
         {
-            get { return FiftyOne.UnitTests.Constants.PREMIUM_PATTERN_V32; }
+            get { return Constants.ENTERPRISE_PATTERN_V32; }
         }
 
         [TestInitialize]
-        public override void Initialise()
+        public void Initialise()
         {
-            base.Initialise();
+            if (_wrapper == null) { _wrapper = CreateWrapper(); }
         }
 
         [TestCleanup]
         public void CleanUp()
         {
-            base.Dispose();
-        }
-        
-        [TestMethod]
-        public void PremiumPattern_Reconcile_Unique()
-        {
-            base.Reconcile(FiftyOne.UnitTests.UserAgentGenerator.GetUniqueUserAgents());
+            Dispose();
         }
 
         [TestMethod]
-        public void PremiumPattern_Reconcile_Bad()
+        public void EnterpriseV32PatternFile_OperaMiniSamsung() 
         {
-            base.Reconcile(FiftyOne.UnitTests.UserAgentGenerator.GetBadUserAgents(100000));
+            base.OperaMini_Samsung();
         }
-        
+
         [TestMethod]
-        public void PremiumPattern_Reconcile_Random()
+        public void EnterpriseV32PatternFile_OperaMini_HTC()
         {
-            base.Reconcile(FiftyOne.UnitTests.UserAgentGenerator.GetRandomUserAgents());
+            base.OperaMini_HTC();
+        }
+
+        [TestMethod]
+        public void EnterpriseV32PatternFile_OperaMini_iPhone()
+        {
+            base.OperaMini_iPhone();
         }
     }
 }

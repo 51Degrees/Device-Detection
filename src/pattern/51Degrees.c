@@ -1129,10 +1129,10 @@ fiftyoneDegreesWorksetPool *fiftyoneDegreesWorksetPoolCreate(fiftyoneDegreesData
 		pool->size = size;
 		pool->available = 0;
 		pool->created = 0;
-		#ifndef FIFTYONEDEGREES_NO_THREADING
+#ifndef FIFTYONEDEGREES_NO_THREADING
 		FIFTYONEDEGREES_MUTEX_CREATE(pool->lock);
 		FIFTYONEDEGREES_SIGNAL_CREATE(pool->signal);
-		#endif
+#endif
 		pool->worksets = (fiftyoneDegreesWorkset**)malloc(size * sizeof(fiftyoneDegreesWorkset*));
 		if (pool->worksets == NULL
 #ifndef FIFTYONEDEGREES_NO_THREADING
@@ -1140,13 +1140,13 @@ fiftyoneDegreesWorksetPool *fiftyoneDegreesWorksetPoolCreate(fiftyoneDegreesData
 			FIFTYONEDEGREES_MUTEX_VALID(pool->lock) == 0 ||
 			FIFTYONEDEGREES_SIGNAL_VALID(pool->signal) == 0
 #endif
-            ) {
+			) {
 			if (pool->worksets != NULL) { free((void*)pool->worksets); }
 #ifndef FIFTYONEDEGREES_NO_THREADING
 			if (FIFTYONEDEGREES_MUTEX_VALID(pool->lock) == 0) { FIFTYONEDEGREES_MUTEX_CLOSE(pool->lock); }
 			if (FIFTYONEDEGREES_SIGNAL_VALID(pool->signal) == 0) { FIFTYONEDEGREES_SIGNAL_CLOSE(pool->signal); }
 #endif
-            free((void*)pool);
+			free((void*)pool);
 			pool = NULL;
 		}
 	}
@@ -1196,25 +1196,26 @@ fiftyoneDegreesWorkset *fiftyoneDegreesWorksetPoolGet(fiftyoneDegreesWorksetPool
 	}
 	FIFTYONEDEGREES_MUTEX_LOCK(pool->lock);
 #else
-    // Ensure that the pool is not full. This should not happen if a single
-    // thread is being used and the developer is not over allocating worksets.
-    // The check is present to ensure the pool isn't exhausted.
-    if (pool->created <= pool->size) {
+	// Ensure that the pool is not full. This should not happen if a single
+	// thread is being used and the developer is not over allocating worksets.
+	// The check is present to ensure the pool isn't exhausted.
+	if (pool->created <= pool->size) {
 #endif
 
-	if (pool->available > 0) {
-		// Worksets are available. Take one from the end of the array.
-		ws = pool->worksets[pool->available - 1];
-		pool->available--;
-	} else {
-		// Create a new workset to be returned to the caller.
-		ws = fiftyoneDegreesWorksetCreate(pool->dataSet, pool->cache);
-		pool->created++;
-	}
+		if (pool->available > 0) {
+			// Worksets are available. Take one from the end of the array.
+			ws = pool->worksets[pool->available - 1];
+			pool->available--;
+		}
+		else {
+			// Create a new workset to be returned to the caller.
+			ws = fiftyoneDegreesWorksetCreate(pool->dataSet, pool->cache);
+			pool->created++;
+		}
 #ifndef FIFTYONEDEGREES_NO_THREADING
-	FIFTYONEDEGREES_MUTEX_UNLOCK(pool->lock);
+		FIFTYONEDEGREES_MUTEX_UNLOCK(pool->lock);
 #else
-    }
+	}
 #endif
 	return ws;
 }
@@ -2080,7 +2081,7 @@ void setMatchSignature(fiftyoneDegreesWorkset *ws, const byte *signature) {
 	}
 
 	/* Set the closest nodes string from the signature found */
-	for (index = 0; index < signatureNodeCount;	index++) {
+	for (index = 0; index < signatureNodeCount; index++) {
 		lastPosition = setNodeString(ws->dataSet,
 			(fiftyoneDegreesNode*)(ws->dataSet->nodes + *(signatureNodeOffsets + index)),
 			ws->closestNodes);
@@ -2472,9 +2473,9 @@ int32_t setClosestSignaturesForNode(fiftyoneDegreesWorkset *ws, const fiftyoneDe
 	// ranked index in the nodeRankedSignatureIndexes array.
 	const int32_t *firstRankedSignatureIndex =
 		node->signatureCount == 1 ?
-			getFirstRankedSignatureIndexForNode(ws->dataSet, node) :
-			ws->dataSet->nodeRankedSignatureIndexes +
-				*getFirstRankedSignatureIndexForNode(ws->dataSet, node);
+		getFirstRankedSignatureIndexForNode(ws->dataSet, node) :
+		ws->dataSet->nodeRankedSignatureIndexes +
+		*getFirstRankedSignatureIndexForNode(ws->dataSet, node);
 	const int32_t *currentRankedSignatureIndex;
 
 	while (index < node->signatureCount &&
@@ -2554,11 +2555,14 @@ void setClosestSignaturesFinal(fiftyoneDegreesWorkset *ws, int32_t count) {
  * @param b pointer to the second node
  * @return the difference between the nodes
  */
-int QSORT_COMPARER nodeSignatureCountCompare(const void *a, const void *b)
-{
+int QSORT_COMPARER nodeSignatureCountCompare(const void *a, const void *b) {
 	fiftyoneDegreesNode* c1 = (*(fiftyoneDegreesNode**)a);
 	fiftyoneDegreesNode* c2 = (*(fiftyoneDegreesNode**)b);
-	return c1->signatureCount - c2->signatureCount;
+	int difference = c1->signatureCount - c2->signatureCount;
+	if (difference == 0) {
+		difference = c1->position - c2->position;
+	}
+	return difference;
 }
 
 /**
@@ -2571,9 +2575,9 @@ void orderNodesOnSignatureCount(fiftyoneDegreesWorkset *ws) {
 		ws->orderedNodes[nodeIndex] = ws->nodes[nodeIndex];
 	}
 	qsort((void*)ws->orderedNodes,
-		  (size_t)ws->nodeCount,
-		  sizeof(fiftyoneDegreesNode*),
-		  nodeSignatureCountCompare);
+		(size_t)ws->nodeCount,
+		sizeof(fiftyoneDegreesNode*),
+		nodeSignatureCountCompare);
 }
 
 /**
@@ -2782,8 +2786,8 @@ int32_t getScore(fiftyoneDegreesWorkset *ws,
 	const int32_t *nodeOffsets = getNodeOffsetsFromSignature(ws->dataSet, signature);
 	const int32_t count = getSignatureNodeOffsetsCount(ws->dataSet, signature);
 	int32_t runningScore = ws->startWithInitialScore == 1 ?
-			abs(lastNodeCharacter + 1 - getSignatureLengthFromNodeOffsets(ws->dataSet, *(nodeOffsets + count - 1))) :
-			0,
+		abs(lastNodeCharacter + 1 - getSignatureLengthFromNodeOffsets(ws->dataSet, *(nodeOffsets + count - 1))) :
+		0,
 		matchNodeIndex = ws->nodeCount - 1,
 		signatureNodeIndex = 0,
 		matchNodeOffset,
@@ -3214,11 +3218,11 @@ byte matchForHttpHeader(fiftyoneDegreesWorkset *ws, const fiftyoneDegreesCompone
 }
 
 /**
-* Sets the workset for the important headers included in the workset.
-* @param ws pointer to a work set to be used for the match created via
-*        createWorkset function
-*/
-void matchForHttpHeaders(fiftyoneDegreesWorkset *ws) {
+ * Sets the workset for the important headers included in the workset.
+ * @param ws pointer to a work set to be used for the match created via
+ *        createWorkset function
+ */
+void fiftyoneDegreesMatchForHttpHeaders(fiftyoneDegreesWorkset *ws) {
 	int componentIndex, profileIndex = 0;
 	int32_t differenceTotal = 0;
 	fiftyoneDegreesMatchMethod worstMethod = EXACT;
@@ -3271,20 +3275,20 @@ void matchForHttpHeaders(fiftyoneDegreesWorkset *ws) {
 }
 
 /**
-* Passed array of HTTP header names and values. Sets the workset to
-* the results for these headers.
-* @param ws pointer to a work set to be used for the match created via
-*        createWorkset function
-* @param httpHeaderNames array of HTTP header names i.e. User-Agent
-* @param httpHeaderValues array of HTTP header values
-* @param httpHeaderCount the number of entires in each array
-*/
+ * Passed array of HTTP header names and values. Sets the workset to
+ * the results for these headers.
+ * @param ws pointer to a work set to be used for the match created via
+ *        createWorkset function
+ * @param httpHeaderNames array of HTTP header names i.e. User-Agent
+ * @param httpHeaderValues array of HTTP header values
+ * @param httpHeaderCount the number of entires in each array
+ */
 void fiftyoneDegreesMatchWithHeadersArray(fiftyoneDegreesWorkset *ws, char **httpHeaderNames, char **httpHeaderValues, int httpHeaderCount) {
 	int httpHeaderIndex, dataSetHeaderIndex, importantHeaderIndex = 0;
 	for (httpHeaderIndex = 0;
 		httpHeaderIndex < httpHeaderCount &&
 		importantHeaderIndex < ws->dataSet->httpHeadersCount;
-		httpHeaderIndex++) {
+	httpHeaderIndex++) {
 		for (dataSetHeaderIndex = 0; dataSetHeaderIndex < ws->dataSet->httpHeadersCount; dataSetHeaderIndex++) {
 			if (strcmp(ws->dataSet->httpHeaders[dataSetHeaderIndex].headerName, httpHeaderNames[httpHeaderIndex]) == 0)
 			{
@@ -3297,7 +3301,7 @@ void fiftyoneDegreesMatchWithHeadersArray(fiftyoneDegreesWorkset *ws, char **htt
 		}
 	}
 	ws->importantHeadersCount = importantHeaderIndex;
-	matchForHttpHeaders(ws);
+	fiftyoneDegreesMatchForHttpHeaders(ws);
 }
 
 /**
@@ -3305,14 +3309,15 @@ void fiftyoneDegreesMatchWithHeadersArray(fiftyoneDegreesWorkset *ws, char **htt
  * the string. A space or colon are used to identify the end of the header
  * name.
  * @param start of the string to be processed
+ * @param end of the string to be processed
  * @param value to be set when returned
  * @returns the number of characters in the value
  */
-int setNextHttpHeaderName(char* start, char** name) {
+int setNextHttpHeaderName(char* start, char* end, char** name) {
 	char *current = start, *lastChar = start;
-	while (*current != 0) {
+	while (current <= end) {
 		if (*current == ' ' ||
-            *current == ':') {
+			*current == ':') {
 			*name = lastChar;
 			return (int)(current - lastChar);
 		}
@@ -3329,16 +3334,18 @@ int setNextHttpHeaderName(char* start, char** name) {
  * Sets the value pointer to the start of the next HTTP header value and
  * returns the length.
  * @param start of the string to be processed
+ * @param end of the string to be processed
  * @param value to be set when returned
  * @returns the number of characters in the value
  */
-int setNextHttpHeaderValue(char* start, char** value) {
+int setNextHttpHeaderValue(char* start, char *end, char** value) {
 	char *lastChar = start, *current;
 
 	// Move to the first non-space character.
-	while (*lastChar == ' ' &&
-           *lastChar != 0) {
-        lastChar++;
+	while (lastChar <= end && (
+		*lastChar == ' ' ||
+		*lastChar == ':')) {
+		lastChar++;
 	}
 
 	// Set the value to the start character.
@@ -3346,7 +3353,7 @@ int setNextHttpHeaderValue(char* start, char** value) {
 	current = lastChar;
 
 	// Loop until end of line or end of string.
-	while (*current != 0) {
+	while (current <= end) {
 		if (*current == '\r' ||
 			*current == '\n') {
 			*value = lastChar;
@@ -3358,7 +3365,34 @@ int setNextHttpHeaderValue(char* start, char** value) {
 }
 
 /**
- * Return the index of the unique hader, or -1 if the header is not important.
+ * Compares two header strings for case insensitive equality and where -
+ * are replaced with _. The http header name must be the same length
+ * as the unique header.
+ * @param httpHeaderName string to be checked for equality
+ * @param uniqueHeader the unique HTTP header to be compared
+ * @param length of the strings
+ * @returns 0 if both strings are equal, otherwise the different between
+ *          the first mismatched characters
+ */
+int headerCompare(char *httpHeaderName, const fiftyoneDegreesAsciiString *uniqueHeader, int length) {
+	int index, difference;
+	for (index = 0; index < length; index++) {
+		if (httpHeaderName[index] == '_') {
+			difference = '-' - (&uniqueHeader->firstByte)[index];
+		}
+		else {
+			difference = tolower(httpHeaderName[index]) - tolower((&uniqueHeader->firstByte)[index]);
+		}
+		if (difference != 0) {
+			return difference;
+		}
+	}
+	return 0;
+}
+
+/**
+ * Return the index of the unique header, or -1 if the header is not important.
+ * Check for headers from Perl and PHP with HTTP_ prefixes.
  * @param dataSet the header is being checked against
  * @param httpHeaderName of the header being checked
  * @param length of the header name
@@ -3366,33 +3400,55 @@ int setNextHttpHeaderValue(char* start, char** value) {
  */
 int getUniqueHttpHeaderIndex(const fiftyoneDegreesDataSet *dataSet, char* httpHeaderName, int length) {
 	int uniqueHeaderIndex;
+	static const char httpPrefix[] = "HTTP_";
+	static const int httpPrefixLength = sizeof(httpPrefix) - 1;
+	char *adjustedHttpHeaderName;
 	const fiftyoneDegreesAsciiString *header;
+
+	// Check if header is from a Perl or PHP wrapper in the form of HTTP_*
+	// and if present skip these characters.
+	if (strncmp(httpHeaderName, httpPrefix, httpPrefixLength) == 0) {
+		adjustedHttpHeaderName = httpHeaderName + httpPrefixLength;
+		length -= httpPrefixLength;
+	}
+	else {
+		adjustedHttpHeaderName = httpHeaderName;
+	}
+
 	for (uniqueHeaderIndex = 0; uniqueHeaderIndex < dataSet->httpHeadersCount; uniqueHeaderIndex++) {
+		// Get the unique header string to compare length and equality.
 		header = fiftyoneDegreesGetString(dataSet, (dataSet->httpHeaders + uniqueHeaderIndex)->headerNameOffset);
+
+		// Compare the headers for length and then equality recognising that
+		// the data set string length includes the null terminator. If they
+		// match then a matching header is found and the unique index
+		// should be used.
 		if (header->length - 1 == length &&
-			memcmp(&(header->firstByte), httpHeaderName, length) == 0) {
+			headerCompare(adjustedHttpHeaderName, header, length) == 0) {
 			return uniqueHeaderIndex;
 		}
 	}
+
 	return -1;
 }
 
 /**
-* Passed a string where each line contains the HTTP header name and value.
-* The first space character seperates the HTTP header name at the beginning of
-* the line and the value.
-* @param ws pointer to a work set to be used for the match created via
-*        createWorkset function
-* @param httpHeaders is a list of HTTP headers and values on each line
-*/
-void fiftyoneDegreesMatchWithHeadersString(fiftyoneDegreesWorkset *ws, char *httpHeaders) {
-	char *headerName, *headerValue;
+ * Passed a string where each line contains the HTTP header name and value.
+ * The first space character and/or colon separates the HTTP header name
+ * at the beginning of the line and the value. Does not perform a device
+ * detection. Use fiftyoneDegreesMatchForHttpHeaders to complete a match.
+ * @param ws pointer to a work set to have important headers set
+ * @param httpHeaders is a list of HTTP headers and values on each line
+ * @param size is the valid characters in the httpHeaders string
+ */
+int32_t fiftyoneDegreesSetHttpHeaders(fiftyoneDegreesWorkset *ws, char *httpHeaders, size_t size) {
+	char *headerName, *headerValue, *endOfHeaders = httpHeaders + size;
 	int headerNameLength, headerValueLength, uniqueHeaderIndex = 0;
 	ws->importantHeadersCount = 0;
-	headerNameLength = setNextHttpHeaderName(httpHeaders, &headerName);
+	headerNameLength = setNextHttpHeaderName(httpHeaders, endOfHeaders, &headerName);
 	while (headerNameLength > 0 &&
 		ws->importantHeadersCount < ws->dataSet->httpHeadersCount) {
-		headerValueLength = setNextHttpHeaderValue(headerName + headerNameLength + 1, &headerValue);
+		headerValueLength = setNextHttpHeaderValue(headerName + headerNameLength, endOfHeaders, &headerValue);
 		uniqueHeaderIndex = getUniqueHttpHeaderIndex(ws->dataSet, headerName, headerNameLength);
 		if (uniqueHeaderIndex >= 0) {
 			ws->importantHeaders[ws->importantHeadersCount].header = ws->dataSet->httpHeaders + uniqueHeaderIndex;
@@ -3400,9 +3456,23 @@ void fiftyoneDegreesMatchWithHeadersString(fiftyoneDegreesWorkset *ws, char *htt
 			ws->importantHeaders[ws->importantHeadersCount].headerValueLength = headerValueLength;
 			ws->importantHeadersCount++;
 		}
-		headerNameLength = setNextHttpHeaderName(headerValue + headerValueLength, &headerName);
+		headerNameLength = setNextHttpHeaderName(headerValue + headerValueLength, endOfHeaders, &headerName);
 	}
-	matchForHttpHeaders(ws);
+	return ws->importantHeadersCount;
+}
+
+/**
+ * Passed a string where each line contains the HTTP header name and value.
+ * The first space character seperates the HTTP header name at the beginning of
+ * the line and the value.
+ * @param ws pointer to a work set to be used for the match created via
+ *        createWorkset function
+ * @param httpHeaders is a list of HTTP headers and values on each line
+ * @param size is the valid characters in the httpHeaders string
+ */
+void fiftyoneDegreesMatchWithHeadersString(fiftyoneDegreesWorkset *ws, char *httpHeaders, size_t size) {
+	fiftyoneDegreesSetHttpHeaders(ws, httpHeaders, size);
+	fiftyoneDegreesMatchForHttpHeaders(ws);
 }
 
 /**
@@ -3522,7 +3592,7 @@ int32_t fiftyoneDegreesSetValues(fiftyoneDegreesWorkset *ws, int32_t requiredPro
  * @returns pointer to memory space to store CSV results
  */
 char* fiftyoneDegreesCSVCreate(fiftyoneDegreesWorkset *ws) {
-    return (char*)malloc(ws->dataSet->header.csvBufferLength * sizeof(char));
+	return (char*)malloc(ws->dataSet->header.csvBufferLength * sizeof(char));
 }
 
 /**
@@ -3530,7 +3600,7 @@ char* fiftyoneDegreesCSVCreate(fiftyoneDegreesWorkset *ws) {
  * @param csv pointer to the memory space to be freed
  */
 void fiftyoneDegreesCSVFree(void* csv) {
-    free(csv);
+	free(csv);
 }
 
 /**
@@ -3602,7 +3672,7 @@ int32_t fiftyoneDegreesProcessDeviceCSV(fiftyoneDegreesWorkset *ws, char* csv) {
  * @returns pointer to memory space to store JSON results
  */
 char* fiftyoneDegreesJSONCreate(fiftyoneDegreesWorkset *ws) {
-    return (char*)malloc(ws->dataSet->header.jsonBufferLength * sizeof(char));
+	return (char*)malloc(ws->dataSet->header.jsonBufferLength * sizeof(char));
 }
 
 /**
@@ -3610,7 +3680,7 @@ char* fiftyoneDegreesJSONCreate(fiftyoneDegreesWorkset *ws) {
  * @param json pointer to the memory space to be freed
  */
 void fiftyoneDegreesJSONFree(void* json) {
-    free(json);
+	free(json);
 }
 
 /**

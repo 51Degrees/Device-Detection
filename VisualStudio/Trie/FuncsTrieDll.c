@@ -21,6 +21,7 @@
 
 #include "..\..\src\trie\51Degrees.h"
 #include "Windows.h"
+#include <string.h>
 
 #define EXTERN_DLL_EXPORT __declspec(dllexport)
 
@@ -54,7 +55,7 @@ EXTERN_DLL_EXPORT int __cdecl GetMatchedUserAgentLength(LPCTSTR userAgent)
 
 EXTERN_DLL_EXPORT LP __cdecl MatchFromHeaders(LPTSTR httpHeaders)
 {
-	return (LP)fiftyoneDegreesGetDeviceOffsetsWithHeadersString((char*)httpHeaders);
+	return (LP)fiftyoneDegreesGetDeviceOffsetsWithHeadersString((char*)httpHeaders, strlen((char*)httpHeaders));
 }
 
 EXTERN_DLL_EXPORT int __cdecl GetHttpHeaderName(INT httpHeaderIndex, LPTSTR httpHeader, INT size)

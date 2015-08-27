@@ -1,6 +1,6 @@
 /* *********************************************************************
  * This Source Code Form is copyright of 51Degrees Mobile Experts Limited.
- * Copyright © 2014 51Degrees Mobile Experts Limited, 5 Charlotte Close,
+ * Copyright ï¿½ 2014 51Degrees Mobile Experts Limited, 5 Charlotte Close,
  * Caversham, Reading, Berkshire, United Kingdom RG4 7BY
  *
  * This Source Code Form is the subject of the following patent
@@ -421,6 +421,7 @@ typedef struct fiftyoneDegrees_workset_t {
 	char *relevantNodes; /* Pointer to a char array containing the relevant nodes */
 	char *closestNodes; /* Pointer to a char array containing the closest nodes */
 	char *signatureAsString; /* The signature as a string */
+        char *tempheaderlowercase; /* temp variable to store http header name */
 	const fiftyoneDegreesNode **nodes; /* Pointer to a list of nodes related to the match */
 	const fiftyoneDegreesNode **orderedNodes; /* Pointer to a list of nodes in ascending order of signature count */
 	int32_t nodeCount; /* The number of nodes referenced by **nodes */
@@ -603,8 +604,27 @@ EXTERNAL void fiftyoneDegreesMatchWithHeadersArray(fiftyoneDegreesWorkset *ws, c
  * @param ws pointer to a work set to be used for the match created via
  *        createWorkset function
  * @param httpHeaders is a list of HTTP headers and values on each line
+ * @param length number of characters in the headers array to consider
  */
-EXTERNAL void fiftyoneDegreesMatchWithHeadersString(fiftyoneDegreesWorkset *ws, char *httpHeaders);
+EXTERNAL void fiftyoneDegreesMatchWithHeadersString(fiftyoneDegreesWorkset *ws, char *httpHeaders, size_t length);
+
+/**
+ * Passed a string where each line contains the HTTP header name and value.
+ * The first space character and/or colon seperates the HTTP header name
+ * at the beginning of the line and the value. Does not perform a device
+ * detection. Use fiftyoneDegreesMatchForHttpHeaders to complete a match.
+ * @param ws pointer to a work set to have important headers set
+ * @param httpHeaders is a list of HTTP headers and values on each line
+ * @param length number of characters in the headers array to consider
+ */
+EXTERNAL int32_t fiftyoneDegreesSetHttpHeaders(fiftyoneDegreesWorkset *ws, char *httpHeaders, size_t length);
+
+/**
+ * Sets the workset for the important headers included in the workset.
+ * @param ws pointer to a work set to be used for the match created via
+ *        createWorkset function
+ */
+EXTERNAL void fiftyoneDegreesMatchForHttpHeaders(fiftyoneDegreesWorkset *ws);
 
 /**
  * Sets the values associated with the require property index in the workset

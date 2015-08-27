@@ -22,16 +22,16 @@
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using System.Collections.Generic;
 
-namespace FiftyOne.UnitTests.Performance.Premium
+namespace FiftyOne.UnitTests.Performance.Enterprise
 {
     [TestClass]
-    public class PatternOne : PatternBase
+    public class TrieOne : TrieBase
     {
         private static readonly string[] REQUIRED_PROPERTIES = new string[] { "IsMobile" };
 
         protected override int MaxInitializeTime
         {
-            get { return 500; }
+            get { return 7500; }
         }
 
         protected override IEnumerable<string> RequiredProperties
@@ -44,7 +44,7 @@ namespace FiftyOne.UnitTests.Performance.Premium
 
         protected override string DataFile
         {
-            get { return Constants.PREMIUM_PATTERN_V32; }
+            get { return Constants.ENTERPRISE_TRIE_V32; }
         }
 
         [TestInitialize]
@@ -60,43 +60,43 @@ namespace FiftyOne.UnitTests.Performance.Premium
         }
 
         [TestMethod]
-        public void PremiumV32Pattern_Performance_InitializeTimeOne()
+        public void EnterpriseV32Trie_Performance_InitializeTimeOne()
         {
             InitializeTime();
         }
         
         [TestMethod]
-        public void PremiumV32Pattern_Performance_BadUserAgentsMultiOne()
+        public void EnterpriseV32Trie_Performance_BadUserAgentsMultiOne()
         {
             BadUserAgentsMulti(1);
         }
 
         [TestMethod]
-        public void PremiumV32Pattern_Performance_BadUserAgentsSingleOne()
+        public void EnterpriseV32Trie_Performance_BadUserAgentsSingleOne()
         {
-            BadUserAgentsSingle(3);
+            BadUserAgentsSingle(9);
         }
 
         [TestMethod]
-        public void PremiumV32Pattern_Performance_UniqueUserAgentsMultiOne()
+        public void EnterpriseV32Trie_Performance_UniqueUserAgentsMultiOne()
         {
             UniqueUserAgentsMulti(1);
         }
 
         [TestMethod]
-        public void PremiumV32Pattern_Performance_UniqueUserAgentsSingleOne()
+        public void EnterpriseV32Trie_Performance_UniqueUserAgentsSingleOne()
         {
             UniqueUserAgentsSingle(1);
         }
 
         [TestMethod]
-        public void PremiumV32Pattern_Performance_RandomUserAgentsMultiOne()
+        public void EnterpriseV32Trie_Performance_RandomUserAgentsMultiOne()
         {
             RandomUserAgentsMulti(1);
         }
 
         [TestMethod]
-        public void PremiumV32Pattern_Performance_RandomUserAgentsSingleOne()
+        public void EnterpriseV32Trie_Performance_RandomUserAgentsSingleOne()
         {
             RandomUserAgentsSingle(1);
         }

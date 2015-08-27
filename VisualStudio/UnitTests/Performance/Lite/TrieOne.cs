@@ -19,19 +19,19 @@
  * defined by the Mozilla Public License, v. 2.0.
  * ********************************************************************* */
 
-using Microsoft.VisualStudio.TestTools.UnitTesting;
 using System.Collections.Generic;
+using Microsoft.VisualStudio.TestTools.UnitTesting;
 
-namespace FiftyOne.UnitTests.Performance.Premium
+namespace FiftyOne.UnitTests.Performance.Lite
 {
     [TestClass]
-    public class PatternOne : PatternBase
+    public class TrieOne : TrieBase
     {
         private static readonly string[] REQUIRED_PROPERTIES = new string[] { "IsMobile" };
 
         protected override int MaxInitializeTime
         {
-            get { return 500; }
+            get { return 700; }
         }
 
         protected override IEnumerable<string> RequiredProperties
@@ -44,7 +44,7 @@ namespace FiftyOne.UnitTests.Performance.Premium
 
         protected override string DataFile
         {
-            get { return Constants.PREMIUM_PATTERN_V32; }
+            get { return Constants.LITE_TRIE_V32; }
         }
 
         [TestInitialize]
@@ -60,43 +60,43 @@ namespace FiftyOne.UnitTests.Performance.Premium
         }
 
         [TestMethod]
-        public void PremiumV32Pattern_Performance_InitializeTimeOne()
+        public void LiteV32Trie_Performance_InitializeTimeOne()
         {
             InitializeTime();
         }
         
         [TestMethod]
-        public void PremiumV32Pattern_Performance_BadUserAgentsMultiOne()
+        public void LiteV32Trie_Performance_BadUserAgentsMultiOne()
         {
             BadUserAgentsMulti(1);
         }
 
         [TestMethod]
-        public void PremiumV32Pattern_Performance_BadUserAgentsSingleOne()
+        public void LiteV32Trie_Performance_BadUserAgentsSingleOne()
         {
-            BadUserAgentsSingle(3);
+            BadUserAgentsSingle(1);
         }
 
         [TestMethod]
-        public void PremiumV32Pattern_Performance_UniqueUserAgentsMultiOne()
+        public void LiteV32Trie_Performance_UniqueUserAgentsMultiOne()
         {
             UniqueUserAgentsMulti(1);
         }
 
         [TestMethod]
-        public void PremiumV32Pattern_Performance_UniqueUserAgentsSingleOne()
+        public void LiteV32Trie_Performance_UniqueUserAgentsSingleOne()
         {
             UniqueUserAgentsSingle(1);
         }
 
         [TestMethod]
-        public void PremiumV32Pattern_Performance_RandomUserAgentsMultiOne()
+        public void LiteV32Trie_Performance_RandomUserAgentsMultiOne()
         {
             RandomUserAgentsMulti(1);
         }
 
         [TestMethod]
-        public void PremiumV32Pattern_Performance_RandomUserAgentsSingleOne()
+        public void LiteV32Trie_Performance_RandomUserAgentsSingleOne()
         {
             RandomUserAgentsSingle(1);
         }

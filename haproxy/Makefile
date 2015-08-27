@@ -43,8 +43,6 @@
 #
 # Options can be forced by specifying "USE_xxx=1" or can be disabled by using
 # "USE_xxx=" (empty string).
-USE_51DEGREES=1 51DEGREES_SRC=../Device-Detection/src/pattern
-
 #
 # Variables useful for packagers :
 #   CC is set to "gcc" by default and is used for compilation only.
@@ -102,7 +100,7 @@ DOCDIR = $(PREFIX)/doc/haproxy
 # following list (use the default "generic" if uncertain) :
 #    generic, linux22, linux24, linux24e, linux26, solaris,
 #    freebsd, openbsd, netbsd, cygwin, custom, aix51, aix52
-TARGET = generic
+TARGET =
 
 #### TARGET CPU
 # Use CPU=<cpu_name> to optimize for a particular CPU, among the following
@@ -181,7 +179,7 @@ EXTRA =
 # feed CPU_CFLAGS, which in turn feed CFLAGS, so it is not mandatory to use
 # them. You should not have to change these options. Better use CPU_CFLAGS or
 # even CFLAGS instead.
-CPU_CFLAGS.generic    = -O2
+CPU_CFLAGS.generic    =
 CPU_CFLAGS.native     = -O2 -march=native
 CPU_CFLAGS.i586       = -O2 -march=i586
 CPU_CFLAGS.i686       = -O2 -march=i686

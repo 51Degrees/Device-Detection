@@ -67,6 +67,8 @@ package FiftyOneDegrees::PatternV3;
 *fiftyoneDegreesMatch = *FiftyOneDegrees::PatternV3c::fiftyoneDegreesMatch;
 *fiftyoneDegreesMatchWithHeadersArray = *FiftyOneDegrees::PatternV3c::fiftyoneDegreesMatchWithHeadersArray;
 *fiftyoneDegreesMatchWithHeadersString = *FiftyOneDegrees::PatternV3c::fiftyoneDegreesMatchWithHeadersString;
+*fiftyoneDegreesSetHttpHeaders = *FiftyOneDegrees::PatternV3c::fiftyoneDegreesSetHttpHeaders;
+*fiftyoneDegreesMatchForHttpHeaders = *FiftyOneDegrees::PatternV3c::fiftyoneDegreesMatchForHttpHeaders;
 *fiftyoneDegreesSetValues = *FiftyOneDegrees::PatternV3c::fiftyoneDegreesSetValues;
 *fiftyoneDegreesGetString = *FiftyOneDegrees::PatternV3c::fiftyoneDegreesGetString;
 *fiftyoneDegreesGetValues = *FiftyOneDegrees::PatternV3c::fiftyoneDegreesGetValues;
@@ -83,6 +85,7 @@ package FiftyOneDegrees::PatternV3;
 *freeDataset = *FiftyOneDegrees::PatternV3c::freeDataset;
 *dataSetProvider = *FiftyOneDegrees::PatternV3c::dataSetProvider;
 *getMatch = *FiftyOneDegrees::PatternV3c::getMatch;
+*getMatchWithHeaders = *FiftyOneDegrees::PatternV3c::getMatchWithHeaders;
 *freeMatch = *FiftyOneDegrees::PatternV3c::freeMatch;
 
 ############# Class : FiftyOneDegrees::PatternV3::fiftyoneDegreesRANGE ##############
@@ -1587,6 +1590,8 @@ use vars qw(@ISA %OWNER %ITERATORS %BLESSEDMEMBERS);
 *swig_closestNodes_set = *FiftyOneDegrees::PatternV3c::fiftyoneDegreesWorkset_closestNodes_set;
 *swig_signatureAsString_get = *FiftyOneDegrees::PatternV3c::fiftyoneDegreesWorkset_signatureAsString_get;
 *swig_signatureAsString_set = *FiftyOneDegrees::PatternV3c::fiftyoneDegreesWorkset_signatureAsString_set;
+*swig_tempheaderlowercase_get = *FiftyOneDegrees::PatternV3c::fiftyoneDegreesWorkset_tempheaderlowercase_get;
+*swig_tempheaderlowercase_set = *FiftyOneDegrees::PatternV3c::fiftyoneDegreesWorkset_tempheaderlowercase_set;
 *swig_nodes_get = *FiftyOneDegrees::PatternV3c::fiftyoneDegreesWorkset_nodes_get;
 *swig_nodes_set = *FiftyOneDegrees::PatternV3c::fiftyoneDegreesWorkset_nodes_set;
 *swig_orderedNodes_get = *FiftyOneDegrees::PatternV3c::fiftyoneDegreesWorkset_orderedNodes_get;
