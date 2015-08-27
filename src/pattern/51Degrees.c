@@ -4,6 +4,7 @@
 #include <limits.h>
 #include <math.h>
 #include <time.h>
+#include <ctype.h>
 #include "../cityhash/city.h"
 #include "51Degrees.h"
 
