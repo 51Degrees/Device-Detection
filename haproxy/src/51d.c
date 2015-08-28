@@ -197,6 +197,7 @@ static int _51d_fetch(const struct arg *args, struct sample *smp, const char *kw
 			smp->flags |= SMP_F_CONST;
 			smp->data.u.str.str = lru->data;
 			smp->data.u.str.len = strlen(lru->data);
+			fiftyoneDegreesWorksetPoolRelease(global._51degrees.pool, ws);
 			return 1;
 		}
 	}
