@@ -28,7 +28,7 @@ namespace FiftyOne.UnitTests.Performance.Lite
     {
         protected override int MaxInitializeTime
         {
-            get { return 250; }
+            get { return 200; }
         }
 
         protected override string DataFile
@@ -63,7 +63,7 @@ namespace FiftyOne.UnitTests.Performance.Lite
         [TestMethod]
         public void LiteV32Pattern_Performance_BadUserAgentsSingleAll()
         {
-            BadUserAgentsSingle(1);
+            BadUserAgentsSingle(2);
         }
 
         [TestMethod]

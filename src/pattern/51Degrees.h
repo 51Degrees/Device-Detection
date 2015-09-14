@@ -1,6 +1,6 @@
 /* *********************************************************************
  * This Source Code Form is copyright of 51Degrees Mobile Experts Limited.
- * Copyright © 2014 51Degrees Mobile Experts Limited, 5 Charlotte Close,
+ * Copyright ï¿½ 2014 51Degrees Mobile Experts Limited, 5 Charlotte Close,
  * Caversham, Reading, Berkshire, United Kingdom RG4 7BY
  *
  * This Source Code Form is the subject of the following patent
@@ -228,7 +228,7 @@ typedef struct fiftyoneDegrees_dataset_header_t {
 	const int32_t versionBuild;
 	const int32_t versionRevision;
 	const byte tag[16];
-	const byte export[16];
+	const byte exportTag[16];
 	const int32_t copyrightOffset;
 	const int16_t age;
 	const int32_t minUserAgentCount;
@@ -421,6 +421,7 @@ typedef struct fiftyoneDegrees_workset_t {
 	char *relevantNodes; /* Pointer to a char array containing the relevant nodes */
 	char *closestNodes; /* Pointer to a char array containing the closest nodes */
 	char *signatureAsString; /* The signature as a string */
+        char *tempheaderlowercase; /* temp variable to store http header name */
 	const fiftyoneDegreesNode **nodes; /* Pointer to a list of nodes related to the match */
 	const fiftyoneDegreesNode **orderedNodes; /* Pointer to a list of nodes in ascending order of signature count */
 	int32_t nodeCount; /* The number of nodes referenced by **nodes */
@@ -598,13 +599,32 @@ EXTERNAL void fiftyoneDegreesMatchWithHeadersArray(fiftyoneDegreesWorkset *ws, c
 
 /**
  * Passed a string where each line contains the HTTP header name and value.
- * The first space character seperates the HTTP header name at the beginning of 
+ * The first space character seperates the HTTP header name at the beginning of
  * the line and the value.
  * @param ws pointer to a work set to be used for the match created via
  *        createWorkset function
  * @param httpHeaders is a list of HTTP headers and values on each line
+ * @param length number of characters in the headers array to consider
  */
-EXTERNAL void fiftyoneDegreesMatchWithHeadersString(fiftyoneDegreesWorkset *ws, char *httpHeaders);
+EXTERNAL void fiftyoneDegreesMatchWithHeadersString(fiftyoneDegreesWorkset *ws, char *httpHeaders, size_t length);
+
+/**
+ * Passed a string where each line contains the HTTP header name and value.
+ * The first space character and/or colon seperates the HTTP header name
+ * at the beginning of the line and the value. Does not perform a device
+ * detection. Use fiftyoneDegreesMatchForHttpHeaders to complete a match.
+ * @param ws pointer to a work set to have important headers set
+ * @param httpHeaders is a list of HTTP headers and values on each line
+ * @param length number of characters in the headers array to consider
+ */
+EXTERNAL int32_t fiftyoneDegreesSetHttpHeaders(fiftyoneDegreesWorkset *ws, char *httpHeaders, size_t length);
+
+/**
+ * Sets the workset for the important headers included in the workset.
+ * @param ws pointer to a work set to be used for the match created via
+ *        createWorkset function
+ */
+EXTERNAL void fiftyoneDegreesMatchForHttpHeaders(fiftyoneDegreesWorkset *ws);
 
 /**
  * Sets the values associated with the require property index in the workset
@@ -680,7 +700,7 @@ EXTERNAL int32_t fiftyoneDegreesGetHttpHeaderName(const fiftyoneDegreesDataSet *
 * @return the index of the property, or -1 if the property does not exist
 */
 EXTERNAL int32_t fiftyoneDegreesGetRequiredPropertyIndex(const fiftyoneDegreesDataSet *dataSet, char *propertyName);
-	
+
 /**
  * Process the workset results into a CSV string.
  * @param ws pointer to a workset with the results to return in CSV
@@ -719,5 +739,15 @@ EXTERNAL int32_t fiftyoneDegreesGetSignatureAsString(fiftyoneDegreesWorkset *ws,
 * @return the number of bytes written for the device id
 */
 EXTERNAL int32_t fiftyoneDegreesGetDeviceId(fiftyoneDegreesWorkset *ws, char *deviceId, int size);
+
+/**
+ * OBSOLETE METHODS - RETAINED FOR BACKWARDS COMPAITABILITY
+ */
+
+EXTERNAL fiftyoneDegreesWorkset* fiftyoneDegreesCreateWorkset(const fiftyoneDegreesDataSet *dataSet);
+
+EXTERNAL void fiftyoneDegreesFreeWorkset(const fiftyoneDegreesWorkset *ws);
+
+EXTERNAL void fiftyoneDegreesDestroy(const fiftyoneDegreesDataSet *dataSet);
 
 #endif // 51DEGREES_H_INCLUDED

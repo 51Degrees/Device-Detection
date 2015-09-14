@@ -29,48 +29,61 @@ namespace FiftyOne.Demo.WebSite
 {
     public partial class Default : System.Web.UI.Page
     {
-        // Initialise the pattern provider to return all available properties.
-        private static readonly PatternWrapper _pattern = new PatternWrapper(
-            Path.Combine(
-                AppDomain.CurrentDomain.BaseDirectory,
-                "..\\..\\data\\51Degrees-LiteV3.2.dat"));
+        private const string DETECTION_PARAM_ROW = "<tr><th>{0}</th><td>{1}</td><td>{2}</td></tr>";
 
-        // Initialise the trie provider to return all available properties.
-        private static readonly TrieWrapper _trie = new TrieWrapper(
-            Path.Combine(
-                AppDomain.CurrentDomain.BaseDirectory, 
-                "..\\..\\data\\51Degrees-LiteV3.2.trie"));
+        private const string DETECTION_PATTERN_PARAM_ROW = "<tr><th>{0}</th><td>{1}</td><td>N/A*</td></tr>";
 
         // IMPORTANT: For a full list of properties see: 
         // https://51degrees.com/resources/property-dictionary
 
         protected void Page_Init(object sender, EventArgs e)
         {
-            // Get properties for the current HTTP headers.
-            var patternProperties = _pattern.Match(Request.Headers);
-            var trieProperties = _trie.Match(Request.Headers);
-
-            // Output the properties from each provider.
-            var builder = new StringBuilder();
-            builder.Append("<table>");
-            builder.Append("<tr><th></th><th>Pattern</th><th>Trie</th></tr>");
-            foreach (var property in _pattern.AvailableProperties.Where(i =>
-                i.Contains("Javascript") == false).Intersect(_trie.AvailableProperties))
+            // Get properties for the current HTTP headers for each of the providers.
+            // Use a "using" block to ensure the dispose method is called and any
+            // unmanaged resources are freed before the method finishes. If this is 
+            // not included then the dispose methods of the providers in the Global.asax
+            // will enter an infinite wait.
+            using (PatternWrapper.MatchResult patternProperties = 
+                (PatternWrapper.MatchResult)Global.PatternProvider.Match(Request.Headers))
             {
-                builder.Append("<tr>");
-                builder.Append(String.Format(
-                    "<td><b>{0}</b></td>",
-                    property));
-                builder.Append(String.Format(
-                    "<td>{0}</td>",
-                    patternProperties[property]));
-                builder.Append(String.Format(
-                    "<td>{0}</td>",
-                    trieProperties[property]));
-                builder.Append("</tr>");
+                using (TrieWrapper.MatchResult trieProperties =
+                    (TrieWrapper.MatchResult)Global.TrieProvider.Match(Request.Headers))
+                {
+                    // Output the properties from each provider.
+                    var builder = new StringBuilder();
+                    builder.Append("<p>For a full list of properties see <a href=\"https://51degrees.com/resources/property-dictionary\">property dictionary</a>.</p>");
+                    builder.Append("<table>");
+                    builder.Append("<tr><th></th><th>Pattern</th><th>Trie</th></tr>");
+
+                    // Append common properties between the two providers.
+                    foreach (var property in Global.PatternProvider.AvailableProperties.Where(i =>
+                        i.Contains("Javascript") == false).Intersect(Global.TrieProvider.AvailableProperties))
+                    {
+                        builder.Append("<tr>");
+                        builder.AppendFormat(
+                            "<th>{0}</th>",
+                            property);
+                        builder.AppendFormat(
+                            "<td>{0}</td>",
+                            patternProperties[property]);
+                        builder.AppendFormat(
+                            "<td>{0}</td>",
+                            trieProperties[property]);
+                        builder.Append("</tr>");
+                    }
+
+                    // Append detection properties used to provide a confidence indicator
+                    // concerning the matched results.
+                    builder.AppendFormat(DETECTION_PARAM_ROW, "Matched User-Agent", patternProperties.UserAgent, trieProperties.UserAgent);
+                    builder.AppendFormat(DETECTION_PARAM_ROW, "DeviceId", patternProperties.DeviceId, trieProperties["Id"]);
+                    builder.AppendFormat(DETECTION_PATTERN_PARAM_ROW, "Method", patternProperties.Method);
+                    builder.AppendFormat(DETECTION_PATTERN_PARAM_ROW, "Rank", patternProperties.Rank);
+                    builder.AppendFormat(DETECTION_PATTERN_PARAM_ROW, "Difference", patternProperties.Difference);
+                    builder.Append("</table>");
+                    builder.Append("<p>* Trie device detection does not return Method, Rank or Difference values.</p>");
+                    Results.Text = builder.ToString();
+                }
             }
-            builder.Append("</table>");
-            Results.Text = builder.ToString();
         }
     }
 }

@@ -40,18 +40,40 @@ namespace FiftyOne.Mobile.Detection.Provider.Interop
 
         internal class Provider : IDisposable
         {
+            /// <summary>
+            /// Pointer to the memory allocated for the dataset.
+            /// </summary>
             internal IntPtr DataSetPointer;
 
+            /// <summary>
+            /// Pointer to the memory allocated for the cache.
+            /// </summary>
             internal IntPtr CachePointer;
 
+            /// <summary>
+            /// Pointer to the memory allocated for the pool of worksets.
+            /// </summary>
             internal IntPtr PoolPointer;
 
+            /// <summary>
+            /// Used to signal when all worksets have been released.
+            /// </summary>
             internal readonly AutoResetEvent AllWorksetsReleased = new AutoResetEvent(true);
 
+            /// <summary>
+            /// The number of allocated worksets.
+            /// </summary>
             internal int AllocatedWorksets = 0;
 
+            /// <summary>
+            /// Map of property name strings to required indexes. Used when returning
+            /// property values from a detection.
+            /// </summary>
             internal readonly SortedList<string, int> PropertyIndexes = new SortedList<string, int>();
 
+            /// <summary>
+            /// List of HTTP headers that the detection provider considers.
+            /// </summary>
             internal readonly List<string> HttpHeaders = new List<string>();
 
             /// <summary>
@@ -107,13 +129,21 @@ namespace FiftyOne.Mobile.Detection.Provider.Interop
                     HttpHeaders.Add(httpHeader.ToString());
                     httpHeaderIndex++;
                 }
+                HttpHeaders.Sort();
             }
 
+            /// <summary>
+            /// If the dispose method wasn't called for any reason frees
+            /// unmanaged memory.
+            /// </summary>
             ~Provider()
             {
                 Dispose(false);
             }
 
+            /// <summary>
+            /// Disposes of the provider freeing unmanaged memory.
+            /// </summary>
             public void Dispose()
             {
                 Dispose(true);
@@ -149,8 +179,15 @@ namespace FiftyOne.Mobile.Detection.Provider.Interop
             }
         }
 
+        /// <summary>
+        /// The results of a device detection match. Must be disposed before the 
+        /// provider used to create it is disposed.
+        /// </summary>
         public class MatchResult : IMatchResult
         {
+            /// <summary>
+            /// Reference to the provider used to create the match results.
+            /// </summary>
             private readonly Provider _provider;
 
             /// <summary>
@@ -197,7 +234,7 @@ namespace FiftyOne.Mobile.Detection.Provider.Interop
                 var httpHeaders = new StringBuilder();
                 for (int i = 0; i < headers.Count; i++)
                 {
-                    httpHeaders.AppendLine(String.Format("{0} {1}",
+                    httpHeaders.AppendLine(String.Format("{0}: {1}",
                         headers.Keys[i],
                         String.Concat(headers.GetValues(i))));
                 }
@@ -213,6 +250,9 @@ namespace FiftyOne.Mobile.Detection.Provider.Interop
                 Dispose(false);
             }
 
+            /// <summary>
+            /// Frees unmanged memory when the instance is disposed.
+            /// </summary>
             public void Dispose()
             {
                 Dispose(true);
@@ -249,7 +289,7 @@ namespace FiftyOne.Mobile.Detection.Provider.Interop
             /// Returns the values for the property provided.
             /// </summary>
             /// <param name="propertyName"></param>
-            /// <returns></returns>
+            /// <returns>Value of the property, otherwise null.</returns>
             public string this[string propertyName]
             {
                 get
@@ -468,7 +508,7 @@ namespace FiftyOne.Mobile.Detection.Provider.Interop
         /// <summary>
         /// A list of the http headers that the wrapper can use for detection.
         /// </summary>
-        public IList<string> HttpHeaders
+        public List<string> HttpHeaders
         {
             get { return _provider.HttpHeaders; }
         }
