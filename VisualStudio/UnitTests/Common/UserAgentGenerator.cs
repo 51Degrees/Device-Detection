@@ -97,9 +97,10 @@ namespace FiftyOne.UnitTests
             }
         }
 
-        public static IEnumerable<string> GetRandomUserAgents()
+        public static IEnumerable<string> GetRandomUserAgents(int count = 0)
         {
-            return UserAgentGenerator.GetEnumerable(20000, 0);
+            return UserAgentGenerator.GetEnumerable(
+                count == 0 ? _userAgents.Length : count, 0);
         }
 
         public static IEnumerable<string> GetUniqueUserAgents()
@@ -107,9 +108,10 @@ namespace FiftyOne.UnitTests
             return _userAgents;
         }
 
-        public static IEnumerable<string> GetBadUserAgents()
+        public static IEnumerable<string> GetBadUserAgents(int count = 0)
         {
-            return UserAgentGenerator.GetEnumerable(20000, 10);
+            return UserAgentGenerator.GetEnumerable(
+                count == 0 ? _userAgents.Length : count, 10);
         }
     }
 }

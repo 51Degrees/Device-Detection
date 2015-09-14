@@ -36,19 +36,19 @@ namespace Console_Interop
         {
             // Initialise the pattern provider with a list of 4 properties.
             using (var pattern = new PatternWrapper(
-                new FileInfo("..\\..\\..\\..\\data\\51Degrees-LiteV3.2.dat").FullName,
+                new FileInfo("..\\..\\..\\..\\..\\data\\51Degrees-LiteV3.2.dat").FullName,
                     new[] { "Id", "DeviceType", "IsMobile", "ScreenPixelsWidth", "ScreenPixelsHeight" }))
             {
 
                 // Initialise the trie provider with a data file and a list of 4 properties.
                 using (var trie = new TrieWrapper(
-                    new FileInfo("..\\..\\..\\..\\data\\51Degrees-LiteV3.2.trie").FullName,
+                    new FileInfo("..\\..\\..\\..\\..\\data\\51Degrees-LiteV3.2.trie").FullName,
                     new[] { "Id", "DeviceType", "IsMobile", "ScreenPixelsWidth", "ScreenPixelsHeight" }))
                 {
 
                     // IMPORTANT: For a full list of properties see: https://51degrees.com/resources/property-dictionary
 
-                    using (var reader = new FileInfo(args.Length > 0 ? args[0] : "..\\..\\..\\..\\data\\20000 User Agents.csv").OpenText())
+                    using (var reader = new FileInfo(args.Length > 0 ? args[0] : "..\\..\\..\\..\\..\\data\\20000 User Agents.csv").OpenText())
                     {
                         var start = DateTime.UtcNow;
                         Console.WriteLine("Started -> {0}", start);

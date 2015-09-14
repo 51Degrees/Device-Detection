@@ -4,6 +4,7 @@
 #include <stdlib.h>
 #include <string.h>
 #include <math.h>
+#include <ctype.h>
 #include "51Degrees.h"
 
 /* *********************************************************************
@@ -174,14 +175,17 @@ fiftyoneDegreesDataSetInitStatus readHttpHeaders(FILE *inputFilePtr) {
 	if (fread(&_httpHeadersSize, sizeof(int32_t), 1, inputFilePtr) != 1)
 		return DATA_SET_INIT_STATUS_CORRUPT_DATA;
 	_httpHeaders = (int32_t*)malloc(_httpHeadersSize);
-	if (_httpHeaders == NULL)
+	_uniqueHttpHeaders = (int32_t*)malloc(_httpHeadersSize);
+	if (_httpHeaders == NULL || _uniqueHttpHeaders == NULL) {
+		if (_httpHeaders != NULL) { free(_httpHeaders); }
+		if (_uniqueHttpHeaders != NULL) { free(_uniqueHttpHeaders); }
 		return DATA_SET_INIT_STATUS_INSUFFICIENT_MEMORY;
+	}
 	if (fread(_httpHeaders, sizeof(BYTE), (size_t)_httpHeadersSize, inputFilePtr) != (size_t)_httpHeadersSize)
 		return DATA_SET_INIT_STATUS_CORRUPT_DATA;
-	
+
 	// Set the unique HTTP header names;
 	_uniqueHttpHeaderCount = 0;
-	_uniqueHttpHeaders = (int32_t*)malloc(_httpHeadersSize);
 	for (headerIndex = 0; headerIndex < (int)(_httpHeadersSize / sizeof(int32_t)); headerIndex++) {
 		for (uniqueHeaderIndex = 0; uniqueHeaderIndex < _uniqueHttpHeaderCount; uniqueHeaderIndex++) {
 			if (*(_uniqueHttpHeaders + uniqueHeaderIndex) == *(_httpHeaders + headerIndex)) {
@@ -273,15 +277,15 @@ void fiftyoneDegreesDestroy(void) {
 		_requiredProperties = NULL;
 	}
 	if (_requiredPropertiesNames != NULL) {
-		free(_requiredPropertiesNames); 
+		free(_requiredPropertiesNames);
 		_requiredPropertiesNames = NULL;
 	}
 	if (_rootNode != NULL) {
-		free(_rootNode); 
+		free(_rootNode);
 		_rootNode = NULL;
 	}
 	if (_lookupList != NULL) {
-		free(_lookupList); 
+		free(_lookupList);
 		_lookupList = NULL;
 	}
 	if (_devices != NULL) {
@@ -293,15 +297,15 @@ void fiftyoneDegreesDestroy(void) {
 		_properties = NULL;
 	}
 	if (_uniqueHttpHeaders != NULL) {
-		free(_uniqueHttpHeaders); 
+		free(_uniqueHttpHeaders);
 		_uniqueHttpHeaders = NULL;
 	}
 	if (_httpHeaders != NULL) {
-		free(_httpHeaders); 
+		free(_httpHeaders);
 		_httpHeaders = NULL;
 	}
 	if (_strings != NULL) {
-		free(_strings); 
+		free(_strings);
 		_strings = NULL;
 	}
 }
@@ -431,7 +435,7 @@ void initSpecificPropertiesFromArray(char** properties, int count) {
 	// Create enough memory for the properties.
 	_requiredProperties = (uint32_t*)malloc(_requiredPropertiesCount * sizeof(int));
 	_requiredPropertiesNames = (char**)malloc(_requiredPropertiesCount * sizeof(char*));
-	
+
 	// Initialise the requiredProperties array.
 	for (i = 0; i < count; i++ ) {
       currentProperty = properties[i];
@@ -616,12 +620,20 @@ int fiftyoneDegreesGetDeviceOffset(char* userAgent) {
     return getDeviceIndex(userAgent) * _propertiesCount;
 }
 
-// Sets name to the start of the http header name and returns the length of the string.
-int setNextHttpHeaderName(char* start, char** name) {
-	int index = 0;
+/**
+ * Sets name to the start of the http header name and returns the length of
+ * the string. A space or colon are used to identify the end of the header
+ * name.
+ * @param start of the string to be processed
+ * @param end of the string to be processed
+ * @param value to be set when returned
+ * @returns the number of characters in the value
+ */
+int setNextHttpHeaderName(char* start, char* end, char** name) {
 	char *current = start, *lastChar = start;
-	while (*current != 0) {
-		if (*current == ' ') {
+	while (current <= end) {
+		if (*current == ' ' ||
+            *current == ':') {
 			*name = lastChar;
 			return (int)(current - lastChar);
 		}
@@ -634,12 +646,30 @@ int setNextHttpHeaderName(char* start, char** name) {
 	return 0;
 }
 
-// Sets the value pointer to the start of the next HTTP header value and returns the length.
-int setNextHttpHeaderValue(char* start, char** value) {
-	int index = 0;
-	char *current = start, *lastChar = start;
+/**
+ * Sets the value pointer to the start of the next HTTP header value and
+ * returns the length.
+ * @param start of the string to be processed
+ * @param end of the string to be processed
+ * @param value to be set when returned
+ * @returns the number of characters in the value
+ */
+int setNextHttpHeaderValue(char* start, char *end, char** value) {
+	char *lastChar = start, *current;
+
+	// Move to the first non-space character.
+	while (lastChar <= end && (
+            *lastChar == ' ' ||
+            *lastChar == ':')) {
+        lastChar++;
+	}
+
+	// Set the value to the start character.
 	*value = lastChar;
-	while (*current != 0) {
+	current = lastChar;
+
+	// Loop until end of line or end of string.
+	while (current <= end) {
 		if (*current == '\r' ||
 			*current == '\n') {
 			*value = lastChar;
@@ -650,12 +680,53 @@ int setNextHttpHeaderValue(char* start, char** value) {
 	return (int)(current - lastChar);
 }
 
+
+/**
+* Compares two header strings for case insensitive equality and where -
+* are replaced with _. The http header name must be the same length
+* as the unique header.
+* @param httpHeaderName string to be checked for equality
+* @param uniqueHeader the unique HTTP header to be compared
+* @param length of the strings
+* @returns 0 if both strings are equal, otherwise the different between
+*          the first mismatched characters
+*/
+int headerCompare(char *httpHeaderName, const char *uniqueHeader, int length) {
+	int index, difference;
+	for (index = 0; index < length; index++) {
+		if (httpHeaderName[index] == '_') {
+			difference = '-' - uniqueHeader[index];
+		}
+		else {
+			difference = tolower(httpHeaderName[index]) - tolower(uniqueHeader[index]);
+		}
+		if (difference != 0) {
+			return difference;
+		}
+	}
+	return 0;
+}
+
 // Returns the index of the unique header, or -1 if the header is not important.
 int getUniqueHttpHeaderIndex(char* httpHeaderName, int length) {
 	int uniqueHeaderIndex;
+	static const char httpPrefix[] = "HTTP_";
+	static const int httpPrefixLength = sizeof(httpPrefix) - 1;
+	char *adjustedHttpHeaderName;
+
+	// Check if header is from a Perl or PHP wrapper in the form of HTTP_*
+	// and if present skip these characters.
+	if (strncmp(httpHeaderName, httpPrefix, httpPrefixLength) == 0) {
+		adjustedHttpHeaderName = httpHeaderName + httpPrefixLength;
+		length -= httpPrefixLength;
+	}
+	else {
+		adjustedHttpHeaderName = httpHeaderName;
+	}
+
 	for (uniqueHeaderIndex = 0; uniqueHeaderIndex < _uniqueHttpHeaderCount; uniqueHeaderIndex++) {
 		if (strlen(_strings + _uniqueHttpHeaders[uniqueHeaderIndex]) == length &&
-			memcmp(_strings + _uniqueHttpHeaders[uniqueHeaderIndex], httpHeaderName, length) == 0) {
+			headerCompare(adjustedHttpHeaderName, _strings + _uniqueHttpHeaders[uniqueHeaderIndex], length) == 0) {
 			return uniqueHeaderIndex;
 		}
 	}
@@ -663,22 +734,22 @@ int getUniqueHttpHeaderIndex(char* httpHeaderName, int length) {
 }
 
 // Returns the offsets to a matching devices based on the http headers provided.
-fiftyoneDegreesDeviceOffsets* fiftyoneDegreesGetDeviceOffsetsWithHeadersString(char *httpHeaders) {
-	char *headerName, *headerValue;
+fiftyoneDegreesDeviceOffsets* fiftyoneDegreesGetDeviceOffsetsWithHeadersString(char *httpHeaders, size_t size) {
+	char *headerName, *headerValue, *endOfHeaders = httpHeaders + size;
 	int headerNameLength, headerValueLength, uniqueHeaderIndex = 0;
 	fiftyoneDegreesDeviceOffsets* offsets = (fiftyoneDegreesDeviceOffsets*)malloc(_uniqueHttpHeaderCount * sizeof(fiftyoneDegreesDeviceOffsets));
 	offsets->size = 0;
-	headerNameLength = setNextHttpHeaderName(httpHeaders, &headerName);
+	headerNameLength = setNextHttpHeaderName(httpHeaders, endOfHeaders, &headerName);
 	while (headerNameLength > 0 &&
 		   offsets->size < _uniqueHttpHeaderCount) {
-		headerValueLength = setNextHttpHeaderValue(headerName + headerNameLength + 1, &headerValue);
+		headerValueLength = setNextHttpHeaderValue(headerName + headerNameLength, endOfHeaders, &headerValue);
 		uniqueHeaderIndex = getUniqueHttpHeaderIndex(headerName, headerNameLength);
 		if (uniqueHeaderIndex >= 0) {
 			(&offsets->firstOffset + offsets->size)->httpHeaderOffset = *(_uniqueHttpHeaders + uniqueHeaderIndex);
 			(&offsets->firstOffset + offsets->size)->deviceOffset = fiftyoneDegreesGetDeviceOffset(headerValue);
 			offsets->size++;
 		}
-		headerNameLength = setNextHttpHeaderName(headerValue + headerValueLength, &headerName);
+		headerNameLength = setNextHttpHeaderName(headerValue + headerValueLength, endOfHeaders, &headerName);
 	}
 	return offsets;
 }
@@ -747,7 +818,7 @@ int fiftyoneDegreesGetValueFromOffsets(fiftyoneDegreesDeviceOffsets* deviceOffse
 	fiftyoneDegreesProperty *property;
 	if (deviceOffsets->size == 1) {
 		return setValueFromDeviceOffset(
-			deviceOffsets->firstOffset.deviceOffset, 
+			deviceOffsets->firstOffset.deviceOffset,
 			*(_requiredProperties + requiredPropertyIndex),
 			values,
 			size);

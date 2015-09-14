@@ -21,7 +21,6 @@
 
 using System;
 using System.Collections.Generic;
-using System.Linq;
 using System.Text;
 using System.Runtime.InteropServices;
 using System.Threading;
@@ -39,10 +38,21 @@ namespace FiftyOne.Mobile.Detection.Provider.Interop
     {
         #region Classes
 
+        /// <summary>
+        /// The results of a device detection match. Must be disposed before the 
+        /// provider used to create it is disposed.
+        /// </summary>
         public class MatchResult : IMatchResult
         {
+            /// <summary>
+            /// Reference of the user agent used to create the results. Needed
+            /// if the matched useragent characters are needed.
+            /// </summary>
             private readonly string _userAgent;
 
+            /// <summary>
+            /// Reference of the provider used to create the results.
+            /// </summary>
             private readonly TrieWrapper _provider;
 
             /// <summary>
@@ -84,24 +94,36 @@ namespace FiftyOne.Mobile.Detection.Provider.Interop
                 var httpHeaders = new StringBuilder();
                 for (int i = 0; i < headers.Count; i++)
                 {
-                    httpHeaders.AppendLine(String.Format("{0} {1}",
+                    httpHeaders.AppendLine(String.Format("{0}: {1}",
                         headers.Keys[i],
                         String.Concat(headers.GetValues(i))));
                 }
+                _userAgent = headers["User-Agent"];
                 _deviceOffsets = MatchFromHeaders(httpHeaders);
             }
 
+            /// <summary>
+            /// Ensures any unmanaged memory is freed if dispose didn't run
+            /// for any reason.
+            /// </summary>
             ~MatchResult()
             {
                 Disposing(false);
             }
 
+            /// <summary>
+            /// Frees unmanged memory when the instance is disposed.
+            /// </summary>
             public void Dispose()
             {
                 Disposing(true);
                 GC.SuppressFinalize(true);
             }
 
+            /// <summary>
+            /// Releases the pointer to the workset back to the pool.
+            /// </summary>
+            /// <param name="disposing"></param>
             protected virtual void Disposing(bool disposing)
             {
                 if (_deviceOffsets != IntPtr.Zero)
@@ -127,7 +149,7 @@ namespace FiftyOne.Mobile.Detection.Provider.Interop
             /// Returns the values for the property provided.
             /// </summary>
             /// <param name="propertyName"></param>
-            /// <returns></returns>
+            /// <returns>Value of the property, otherwise null.</returns>
             public string this[string propertyName]
             {
                 get
@@ -150,6 +172,9 @@ namespace FiftyOne.Mobile.Detection.Provider.Interop
                 }
             }
 
+            /// <summary>
+            /// A string representation of the user agent returned if any.
+            /// </summary>
             public string UserAgent
             {
                 get 
@@ -221,8 +246,16 @@ namespace FiftyOne.Mobile.Detection.Provider.Interop
 
         #region Fields
 
-        internal static readonly AutoResetEvent AllDeviceOffsetsReleased = new AutoResetEvent(true);
+        /// <summary>
+        /// Used to synchronise the releasing of unmanaged memory resources.
+        /// </summary>
+        internal static readonly AutoResetEvent AllDeviceOffsetsReleased = 
+            new AutoResetEvent(true);
 
+        /// <summary>
+        /// The number of allocated device offsets. Used to ensure they've
+        /// all been disposed of before the provider is disposed.
+        /// </summary>
         internal static int AllocatedDeviceOffsets = 0;
 
         /// <summary>
@@ -245,6 +278,13 @@ namespace FiftyOne.Mobile.Detection.Provider.Interop
         /// single underlying provider.
         /// </summary>
         private static string _fileName;
+
+        /// <summary>
+        /// Set to true when dispose has run for the wrapper
+        /// as sometimes the finaliser still runs even when
+        /// requested not to.
+        /// </summary>
+        private bool _disposed = false;
 
         #endregion
 
@@ -272,6 +312,7 @@ namespace FiftyOne.Mobile.Detection.Provider.Interop
         {
             lock(_lock)
             {
+                // Check the file exists before trying to load it.
                 var info = new FileInfo(fileName);
                 if (info.Exists == false)
                 {
@@ -279,6 +320,10 @@ namespace FiftyOne.Mobile.Detection.Provider.Interop
                         "File '{0}' can not be found.",
                         info.FullName), "fileName");
                 }
+
+                // If a file has already been loaded then check it's the 
+                // same name as the one being used for this instance. Only
+                // one file can be loaded at a time.
                 if (_fileName != null &&
                     _fileName.Equals(fileName) == false)
                 {
@@ -287,6 +332,7 @@ namespace FiftyOne.Mobile.Detection.Provider.Interop
                         "Multiple providers with different file sources can not be created.",
                         _fileName), "fileName");
                 }
+<<<<<<< HEAD
                 var status = InitWithPropertyString(info.FullName, properties);
                 if (status != 0)
                 {
@@ -296,24 +342,47 @@ namespace FiftyOne.Mobile.Detection.Provider.Interop
                         fileName));
                 }
                 _fileName = fileName;
+=======
+>>>>>>> 8b982936a5e26f4a363b78b68b0eae96335fcd07
 
-                // Initialise the list of property names and indexes.
-                var propertyIndex = 0;
-                var property = new StringBuilder(256);
-                while (GetRequiredPropertyName(propertyIndex, property, property.Capacity) > 0)
+                // Only initialise the memory if the file has not already
+                // been loaded into memory.
+                if (_fileName == null)
                 {
-                    PropertyIndexes.Add(property.ToString(), propertyIndex);
-                    propertyIndex++;
+                    var status = InitWithPropertyString(info.FullName, properties);
+                    if (status != 0)
+                    {
+                        throw new Exception(String.Format(
+                            "Status code '{0}' returned when creating wrapper from file '{1}'.",
+                            status,
+                            fileName));
+                    }
+
+                    // Initialise the list of property names and indexes.
+                    var propertyIndex = 0;
+                    var property = new StringBuilder(256);
+                    while (GetRequiredPropertyName(propertyIndex, property, property.Capacity) > 0)
+                    {
+                        PropertyIndexes.Add(property.ToString(), propertyIndex);
+                        propertyIndex++;
+                    }
+
+                    // Initialise the list of http header names.
+                    var httpHeaderIndex = 0;
+                    var httpHeader = new StringBuilder(256);
+                    while (GetHttpHeaderName(httpHeaderIndex, httpHeader, httpHeader.Capacity) > 0)
+                    {
+                        HttpHeaders.Add(httpHeader.ToString());
+                        httpHeaderIndex++;
+                    }
+                    HttpHeaders.Sort();
+
+                    _fileName = fileName;
                 }
-                    
-                // Initialise the list of http header names.
-                var httpHeaderIndex = 0;
-                var httpHeader = new StringBuilder(256);
-                while (GetHttpHeaderName(httpHeaderIndex, httpHeader, httpHeader.Capacity) > 0)
-                {
-                    HttpHeaders.Add(httpHeader.ToString());
-                    httpHeaderIndex++;
-                }
+
+                // Increase the number of wrapper instances that have
+                // been created. Used when the wrapper is disposed to 
+                // determine if the memory used should be released.
                 _instanceCount++;
             }
         }
@@ -331,8 +400,8 @@ namespace FiftyOne.Mobile.Detection.Provider.Interop
         /// </summary>
         public void Dispose()
         {
-            GC.SuppressFinalize(true);
             Disposing(true);
+            GC.SuppressFinalize(true);
         }
 
         /// <summary>
@@ -343,13 +412,30 @@ namespace FiftyOne.Mobile.Detection.Provider.Interop
         {
             lock (_lock)
             {
-                if (_instanceCount == 1)
+                if (_disposed == false)
                 {
-                    AllDeviceOffsetsReleased.WaitOne();
-                    Destroy();
-                    Debug.WriteLine("Freed Trie Data");
+                    if (_instanceCount == 1 &&
+                        _fileName != null)
+                    {
+                        // Wait for any detections to complete.
+                        AllDeviceOffsetsReleased.WaitOne();
+
+                        // Clear down any static data and free memory.
+                        HttpHeaders.Clear();
+                        PropertyIndexes.Clear();
+                        _fileName = null;
+                        Destroy();
+                        _disposed = true;
+
+                        // Set so that the next wrapper to be disposed of
+                        // does not get stuck if no detections are performed.
+                        AllDeviceOffsetsReleased.Set();
+
+                        Debug.WriteLine("Freed Trie Data");
+                    }
+                    _instanceCount--;
+                    _disposed = true;
                 }
-                _instanceCount--;
             }
         }
         
@@ -360,7 +446,7 @@ namespace FiftyOne.Mobile.Detection.Provider.Interop
         /// <summary>
         /// A list of the http headers that the wrapper can use for detection.
         /// </summary>
-        public IList<string> HttpHeaders
+        public List<string> HttpHeaders
         {
             get { return _httpHeaders; }
         }

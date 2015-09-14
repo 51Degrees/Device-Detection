@@ -45,8 +45,11 @@ fiftyoneDegreesDataSetInitStatus getInitStatus() {
 
 %inline %{
 
+  void destroy(){
+      fiftyoneDegreesDestroy();
+  } 
   void dataSetInitWithPropertyString(char *fileName, char* properties) {
-	initStatus = (DataSetInitStatus)fiftyoneDegreesInitWithPropertyString(fileName, properties);
+	initStatus = (fiftyoneDegreesDataSetInitStatus)fiftyoneDegreesInitWithPropertyString(fileName, properties);
 	if (initStatus != DATA_SET_INIT_STATUS_SUCCESS) {
 	  fiftyoneDegreesDestroy();
 	}
@@ -56,6 +59,18 @@ fiftyoneDegreesDataSetInitStatus getInitStatus() {
     char output[50000];
     if (strlen(userAgent) > 0) {
       fiftyoneDegreesProcessDeviceJSON(fiftyoneDegreesGetDeviceOffset(userAgent), output, 50000);
+      return output;
+    }
+  }
+  
+   char* getMatchWithHeaders(char* userHeader) {
+    char output[50000];
+    fiftyoneDegreesDeviceOffsets *deviceoffset;
+    int js_int;
+    if (strlen(userHeader) > 0) {
+      deviceoffset = fiftyoneDegreesGetDeviceOffsetsWithHeadersString(userHeader, strlen(userHeader));
+      js_int = fiftyoneDegreesGetValueFromOffsets(deviceoffset, 0, output, 5000 );
+      fiftyoneDegreesProcessDeviceJSON(js_int, output, 50000);
       return output;
     }
   }

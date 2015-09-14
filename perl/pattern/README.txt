@@ -30,7 +30,7 @@ API Documentation
 For documentation go to https://51degrees.com/Support/Documentation/Perl
 
 BUILDING FROM SOURCE
-
+cd
 This project uses SWIG to create a wrapper around 51Degrees C source code.
 To regenerate the wrapper, install SWIG 2.0 or greater, navigate to the
 src directory and run the following command:

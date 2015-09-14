@@ -67,28 +67,26 @@ package FiftyOneDegrees::PatternV3;
 *fiftyoneDegreesMatch = *FiftyOneDegrees::PatternV3c::fiftyoneDegreesMatch;
 *fiftyoneDegreesMatchWithHeadersArray = *FiftyOneDegrees::PatternV3c::fiftyoneDegreesMatchWithHeadersArray;
 *fiftyoneDegreesMatchWithHeadersString = *FiftyOneDegrees::PatternV3c::fiftyoneDegreesMatchWithHeadersString;
+*fiftyoneDegreesSetHttpHeaders = *FiftyOneDegrees::PatternV3c::fiftyoneDegreesSetHttpHeaders;
+*fiftyoneDegreesMatchForHttpHeaders = *FiftyOneDegrees::PatternV3c::fiftyoneDegreesMatchForHttpHeaders;
 *fiftyoneDegreesSetValues = *FiftyOneDegrees::PatternV3c::fiftyoneDegreesSetValues;
 *fiftyoneDegreesGetString = *FiftyOneDegrees::PatternV3c::fiftyoneDegreesGetString;
 *fiftyoneDegreesGetValues = *FiftyOneDegrees::PatternV3c::fiftyoneDegreesGetValues;
 *fiftyoneDegreesGetValueName = *FiftyOneDegrees::PatternV3c::fiftyoneDegreesGetValueName;
 *fiftyoneDegreesGetPropertyName = *FiftyOneDegrees::PatternV3c::fiftyoneDegreesGetPropertyName;
 *fiftyoneDegreesGetRequiredPropertyName = *FiftyOneDegrees::PatternV3c::fiftyoneDegreesGetRequiredPropertyName;
-<<<<<<< HEAD
 *fiftyoneDegreesGetHttpHeaderName = *FiftyOneDegrees::PatternV3c::fiftyoneDegreesGetHttpHeaderName;
-=======
->>>>>>> 41bbd2473a03e8215ce2c21197a50a9dd00c5630
 *fiftyoneDegreesGetRequiredPropertyIndex = *FiftyOneDegrees::PatternV3c::fiftyoneDegreesGetRequiredPropertyIndex;
 *fiftyoneDegreesProcessDeviceCSV = *FiftyOneDegrees::PatternV3c::fiftyoneDegreesProcessDeviceCSV;
 *fiftyoneDegreesProcessDeviceJSON = *FiftyOneDegrees::PatternV3c::fiftyoneDegreesProcessDeviceJSON;
 *fiftyoneDegreesGetSignatureRank = *FiftyOneDegrees::PatternV3c::fiftyoneDegreesGetSignatureRank;
+*fiftyoneDegreesGetSignatureAsString = *FiftyOneDegrees::PatternV3c::fiftyoneDegreesGetSignatureAsString;
+*fiftyoneDegreesGetDeviceId = *FiftyOneDegrees::PatternV3c::fiftyoneDegreesGetDeviceId;
 *freeDataset = *FiftyOneDegrees::PatternV3c::freeDataset;
-*dataSetInitWithPropertyString = *FiftyOneDegrees::PatternV3c::dataSetInitWithPropertyString;
-*cacheInitWithDataSet = *FiftyOneDegrees::PatternV3c::cacheInitWithDataSet;
-*freeCache = *FiftyOneDegrees::PatternV3c::freeCache;
-*poolInitWithDataSet = *FiftyOneDegrees::PatternV3c::poolInitWithDataSet;
-*freePool = *FiftyOneDegrees::PatternV3c::freePool;
-*freeJSON = *FiftyOneDegrees::PatternV3c::freeJSON;
+*dataSetProvider = *FiftyOneDegrees::PatternV3c::dataSetProvider;
 *getMatch = *FiftyOneDegrees::PatternV3c::getMatch;
+*getMatchWithHeaders = *FiftyOneDegrees::PatternV3c::getMatchWithHeaders;
+*freeMatch = *FiftyOneDegrees::PatternV3c::freeMatch;
 
 ############# Class : FiftyOneDegrees::PatternV3::fiftyoneDegreesRANGE ##############
 
@@ -913,8 +911,8 @@ use vars qw(@ISA %OWNER %ITERATORS %BLESSEDMEMBERS);
 *swig_versionRevision_set = *FiftyOneDegrees::PatternV3c::fiftyoneDegreesDataSetHeader_versionRevision_set;
 *swig_tag_get = *FiftyOneDegrees::PatternV3c::fiftyoneDegreesDataSetHeader_tag_get;
 *swig_tag_set = *FiftyOneDegrees::PatternV3c::fiftyoneDegreesDataSetHeader_tag_set;
-*swig_export_get = *FiftyOneDegrees::PatternV3c::fiftyoneDegreesDataSetHeader_export_get;
-*swig_export_set = *FiftyOneDegrees::PatternV3c::fiftyoneDegreesDataSetHeader_export_set;
+*swig_exportTag_get = *FiftyOneDegrees::PatternV3c::fiftyoneDegreesDataSetHeader_exportTag_get;
+*swig_exportTag_set = *FiftyOneDegrees::PatternV3c::fiftyoneDegreesDataSetHeader_exportTag_set;
 *swig_copyrightOffset_get = *FiftyOneDegrees::PatternV3c::fiftyoneDegreesDataSetHeader_copyrightOffset_get;
 *swig_copyrightOffset_set = *FiftyOneDegrees::PatternV3c::fiftyoneDegreesDataSetHeader_copyrightOffset_set;
 *swig_age_get = *FiftyOneDegrees::PatternV3c::fiftyoneDegreesDataSetHeader_age_get;
@@ -1507,6 +1505,8 @@ use vars qw(@ISA %OWNER %ITERATORS %BLESSEDMEMBERS);
 *swig_header_set = *FiftyOneDegrees::PatternV3c::fiftyoneDegreesHttpHeaderWorkset_header_set;
 *swig_headerValue_get = *FiftyOneDegrees::PatternV3c::fiftyoneDegreesHttpHeaderWorkset_headerValue_get;
 *swig_headerValue_set = *FiftyOneDegrees::PatternV3c::fiftyoneDegreesHttpHeaderWorkset_headerValue_set;
+*swig_headerValueLength_get = *FiftyOneDegrees::PatternV3c::fiftyoneDegreesHttpHeaderWorkset_headerValueLength_get;
+*swig_headerValueLength_set = *FiftyOneDegrees::PatternV3c::fiftyoneDegreesHttpHeaderWorkset_headerValueLength_set;
 sub new {
     my $pkg = shift;
     my $self = FiftyOneDegrees::PatternV3c::new_fiftyoneDegreesHttpHeaderWorkset(@_);
@@ -1590,6 +1590,8 @@ use vars qw(@ISA %OWNER %ITERATORS %BLESSEDMEMBERS);
 *swig_closestNodes_set = *FiftyOneDegrees::PatternV3c::fiftyoneDegreesWorkset_closestNodes_set;
 *swig_signatureAsString_get = *FiftyOneDegrees::PatternV3c::fiftyoneDegreesWorkset_signatureAsString_get;
 *swig_signatureAsString_set = *FiftyOneDegrees::PatternV3c::fiftyoneDegreesWorkset_signatureAsString_set;
+*swig_tempheaderlowercase_get = *FiftyOneDegrees::PatternV3c::fiftyoneDegreesWorkset_tempheaderlowercase_get;
+*swig_tempheaderlowercase_set = *FiftyOneDegrees::PatternV3c::fiftyoneDegreesWorkset_tempheaderlowercase_set;
 *swig_nodes_get = *FiftyOneDegrees::PatternV3c::fiftyoneDegreesWorkset_nodes_get;
 *swig_nodes_set = *FiftyOneDegrees::PatternV3c::fiftyoneDegreesWorkset_nodes_set;
 *swig_orderedNodes_get = *FiftyOneDegrees::PatternV3c::fiftyoneDegreesWorkset_orderedNodes_get;
