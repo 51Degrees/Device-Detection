@@ -1,6 +1,6 @@
 The C code can be built into extension for use in PHP. This guide covers how to
 build and install the extension on Debian/Ubuntu based systems, although others
-should be very simliar.
+should be very similar.
 
 To build, you will need GCC, make, PHP and PHP dev tools.
 
@@ -37,7 +37,7 @@ fiftyone_degrees.number_worksets=20
 ```
 
 This extension can be accessed through the function 'fiftyone_match'. It takes
-a single parameter, a useragent string, and returns an associative array
+a single parameter, a user agent string, and returns an associative array
 of the matched devices properties and their values in the same format as $_51d.
 
 ```php
