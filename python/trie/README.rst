@@ -1,22 +1,22 @@
-FiftyOneDegrees-Trie for Python Version 3.0.1.1
-===============================================
+FiftyOneDegrees-Pattern for Python Version 3.1.1.1
+==================================================
 
-This is a Python wrapper for 51Degrees Device Detection Trie library.
+This is a Python wrapper for 51Degrees Device Detection library.
 
-It requires a recent Trie database file from 51Degrees.
+It requires a recent Pattern database file from 51Degrees.
 
-Lite Trie data is included in the data folder. Lite data updates are in the
-Trie Python Github repository page.
-(https://github.com/51Degreesmobi/51Degrees-TrieWrapper-Python)
+Lite Pattern data is included in the data folder. Lite data updates are in the
+Pattern Python Github repository page.
+(https://github.com/51Degreesmobi/51Degrees-PatternWrapper-Python)
 
-For information Premium and Enterprise Trie data and their benefits, see our
+For information Premium and Enterprise Pattern data and their benefits, see our
 website: https://51degrees.com/Products/DeviceDetection
 
 INSTALLATION
 
 This package is available on pip:
 
-  pip install 51degrees-mobile-detector-v3-trie-wrapper
+  pip install 51degrees-mobile-detector-v3-wrapper
 
 DEPENDENCIES
 
@@ -37,7 +37,7 @@ To build from source navigate to the directory and run:
 This will create a dist directory containing a pip package. To install, navigate
 to it and run:
 
-  pip install 51degrees-mobile-detector-v3-trie-wrapper-3.1.tar.gz --upgrade
+  pip install 51degrees-mobile-detector-v3-wrapper-3.1.tar.gz --upgrade
 
 COPYRIGHT AND LICENSE
 
@@ -46,10 +46,10 @@ All code and Lite data is distributed under the Mozilla Public License Version 2
 
 CHANGE LOG
 
-3.0.1.1
+3.1.1.1
 
 - Added more error messages to diagnose problems with data initialisation.
 
-3.0.0.0
+3.1.0.0
 
 - Initial release.

@@ -409,12 +409,10 @@ int portable_vsnprintf(char *str, size_t str_m, const char *fmt, va_list ap);
 
 /* declarations */
 
-/*
 static char credits[] = "\n\
 @(#)snprintf.c, v2.2: Mark Martinec, <mark.martinec@ijs.si>\n\
 @(#)snprintf.c, v2.2: Copyright 1999, Mark Martinec. Frontier Artistic License applies.\n\
 @(#)snprintf.c, v2.2: http://www.ijs.si/software/snprintf/\n";
-*/
 
 #if defined(NEED_ASPRINTF)
 int asprintf(char **ptr, const char *fmt, /*args*/ ...) {
@@ -911,7 +909,7 @@ int portable_vsnprintf(char *str, size_t str_m, const char *fmt, va_list ap) {
             }
           }
        /* zero padding to specified precision? */
-          if (num_of_digits < precision)
+          if (num_of_digits < precision) 
             number_of_zeros_to_pad = precision - num_of_digits;
         }
      /* zero padding to specified minimal field width? */
