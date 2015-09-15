@@ -332,6 +332,18 @@ namespace FiftyOne.Mobile.Detection.Provider.Interop
                         "Multiple providers with different file sources can not be created.",
                         _fileName), "fileName");
                 }
+<<<<<<< HEAD
+                var status = InitWithPropertyString(info.FullName, properties);
+                if (status != 0)
+                {
+                    throw new Exception(String.Format(
+                        "Status code '{0}' returned when creating wrapper from file '{1}'.",
+                        status,
+                        fileName));
+                }
+                _fileName = fileName;
+=======
+>>>>>>> 8b982936a5e26f4a363b78b68b0eae96335fcd07
 
                 // Only initialise the memory if the file has not already
                 // been loaded into memory.
