@@ -56,7 +56,7 @@ if has_snprintf():
 
 setup(
     name='51degrees-mobile-detector-v3-wrapper',
-    version='3.1.1.1',
+    version='3.2.0.0',
     author='51Degrees.com',
     author_email='info@51degrees.com',
     cmdclass={'build_ext': build_ext},
@@ -68,6 +68,7 @@ setup(
                 'wrapper.c',
                 os.path.join('lib', 'pattern', '51Degrees.c'),
                 os.path.join('lib', 'snprintf', 'snprintf.c'),
+		os.path.join('lib', 'cityhash', 'city.c'),
             ],
             define_macros=define_macros,
             extra_compile_args=[

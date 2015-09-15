@@ -22,6 +22,8 @@ static struct module_state _state;
 
 static fiftyoneDegreesDataSet dataSet;
 static fiftyoneDegreesWorkset *ws;
+static fiftyoneDegreesResultsetCache* cache;
+static fiftyoneDegreesWorksetPool* pool;
 
 static PyObject *py_init(PyObject *self, PyObject *args)
 {
@@ -30,6 +32,8 @@ static PyObject *py_init(PyObject *self, PyObject *args)
     // Input property names.
     const char *properties;
 
+	int cacheSize = 10;
+	int poolSize = 20;
     // Parse input arguments: property names (string).
     if (!PyArg_ParseTuple(args, "ss", &filePath, &properties)) {
         return NULL;
@@ -42,10 +46,15 @@ static PyObject *py_init(PyObject *self, PyObject *args)
   	if (stat (filePath, &buffer) == 0) {
 		// Init matcher.
 		fiftyoneDegreesDataSetInitStatus status = fiftyoneDegreesInitWithPropertyString(filePath, &dataSet, properties);
+		//fiftyoneDegreesDataSetInitStatus status = dataSetProvider(filePath, properties, 10, 20);
 		switch (status) {
 			case DATA_SET_INIT_STATUS_SUCCESS:
-				ws = fiftyoneDegreesCreateWorkset(&dataSet);
-                Py_RETURN_NONE;
+				//ws = fiftyoneDegreesCreateWorkset(&dataSet);
+                		//ws = fiftyoneDegreesWorksetPoolGet(pool);
+				cache = fiftyoneDegreesResultsetCacheCreate(&dataSet, cacheSize);
+				pool = fiftyoneDegreesWorksetPoolCreate(&dataSet, cache, poolSize);
+				ws = fiftyoneDegreesWorksetPoolGet(pool);
+				Py_RETURN_NONE;
 			case DATA_SET_INIT_STATUS_INSUFFICIENT_MEMORY:
 				PyErr_SetString(PyExc_RuntimeError, "Unable to initialise dataset. There was insufficient memory.");
 				return NULL;
@@ -85,10 +94,11 @@ static PyObject *py_match(PyObject *self, PyObject *args)
 		// Check user agent string length.
 		if (strlen(userAgent) < MAXBUFFER) {
 		    // Match user agent.
+		    fiftyoneDegreesWorksetPool *ws = fiftyoneDegreesWorksetPoolGet(pool);
 		    fiftyoneDegreesMatch(ws, userAgent);
 
 		    // Fetch properties.
-		    if (fiftyoneDegreesProcessDeviceCSV(ws, output, OUTPUT_BUFFER_LENGTH) < 0) {
+		    if (fiftyoneDegreesProcessDeviceCSV(ws, output) < 0) {
 		        PyErr_SetString(PyExc_RuntimeError, "Failed to process device CSV.");
 		        return NULL;
 		    } else {
@@ -104,6 +114,7 @@ static PyObject *py_match(PyObject *self, PyObject *args)
 		PyErr_SetString(PyExc_RuntimeError, "Init must be called before match.");
 		return NULL;
 	}
+	fiftyoneDegreesWorksetPoolRelease(pool, ws);
 }
 
 static PyMethodDef wrapperMethods[] =
