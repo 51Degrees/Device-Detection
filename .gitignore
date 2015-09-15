@@ -30,6 +30,8 @@ node.js/node_modules/
 .ntvs_analysis.dat
 VisualStudio/TestResults
 *.nupkg
+apr/
+apr-*
 <<<<<<< HEAD
 /php/nbproject/private/
 =======
