@@ -1,10 +1,10 @@
 ﻿#include <stdio.h>
 #include <stdarg.h>
-#include "../snprintf/snprintf.h"
 #include <stdint.h>
 #include <stdlib.h>
 #include <string.h>
 #include <math.h>
+#include <ctype.h>
 #include "51Degrees.h"
 
 /* *********************************************************************
@@ -28,9 +28,8 @@
  * defined by the Mozilla Public License, v. 2.0.
  ********************************************************************** */
 
-
 /**
- * PROBLEM MEHODS
+ * PROBLEM METHODS
  */
 
 /* Change snprintf to the Microsoft version */
@@ -89,17 +88,38 @@ typedef struct t_lookup_header {
 } LOOKUP_HEADER;
 #pragma pack(pop)
 
+// A property including references to HTTP headers.
+#pragma pack(push, 4)
+typedef struct fiftyoneDegrees_property_t {
+	const int32_t stringOffset;
+	const int32_t headerCount;
+	const int32_t headerFirstIndex;
+} fiftyoneDegreesProperty;
+#pragma pack(pop)
+
 // The size of the copyright notice at the top of the data file.
 static int32_t _copyrightSize;
 
 // Pointer to the copyright notice held in the data file.
-static char* _copyright;
+static char* _copyright = NULL;
 
 // The size of the strings data array.
 static int32_t _stringsSize;
 
 // Pointer to the start of the strings data array.
-static char* _strings;
+static char* _strings = NULL;
+
+// The size of the HTTP headers data array.
+static int32_t _httpHeadersSize;
+
+// Pointer to the start of the HTTP headers data array.
+static int32_t* _httpHeaders = NULL;
+
+// The number of unique http headers.
+static int32_t _uniqueHttpHeaderCount;
+
+// Pointer to the unique list of HTTP headers.
+static int32_t* _uniqueHttpHeaders = NULL;
 
 // The number of properties contained in the system.
 static int32_t _propertiesCount;
@@ -108,10 +128,10 @@ static int32_t _propertiesCount;
 static int32_t _propertiesSize;
 
 // Pointer to the start of the pointers data array.
-static int32_t* _properties;
+static fiftyoneDegreesProperty* _properties = NULL;
 
 // Pointer to the start of the devices data array.
-static int32_t* _devices;
+static int32_t* _devices = NULL;
 
 // The size of the deviecs data array.
 static int32_t _devicesSize;
@@ -120,10 +140,10 @@ static int32_t _devicesSize;
 static int32_t _lookupListSize;
 
 // Pointer to the start of the lookup lists.
-static LOOKUP_HEADER* _lookupList;
+static LOOKUP_HEADER* _lookupList = NULL;
 
 // Offset in the device data file for the root node.
-static int32_t* _rootNode;
+static int32_t* _rootNode = NULL;
 
 // The size of the data array containing the nodes.
 static int64_t _nodesSize;
@@ -132,10 +152,10 @@ static int64_t _nodesSize;
 static int _requiredPropertiesCount;
 
 // A list of the required property indexes.
-static uint32_t* _requiredProperties;
+static uint32_t* _requiredProperties = NULL;
 
 // A list of pointers to the names of the properties.
-static char** _requiredPropertiesNames;
+static char** _requiredPropertiesNames = NULL;
 
 // Reads the strings from the file.
 fiftyoneDegreesDataSetInitStatus readStrings(FILE *inputFilePtr) {
@@ -144,21 +164,53 @@ fiftyoneDegreesDataSetInitStatus readStrings(FILE *inputFilePtr) {
 	_strings = (char*)malloc(_stringsSize);
 	if (_strings == NULL)
         return DATA_SET_INIT_STATUS_INSUFFICIENT_MEMORY;
-	if (fread(_strings, sizeof(BYTE), _stringsSize, inputFilePtr) != _stringsSize)
+	if (fread(_strings, sizeof(BYTE), (size_t)_stringsSize, inputFilePtr) != (size_t)_stringsSize)
         return DATA_SET_INIT_STATUS_CORRUPT_DATA;
     return DATA_SET_INIT_STATUS_SUCCESS;
 }
 
-// Reads the profiles from the file.
+// Reads the HTTP headers from the file.
+fiftyoneDegreesDataSetInitStatus readHttpHeaders(FILE *inputFilePtr) {
+	int headerIndex, uniqueHeaderIndex;
+	if (fread(&_httpHeadersSize, sizeof(int32_t), 1, inputFilePtr) != 1)
+		return DATA_SET_INIT_STATUS_CORRUPT_DATA;
+	_httpHeaders = (int32_t*)malloc(_httpHeadersSize);
+	_uniqueHttpHeaders = (int32_t*)malloc(_httpHeadersSize);
+	if (_httpHeaders == NULL || _uniqueHttpHeaders == NULL) {
+		if (_httpHeaders != NULL) { free(_httpHeaders); }
+		if (_uniqueHttpHeaders != NULL) { free(_uniqueHttpHeaders); }
+		return DATA_SET_INIT_STATUS_INSUFFICIENT_MEMORY;
+	}
+	if (fread(_httpHeaders, sizeof(BYTE), (size_t)_httpHeadersSize, inputFilePtr) != (size_t)_httpHeadersSize)
+		return DATA_SET_INIT_STATUS_CORRUPT_DATA;
+
+	// Set the unique HTTP header names;
+	_uniqueHttpHeaderCount = 0;
+	for (headerIndex = 0; headerIndex < (int)(_httpHeadersSize / sizeof(int32_t)); headerIndex++) {
+		for (uniqueHeaderIndex = 0; uniqueHeaderIndex < _uniqueHttpHeaderCount; uniqueHeaderIndex++) {
+			if (*(_uniqueHttpHeaders + uniqueHeaderIndex) == *(_httpHeaders + headerIndex)) {
+				break;
+			}
+		}
+		if (uniqueHeaderIndex == _uniqueHttpHeaderCount) {
+			*(_uniqueHttpHeaders + _uniqueHttpHeaderCount) = *(_httpHeaders + headerIndex);
+			_uniqueHttpHeaderCount++;
+		}
+	}
+
+	return DATA_SET_INIT_STATUS_SUCCESS;
+}
+
+// Reads the properties from the file.
 fiftyoneDegreesDataSetInitStatus readProperties(FILE *inputFilePtr) {
 	if(fread(&_propertiesSize, sizeof(int32_t), 1, inputFilePtr) != 1)
         return DATA_SET_INIT_STATUS_CORRUPT_DATA;
-	_properties = (int32_t*)malloc(_propertiesSize);
+	_properties = (fiftyoneDegreesProperty*)malloc(_propertiesSize);
 	if (_properties == NULL)
         return DATA_SET_INIT_STATUS_INSUFFICIENT_MEMORY;
-	if (fread(_properties, sizeof(BYTE), _propertiesSize, inputFilePtr) != _propertiesSize)
+	if (fread(_properties, sizeof(BYTE), (size_t)_propertiesSize, inputFilePtr) != (size_t)_propertiesSize)
         return DATA_SET_INIT_STATUS_CORRUPT_DATA;
-	_propertiesCount = _propertiesSize / sizeof(int32_t);
+	_propertiesCount = _propertiesSize / sizeof(fiftyoneDegreesProperty);
 	return DATA_SET_INIT_STATUS_SUCCESS;
 }
 
@@ -169,7 +221,7 @@ fiftyoneDegreesDataSetInitStatus readDevices(FILE *inputFilePtr) {
 	_devices = (int32_t*)malloc(_devicesSize);
 	if (_devices == NULL)
         return DATA_SET_INIT_STATUS_INSUFFICIENT_MEMORY;
-	if (fread(_devices, sizeof(BYTE), _devicesSize, inputFilePtr) != _devicesSize)
+	if (fread(_devices, sizeof(BYTE), (size_t)_devicesSize, inputFilePtr) != (size_t)_devicesSize)
         return DATA_SET_INIT_STATUS_CORRUPT_DATA;
     return DATA_SET_INIT_STATUS_SUCCESS;
 }
@@ -181,7 +233,7 @@ fiftyoneDegreesDataSetInitStatus readLookupList(FILE *inputFilePtr) {
 	_lookupList = (LOOKUP_HEADER*)malloc(_lookupListSize);
 	if (_lookupList ==NULL)
         return DATA_SET_INIT_STATUS_INSUFFICIENT_MEMORY;
-	if (fread(_lookupList, sizeof(BYTE), _lookupListSize, inputFilePtr) != _lookupListSize)
+	if (fread(_lookupList, sizeof(BYTE), _lookupListSize, inputFilePtr) != (size_t)_lookupListSize)
         return DATA_SET_INIT_STATUS_CORRUPT_DATA;
     return DATA_SET_INIT_STATUS_SUCCESS;
 }
@@ -190,11 +242,11 @@ fiftyoneDegreesDataSetInitStatus readLookupList(FILE *inputFilePtr) {
 fiftyoneDegreesDataSetInitStatus readNodes(FILE *inputFilePtr) {
 	if (fread(&_nodesSize, sizeof(int64_t), 1, inputFilePtr) != 1)
         return DATA_SET_INIT_STATUS_CORRUPT_DATA;
-	_rootNode = (int32_t*)malloc(_nodesSize);
+	_rootNode = (int32_t*)malloc((size_t)_nodesSize);
     if (_rootNode == 0)
         return DATA_SET_INIT_STATUS_INSUFFICIENT_MEMORY;
 	if (_rootNode > 0) {
-        if (fread(_rootNode, sizeof(BYTE), _nodesSize, inputFilePtr) != _nodesSize) {
+        if (fread(_rootNode, sizeof(BYTE), (size_t)_nodesSize, inputFilePtr) != (size_t)_nodesSize) {
             return DATA_SET_INIT_STATUS_CORRUPT_DATA;
         }
 	}
@@ -209,19 +261,53 @@ fiftyoneDegreesDataSetInitStatus readCopyright(FILE *inputFilePtr) {
 	_copyright = (char*)malloc(_copyrightSize);
 	if (_copyright == NULL)
         return DATA_SET_INIT_STATUS_INSUFFICIENT_MEMORY;
-	if (fread(_copyright, sizeof(BYTE), _copyrightSize, inputFilePtr) != _copyrightSize)
+	if (fread(_copyright, sizeof(BYTE), (size_t)_copyrightSize, inputFilePtr) != (size_t)_copyrightSize)
         return DATA_SET_INIT_STATUS_CORRUPT_DATA;
     return DATA_SET_INIT_STATUS_SUCCESS;
 }
 
 // Fress the memory.
 void fiftyoneDegreesDestroy(void) {
-	if (_requiredProperties > 0) free(_requiredProperties);
-	if (_rootNode > 0) free(_rootNode);
-	if (_lookupList > 0) free(_lookupList);
-	if (_devices > 0) free(_devices);
-	if (_properties > 0) free(_properties);
-	if (_strings > 0) free(_strings);
+	if (_copyright != NULL) {
+		free(_copyright);
+		_copyright = NULL;
+	}
+	if (_requiredProperties != NULL) {
+		free(_requiredProperties);
+		_requiredProperties = NULL;
+	}
+	if (_requiredPropertiesNames != NULL) {
+		free(_requiredPropertiesNames);
+		_requiredPropertiesNames = NULL;
+	}
+	if (_rootNode != NULL) {
+		free(_rootNode);
+		_rootNode = NULL;
+	}
+	if (_lookupList != NULL) {
+		free(_lookupList);
+		_lookupList = NULL;
+	}
+	if (_devices != NULL) {
+		free(_devices);
+		_devices = NULL;
+	}
+	if (_properties != NULL) {
+		free(_properties);
+		_properties = NULL;
+	}
+	if (_uniqueHttpHeaders != NULL) {
+		free(_uniqueHttpHeaders);
+		_uniqueHttpHeaders = NULL;
+	}
+	if (_httpHeaders != NULL) {
+		free(_httpHeaders);
+		_httpHeaders = NULL;
+	}
+	if (_strings != NULL) {
+		free(_strings);
+		_strings = NULL;
+	}
 }
 
 // Reads the version value from the start of the file and returns
@@ -229,7 +315,7 @@ void fiftyoneDegreesDestroy(void) {
 fiftyoneDegreesDataSetInitStatus readVersion(FILE *inputFilePtr) {
 	uint16_t version;
 	if (fread(&version, sizeof(uint16_t), 1, inputFilePtr) != -1) {
-	   if (version != 3)
+	   if (version != 32)
            return DATA_SET_INIT_STATUS_INCORRECT_VERSION;
        return DATA_SET_INIT_STATUS_SUCCESS;
    }
@@ -239,9 +325,19 @@ fiftyoneDegreesDataSetInitStatus readVersion(FILE *inputFilePtr) {
 // Reads the input file into memory returning 1 if it
 // was read unsuccessfully, otherwise 0.
 fiftyoneDegreesDataSetInitStatus readFile(char* fileName) {
+	#define READMETHODS 8
 	fiftyoneDegreesDataSetInitStatus status = DATA_SET_INIT_STATUS_SUCCESS;
-
 	FILE *inputFilePtr;
+	int readMethod;
+	fiftyoneDegreesDataSetInitStatus(*m[READMETHODS]) (FILE *inputFilePtr);
+	m[0] = readVersion;
+	m[1] = readCopyright;
+	m[2] = readStrings;
+	m[3] = readHttpHeaders;
+	m[4] = readProperties;
+	m[5] = readDevices;
+	m[6] = readLookupList;
+	m[7] = readNodes;
 
 	// Open the file and hold on to the pointer.
 	inputFilePtr = fopen(fileName, "rb");
@@ -252,42 +348,13 @@ fiftyoneDegreesDataSetInitStatus readFile(char* fileName) {
 	}
 	// Read the various data segments if the version is
 	// one we can read.
-    status = readVersion(inputFilePtr);
-    if (status != DATA_SET_INIT_STATUS_SUCCESS) {
-        fclose(inputFilePtr);
-        return status;
-    }
-	status = readCopyright(inputFilePtr);
-	if (status != DATA_SET_INIT_STATUS_SUCCESS) {
-        fclose(inputFilePtr);
-        return status;
+	for (readMethod = 0; readMethod < READMETHODS; readMethod++) {
+		status = m[readMethod](inputFilePtr);
+		if (status != DATA_SET_INIT_STATUS_SUCCESS) {
+			fiftyoneDegreesDestroy();
+			break;
+		}
 	}
-	status = readStrings(inputFilePtr);
-	if (status != DATA_SET_INIT_STATUS_SUCCESS) {
-        fclose(inputFilePtr);
-        return status;
-	}
-    status = readProperties(inputFilePtr);
-    if (status != DATA_SET_INIT_STATUS_SUCCESS) {
-        fclose(inputFilePtr);
-        return status;
-    }
-    status = readDevices(inputFilePtr);
-    if (status != DATA_SET_INIT_STATUS_SUCCESS) {
-        fclose(inputFilePtr);
-        return status;
-    }
-    status = readLookupList(inputFilePtr);
-    if (status != DATA_SET_INIT_STATUS_SUCCESS) {
-
-        fclose(inputFilePtr);
-        return status;
-    }
-	status = readNodes(inputFilePtr);
-	if (status != DATA_SET_INIT_STATUS_SUCCESS) {
-        fclose(inputFilePtr);
-        return status;
-    }
 	fclose(inputFilePtr);
 
 	return status;
@@ -295,10 +362,10 @@ fiftyoneDegreesDataSetInitStatus readFile(char* fileName) {
 
 // Returns the index of the property requested, or -1 if not available.
 int getPropertyIndexRange(char *property, size_t length) {
-	uint32_t i = 0;
+	int32_t i = 0;
 	for(i = 0; i < _propertiesCount; i++) {
 		if(strncmp(
-			_strings + *(_properties + i),
+			_strings + (_properties + i)->stringOffset,
 			property,
 			length) == 0) {
 			return i;
@@ -329,7 +396,7 @@ void initSpecificProperties(char* properties) {
 
 	// Create enough memory for the properties.
 	_requiredProperties = (uint32_t*)malloc(_requiredPropertiesCount * sizeof(int));
-	_requiredPropertiesNames = (char**)malloc(_requiredPropertiesCount * sizeof(char**));
+	_requiredPropertiesNames = (char**)malloc(_requiredPropertiesCount * sizeof(char*));
 
 	start = properties;
 	end = properties - 1;
@@ -340,7 +407,7 @@ void initSpecificProperties(char* properties) {
 			propertyIndex = getPropertyIndexRange(start, (end - start));
 			if (propertyIndex > 0) {
 				*(_requiredProperties + currentIndex) = propertyIndex;
-				*(_requiredPropertiesNames + currentIndex) = _strings + *(_properties + propertyIndex);
+				*(_requiredPropertiesNames + currentIndex) = _strings + (_properties + propertyIndex)->stringOffset;
 				currentIndex++;
 			}
 			start = end + 1;
@@ -351,54 +418,53 @@ void initSpecificProperties(char* properties) {
 
 // Initialises the properties provided.
 void initSpecificPropertiesFromArray(char** properties, int count) {
-   int i;
-	int propertyIndex, currentIndex = 0;
-   char *currentProperty;
-   int currentLength = 0;
+    int i;
+    int propertyIndex, currentIndex = 0;
+    char *currentProperty;
+    int currentLength = 0;
 
 	// Count the number of valid properties.
 	_requiredPropertiesCount = 0;
-   for (i = 0; i < count; i++) {
+    for (i = 0; i < count; i++) {
       currentProperty = properties[i];
-      currentLength = strlen(currentProperty);
+      currentLength = (int)strlen(currentProperty);
       if (getPropertyIndexRange(currentProperty, currentLength) > 0)
-			_requiredPropertiesCount++;
-   }
+            _requiredPropertiesCount++;
+    }
 
 	// Create enough memory for the properties.
 	_requiredProperties = (uint32_t*)malloc(_requiredPropertiesCount * sizeof(int));
-	_requiredPropertiesNames = (char**)malloc(_requiredPropertiesCount * sizeof(char**));
-
+	_requiredPropertiesNames = (char**)malloc(_requiredPropertiesCount * sizeof(char*));
 
 	// Initialise the requiredProperties array.
-   for (i = 0; i < count; i++ ) {
+	for (i = 0; i < count; i++ ) {
       currentProperty = properties[i];
-      currentLength = strlen(currentProperty);
+      currentLength = (int)strlen(currentProperty);
       // If this is a valid property add it to the list.
 		propertyIndex = getPropertyIndexRange(currentProperty, currentLength);
 		if (propertyIndex > 0) {
 			*(_requiredProperties + currentIndex) = propertyIndex;
-			*(_requiredPropertiesNames + currentIndex) = _strings + *(_properties + propertyIndex);
+			*(_requiredPropertiesNames + currentIndex) = _strings + (_properties + propertyIndex)->stringOffset;
 			currentIndex++;
 		}
    }
 }
 
 // Initialises all the available properties.
-void initAllProperties() {
-	uint32_t i;
+void initAllProperties(void) {
+	int32_t i;
 
 	// Set to include all properties.
 	_requiredPropertiesCount = _propertiesCount;
 
 	// Create enough memory for the properties.
 	_requiredProperties = (uint32_t*)malloc(_requiredPropertiesCount * sizeof(int));
-	_requiredPropertiesNames = (char**)malloc(_requiredPropertiesCount * sizeof(char**));
+	_requiredPropertiesNames = (char**)malloc(_requiredPropertiesCount * sizeof(char*));
 
 	// Add all the available properties.
 	for(i = 0; i < _propertiesCount; i++) {
 		*(_requiredProperties + i) = i;
-		*(_requiredPropertiesNames + i) = _strings + *(_properties + i);
+		*(_requiredPropertiesNames + i) = _strings + (_properties + i)->stringOffset;
 	}
 }
 
@@ -406,16 +472,13 @@ void initAllProperties() {
 fiftyoneDegreesDataSetInitStatus fiftyoneDegreesInitWithPropertyString(char* fileName, char* properties) {
 	fiftyoneDegreesDataSetInitStatus status = DATA_SET_INIT_STATUS_SUCCESS;
     status = readFile(fileName);
-    if (status != DATA_SET_INIT_STATUS_SUCCESS) {
-        return status;
-    }
-
-	// If no properties are provided then use all of them.
-	if (properties == NULL || strlen(properties) == 0)
-		initAllProperties();
-	else
-		initSpecificProperties(properties);
-
+	if (status == DATA_SET_INIT_STATUS_SUCCESS) {
+		// If no properties are provided then use all of them.
+		if (properties == NULL || strlen(properties) == 0)
+			initAllProperties();
+		else
+			initSpecificProperties(properties);
+	}
 	return status;
 }
 
@@ -434,10 +497,10 @@ fiftyoneDegreesDataSetInitStatus fiftyoneDegreesInitWithPropertyArray(char* file
 
 // Returns the index of the property requested, or -1 if not available.
 int fiftyoneDegreesGetPropertyIndex(char *value) {
-	uint32_t i = 0;
+	int32_t i;
 	for(i = 0; i < _propertiesCount; i++) {
 		if(strcmp(
-			_strings + *(_properties + i),
+			_strings + (_properties + i)->stringOffset,
 			value) == 0) {
 			return i;
 		}
@@ -499,17 +562,18 @@ int32_t* getNextNode(NODE_CHILDREN* children, BYTE childIndex) {
 }
 
 // Declaration of main device index function.
-int32_t getDeviceIndexForNode(char* userAgent, int32_t* node, int32_t parentDeviceIndex);
+int32_t getDeviceIndexForNode(char** userAgent, int32_t* node, int32_t parentDeviceIndex);
 
-int32_t getDeviceIndexChildren(char* userAgent, BYTE childIndex, NODE_CHILDREN *children, int parentDeviceIndex) {
+int32_t getDeviceIndexChildren(char** userAgent, BYTE childIndex, NODE_CHILDREN *children, int parentDeviceIndex) {
+	*userAgent = *userAgent + 1;
     return getDeviceIndexForNode(
-        &userAgent[1],
+        userAgent,
         getNextNode(children, childIndex),
         parentDeviceIndex);
 }
 
-int32_t getDeviceIndexFullNode(char* userAgent, NODE_FULL* node) {
-    BYTE childIndex = getChildIndex(*userAgent, node->lookupListOffset);
+int32_t getDeviceIndexFullNode(char** userAgent, NODE_FULL* node) {
+    BYTE childIndex = getChildIndex(**userAgent, node->lookupListOffset);
 
     // If the child index is invalid then return this device index.
     if (childIndex >= node->children.numberOfChildren)
@@ -519,8 +583,8 @@ int32_t getDeviceIndexFullNode(char* userAgent, NODE_FULL* node) {
     return getDeviceIndexChildren(userAgent, childIndex, &(node->children), node->deviceIndex);
 }
 
-int32_t getDeviceIndexNoDeviceNode(char* userAgent, NODE_NO_DEVICE_INDEX* node, int32_t parentDeviceIndex) {
-    BYTE childIndex = getChildIndex(*userAgent, abs(node->lookupListOffset));
+int32_t getDeviceIndexNoDeviceNode(char** userAgent, NODE_NO_DEVICE_INDEX* node, int32_t parentDeviceIndex) {
+    BYTE childIndex = getChildIndex(**userAgent, abs(node->lookupListOffset));
 
     // If the child index is invalid then return this device index.
     if (childIndex >= node->children.numberOfChildren)
@@ -533,7 +597,7 @@ int32_t getDeviceIndexNoDeviceNode(char* userAgent, NODE_NO_DEVICE_INDEX* node, 
 // Gets the index of the device associated with the user agent pointer
 // provided. The method moves right along the user agent by shifting
 // the pointer to the user agent left.
-int32_t getDeviceIndexForNode(char* userAgent, int32_t* node, int32_t parentDeviceIndex) {
+int32_t getDeviceIndexForNode(char** userAgent, int32_t* node, int32_t parentDeviceIndex) {
     if (*node >= 0)
 		return getDeviceIndexFullNode(userAgent, (NODE_FULL*)node);
 	return getDeviceIndexNoDeviceNode(userAgent, (NODE_NO_DEVICE_INDEX*)node, parentDeviceIndex);
@@ -541,12 +605,153 @@ int32_t getDeviceIndexForNode(char* userAgent, int32_t* node, int32_t parentDevi
 
 // Returns the index to a matching device based on the useragent provided.
 int32_t getDeviceIndex(char* userAgent) {
-	return getDeviceIndexForNode(userAgent, _rootNode, -1);
+	return getDeviceIndexForNode(&userAgent, _rootNode, -1);
+}
+
+// Returns the number of characters which matched in the trie.
+int fiftyoneDegreesGetMatchedUserAgentLength(char *userAgent) {
+	char *lastCharacter = userAgent;
+	getDeviceIndexForNode(&lastCharacter, _rootNode, -1);
+	return (int)(lastCharacter - userAgent);
 }
 
 // Returns the offset in the properties list to the first value for the device.
-int32_t fiftyoneDegreesGetDeviceOffset(char* userAgent) {
+int fiftyoneDegreesGetDeviceOffset(char* userAgent) {
     return getDeviceIndex(userAgent) * _propertiesCount;
+}
+
+/**
+ * Sets name to the start of the http header name and returns the length of
+ * the string. A space or colon are used to identify the end of the header
+ * name.
+ * @param start of the string to be processed
+ * @param end of the string to be processed
+ * @param value to be set when returned
+ * @returns the number of characters in the value
+ */
+int setNextHttpHeaderName(char* start, char* end, char** name) {
+	char *current = start, *lastChar = start;
+	while (current <= end) {
+		if (*current == ' ' ||
+            *current == ':') {
+			*name = lastChar;
+			return (int)(current - lastChar);
+		}
+		if (*current == '\r' ||
+			*current == '\n') {
+			lastChar = current + 1;
+		}
+		current++;
+	}
+	return 0;
+}
+
+/**
+ * Sets the value pointer to the start of the next HTTP header value and
+ * returns the length.
+ * @param start of the string to be processed
+ * @param end of the string to be processed
+ * @param value to be set when returned
+ * @returns the number of characters in the value
+ */
+int setNextHttpHeaderValue(char* start, char *end, char** value) {
+	char *lastChar = start, *current;
+
+	// Move to the first non-space character.
+	while (lastChar <= end && (
+            *lastChar == ' ' ||
+            *lastChar == ':')) {
+        lastChar++;
+	}
+
+	// Set the value to the start character.
+	*value = lastChar;
+	current = lastChar;
+
+	// Loop until end of line or end of string.
+	while (current <= end) {
+		if (*current == '\r' ||
+			*current == '\n') {
+			*value = lastChar;
+			break;
+		}
+		current++;
+	}
+	return (int)(current - lastChar);
+}
+
+
+/**
+* Compares two header strings for case insensitive equality and where -
+* are replaced with _. The http header name must be the same length
+* as the unique header.
+* @param httpHeaderName string to be checked for equality
+* @param uniqueHeader the unique HTTP header to be compared
+* @param length of the strings
+* @returns 0 if both strings are equal, otherwise the different between
+*          the first mismatched characters
+*/
+int headerCompare(char *httpHeaderName, const char *uniqueHeader, int length) {
+	int index, difference;
+	for (index = 0; index < length; index++) {
+		if (httpHeaderName[index] == '_') {
+			difference = '-' - uniqueHeader[index];
+		}
+		else {
+			difference = tolower(httpHeaderName[index]) - tolower(uniqueHeader[index]);
+		}
+		if (difference != 0) {
+			return difference;
+		}
+	}
+	return 0;
+}
+
+// Returns the index of the unique header, or -1 if the header is not important.
+int getUniqueHttpHeaderIndex(char* httpHeaderName, int length) {
+	int uniqueHeaderIndex;
+	static const char httpPrefix[] = "HTTP_";
+	static const int httpPrefixLength = sizeof(httpPrefix) - 1;
+	char *adjustedHttpHeaderName;
+
+	// Check if header is from a Perl or PHP wrapper in the form of HTTP_*
+	// and if present skip these characters.
+	if (strncmp(httpHeaderName, httpPrefix, httpPrefixLength) == 0) {
+		adjustedHttpHeaderName = httpHeaderName + httpPrefixLength;
+		length -= httpPrefixLength;
+	}
+	else {
+		adjustedHttpHeaderName = httpHeaderName;
+	}
+
+	for (uniqueHeaderIndex = 0; uniqueHeaderIndex < _uniqueHttpHeaderCount; uniqueHeaderIndex++) {
+		if (strlen(_strings + _uniqueHttpHeaders[uniqueHeaderIndex]) == length &&
+			headerCompare(adjustedHttpHeaderName, _strings + _uniqueHttpHeaders[uniqueHeaderIndex], length) == 0) {
+			return uniqueHeaderIndex;
+		}
+	}
+	return -1;
+}
+
+// Returns the offsets to a matching devices based on the http headers provided.
+fiftyoneDegreesDeviceOffsets* fiftyoneDegreesGetDeviceOffsetsWithHeadersString(char *httpHeaders, size_t size) {
+	char *headerName, *headerValue, *endOfHeaders = httpHeaders + size;
+	int headerNameLength, headerValueLength, uniqueHeaderIndex = 0;
+	fiftyoneDegreesDeviceOffsets* offsets = (fiftyoneDegreesDeviceOffsets*)malloc(_uniqueHttpHeaderCount * sizeof(fiftyoneDegreesDeviceOffsets));
+	offsets->size = 0;
+	headerNameLength = setNextHttpHeaderName(httpHeaders, endOfHeaders, &headerName);
+	while (headerNameLength > 0 &&
+		   offsets->size < _uniqueHttpHeaderCount) {
+		headerValueLength = setNextHttpHeaderValue(headerName + headerNameLength, endOfHeaders, &headerValue);
+		uniqueHeaderIndex = getUniqueHttpHeaderIndex(headerName, headerNameLength);
+		if (uniqueHeaderIndex >= 0) {
+			(&offsets->firstOffset + offsets->size)->httpHeaderOffset = *(_uniqueHttpHeaders + uniqueHeaderIndex);
+			(&offsets->firstOffset + offsets->size)->deviceOffset = fiftyoneDegreesGetDeviceOffset(headerValue);
+			offsets->size++;
+		}
+		headerNameLength = setNextHttpHeaderName(headerValue + headerValueLength, endOfHeaders, &headerName);
+	}
+	return offsets;
 }
 
 char* getValueFromDevice(int32_t* device, int32_t propertyIndex) {
@@ -558,13 +763,91 @@ char* fiftyoneDegreesGetValue(int deviceOffset, int propertyIndex) {
     return getValueFromDevice(_devices + deviceOffset, propertyIndex);
 }
 
+// Sets the http header string to the header name at the index provided.
+int fiftyoneDegreesGetHttpHeaderName(int httpHeaderIndex, char* httpHeader, int size) {
+	int length = 0;
+	if (httpHeaderIndex < _uniqueHttpHeaderCount) {
+		length = (int)strlen(_strings + _uniqueHttpHeaders[httpHeaderIndex]);
+		if (length <= size) {
+			// Copy the string and return the length.
+			strcpy(httpHeader, _strings + _uniqueHttpHeaders[httpHeaderIndex]);
+		}
+		else {
+			// The http header is not large enough. Return it's required length.
+			// as a negative.
+			length = -length;
+		}
+	}
+	return length;
+}
+
+// Sets the propertyname string to the property name at the index provided.
+int fiftyoneDegreesGetRequiredPropertyName(int requiredPropertyIndex, char* propertyName, int size) {
+	int length = 0;
+	if (requiredPropertyIndex < _requiredPropertiesCount) {
+		length = (int)strlen(_requiredPropertiesNames[requiredPropertyIndex]);
+		if (length <= size) {
+			// Copy the string and return the length.
+			strcpy(propertyName, _requiredPropertiesNames[requiredPropertyIndex]);
+		}
+		else {
+			// The property name is not large enough. Return it's required length.
+			// as a negative.
+			length = -length;
+		}
+	}
+	return length;
+}
+
+int setValueFromDeviceOffset(int32_t deviceOffset, int32_t propertyIndex, char* values, int size) {
+	char *value = fiftyoneDegreesGetValue(deviceOffset, propertyIndex);
+	int length = (int)strlen(value);
+	if (length <= size) {
+		strcpy(values, value);
+	}
+	else {
+		length = -length;
+	}
+	return length;
+}
+
+// Sets the values string to the property values for the device offests and index provided.
+int fiftyoneDegreesGetValueFromOffsets(fiftyoneDegreesDeviceOffsets* deviceOffsets, int requiredPropertyIndex, char* values, int size) {
+	int deviceHttpHeaderIndex, propertyHttpHeaderIndex;
+	int32_t propertyHttpHeaderOffset;
+	fiftyoneDegreesProperty *property;
+	if (deviceOffsets->size == 1) {
+		return setValueFromDeviceOffset(
+			deviceOffsets->firstOffset.deviceOffset,
+			*(_requiredProperties + requiredPropertyIndex),
+			values,
+			size);
+	}
+	else {
+		property = _properties + _requiredProperties[requiredPropertyIndex];
+		for (propertyHttpHeaderIndex = 0; propertyHttpHeaderIndex < property->headerCount; propertyHttpHeaderIndex++) {
+			propertyHttpHeaderOffset = *(_httpHeaders + property->headerFirstIndex + propertyHttpHeaderIndex);
+			for (deviceHttpHeaderIndex = 0; deviceHttpHeaderIndex < deviceOffsets->size; deviceHttpHeaderIndex++) {
+				if (propertyHttpHeaderOffset == (&deviceOffsets->firstOffset + deviceHttpHeaderIndex)->httpHeaderOffset) {
+					return setValueFromDeviceOffset(
+						(&deviceOffsets->firstOffset + deviceHttpHeaderIndex)->deviceOffset,
+						_requiredProperties[requiredPropertyIndex],
+						values,
+						size);
+				}
+			}
+		}
+	}
+	return 0;
+}
+
 // Returns how many properties have been loaded in the dataset.
-int32_t fiftyoneDegreesGetRequiredPropertiesCount() {
+int32_t fiftyoneDegreesGetRequiredPropertiesCount(void) {
   return _requiredPropertiesCount;
 }
 
 // Returns the names of the properties loaded in the dataset.
-char ** fiftyoneDegreesGetRequiredPropertiesNames() {
+char ** fiftyoneDegreesGetRequiredPropertiesNames(void) {
   return _requiredPropertiesNames;
 }
 
@@ -572,7 +855,7 @@ char ** fiftyoneDegreesGetRequiredPropertiesNames() {
 int fiftyoneDegreesProcessDeviceCSV(int32_t deviceOffset, char* result, int resultLength) {
 	char* currentPos = result;
 	char* endPos = result + resultLength;
-	uint32_t i;
+	int32_t i;
 	int32_t* device = _devices + deviceOffset;
 
 	// If no properties return nothing.
@@ -606,7 +889,7 @@ int fiftyoneDegreesProcessDeviceJSON(int32_t deviceOffset, char* result, int res
 	int32_t deviceValueLength, deviceValueIndex;
 	char* currentPos = result;
 	char* endPos = result + resultLength;
-	uint32_t i;
+	int32_t i;
 	int32_t* device = _devices + deviceOffset;
 
 	// If no properties return empty JSON.
@@ -619,17 +902,16 @@ int fiftyoneDegreesProcessDeviceJSON(int32_t deviceOffset, char* result, int res
 
 	// Process each line of data using the relevant value separator. In this case, a pipe.
 	for(i = 0; i < _requiredPropertiesCount; i++) {
-		
-	
+
 		// Add the next property to the buffer.
 		currentPos += snprintf(
 			currentPos,
 			(int)(endPos - currentPos),
 			"\"%s\": \"",
 			*(_requiredPropertiesNames + i));
-			
+
 			deviceValue = getValueFromDevice(device, *(_requiredProperties + i));
-			deviceValueLength = strlen(deviceValue);
+			deviceValueLength = (int32_t)strlen(deviceValue);
 			for(deviceValueIndex = 0; deviceValueIndex < deviceValueLength; deviceValueIndex++) {
 				if(deviceValue[deviceValueIndex] == 0){
 					break;

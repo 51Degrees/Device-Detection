@@ -1,6 +1,10 @@
 %module "FiftyOneDegrees::TrieV3"
 %{ 
+<<<<<<< HEAD
 #include "trie/51Degrees.h"
+=======
+#include "../../../src/trie/51Degrees.h"
+>>>>>>> V32
 #ifdef __cplusplus
 #define EXTERNAL extern "C"
 #else
@@ -14,7 +18,11 @@ fiftyoneDegreesDataSetInitStatus getInitStatus() {
 
 %}
 
+<<<<<<< HEAD
 %include "trie/51Degrees.h"
+=======
+%include "../../../src/trie/51Degrees.h"
+>>>>>>> V32
 %include exception.i
 
 %exception dataSetInitWithPropertyString {
@@ -45,8 +53,16 @@ fiftyoneDegreesDataSetInitStatus getInitStatus() {
 
 %inline %{
 
+<<<<<<< HEAD
   void dataSetInitWithPropertyString(char *fileName, char* properties) {
 	initStatus = (DataSetInitStatus)fiftyoneDegreesInitWithPropertyString(fileName, properties);
+=======
+  void destroy(){
+      fiftyoneDegreesDestroy();
+  } 
+  void dataSetInitWithPropertyString(char *fileName, char* properties) {
+	initStatus = (fiftyoneDegreesDataSetInitStatus)fiftyoneDegreesInitWithPropertyString(fileName, properties);
+>>>>>>> V32
 	if (initStatus != DATA_SET_INIT_STATUS_SUCCESS) {
 	  fiftyoneDegreesDestroy();
 	}
@@ -59,6 +75,21 @@ fiftyoneDegreesDataSetInitStatus getInitStatus() {
       return output;
     }
   }
+<<<<<<< HEAD
+=======
+  
+   char* getMatchWithHeaders(char* userHeader) {
+    char output[50000];
+    fiftyoneDegreesDeviceOffsets *deviceoffset;
+    int js_int;
+    if (strlen(userHeader) > 0) {
+      deviceoffset = fiftyoneDegreesGetDeviceOffsetsWithHeadersString(userHeader, strlen(userHeader));
+      js_int = fiftyoneDegreesGetValueFromOffsets(deviceoffset, 0, output, 5000 );
+      fiftyoneDegreesProcessDeviceJSON(js_int, output, 50000);
+      return output;
+    }
+  }
+>>>>>>> V32
 
 %}
 
