@@ -4,6 +4,9 @@
 #define PORTABLE_SNPRINTF_VERSION_MAJOR 2
 #define PORTABLE_SNPRINTF_VERSION_MINOR 2
 
+#include<stdarg.h>
+#include<stdlib.h>
+
 #ifdef HAVE_SNPRINTF
 #include <stdio.h>
 #else

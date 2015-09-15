@@ -10,7 +10,6 @@ from abc import ABCMeta
 from fiftyone_degrees.mobile_detector.conf import settings
 from fiftyone_degrees.mobile_detector import usage
 
-
 class Device(object):
     '''Simple device wrapper.
 
@@ -90,12 +89,7 @@ class _WrapperMatcher(_Matcher):
     __metaclass__ = ABCMeta
 
     def __init__(self, module, package):
-        try:
-            self._module = __import__(module)
-        except ImportError:
-            raise Exception(
-                'Requested matching method is not available. '
-                'Please install "%s" package.' % package)
+	self._module = __import__(module)
 
     def _match(self, user_agent):
         # Delegate on wrapped implementation.
@@ -157,7 +151,7 @@ class _V3WrapperMatcher(_WrapperMatcher):
                     'exist or is not readable. Please, '
                     'check your settings.' % settings.V3_WRAPPER_DATABASE)
             else:
-                self._module.init(
+		self._module.init(
                     settings.V3_WRAPPER_DATABASE,
                     '|'.join(settings.PROPERTIES))
         else:
