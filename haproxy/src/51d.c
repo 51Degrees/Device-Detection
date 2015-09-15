@@ -160,7 +160,7 @@ static int _51d_fetch(const struct arg *args, struct sample *smp, const char *kw
 #ifdef FIFTYONEDEGREES_H_PATTERN_INCLUDED
 	fiftyoneDegreesWorkset* ws; /* workset for detection */
 	struct lru64 *lru = NULL;
-	char *cacheEntry;
+	char *cacheEntry, *methodName;
 #endif
 #ifdef FIFTYONEDEGREES_H_TRIE_INCLUDED
 	char valuesBuffer[1024];
@@ -228,14 +228,36 @@ static int _51d_fetch(const struct arg *args, struct sample *smp, const char *kw
 		/* Try to find request property in dataset. */
 		found = 0;
 #ifdef FIFTYONEDEGREES_H_PATTERN_INCLUDED
-		for (j = 0; j < ws->dataSet->requiredPropertyCount; j++) {
-			property_name = fiftyoneDegreesGetPropertyName(ws->dataSet, ws->dataSet->requiredProperties[j]);
-			if (strcmp(property_name, args[i].data.str.str) == 0) {
-				found = 1;
-				fiftyoneDegreesSetValues(ws, j);
-				chunk_appendf(temp, "%s", fiftyoneDegreesGetValueName(ws->dataSet, *ws->values));
-				break;
-			}
+        if (strcmp("Method", args[i].data.str.str) == 0) {
+            switch(ws->method) {
+                case EXACT: methodName = "Exact"; break;
+                case NUMERIC: methodName = "Numeric"; break;
+                case NEAREST: methodName = "Nearest"; break;
+                case CLOSEST: methodName = "Closest"; break;
+                default:
+                case NONE: methodName = "None"; break;
+            }
+            chunk_appendf(temp, "%s", methodName);
+            found = 1;
+        }
+        else if (strcmp("Difference", args[i].data.str.str) == 0) {
+            chunk_appendf(temp, "%d", ws->difference);
+            found = 1;
+        }
+        else if (strcmp("Rank", args[i].data.str.str) == 0) {
+            chunk_appendf(temp, "%d", fiftyoneDegreesGetSignatureRank(ws));
+            found = 1;
+        }
+        else {
+            for (j = 0; j < ws->dataSet->requiredPropertyCount; j++) {
+                property_name = fiftyoneDegreesGetPropertyName(ws->dataSet, ws->dataSet->requiredProperties[j]);
+                if (strcmp(property_name, args[i].data.str.str) == 0) {
+                    found = 1;
+                    fiftyoneDegreesSetValues(ws, j);
+                    chunk_appendf(temp, "%s", fiftyoneDegreesGetValueName(ws->dataSet, *ws->values));
+                    break;
+                }
+            }
 		}
 #endif
 #ifdef FIFTYONEDEGREES_H_TRIE_INCLUDED
