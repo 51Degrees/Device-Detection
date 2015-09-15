@@ -295,6 +295,7 @@ int tlimit = 0;         /* time limit in secs */
 int keepalive = 0;      /* try and do keepalive connections */
 int windowsize = 0;     /* we use the OS default window size */
 char servername[1024];  /* name that server reports */
+char uniqueRequest[2048]; /* string that forms the request */
 char *hostname;         /* host name from URL */
 char *host_field;       /* value of "Host:" header field */
 char *path;             /* path name */
@@ -681,8 +682,7 @@ static void ssl_proceed_handshake(struct connection *c)
 static void write_request(struct connection * c)
 {
     char *src, *dst, *uaStart;
-    char uniqueRequest[2048];
-    int randomCharacters;
+    int randomCharacters, uaLength;
     char USER_AGENT_HEADER[] = "User-Agent:";
     apr_size_t uniqueRequestLength;
 
@@ -702,13 +702,18 @@ static void write_request(struct connection * c)
                     "%s\r\n",
                     userAgents[rand() % userAgentsCount]);
 
-                /* randomly modify up to 10 characters to stress detection and caching */
+                /*
+                 * randomly modify up to 10 characters to stress detection and caching.
+                 * ignore the last 2 characters as these are the carriage return and
+                 * new line which should not be altered.
+                 */
                 randomCharacters = rand() % 10;
+                uaLength = (dst - uaStart) - 2;
                 while (randomCharacters > 0) {
                     if (rand() % 2 == 1) {
-                        uaStart[rand() % (dst - uaStart)]++;
+                        uaStart[rand() % uaLength]++;
                     } else {
-                        uaStart[rand() % (dst - uaStart)]--;
+                        uaStart[rand() % uaLength]--;
                     }
                     randomCharacters--;
                 }
@@ -769,7 +774,7 @@ static void write_request(struct connection * c)
         }
         else
 #endif
-            e = apr_socket_send(c->aprsock, uniqueRequest + c->rwrote, &l);
+        e = apr_socket_send(c->aprsock, uniqueRequest + c->rwrote, &l);
 
         if (e != APR_SUCCESS && !APR_STATUS_IS_EAGAIN(e)) {
             epipe++;
@@ -781,6 +786,10 @@ static void write_request(struct connection * c)
         c->rwrote += l;
         c->rwrite -= l;
     } while (c->rwrite);
+
+    if (verbosity >= 3) {
+        printf("\nLOG: Request sent\n%s\n", uniqueRequest);
+    }
 
     c->endwrite = lasttime = apr_time_now();
     set_conn_state(c, STATE_READ);
@@ -1465,7 +1474,7 @@ static void read_connection(struct connection * c)
         c->cbx += tocopy;
         space -= tocopy;
         c->cbuff[c->cbx] = 0;   /* terminate for benefit of strstr */
-        if (verbosity >= 2) {
+        if (verbosity >= 3) {
             printf("LOG: header received:\n%s\n", c->cbuff);
         }
         s = strstr(c->cbuff, "\r\n\r\n");
@@ -1529,8 +1538,10 @@ static void read_connection(struct connection * c)
 
             if (respcode[0] != '2') {
                 err_response++;
-                if (verbosity >= 2)
-                    printf("WARNING: Response code not 2xx (%s)\n", respcode);
+                if (verbosity >= 2) {
+                    printf("WARNING: Response code not 2xx (%s) for request\n", respcode);
+                    printf("%s\n", uniqueRequest);
+                }
             }
             else if (verbosity >= 3) {
                 printf("LOG: Response code = %s\n", respcode);
@@ -1595,24 +1606,37 @@ static void read_connection(struct connection * c)
 }
 
 void initUserAgents(const char *userAgentFilePath) {
+    int u;
     FILE *userAgentsFile = fopen(
         userAgentFilePath != NULL ? userAgentFilePath :
         "../Device-Detection/data/20000 User Agents.csv",
         "r");
-    char *userAgent = fgets(
-        userAgents[userAgentsCount],
-        USERAGENT_MAX_LENGTH,
-        userAgentsFile);
-    while (userAgent != NULL &&
-        userAgentsCount < USERAGENT_COUNT) {
-        // remove the trailing \n
-        userAgents[userAgentsCount][strlen(userAgents[userAgentsCount]) - 1] = 0;
-        userAgentsCount++;
+    char *userAgent;
+    do {
         userAgent = fgets(
             userAgents[userAgentsCount],
             USERAGENT_MAX_LENGTH,
             userAgentsFile);
+        if (userAgent == NULL) {
+            break;
+        }
+        userAgents[userAgentsCount][strlen(userAgents[userAgentsCount]) - 1] = 0;
+        userAgentsCount++;
+    } while (userAgentsCount < USERAGENT_COUNT);
+
+    /* Check for any stray non white space characters that aren't spaces and change
+     * them to spaces
+     */
+    for(u = 0; u < userAgentsCount; u++) {
+        userAgent = userAgents[u];
+        while (*userAgent != 0) {
+            if (isspace(*userAgent) && *userAgent != ' ') {
+                *userAgent = ' ';
+            }
+            userAgent++;
+        }
     }
+
     fclose(userAgentsFile);
 }
 
