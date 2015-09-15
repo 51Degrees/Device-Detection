@@ -1,0 +1,10 @@
+{
+  "name": "FiftyOne.WebSite",
+  "version": "0.0.0",
+  "description": "FiftyOne.WebSite",
+  "main": "server.js",
+  "author": {
+    "name": "james",
+    "email": ""
+  }
+}

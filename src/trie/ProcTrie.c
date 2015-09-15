@@ -5,6 +5,7 @@
 
 int main(int argc, char* argv[]) {
 	char input[50000], output[50000];
+	char *result;
 
     if (argc > 1) {
       char *fileName = argc > 1 ? argv[1] : NULL;
@@ -23,9 +24,8 @@ int main(int argc, char* argv[]) {
           printf("Device data file '%s' not found.", argv[1]);
           break;
         default: {
-          gets(input);
-
-          while(strlen(input) > 0) {
+          result = fgets(input, 50000, stdin);
+          while(result != 0) {
             fiftyoneDegreesProcessDeviceCSV(fiftyoneDegreesGetDeviceOffset(input), output, 50000);
             printf("%s", output);
 
@@ -34,7 +34,7 @@ int main(int argc, char* argv[]) {
             fflush(stdout);
 
             // Get the next useragent.
-            gets(input);
+            result = fgets(input, 50000, stdin);
           }
           fiftyoneDegreesDestroy();
           break;

@@ -1,15 +1,5 @@
-Console
-PerfPat
-PerfTrie
-ProcPat
-ProcTrie
-*.dat
-php/*
-!php/src/*
-!php/PHPExtensionReadMe.txt
-!php/config.m4
-!php/fiftyone_degrees_v3_extension.c
 *.o
+<<<<<<< HEAD
 *.so
 *.exe
 *bin*
@@ -48,3 +38,41 @@ build/
 *.trie
 *.log
 
+=======
+*.user
+*.dll
+*.exe
+*.exe.*
+*.lib
+*.exp
+*.pdb
+*.suo
+*.sdf
+*.layout
+*.depend
+*.lic
+*.pfk
+*.psess
+doxygen/
+*Enterprise*.dat
+*Premium*.dat
+*Enterprise*.trie
+*Premium*.trie
+*.coverage
+*.opensdf
+million.csv
+Debug/
+Release/
+bin/
+obj/
+node.js/build/
+node.js/node_modules/
+.ntvs_analysis.dat
+VisualStudio/TestResults
+*.nupkg
+<<<<<<< HEAD
+/php/nbproject/private/
+=======
+*.user
+>>>>>>> aaf54219dbf1cff2304b40469c66e4621dcc5260
+>>>>>>> V32

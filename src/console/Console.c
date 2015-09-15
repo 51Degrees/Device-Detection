@@ -1,13 +1,53 @@
 #include <stdio.h>
+#include <stdlib.h>
 #include <string.h>
 #include "../pattern/51Degrees.h"
+
+/* *********************************************************************
+* This Source Code Form is copyright of 51Degrees Mobile Experts Limited.
+* Copyright 2014 51Degrees Mobile Experts Limited, 5 Charlotte Close,
+* Caversham, Reading, Berkshire, United Kingdom RG4 7BY
+*
+* This Source Code Form is the subject of the following patent
+* applications, owned by 51Degrees Mobile Experts Limited of 5 Charlotte
+* Close, Caversham, Reading, Berkshire, United Kingdom RG4 7BY:
+* European Patent Application No. 13192291.6; and
+* United States Patent Application Nos. 14/085,223 and 14/085,301.
+*
+* This Source Code Form is subject to the terms of the Mozilla Public
+* License, v. 2.0.
+*
+* If a copy of the MPL was not distributed with this file, You can obtain
+* one at http://mozilla.org/MPL/2.0/.
+*
+* This Source Code Form is "Incompatible With Secondary Licenses", as
+* defined by the Mozilla Public License, v. 2.0.
+********************************************************************** */
 
 #ifndef NULL
 #define NULL 0
 #endif
 
-char* TARGET_USER_AGENTS[] = {
+/* Change snprintf to the Microsoft version */
+#ifdef _MSC_VER
+#define snprintf _snprintf
+#endif
+
+#define RANDOM_INDEX(r) rand() / (RAND_MAX / r + 1)
+
+char *HTTP_HEADERS[] = {
+	"User-Agent",
+	"Device-Stock-UA",
+	"x-Device-User-Agent",
+	"X-Device-User-Agent",
+	"X-OperaMini-Phone-UA"
+};
+int HTTP_HEADERS_LENGTH = 5;
+
+char *TARGET_USER_AGENTS[] = {
     // Internet explorer
+    "Mozilla/5.0 (Windows NT 6.1; WOW64; Trident/7.0; rv:11.0) like Gecko",
+    // Internet explorer (again to test the cache)
     "Mozilla/5.0 (Windows NT 6.1; WOW64; Trident/7.0; rv:11.0) like Gecko",
     // A set top box running Android, not a mobile device.
     "Mozilla/5.0 (Linux; U; Android 4.1.1; nl-nl; Rikomagic MK802IIIS Build/JRO03H) AppleWebKit/534.30 (KHTML, like Gecko) Version/4.0 Safari/534.30",
@@ -18,15 +58,25 @@ char* TARGET_USER_AGENTS[] = {
     // Crawler
     "Mozilla/5.0 (compatible; AhrefsBot/3.1; +http://ahrefs.com/robot/)",
     // Modern version of Chrome
-    "Mozilla/5.0 (Windows NT 6.3; WOW64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/32.0.1700.107 Safari/537.36"
+    "Mozilla/5.0 (Windows NT 6.3; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/43.0.2357.81 Safari/537.36",
+    // Internet explorer (again to test the cache)
+    "Mozilla/5.0 (Windows NT 6.1; WOW64; Trident/7.0; rv:11.0) like Gecko",
+	// Non Mozilla prefixed
+	"Dalvik/2.1.0 (Linux; U; Android 5.0.1; HTC One_M8 Build/LRX22C)",
+	// Unusual
+	"DOSarrest Monitor/1.3 (Linux)"
 };
+int TARGET_USER_AGENTS_LENGTH = 9;
 
 char* PROPERTIES[] = {
     "IsMobile",
     "ScreenPixelsWidth",
     "ScreenPixelsHeight",
     "ScreenMMWidth",
-    "ScreenMMHeight"
+    "ScreenMMHeight",
+	"HardwareVendor",
+	"HardwareFamily",
+	"HardwareModel"
 };
 const int32_t PROPERTIES_COUNT = sizeof(PROPERTIES) / sizeof(char*);
 
@@ -46,9 +96,61 @@ void print50Columns(char* label, const char* value, int32_t length) {
     printf("\r\n");
 }
 
+void reportResults(fiftyoneDegreesWorkset *ws) {
+	int32_t propertyIndex, valueIndex, profileIndex;
+
+	printf("\r\n\t\t\t*** Detection Results ***\r\n");
+	if (ws->targetUserAgent != NULL) {
+		print50Columns("Target User Agent:\t", ws->targetUserAgent, (int32_t)strlen(ws->targetUserAgent));
+	}
+	print50Columns("Relevant Sub Strings:\t", ws->relevantNodes, (int32_t)strlen(ws->relevantNodes));
+	print50Columns("Closest Sub Strings:\t", ws->closestNodes, (int32_t)strlen(ws->closestNodes));
+	printf("Difference:\t\t%d\r\n", ws->difference);
+	printf("Method:\t\t\t%s\r\n",
+		ws->method == EXACT ? "Exact" :
+		ws->method == NUMERIC ? "Numeric" :
+		ws->method == CLOSEST ? "Closest" :
+		ws->method == NEAREST ? "Nearest" :
+		"None");
+	printf("Signature Rank:\t\t%d\r\n", fiftyoneDegreesGetSignatureRank(ws));
+	printf("Root Nodes Evaluated:\t%d\r\n", ws->rootNodesEvaluated);
+	printf("Nodes Evaluated:\t%d\r\n", ws->nodesEvaluated);
+	printf("Strings Read:\t\t%d\r\n", ws->stringsRead);
+	printf("Signatures Read:\t%d\r\n", ws->signaturesRead);
+	printf("Signatures Compared:\t%d\r\n", ws->signaturesCompared);
+	printf("Profiles:\t\t");
+	for (profileIndex = 0; profileIndex < ws->profileCount; profileIndex++) {
+		printf("%d", ws->profiles[profileIndex]->profileId);
+		if (profileIndex < ws->profileCount - 1) {
+			printf("-");
+		}
+	}
+	printf("\r\n");
+	printf("\r\n");
+	printf("\t\t\t*** Example Properties ***\r\n");
+
+	for (propertyIndex = 0; propertyIndex < ws->dataSet->requiredPropertyCount; propertyIndex++) {
+		printf("%s:\t", fiftyoneDegreesGetPropertyName(ws->dataSet, *(ws->dataSet->requiredProperties + propertyIndex)));
+		if (fiftyoneDegreesSetValues(ws, propertyIndex) > 0) {
+			for (valueIndex = 0; valueIndex < ws->valuesCount; valueIndex++) {
+				printf("%s", fiftyoneDegreesGetValueName(ws->dataSet, *(ws->values + valueIndex)));
+				if (valueIndex < ws->valuesCount - 1)
+					printf(", ");
+			}
+		}
+		printf("\r\n");
+	}
+}
+
 void run(fiftyoneDegreesDataSet *dataSet) {
     fiftyoneDegreesWorkset *ws = NULL;
-    int32_t index, propertyIndex, valueIndex;
+    fiftyoneDegreesResultsetCache *cache = NULL;
+	fiftyoneDegreesWorksetPool *pool = NULL;
+	int32_t index, httpHeadersLength;
+	size_t httpHeadersSize;
+	char *httpHeaderNames[2];
+	char *httpHeaderValues[2];
+	char *httpHeaders;
 
     printf("Name:\t\t\t%s\r\n", &(fiftyoneDegreesGetString(dataSet, dataSet->header.nameOffset)->firstByte));
     printf("Published:\t\t%d/%d/%d\r\n",
@@ -64,46 +166,70 @@ void run(fiftyoneDegreesDataSet *dataSet) {
     printf("Data set version:\t%s\r\n", &(fiftyoneDegreesGetString(dataSet, dataSet->header.formatOffset)->firstByte));
     printf("\r\n");
 
-    ws = fiftyoneDegreesCreateWorkset(dataSet);
-    if (ws != NULL) {
-        for(index = 0; index < (sizeof(TARGET_USER_AGENTS) / sizeof(char*)); index++)
-        {
-            fiftyoneDegreesMatch(ws, TARGET_USER_AGENTS[index]);
-
-            printf("\r\n\t\t\t*** Detection Results ***\r\n");
-            print50Columns("Target User Agent:\t", ws->targetUserAgent, strlen(ws->targetUserAgent));
-            print50Columns("Relevant Sub Strings:\t", ws->relevantNodes, strlen(ws->relevantNodes));
-            print50Columns("Closest Sub Strings:\t", ws->closestNodes, strlen(ws->closestNodes));
-            printf("Difference:\t\t%d\r\n", ws->difference);
-            printf("Method:\t\t\t%s\r\n",
-                    ws->method == EXACT ? "Exact" :
-                    ws->method == NUMERIC ? "Numeric" :
-                    ws->method == CLOSEST ? "Closest" :
-                    ws->method == NEAREST ? "Nearest" :
-                    "None");
-            printf("Root Nodes Evaluated:\t%d\r\n", ws->rootNodesEvaluated);
-            printf("Nodes Evaluated:\t%d\r\n", ws->nodesEvaluated);
-            printf("Strings Read:\t\t%d\r\n", ws->stringsRead);
-            printf("Signatures Read:\t%d\r\n", ws->signaturesRead);
-            printf("Signatures Compared:\t%d\r\n", ws->signaturesCompared);
-            printf("\r\n");
-            printf("\t\t\t*** Example Properties ***\r\n");
-
-            for(propertyIndex = 0; propertyIndex < ws->dataSet->requiredPropertyCount; propertyIndex++) {
-                printf("%s:\t", fiftyoneDegreesGetPropertyName(ws->dataSet, *(ws->dataSet->requiredProperties + propertyIndex)));
-                if (fiftyoneDegreesSetValues(ws, propertyIndex) > 0) {
-                    for(valueIndex = 0; valueIndex < ws->valuesCount; valueIndex++) {
-                        printf("%s", fiftyoneDegreesGetValueName(ws->dataSet, *(ws->values + valueIndex)));
-                        if (valueIndex < ws->valuesCount - 1)
-                            printf(", ");
-                    }
-                }
-                printf("\r\n");
+	cache = fiftyoneDegreesResultsetCacheCreate(dataSet, 3);
+    if (cache != NULL) {
+		pool = fiftyoneDegreesWorksetPoolCreate(dataSet, cache, 10);
+		if (pool != NULL) {
+            for(index = 0; index < (sizeof(TARGET_USER_AGENTS) / sizeof(char*)); index++)
+            {
+				ws = fiftyoneDegreesWorksetPoolGet(pool);
+				fiftyoneDegreesMatch(ws, TARGET_USER_AGENTS[index]);
+				reportResults(ws);
+				fiftyoneDegreesWorksetPoolRelease(pool, ws);
             }
+
+			for (index = 0; index < 5; index++) {
+
+				// Use multiple headers as arrays.
+				httpHeaderNames[0] = HTTP_HEADERS[RANDOM_INDEX(HTTP_HEADERS_LENGTH - 1)];
+				httpHeaderNames[1] = HTTP_HEADERS[RANDOM_INDEX(HTTP_HEADERS_LENGTH - 1)];
+				httpHeaderValues[0] = TARGET_USER_AGENTS[RANDOM_INDEX(TARGET_USER_AGENTS_LENGTH - 2)];
+				httpHeaderValues[1] = TARGET_USER_AGENTS[RANDOM_INDEX(TARGET_USER_AGENTS_LENGTH - 2)];
+				ws = fiftyoneDegreesWorksetPoolGet(pool);
+				fiftyoneDegreesMatchWithHeadersArray(ws, httpHeaderNames, httpHeaderValues, 2);
+				printf("\r\n\t\t\t*** HTTP Headers Array ***\r\n");
+				print50Columns("Header 1 Name:\t\t", httpHeaderNames[0], strlen(httpHeaderNames[0]));
+				print50Columns("Header 1 Value:\t\t", httpHeaderValues[0], strlen(httpHeaderValues[0]));
+				print50Columns("Header 2 Name:\t\t", httpHeaderNames[1], strlen(httpHeaderNames[1]));
+				print50Columns("Header 2 Value:\t\t", httpHeaderValues[1], strlen(httpHeaderValues[1]));
+				reportResults(ws);
+				fiftyoneDegreesWorksetPoolRelease(pool, ws);
+
+				// Use multiple headers as a single string.
+				httpHeadersSize = strlen(httpHeaderNames[0]) + 1 +
+					strlen(httpHeaderNames[1]) + 1 +
+					strlen(httpHeaderValues[0]) + 2 +
+					strlen(httpHeaderValues[1]) + 1;
+				httpHeaders = (char*)malloc(httpHeadersSize);
+				if (httpHeaders != NULL) {
+					httpHeadersLength = snprintf(httpHeaders, httpHeadersSize,
+						"%s %s\r\n%s %s",
+						httpHeaderNames[0],
+						httpHeaderValues[0],
+						httpHeaderNames[1],
+						httpHeaderValues[1]);
+					ws = fiftyoneDegreesWorksetPoolGet(pool);
+					fiftyoneDegreesMatchWithHeadersString(ws, httpHeaders, httpHeadersLength);
+					printf("\r\n\t\t\t*** HTTP Headers String ***\r\n");
+					print50Columns("HTTP Headers:\t\t", httpHeaders, httpHeadersLength);
+					free((void*)httpHeaders);
+				}
+				reportResults(ws);
+				fiftyoneDegreesWorksetPoolRelease(pool, ws);
+			}
+
+            if (cache != NULL) {
+                printf("\r\n\t\t\t*** Cache Results ***\r\n");
+                printf("Switches:\t%d\r\n", cache->switches);
+                printf("Hits:\t\t%d\r\n", cache->hits);
+                printf("Misses:\t\t%d\r\n", cache->misses);
+            }
+
+			fiftyoneDegreesWorksetPoolFree(pool);
         }
-        fiftyoneDegreesFreeWorkset(ws);
+		fiftyoneDegreesResultsetCacheFree(cache);
     }
-    fiftyoneDegreesDestroy(dataSet);
+    fiftyoneDegreesDataSetFree(dataSet);
 }
 
 int32_t main(int32_t argc, char* argv[]) {
@@ -123,11 +249,17 @@ int32_t main(int32_t argc, char* argv[]) {
             case DATA_SET_INIT_STATUS_FILE_NOT_FOUND:
                 printf("Device data file '%s' not found.", argv[1]);
                 break;
+			case DATA_SET_INIT_STATUS_NOT_SET:
+				printf("Device data file '%s' could not be loaded.", argv[1]);
+				break;
             default:
                 run(&dataSet);
                 break;
         }
     }
+
+	// Wait for a character to be pressed.
+	fgetc(stdin);
 
     return 0;
 }
