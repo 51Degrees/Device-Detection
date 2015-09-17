@@ -50,7 +50,7 @@ typedef struct fiftyoneDegrees_device_offset_t {
 /* Used to return results from a device detection operation */
 typedef struct fiftyoneDegrees_device_offsets_t {
 	int size; /* The number of records in the array */
-	fiftyoneDegreesDeviceOffset firstOffset; /* First item in the array of offsets */
+	fiftyoneDegreesDeviceOffset *firstOffset; /* First item in the array of offsets */
 } fiftyoneDegreesDeviceOffsets;
 
 // Initialises the memory using the file and properies provided.
@@ -77,6 +77,15 @@ EXTERNAL char** fiftyoneDegreesGetRequiredPropertiesNames(void);
 
 // Frees the memory.
 EXTERNAL void fiftyoneDegreesDestroy(void);
+
+// Returns the number of HTTP headers relevent to device detection.
+EXTERNAL int32_t fiftyoneDegreesGetHttpHeaderCount(void);
+
+// Returns the HTTP header name offset at the index provided.
+EXTERNAL int32_t fiftyoneDegreesGetHttpHeaderNameOffset(int httpHeaderIndex);
+
+// Returns a pointer to the HTTP header name at the index provided.
+EXTERNAL char* fiftyoneDegreesGetHttpHeaderNamePointer(int httpHeaderIndex);
 
 // Sets the http header string to the header name at the index provided.
 EXTERNAL int fiftyoneDegreesGetHttpHeaderName(int httpHeaderIndex, char* httpHeader, int size);
