@@ -272,42 +272,6 @@ int main(int argc, char* argv[]) {
 
 	if (argc > 2) {
 
-<<<<<<< HEAD
-        char *fileName = argc > 1 ? argv[1] : NULL;
-        char *requiredProperties = argc > 3 ? argv[3] : NULL;
-
-        fiftyoneDegreesDataSetInitStatus status = DATA_SET_INIT_STATUS_SUCCESS;
-        status = fiftyoneDegreesInitWithPropertyString(fileName, requiredProperties);
-        switch(status) {
-            case DATA_SET_INIT_STATUS_INSUFFICIENT_MEMORY:
-                printf("Insufficient memory to load '%s'.", argv[1]);
-                break;
-            case DATA_SET_INIT_STATUS_CORRUPT_DATA:
-                printf("Device data file '%s' is corrupted.", argv[1]);
-                break;
-            case DATA_SET_INIT_STATUS_INCORRECT_VERSION:
-                printf("Device data file '%s' is not correct version.", argv[1]);
-                break;
-            case DATA_SET_INIT_STATUS_FILE_NOT_FOUND:
-                printf("Device data file '%s' not found.", argv[1]);
-                break;
-            default: {
-                printf("\n\nUseragents file is: %s\n\nData file is: %s\n\n",
-                    findFileNames(argv[2]),
-                    findFileNames(argv[1]));
-
-                // Wait for a character to be pressed.
-                printf("\nPress enter to start performance tests.\n");
-                fgetc(stdin);
-
-                performance(argv[2]);
-                fiftyoneDegreesDestroy();
-                break;
-            }
-        }
-	} else {
-        printf("Not enough arguments supplied. Expecting: path/to/trie_file path/to/test_file property1,property2(optional)\n");
-=======
 		char *fileName = argc > 1 ? argv[1] : NULL;
 		char *requiredProperties = argc > 3 ? argv[3] : NULL;
 
@@ -349,7 +313,6 @@ int main(int argc, char* argv[]) {
 	}
 	else {
 		printf("Not enough arguments supplied. Expecting: path/to/trie_file path/to/test_file property1,property2(optional)\n");
->>>>>>> V32
 	}
 
 	return 0;
