@@ -14,8 +14,10 @@ global
 frontend http-in
     bind *:8081
     default_backend servers
-    http-request set-header X-51D %[51d(DeviceType,IsMobile,IsTablet)]
-    http-request set-header X-51D-Stats %[51d(Method,Difference,Rank)]
+    http-request set-header X-51D-All %[51d.all(DeviceType,IsMobile,IsTablet)]
+    http-request set-header X-51D-Single %[req.fhdr(User-Agent),51d.single(DeviceType,IsMobile,IsTablet)]
+    http-request set-header X-51D-All-Stats %[51d.all(Method,Difference,Rank)]
+    http-request set-header X-51D-Single-Stats %[req.fhdr(User-Agent),51d.single(Method,Difference,Rank)]
 
 backend servers
     server server1 127.0.0.1:9000 maxconn 32
