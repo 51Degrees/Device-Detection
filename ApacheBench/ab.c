@@ -681,9 +681,13 @@ static void ssl_proceed_handshake(struct connection *c)
 
 static void write_request(struct connection * c)
 {
-    char *src, *dst, *uaStart;
-    int randomCharacters, uaLength;
-    char USER_AGENT_HEADER[] = "User-Agent:";
+    char *src, *dst, *uaStart, *xStart;
+    int randomCharacters, uaLength, xLength;
+    char USER_AGENT_HEADER[] = "User-Agent";
+    const char *X_STOCK_DEVICE[4] = {
+        "Device-Stock-UA",
+        "X-Device-User-Agent",
+        "X-OperaMini-Phone-UA" };
     apr_size_t uniqueRequestLength;
 
     /* modify request each time to append data from request file */
@@ -692,28 +696,53 @@ static void write_request(struct connection * c)
         dst = uniqueRequest;
         while (*src != 0) {
             if (strncmp(src, USER_AGENT_HEADER, sizeof(USER_AGENT_HEADER) - 1) == 0) {
+
+                /*
+                 * Write a new UserAgent header value.
+                 */
                 dst += snprintf(dst,
                     uniqueRequest + sizeof(uniqueRequest) - dst,
-                    "%s ",
+                    "%s: ",
                     USER_AGENT_HEADER);
                 uaStart = dst;
                 dst += snprintf(dst,
                     uniqueRequest + sizeof(uniqueRequest) - dst,
                     "%s\r\n",
                     userAgents[rand() % userAgentsCount]);
+                uaLength = (dst - uaStart) - 2;
 
                 /*
-                 * randomly modify up to 10 characters to stress detection and caching.
-                 * ignore the last 2 characters as these are the carriage return and
-                 * new line which should not be altered.
+                 * Write a secondary header.
                  */
-                randomCharacters = rand() % 10;
-                uaLength = (dst - uaStart) - 2;
+                dst += snprintf(dst,
+                    uniqueRequest + sizeof(uniqueRequest) - dst,
+                    "%s: ",
+                    X_STOCK_DEVICE[rand() % 4]);
+                xStart = dst;
+                dst += snprintf(dst,
+                    uniqueRequest + sizeof(uniqueRequest) - dst,
+                    "%s\r\n",
+                    userAgents[rand() % userAgentsCount]);
+                xLength = (dst - xStart) - 2;
+
+                /*
+                 * randomly modify up to 20 characters to stress detection and caching.
+                 */
+                randomCharacters = rand() % 20;
                 while (randomCharacters > 0) {
-                    if (rand() % 2 == 1) {
-                        uaStart[rand() % uaLength]++;
-                    } else {
-                        uaStart[rand() % uaLength]--;
+                    switch(rand() % 4) {
+                        case 0:
+                            uaStart[rand() % uaLength]++;
+                            break;
+                        case 1:
+                            uaStart[rand() % uaLength]--;
+                            break;
+                        case 2:
+                            xStart[rand() % xLength]++;
+                            break;
+                        case 3:
+                            xStart[rand() % xLength]--;
+                            break;
                     }
                     randomCharacters--;
                 }
