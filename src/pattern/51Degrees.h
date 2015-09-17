@@ -278,7 +278,7 @@ typedef struct fiftyoneDegrees_signature_t {
 #pragma pack(push, 4)
 typedef struct fiftyoneDegrees_http_header_t {
 	int32_t headerNameOffset; /* Offset to the string with the header name */
-	char *headerName; /* Pointer to the header name string inforamtion */
+	char *headerName; /* Pointer to the header name string information */
 } fiftyoneDegreesHttpHeader;
 #pragma pack(pop)
 
