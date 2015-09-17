@@ -398,6 +398,38 @@
 		<Unit filename="../../haproxy/src/xxhash.c">
 			<Option compilerVar="CC" />
 		</Unit>
+		<Unit filename="../src/cityhash/city.c">
+			<Option compilerVar="CC" />
+		</Unit>
+		<Unit filename="../src/cityhash/city.h" />
+		<Unit filename="../src/console/Console.c">
+			<Option compilerVar="CC" />
+		</Unit>
+		<Unit filename="../src/pattern/51Degrees.c">
+			<Option compilerVar="CC" />
+		</Unit>
+		<Unit filename="../src/pattern/51Degrees.h" />
+		<Unit filename="../src/pattern/PerfPat.c">
+			<Option compilerVar="CC" />
+		</Unit>
+		<Unit filename="../src/pattern/ProcPat.c">
+			<Option compilerVar="CC" />
+		</Unit>
+		<Unit filename="../src/snprintf/snprintf.c">
+			<Option compilerVar="CC" />
+		</Unit>
+		<Unit filename="../src/snprintf/snprintf.h" />
+		<Unit filename="../src/threading.h" />
+		<Unit filename="../src/trie/51Degrees.c">
+			<Option compilerVar="CC" />
+		</Unit>
+		<Unit filename="../src/trie/51Degrees.h" />
+		<Unit filename="../src/trie/PerfTrie.c">
+			<Option compilerVar="CC" />
+		</Unit>
+		<Unit filename="../src/trie/ProcTrie.c">
+			<Option compilerVar="CC" />
+		</Unit>
 		<Extensions>
 			<code_completion />
 			<debugger />

@@ -9,6 +9,7 @@
 #include <import/xxhash.h>
 #include <import/lru.h>
 #include <import/51d.h>
+#include <proto/proto_http.h>
 
 struct _51d_property_names {
 	struct list list;
@@ -169,8 +170,13 @@ static int _51d_fetch(const struct arg *args, struct sample *smp, const char *kw
 	int requiredPropertiesCount;
 #endif
 
+    /* Needed to ensure that the HTTP message has been fully recieved when
+     * used with TCP operation. Not required for HTTP operation.
+     */
+    CHECK_HTTP_MESSAGE_FIRST();
+
     /* Get a pointer to the start of the headers and the length of the headers. */
-	msg = ((smp->opt & SMP_OPT_DIR) == SMP_OPT_DIR_REQ) ? &smp->strm->txn->req : &smp->strm->txn->rsp;
+	msg = &smp->strm->txn->req;
 	headers = _51d_skip_method(msg->chn->buf);
 	headersLength = msg->chn->buf->i - (int)(headers - msg->chn->buf->p);
 
