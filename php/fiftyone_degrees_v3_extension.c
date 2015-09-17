@@ -4,7 +4,7 @@
 #include <stdio.h>
 #include <SAPI.h>
 #include "php.h"
-#include "../src/pattern/51Degrees.h"
+#include "src/pattern/51Degrees.h"
 
 #define PHP_EXTENSION_VERSION "3.2"
 #define PHP_EXTENSION_EXTNAME "FiftyOne_Degrees_Detector"
@@ -388,6 +388,7 @@ int datasetInitSuccess()
 PHP_INI_BEGIN()
 PHP_INI_ENTRY("fiftyone_degrees.data_file", "/usr/lib/php5/51Degrees-Lite.dat", PHP_INI_ALL, NULL)
 PHP_INI_ENTRY("fiftyone_degrees.number_worksets", "10", PHP_INI_ALL, NULL)
+PHP_INI_ENTRY("fiftyone_degrees.cache_size", "100", PHP_INI_ALL, NULL)
 PHP_INI_END()
 
 /**
@@ -403,11 +404,10 @@ PHP_MINIT_FUNCTION(fiftyone_degrees_detector_init)
     REGISTER_INI_ENTRIES();
     char* dataFilePath = INI_STR("fiftyone_degrees.data_file");
     int number_worksets = INI_INT("fiftyone_degrees.number_worksets");
+    int cache_size = INI_INT("fiftyone_degrees.cache_size");
     dataSet = (fiftyoneDegreesDataSet*)malloc(sizeof(fiftyoneDegreesDataSet));
     initStatus = fiftyoneDegreesInitWithPropertyString((char*)dataFilePath, dataSet, NULL);
-    int cacheSize = 1;
-    //int poolSize = 10;
-    cache = fiftyoneDegreesResultsetCacheCreate(dataSet, cacheSize);
+    cache = fiftyoneDegreesResultsetCacheCreate(dataSet, cache_size);
     pool = fiftyoneDegreesWorksetPoolCreate(dataSet, cache, number_worksets);
     return SUCCESS;
 }
