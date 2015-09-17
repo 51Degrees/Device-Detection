@@ -1,4 +1,44 @@
 *.o
+<<<<<<< HEAD
+*.so
+*.exe
+*bin*
+*Debug*
+windows/Backup/*
+*.zip
+*.csv
+*.opensdf
+*.sdf
+*.suo
+*/UpgradeLog*.htm
+*.o
+*/.svn
+*~
+.flxdisk*
+.flxpkg
+.flxstatus*
+.svn
+haproxy
+src/*.o
+*.rej
+*.orig
+*.log*
+*.trace*
+haproxy-*
+!doc/haproxy-*.txt
+!src/*.c
+make-*
+dlmalloc.c
+00*.patch
+*.service
+*.DS_Store
+node_modules/
+build/
+*.dat
+*.trie
+*.log
+
+=======
 *.user
 *.dll
 *.exe
@@ -37,3 +77,4 @@ apr-*
 =======
 *.user
 >>>>>>> aaf54219dbf1cff2304b40469c66e4621dcc5260
+>>>>>>> V32
