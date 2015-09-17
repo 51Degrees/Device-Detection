@@ -2231,28 +2231,6 @@ int32_t binarySearchNumericChildren(const fiftyoneDegreesNode *node, fiftyoneDeg
  * @param data pointer to the state settings used for the evaluation
  */
 void setNumericNodeState(const fiftyoneDegreesNode *node, fiftyoneDegreesNumericNodeState *state) {
-<<<<<<< HEAD
-    if (state->target >= 0) {
-        setRange(state);
-        state->node = node;
-        state->firstNodeNumericIndex = getFirstNumericIndexForNode(node);
-
-        // Get the index in the ordered list to start at.
-        state->startIndex = binarySearchNumericChildren(node, state);
-        if (state->startIndex < 0)
-            state->startIndex = ~state->startIndex - 1;
-        state->lowIndex = state->startIndex;
-        state->highIndex = state->startIndex + 1;
-
-        // Determine if the low and high indexes are in range.
-        state->lowInRange = state->lowIndex >= 0 && state->lowIndex < node->numericChildrenCount &&
-            (state->firstNodeNumericIndex + state->lowIndex)->value >= state->range->lower &&
-            (state->firstNodeNumericIndex + state->lowIndex)->value < state->range->upper;
-        state->highInRange = state->highIndex < node->numericChildrenCount && state->highIndex >= 0 &&
-            (state->firstNodeNumericIndex + state->lowIndex)->value >= state->range->lower &&
-            (state->firstNodeNumericIndex + state->lowIndex)->value < state->range->upper;
-    }
-=======
 	if (state->target >= 0 && state->target <= SHRT_MAX) {
 		setRange(state);
 		state->node = node;
@@ -2281,7 +2259,6 @@ void setNumericNodeState(const fiftyoneDegreesNode *node, fiftyoneDegreesNumeric
 		state->lowInRange = 0;
 		state->highInRange = 0;
 	}
->>>>>>> V32
 }
 
 /**
