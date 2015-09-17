@@ -16,6 +16,11 @@ struct _51d_property_names {
 	char *name;
 };
 
+#ifdef FIFTYONEDEGREES_H_PATTERN_INCLUDED
+#define _51DEGREES_CONV_CACHE_KEY "_51d_conv"
+#define _51DEGREES_FETCH_CACHE_KEY "_51d_fetch"
+#endif
+
 static struct lru64_head *_51d_lru_tree = NULL;
 static unsigned long long _51d_lru_seed;
 
@@ -114,6 +119,16 @@ static int _51d_fetch_check(struct arg *arg, char **err_msg)
 	return 0;
 }
 
+static int _51d_conv_check(struct arg *arg, struct sample_conv *conv,
+                           const char *file, int line, char **err_msg)
+{
+	if (global._51degrees.data_file_path)
+		return 1;
+
+	memprintf(err_msg, "51Degrees data file is not specified (parameter '51degrees-data-file')");
+	return 0;
+}
+
 /* Skips over the first line of the buffer as this contains the method which
  * is not relevant for device detection.
  */
@@ -150,84 +165,24 @@ unsigned long long _51d_req_hash(const struct arg *args, fiftyoneDegreesWorkset*
 }
 #endif
 
-static int _51d_fetch(const struct arg *args, struct sample *smp, const char *kw, void *private)
+#ifdef FIFTYONEDEGREES_H_PATTERN_INCLUDED
+static void _51d_match(const struct arg *args, struct sample *smp, fiftyoneDegreesWorkset* ws)
 {
-	char no_data[] = "NoData";  /* response when no data could be found */
-	struct chunk *temp;
-    char *headers;
-    int headersLength, j, i, found;
-	const struct http_msg *msg;
-	const char* property_name;
-#ifdef FIFTYONEDEGREES_H_PATTERN_INCLUDED
-	fiftyoneDegreesWorkset* ws; /* workset for detection */
-	struct lru64 *lru = NULL;
-	char *cacheEntry, *methodName;
+	char *methodName;
 #endif
 #ifdef FIFTYONEDEGREES_H_TRIE_INCLUDED
+static void _51d_match(const struct arg *args, struct sample *smp, fiftyoneDegreesDeviceOffsets *deviceOffsets)
+{
 	char valuesBuffer[1024];
-	fiftyoneDegreesDeviceOffsets *deviceOffsets; /* offsets for each header */
-	char **requiredProperties;
-	int requiredPropertiesCount;
-#endif
-
-    /* Needed to ensure that the HTTP message has been fully recieved when
-     * used with TCP operation. Not required for HTTP operation.
-     */
-    CHECK_HTTP_MESSAGE_FIRST();
-
-    /* Get a pointer to the start of the headers and the length of the headers. */
-	msg = &smp->strm->txn->req;
-	headers = _51d_skip_method(msg->chn->buf);
-	headersLength = msg->chn->buf->i - (int)(headers - msg->chn->buf->p);
-
-#ifdef FIFTYONEDEGREES_H_PATTERN_INCLUDED
-
-    /* Get only the headers needed for device detection so they can be used
-     * with the cache to return previous results. Pattern is slower than
-     * Trie so caching will help improve performance.
-     */
-
-	/* Get a workset from the pool which will later contain detection results. */
-	ws = fiftyoneDegreesWorksetPoolGet(global._51degrees.pool);
-	if (!ws)
-		return 0;
-
-    /* Set the important HTTP headers for this request in the workset. */
-    fiftyoneDegreesSetHttpHeaders(ws, headers, headersLength);
-
-	/* Check the cache to see if there's results for these headers already. */
-	if (_51d_lru_tree) {
-		lru = lru64_get(_51d_req_hash(args, ws),
-		                _51d_lru_tree, global._51degrees.data_file_path, 0);
-		if (lru && lru->domain) {
-			smp->flags |= SMP_F_CONST;
-			smp->data.u.str.str = lru->data;
-			smp->data.u.str.len = strlen(lru->data);
-			fiftyoneDegreesWorksetPoolRelease(global._51degrees.pool, ws);
-			return 1;
-		}
-	}
-
-    fiftyoneDegreesMatchForHttpHeaders(ws);
+	char **requiredProperties = fiftyoneDegreesGetRequiredPropertiesNames();
+	int requiredPropertiesCount = fiftyoneDegreesGetRequiredPropertiesCount();
 
 #endif
 
-#ifdef FIFTYONEDEGREES_H_TRIE_INCLUDED
-
-    /* Trie is very fast so all the headers can be passed in and the result
-     * returned faster than the hashing algorithm process.
-     */
-
-	deviceOffsets = fiftyoneDegreesGetDeviceOffsetsWithHeadersString(headers, headersLength);
-	if (!deviceOffsets)
-        return 0;
-	requiredProperties = fiftyoneDegreesGetRequiredPropertiesNames();
-	requiredPropertiesCount = fiftyoneDegreesGetRequiredPropertiesCount();
-
-#endif
-
-	temp = get_trash_chunk();
-	i = 0;
+	char no_data[] = "NoData";  /* response when no data could be found */
+	struct chunk *temp = get_trash_chunk();
+    int j, i = 0, found;
+	const char* property_name;
 
 	/* Loop through property names passed to the filter and fetch them from the dataset. */
 	while (args[i].data.str.str) {
@@ -293,6 +248,82 @@ static int _51d_fetch(const struct arg *args, struct sample *smp, const char *kw
 
 	smp->data.u.str.str = temp->str;
 	smp->data.u.str.len = strlen(temp->str);
+}
+
+static int _51d_fetch(const struct arg *args, struct sample *smp, const char *kw, void *private)
+{
+    char *headers;
+    int headersLength;
+	const struct http_msg *msg;
+#ifdef FIFTYONEDEGREES_H_PATTERN_INCLUDED
+	fiftyoneDegreesWorkset* ws; /* workset for detection */
+	struct lru64 *lru = NULL;
+	char *cacheEntry;
+#endif
+#ifdef FIFTYONEDEGREES_H_TRIE_INCLUDED
+	fiftyoneDegreesDeviceOffsets *deviceOffsets; /* offsets for each header */
+#endif
+
+    /* Needed to ensure that the HTTP message has been fully recieved when
+     * used with TCP operation. Not required for HTTP operation.
+     * Data type has to be reset to ensure the string output is processed
+     * correctly.
+     */
+    CHECK_HTTP_MESSAGE_FIRST();
+    smp->data.type = SMP_T_STR;
+
+    /* Get a pointer to the start of the headers and the length of the headers. */
+	msg = &smp->strm->txn->req;
+	headers = _51d_skip_method(msg->chn->buf);
+	headersLength = msg->chn->buf->i - (int)(headers - msg->chn->buf->p);
+
+#ifdef FIFTYONEDEGREES_H_PATTERN_INCLUDED
+
+    /* Get only the headers needed for device detection so they can be used
+     * with the cache to return previous results. Pattern is slower than
+     * Trie so caching will help improve performance.
+     */
+
+	/* Get a workset from the pool which will later contain detection results. */
+	ws = fiftyoneDegreesWorksetPoolGet(global._51degrees.pool);
+	if (!ws)
+		return 0;
+
+    /* Set the important HTTP headers for this request in the workset. */
+    fiftyoneDegreesSetHttpHeaders(ws, headers, headersLength);
+
+	/* Check the cache to see if there's results for these headers already. */
+	if (_51d_lru_tree) {
+		lru = lru64_get(_51d_req_hash(args, ws),
+		                _51d_lru_tree, _51DEGREES_FETCH_CACHE_KEY, 0);
+		if (lru && lru->domain) {
+			smp->flags |= SMP_F_CONST;
+			smp->data.u.str.str = lru->data;
+			smp->data.u.str.len = strlen(lru->data);
+			fiftyoneDegreesWorksetPoolRelease(global._51degrees.pool, ws);
+			return 1;
+		}
+	}
+
+    fiftyoneDegreesMatchForHttpHeaders(ws);
+
+    _51d_match(args, smp, ws);
+
+#endif
+
+#ifdef FIFTYONEDEGREES_H_TRIE_INCLUDED
+
+    /* Trie is very fast so all the headers can be passed in and the result
+     * returned faster than the hashing algorithm process.
+     */
+
+	deviceOffsets = fiftyoneDegreesGetDeviceOffsetsWithHeadersString(headers, headersLength);
+	if (!deviceOffsets)
+        return 0;
+
+    _51d_match(args, smp, deviceOffsets);
+
+#endif
 
 #ifdef FIFTYONEDEGREES_H_PATTERN_INCLUDED
 	fiftyoneDegreesWorksetPoolRelease(global._51degrees.pool, ws);
@@ -300,12 +331,74 @@ static int _51d_fetch(const struct arg *args, struct sample *smp, const char *kw
 		smp->flags |= SMP_F_CONST;
 		cacheEntry = (char*)malloc(smp->data.u.str.len + 1);
 		if (memcpy(cacheEntry, smp->data.u.str.str, smp->data.u.str.len + 1) > 0) {
-            lru64_commit(lru, cacheEntry, global._51degrees.data_file_path, 0, free);
+            lru64_commit(lru, cacheEntry, _51DEGREES_FETCH_CACHE_KEY, 0, free);
 		}
 	}
 #endif
 #ifdef FIFTYONEDEGREES_H_TRIE_INCLUDED
     free(deviceOffsets);
+#endif
+
+    printf("\r\nFinal: %s\r\n", smp->data.u.str.str);
+
+    return 1;
+}
+
+static int _51d_conv(const struct arg *args, struct sample *smp, void *private)
+{
+#ifdef FIFTYONEDEGREES_H_PATTERN_INCLUDED
+	fiftyoneDegreesWorkset* ws; /* workset for detection */
+	struct lru64 *lru = NULL;
+#endif
+#ifdef FIFTYONEDEGREES_H_TRIE_INCLUDED
+    fiftyoneDegreesDeviceOffsets deviceOffsets;
+#endif
+
+#ifdef FIFTYONEDEGREES_H_PATTERN_INCLUDED
+
+	/* Look in the list. */
+	if (_51d_lru_tree) {
+		unsigned long long seed = _51d_lru_seed ^ (long)args;
+
+		lru = lru64_get(XXH64(smp->data.u.str.str, smp->data.u.str.len, seed),
+		                _51d_lru_tree, _51DEGREES_CONV_CACHE_KEY, 0);
+		if (lru && lru->domain) {
+			smp->flags |= SMP_F_CONST;
+			smp->data.u.str.str = lru->data;
+			smp->data.u.str.len = strlen(smp->data.u.str.str);
+		return 1;
+		}
+	}
+
+	/* Create workset. This will later contain detection results. */
+	ws = fiftyoneDegreesWorksetPoolGet(global._51degrees.pool);
+	if (!ws)
+		return 0;
+#endif
+
+	/* Duplicate the data and remove the "const" flag before device detection. */
+	if (!smp_dup(smp))
+		return 0;
+
+	smp->data.u.str.str[smp->data.u.str.len] = '\0';
+
+	/* Perform detection. */
+#ifdef FIFTYONEDEGREES_H_PATTERN_INCLUDED
+	fiftyoneDegreesMatch(ws, smp->data.u.str.str);
+	_51d_match(args, smp, ws);
+#endif
+#ifdef FIFTYONEDEGREES_H_TRIE_INCLUDED
+	deviceOffsets.firstOffset.deviceOffset = fiftyoneDegreesGetDeviceOffset(smp->data.u.str.str);
+	deviceOffsets.size = 1;
+	_51d_match(args, smp, &deviceOffsets);
+#endif
+
+#ifdef FIFTYONEDEGREES_H_PATTERN_INCLUDED
+	fiftyoneDegreesWorksetPoolRelease(global._51degrees.pool, ws);
+	if (lru) {
+		smp->flags |= SMP_F_CONST;
+		lru64_commit(lru, strdup(smp->data.u.str.str), _51DEGREES_CONV_CACHE_KEY, 0, free);
+	}
 #endif
 
 	return 1;
@@ -425,14 +518,21 @@ static struct cfg_kw_list _51dcfg_kws = {{ }, {
 
 /* Note: must not be declared <const> as its list will be overwritten */
 static struct sample_fetch_kw_list sample_fetch_keywords = {ILH, {
-	{ "51d", _51d_fetch, ARG5(1,STR,STR,STR,STR,STR), _51d_fetch_check, SMP_T_STR, SMP_USE_HRQHV },
+	{ "51d.all", _51d_fetch, ARG5(1,STR,STR,STR,STR,STR), _51d_fetch_check, SMP_T_STR, SMP_USE_HRQHV },
+	{ NULL, NULL, 0, 0, 0 },
+}};
+
+/* Note: must not be declared <const> as its list will be overwritten */
+static struct sample_conv_kw_list conv_kws = {ILH, {
+	{ "51d.single", _51d_conv, ARG5(1,STR,STR,STR,STR,STR), _51d_conv_check, SMP_T_STR, SMP_T_STR },
 	{ NULL, NULL, 0, 0, 0 },
 }};
 
 __attribute__((constructor))
 static void __51d_init(void)
 {
-	/* register sample fetch keywords */
+	/* register sample fetch and conversion keywords */
 	sample_register_fetches(&sample_fetch_keywords);
+	sample_register_convs(&conv_kws);
 	cfg_register_keywords(&_51dcfg_kws);
 }
