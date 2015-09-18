@@ -871,9 +871,8 @@ char ** fiftyoneDegreesGetRequiredPropertiesNames(void) {
 int fiftyoneDegreesProcessDeviceOffsetsCSV(fiftyoneDegreesDeviceOffsets *deviceOffsets, char* result, int resultLength) {
 	char* currentPos = result;
 	char* endPos = result + resultLength;
-	int32_t requiredPropertyIndex, propertyHttpHeaderOffset;
-    fiftyoneDegreesProperty *property;
-	int deviceHttpHeaderIndex, propertyHttpHeaderIndex;
+	int32_t requiredPropertyIndex;
+
 	// If no properties return nothing.
 	if (_requiredPropertiesCount == 0) {
         *currentPos = 0;
@@ -882,35 +881,27 @@ int fiftyoneDegreesProcessDeviceOffsetsCSV(fiftyoneDegreesDeviceOffsets *deviceO
 
 	// Process each line of data using the relevant value separator. In this case, a pipe.
 	for(requiredPropertyIndex = 0; requiredPropertyIndex < _requiredPropertiesCount; requiredPropertyIndex++) {
-        property = _properties + _requiredProperties[requiredPropertyIndex];
-		for (propertyHttpHeaderIndex = 0; propertyHttpHeaderIndex < property->headerCount; propertyHttpHeaderIndex++) {
-			propertyHttpHeaderOffset = *(_httpHeaders + property->headerFirstIndex + propertyHttpHeaderIndex);
-			for (deviceHttpHeaderIndex = 0; deviceHttpHeaderIndex < deviceOffsets->size; deviceHttpHeaderIndex++) {
-				if (propertyHttpHeaderOffset == (deviceOffsets->firstOffset + deviceHttpHeaderIndex)->httpHeaderOffset) {
-                    // Add the property name to the buffer.
-                    currentPos += snprintf(
-                        currentPos,
-                        (int)(endPos - currentPos),
-                        "%s,",
-                        *(_requiredPropertiesNames + requiredPropertyIndex));
-                    if (currentPos >= endPos) return -1;
-                    // Add the value(s) to the buffer.
-					currentPos += setValueFromDeviceOffset(
-						(deviceOffsets->firstOffset + deviceHttpHeaderIndex)->deviceOffset,
-						_requiredProperties[requiredPropertyIndex],
-						currentPos,
-						(int)(endPos - currentPos));
-                    if (currentPos >= endPos) return -1;
-                    // Add a carriage return to terminate the line.
-                    currentPos += snprintf(
-                        currentPos,
-                        (int)(endPos - currentPos),
-                        "\n");
-                    if (currentPos >= endPos) return -1;
-				}
-			}
-		}
-	}
+        // Add the property name to the buffer.
+        currentPos += snprintf(
+            currentPos,
+            (int)(endPos - currentPos),
+            "%s,",
+            *(_requiredPropertiesNames + requiredPropertyIndex));
+        if (currentPos >= endPos) return -1;
+        // Add the value(s) to the buffer.
+        currentPos += abs(fiftyoneDegreesGetValueFromOffsets(
+            deviceOffsets,
+            requiredPropertyIndex,
+            currentPos,
+            (int)(endPos - currentPos)));
+        if (currentPos >= endPos) return -1;
+        // Add a carriage return to terminate the line.
+        currentPos += snprintf(
+            currentPos,
+            (int)(endPos - currentPos),
+            "\n");
+        if (currentPos >= endPos) return -1;
+    }
 
 	// Return the length of the string buffer used.
 	return (int)(currentPos - result);
@@ -928,13 +919,10 @@ int fiftyoneDegreesProcessDeviceCSV(int32_t deviceOffset, char* result, int resu
 
 // Process device properties into a JSON string for the device offsets provided.
 int fiftyoneDegreesProcessDeviceOffsetsJSON(fiftyoneDegreesDeviceOffsets *deviceOffsets, char* result, int resultLength) {
-	const char* deviceValue;
-	int32_t deviceValueLength, deviceValueIndex;
+	char* valuePos;
+	int requiredPropertyIndex;
 	char* currentPos = result;
 	char* endPos = result + resultLength;
-	int32_t requiredPropertyIndex, propertyHttpHeaderOffset;
-    fiftyoneDegreesProperty *property;
-	int deviceHttpHeaderIndex, propertyHttpHeaderIndex;
 
 	// If no properties return empty JSON.
 	if (_requiredPropertiesCount == 0) {
@@ -946,52 +934,36 @@ int fiftyoneDegreesProcessDeviceOffsetsJSON(fiftyoneDegreesDeviceOffsets *device
 
 	// Process each line of data using the relevant value separator. In this case, a pipe.
 	for(requiredPropertyIndex = 0; requiredPropertyIndex < _requiredPropertiesCount; requiredPropertyIndex++) {
-        property = _properties + _requiredProperties[requiredPropertyIndex];
-		for (propertyHttpHeaderIndex = 0; propertyHttpHeaderIndex < property->headerCount; propertyHttpHeaderIndex++) {
-			propertyHttpHeaderOffset = *(_httpHeaders + property->headerFirstIndex + propertyHttpHeaderIndex);
-			for (deviceHttpHeaderIndex = 0; deviceHttpHeaderIndex < deviceOffsets->size; deviceHttpHeaderIndex++) {
-				if (propertyHttpHeaderOffset == (deviceOffsets->firstOffset + deviceHttpHeaderIndex)->httpHeaderOffset) {
-
-                    // Add the next property to the buffer.
-                    currentPos += snprintf(
-                        currentPos,
-                        (int)(endPos - currentPos),
-                        "\"%s\": \"",
-                        *(_requiredPropertiesNames + requiredPropertyIndex));
-
-                    deviceValue = getValueFromDevice(
-                        &(deviceOffsets->firstOffset + deviceHttpHeaderIndex)->deviceOffset,
-                        *(_requiredProperties + requiredPropertyIndex));
-                    deviceValueLength = (int32_t)strlen(deviceValue);
-                    for(deviceValueIndex = 0; deviceValueIndex < deviceValueLength; deviceValueIndex++) {
-                        if(deviceValue[deviceValueIndex] == 0){
-                            break;
-                        }
-                        else if(deviceValue[deviceValueIndex] == '"'){
-                            currentPos += snprintf(
-                                currentPos,
-                                (int)(endPos - currentPos),
-                                "\\");
-                        }
-                        currentPos += snprintf(
-                            currentPos,
-                            (int)(endPos - currentPos),
-                            "%c",
-                            deviceValue[deviceValueIndex]);
-                    }
-                    currentPos += snprintf(
-                        currentPos,
-                        (int)(endPos - currentPos),
-                        "\"");
-                    if(requiredPropertyIndex + 1 != _requiredPropertiesCount) {
-                        currentPos += snprintf(currentPos, endPos - currentPos, ",\n");
-                    }
-                    // Check to see if buffer is filled in which case return -1.
-                    if (currentPos >= endPos)
-                        return -1;
-                }
-			}
+        // Add the next property to the buffer.
+        currentPos += snprintf(
+            currentPos,
+            (int)(endPos - currentPos),
+            "\"%s\": \"",
+            *(_requiredPropertiesNames + requiredPropertyIndex));
+        if (currentPos >= endPos) return -1;
+        // Add the values to the buffer.
+        currentPos += abs(fiftyoneDegreesGetValueFromOffsets(
+            deviceOffsets,
+            requiredPropertyIndex,
+            currentPos,
+            (int)(endPos - currentPos)));
+        if (currentPos >= endPos) return -1;
+        while(valuePos != currentPos) {
+            if(*valuePos == '"'){
+                *valuePos = '\\';
+            }
+            valuePos++;
         }
+        currentPos += snprintf(
+            currentPos,
+            (int)(endPos - currentPos),
+            "\"");
+        if (currentPos >= endPos) return -1;
+        if(requiredPropertyIndex + 1 != _requiredPropertiesCount) {
+            currentPos += snprintf(currentPos, endPos - currentPos, ",\n");
+            if (currentPos >= endPos) return -1;
+        }
+        if (currentPos >= endPos) return -1;
 	}
 	currentPos += snprintf(currentPos, endPos - currentPos, "\n}");
 	return (int)(currentPos - result);
