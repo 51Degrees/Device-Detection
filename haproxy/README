@@ -280,21 +280,22 @@ Trie data.
 
 The configuration file needs to set the following parameters:
 
-    51degrees-data-file           path to the pattern or trie data file
+    51degrees-data-file           path to the Pattern or Trie data file
     51degrees-property-name-list  list of 51Degrees properties to detect
     51degrees-property-separator  separator to use between values
     51degrees-cache-size          LRU-based cache size (disabled by default)
 
 The following is an example of the settings for Pattern.
 
-    51degrees-data-file '51D_REPO_PATH'/data/51Degrees-Lite.dat
+    51degrees-data-file '51D_REPO_PATH'/data/51Degrees-LiteV3.2.dat
     51degrees-property-name-list IsTablet DeviceType IsMobile
     51degrees-property-separator ,
     51degrees-cache-size 10000
 
 HAProxy needs a way to pass device information to the backend servers. This is
-done by using the 51d converter, which intercepts the HTTP headers and
-creates some new headers. This is controlled in the frontend http-in section.
+done by using the 51d converter or fetch method, which intercepts the HTTP
+headers and creates some new headers. This is controlled in the frontend
+http-in section.
 
 The following is an example which adds two new HTTP headers prefixed X-51D-
 
@@ -306,9 +307,9 @@ The following is an example which adds two new HTTP headers prefixed X-51D-
 
 Here, two headers are created with 51Degrees data, X-51D-DeviceTypeMobileTablet
 and X-51D-Tablet. Any number of headers can be created this way and can be
-named anything. 51d( ) invokes the 51degrees fetch. It can be passed up to five
-property names of values to return. Values will be returned in the same order,
-seperated by the 51-degrees-property-separator configured earlier. If a
+named anything. 51d.all( ) invokes the 51degrees fetch. It can be passed up to
+five property names of values to return. Values will be returned in the same
+order, seperated by the 51-degrees-property-separator configured earlier. If a
 property name can't be found the value 'NoData' is returned instead.
 
 In addition to the device properties three additional properties related to the
@@ -332,6 +333,15 @@ uses the User-Agent HTTP header only for detection.
 
 Any HTTP header could be used inplace of User-Agent by changing the parameter
 provided to req.fhdr.
+
+When compiled to use the Trie detection method the trie format data file needs
+to be provided. Changing the extension of the data file from dat to trie will
+use the correct data.
+
+        51degrees-data-file '51D_REPO_PATH'/data/51Degrees-LiteV3.2.trie
+
+When used with Trie the Method, Difference and Rank properties are not
+available.
 
 The free Lite data file contains information about screen size in pixels and
 whether the device is a mobile. A full list of available properties is located
