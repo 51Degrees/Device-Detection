@@ -88,9 +88,9 @@ namespace FiftyOne.Mobile.Detection.Provider.Interop
             /// <param name="headers">HTTP headers of the request for detection</param>
             internal MatchResult(TrieWrapper provider, NameValueCollection headers)
             {
-                _provider = provider; 
+                _provider = provider;
                 AllDeviceOffsetsReleased.Reset();
-                Interlocked.Increment(ref AllocatedDeviceOffsets); 
+                Interlocked.Increment(ref AllocatedDeviceOffsets);
                 var httpHeaders = new StringBuilder();
                 for (int i = 0; i < headers.Count; i++)
                 {
@@ -177,8 +177,8 @@ namespace FiftyOne.Mobile.Detection.Provider.Interop
             /// </summary>
             public string UserAgent
             {
-                get 
-                { 
+                get
+                {
                     if (_userAgent != null)
                     {
                         return _userAgent.Substring(0, GetMatchedUserAgentLength(_userAgent));
@@ -192,13 +192,13 @@ namespace FiftyOne.Mobile.Detection.Provider.Interop
 
         #region DLL Imports
 
-        [DllImport("FiftyOne.Mobile.Detection.Provider.Trie.dll", 
-            CallingConvention = CallingConvention.Cdecl, 
+        [DllImport("FiftyOne.Mobile.Detection.Provider.Trie.dll",
+            CallingConvention = CallingConvention.Cdecl,
             CharSet = CharSet.Ansi,
             SetLastError = true)]
         private static extern int InitWithPropertyString(String fileName, String properties);
 
-        [DllImport("FiftyOne.Mobile.Detection.Provider.Trie.dll", 
+        [DllImport("FiftyOne.Mobile.Detection.Provider.Trie.dll",
             CallingConvention = CallingConvention.Cdecl)]
         private static extern void Destroy();
 
@@ -216,7 +216,7 @@ namespace FiftyOne.Mobile.Detection.Provider.Interop
             CallingConvention = CallingConvention.Cdecl,
             CharSet = CharSet.Ansi)]
         private static extern int GetHttpHeaderName(int httpHeaderIndex, StringBuilder httpHeader, int size);
-        
+
         [DllImport("FiftyOne.Mobile.Detection.Provider.Trie.dll",
             CallingConvention = CallingConvention.Cdecl,
             CharSet = CharSet.Ansi)]
@@ -236,7 +236,7 @@ namespace FiftyOne.Mobile.Detection.Provider.Interop
             CallingConvention = CallingConvention.Cdecl,
             CharSet = CharSet.Ansi)]
         private static extern int GetPropertyValues(IntPtr deviceOffsets, int requiredPropertyIndex, StringBuilder values, int size);
-        
+
         [DllImport("FiftyOne.Mobile.Detection.Provider.Trie.dll",
             CallingConvention = CallingConvention.Cdecl,
             CharSet = CharSet.Ansi)]
@@ -249,7 +249,7 @@ namespace FiftyOne.Mobile.Detection.Provider.Interop
         /// <summary>
         /// Used to synchronise the releasing of unmanaged memory resources.
         /// </summary>
-        internal static readonly AutoResetEvent AllDeviceOffsetsReleased = 
+        internal static readonly AutoResetEvent AllDeviceOffsetsReleased =
             new AutoResetEvent(true);
 
         /// <summary>
@@ -301,7 +301,7 @@ namespace FiftyOne.Mobile.Detection.Provider.Interop
         /// </summary>
         /// <param name="fileName">The full path to the file containing device data.</param>
         /// <param name="properties">Array of properties to include in the results.</param>
-        public TrieWrapper(string fileName, string[] properties) : this(fileName, String.Join(",", properties)) {}
+        public TrieWrapper(string fileName, string[] properties) : this(fileName, String.Join(",", properties)) { }
 
         /// <summary>
         /// Construct the wrapper.
@@ -310,7 +310,7 @@ namespace FiftyOne.Mobile.Detection.Provider.Interop
         /// <param name="properties">Comma seperated list of properties to include in the results.</param>
         public TrieWrapper(string fileName, string properties)
         {
-            lock(_lock)
+            lock (_lock)
             {
                 // Check the file exists before trying to load it.
                 var info = new FileInfo(fileName);
@@ -332,18 +332,6 @@ namespace FiftyOne.Mobile.Detection.Provider.Interop
                         "Multiple providers with different file sources can not be created.",
                         _fileName), "fileName");
                 }
-<<<<<<< HEAD
-                var status = InitWithPropertyString(info.FullName, properties);
-                if (status != 0)
-                {
-                    throw new Exception(String.Format(
-                        "Status code '{0}' returned when creating wrapper from file '{1}'.",
-                        status,
-                        fileName));
-                }
-                _fileName = fileName;
-=======
->>>>>>> 8b982936a5e26f4a363b78b68b0eae96335fcd07
 
                 // Only initialise the memory if the file has not already
                 // been loaded into memory.
@@ -438,7 +426,7 @@ namespace FiftyOne.Mobile.Detection.Provider.Interop
                 }
             }
         }
-        
+
         #endregion
 
         #region Public Methods
