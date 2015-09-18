@@ -79,10 +79,10 @@ EXTERNAL char** fiftyoneDegreesGetRequiredPropertiesNames(void);
 EXTERNAL void fiftyoneDegreesDestroy(void);
 
 // Returns the number of HTTP headers relevent to device detection.
-EXTERNAL int32_t fiftyoneDegreesGetHttpHeaderCount(void);
+EXTERNAL int fiftyoneDegreesGetHttpHeaderCount(void);
 
 // Returns the HTTP header name offset at the index provided.
-EXTERNAL int32_t fiftyoneDegreesGetHttpHeaderNameOffset(int httpHeaderIndex);
+EXTERNAL int fiftyoneDegreesGetHttpHeaderNameOffset(int httpHeaderIndex);
 
 // Returns a pointer to the HTTP header name at the index provided.
 EXTERNAL char* fiftyoneDegreesGetHttpHeaderNamePointer(int httpHeaderIndex);
