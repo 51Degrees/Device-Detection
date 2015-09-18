@@ -259,7 +259,8 @@ and 51DEGREES_LIB may additionally be used to force specific different paths
 for .o and .h, but will default to 51DEGREES_SRC. Make sure to replace
 '51D_REPO_PATH' with the path to the 51Degrees repository.
 
-51Degrees provide 2 different detection algorithms :
+51Degrees provide 2 different detection algorithms:
+
     1. Pattern - balances main memory usage and CPU.
     2. Trie - a very high performance detection solution which uses more main
        memory than Pattern.
