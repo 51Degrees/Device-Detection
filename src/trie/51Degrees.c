@@ -737,7 +737,8 @@ int getUniqueHttpHeaderIndex(char* httpHeaderName, int length) {
 fiftyoneDegreesDeviceOffsets* fiftyoneDegreesGetDeviceOffsetsWithHeadersString(char *httpHeaders, size_t size) {
 	char *headerName, *headerValue, *endOfHeaders = httpHeaders + size;
 	int headerNameLength, headerValueLength, uniqueHeaderIndex = 0;
-	fiftyoneDegreesDeviceOffsets* offsets = (fiftyoneDegreesDeviceOffsets*)malloc(_uniqueHttpHeaderCount * sizeof(fiftyoneDegreesDeviceOffsets));
+	fiftyoneDegreesDeviceOffsets* offsets = (fiftyoneDegreesDeviceOffsets*)malloc(sizeof(fiftyoneDegreesDeviceOffsets));
+	offsets->firstOffset = (fiftyoneDegreesDeviceOffset*)malloc(_uniqueHttpHeaderCount * sizeof(fiftyoneDegreesDeviceOffset));
 	offsets->size = 0;
 	headerNameLength = setNextHttpHeaderName(httpHeaders, endOfHeaders, &headerName);
 	while (headerNameLength > 0 &&
@@ -764,7 +765,7 @@ char* fiftyoneDegreesGetValue(int deviceOffset, int propertyIndex) {
 }
 
 // Returns the number of HTTP headers relevent to device detection.
-int32_t fiftyoneDegreesGetHttpHeaderCount() {
+int fiftyoneDegreesGetHttpHeaderCount() {
     return _uniqueHttpHeaderCount;
 }
 
@@ -774,7 +775,7 @@ char* fiftyoneDegreesGetHttpHeaderNamePointer(int httpHeaderIndex) {
 }
 
 // Returns the HTTP header name offset at the index provided.
-int32_t fiftyoneDegreesGetHttpHeaderNameOffset(int httpHeaderIndex) {
+int fiftyoneDegreesGetHttpHeaderNameOffset(int httpHeaderIndex) {
     return _uniqueHttpHeaders[httpHeaderIndex];
 }
 
