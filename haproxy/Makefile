@@ -330,7 +330,7 @@ ifeq ($(TARGET),aix52)
 else
 ifeq ($(TARGET),cygwin)
   # This is for Cygwin
-  # Cygwin adds IPv6 support only in version 1.7 (in beta right now).
+  # Cygwin adds IPv6 support only in version 1.7 (in beta right now). 
   USE_POLL   = implicit
   USE_TPROXY = implicit
   TARGET_CFLAGS  = $(if $(filter 1.5.%, $(shell uname -r)), -DUSE_IPV6 -DAF_INET6=23 -DINET6_ADDRSTRLEN=46, )
@@ -412,7 +412,7 @@ OPTIONS_OBJS    =
 BUILD_OPTIONS =
 
 # Return USE_xxx=$(USE_xxx) unless $(USE_xxx) = "implicit"
-# Usage:
+# Usage: 
 #   BUILD_OPTIONS += $(call ignore_implicit,USE_xxx)
 ignore_implicit = $(patsubst %=implicit,,$(1)=$($(1)))
 
