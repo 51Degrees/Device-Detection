@@ -684,7 +684,7 @@ static void write_request(struct connection * c)
     char *src, *dst, *uaStart, *xStart;
     int randomCharacters, uaLength, xLength;
     char USER_AGENT_HEADER[] = "User-Agent";
-    const char *X_STOCK_DEVICE[4] = {
+    const char *X_STOCK_DEVICE[3] = {
         "Device-Stock-UA",
         "X-Device-User-Agent",
         "X-OperaMini-Phone-UA" };
@@ -717,7 +717,7 @@ static void write_request(struct connection * c)
                 dst += snprintf(dst,
                     uniqueRequest + sizeof(uniqueRequest) - dst,
                     "%s: ",
-                    X_STOCK_DEVICE[rand() % 4]);
+                    X_STOCK_DEVICE[rand() % 3]);
                 xStart = dst;
                 dst += snprintf(dst,
                     uniqueRequest + sizeof(uniqueRequest) - dst,
