@@ -37,6 +37,7 @@ EXTERN_DLL_EXPORT void __cdecl Destroy()
 
 EXTERN_DLL_EXPORT void __cdecl FreeMatchResult(LP offsets)
 {
+	free((void*)((fiftyoneDegreesDeviceOffsets*)offsets)->firstOffset);
 	free((void*)offsets);
 }
 
@@ -44,7 +45,8 @@ EXTERN_DLL_EXPORT LP __cdecl MatchFromUserAgent(LPCTSTR userAgent)
 {
 	fiftyoneDegreesDeviceOffsets* offsets = (fiftyoneDegreesDeviceOffsets*)malloc(sizeof(fiftyoneDegreesDeviceOffsets));
 	offsets->size = 1;
-	offsets->firstOffset.deviceOffset = fiftyoneDegreesGetDeviceOffset((char*)userAgent);
+	offsets->firstOffset = (fiftyoneDegreesDeviceOffset*)malloc(sizeof(fiftyoneDegreesDeviceOffset));
+	offsets->firstOffset->deviceOffset = fiftyoneDegreesGetDeviceOffset((char*)userAgent);
 	return (LP)offsets;
 }
 
