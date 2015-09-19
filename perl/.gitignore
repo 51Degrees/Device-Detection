@@ -1,0 +1,7 @@
+blib/
+MYMETA.*
+51Degrees_wrap.c
+Makefile
+*.o
+*.bs
+pm_to_blib
