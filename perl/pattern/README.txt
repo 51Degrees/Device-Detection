@@ -16,25 +16,26 @@ INSTALLATION
 
 To install this module type the following:
 
-   perl Makefile.PL
-   make
-   make test
-   make install
+	swig -perl -outdir lib/FiftyOneDegrees src/51Degrees.i
+	perl Makefile.PL
+	make
+	make test
+	sudo make install
 
 DEPENDENCIES
 
 JSON
+
+sudo apt-get install libjson-perl
 
 API Documentation
 
 For documentation go to https://51degrees.com/Support/Documentation/Perl
 
 BUILDING FROM SOURCE
-<<<<<<< HEAD
 
-=======
 cd
->>>>>>> V32
+
 This project uses SWIG to create a wrapper around 51Degrees C source code.
 To regenerate the wrapper, install SWIG 2.0 or greater, navigate to the
 src directory and run the following command:

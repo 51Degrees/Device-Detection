@@ -1,7 +1,8 @@
 blib/
 MYMETA.*
-51Degrees_wrap.c
 Makefile
 *.o
 *.bs
+*.pm
+*.c
 pm_to_blib
