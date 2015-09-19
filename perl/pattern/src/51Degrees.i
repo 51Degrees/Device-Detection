@@ -1,8 +1,4 @@
-<<<<<<< HEAD
-%module "FiftyOneDegrees::PatternV3"
-%{ 
-#include "pattern/51Degrees.h"
-=======
+
 /* *********************************************************************
  * This Source Code Form is copyright of 51Degrees Mobile Experts Limited.
  * Copyright 2014 51Degrees Mobile Experts Limited, 5 Charlotte Close,
@@ -32,28 +28,12 @@
 %module "FiftyOneDegrees::PatternV3"
 %{ 
 #include "../../../src/pattern/51Degrees.h"
->>>>>>> V32
 #ifdef __cplusplus
 #define EXTERNAL extern "C"
 #else
 #define EXTERNAL
 #endif
-<<<<<<< HEAD
-DataSetInitStatus initStatus;
-DataSetInitStatus getInitStatus() {
-  return initStatus;
-}
 
-%}
-
-%include "pattern/51Degrees.h"
-%include exception.i
-
-%exception dataSetInitWithPropertyString {
-    
- 	$action; 
- 	DataSetInitStatus initStatus = getInitStatus();
-=======
 fiftyoneDegreesDataSetInitStatus initStatus;
 fiftyoneDegreesDataSetInitStatus getInitStatus() {
   return initStatus;
@@ -75,7 +55,6 @@ fiftyoneDegreesWorksetPool* pool ;
     
  	$action; 
  	fiftyoneDegreesDataSetInitStatus initStatus = getInitStatus();
->>>>>>> V32
     switch (initStatus) {
       case DATA_SET_INIT_STATUS_SUCCESS: // nothing to do
       break;
@@ -98,37 +77,6 @@ fiftyoneDegreesWorksetPool* pool ;
     }
 }
 %newobject getMatch;
-<<<<<<< HEAD
-%inline %{
-
-  void destroyDataset(long dataSet) {
-	destroy((DataSet*)dataSet);
-  }
-
-  long dataSetInitWithPropertyString(char* fileName, char* propertyString) {
-	DataSet *ds = NULL;
-	ds = (DataSet*)malloc(sizeof(DataSet));
-	initStatus = initWithPropertyString((char*)fileName, ds, propertyString);
-	if (initStatus != DATA_SET_INIT_STATUS_SUCCESS)
-	{
-		free(ds);
-		ds = NULL;
-	}
-	return (long)ds;
-  }
-
-
-  char* getMatch(long dataSet, char* userAgent) {
-	Workset *ws = NULL;
-	ws = createWorkset((DataSet*)dataSet);
-    match(ws, userAgent);
-    char *output = (char *) malloc(50000);
-    processDeviceJSON(ws, output, 50000);
-    freeWorkset(ws);
-    return output;
-  }
-  
-=======
 %newobject getMatchWithHeaders;
 %newobject createJSON;
 %inline %{
@@ -213,7 +161,7 @@ void freeMatch(char* output){
 
 
 
->>>>>>> V32
+
 %}
 
 
