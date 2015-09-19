@@ -33,9 +33,9 @@ BUILDING FROM SOURCE
 
 This project uses SWIG to create a wrapper around 51Degrees C source code.
 To regenerate the wrapper, install SWIG 2.0 or greater, navigate to the
-src directory and run the following command:
+trie directory and run the following command:
 
-	swig -perl -outdir ../lib/FiftyOneDegrees 51Degrees.i
+	swig -perl -outdir ../src/lib/FiftyOneDegrees 51Degrees.i
 
 This creates the a perl module in lib/FiftyOneDegrees. Run the installation
 instructions to test it.
