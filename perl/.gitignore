@@ -1,8 +1,8 @@
-blib/
-MYMETA.*
-Makefile
-*.o
-*.bs
-*.pm
+# Perl
 *.c
+*.pm
+MYMETA.*
+*.bs
+blib/
+Makefile
 pm_to_blib
