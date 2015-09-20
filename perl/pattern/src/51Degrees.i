@@ -20,7 +20,7 @@
  ********************************************************************** */
 
 /*
- * Please review the README.txt file for instructions to build this
+ * Please review the README.md file for instructions to build this
  * code using SWIG. This code is dependent upon the 51Degees.h which
  * is now contained with the main C library
  */
@@ -46,6 +46,7 @@
 %}
 
 %include "../../../src/pattern/51Degrees.h"
+
 %include exception.i
 
 /*
@@ -72,14 +73,8 @@
 			break;
 	}
 }
-%newobject getMatch;
-%newobject getMatchWithHeaders;
-%newobject createJSON;
+
 %inline %{
-
-	struct parameters {
-
-	};
 
 	/* Initialise the dataset using the datafile and properties required. This
 	 * method also initialises the cache and pool.
@@ -120,14 +115,21 @@
 		}
 	}
 
+	/* Returns the HTTP header name for the index provided, or NULL if
+	 * no header exists at the index.
+	 */
+	char* getHttpHeaderName(fiftyoneDegreesInstance* instance, int httpHeaderIndex) {
+		return fiftyoneDegreesGetPrefixedUpperHttpHeaderName(instance->dataSet, httpHeaderIndex);
+	}
+
 	/* Methods used for matching. */
 
 	char* getMatch(fiftyoneDegreesInstance* instance, char* userAgent) {
 		fiftyoneDegreesWorkset *ws = fiftyoneDegreesWorksetPoolGet(instance->pool);
 		fiftyoneDegreesMatch(ws, userAgent);
-		char *output = (char *) malloc(50000);
+		char *output = (char*)malloc(ws->dataSet->header.jsonBufferLength * sizeof(char));
 		output = fiftyoneDegreesJSONCreate(ws);
-		int32_t jsout = fiftyoneDegreesProcessDeviceJSON(ws, output);
+		fiftyoneDegreesProcessDeviceJSON(ws, output);
 		fiftyoneDegreesWorksetPoolRelease(instance->pool, ws);
 		return output;
 	}
@@ -135,14 +137,10 @@
 	char* getMatchWithHeaders(fiftyoneDegreesInstance* instance, char* userHeader) {
         fiftyoneDegreesWorkset *ws = fiftyoneDegreesWorksetPoolGet(instance->pool);
         fiftyoneDegreesMatchWithHeadersString(ws, userHeader, strlen(userHeader));
-        char *output = (char *) malloc(50000);
+        char *output = fiftyoneDegreesJSONCreate(ws);
         output = fiftyoneDegreesJSONCreate(ws);
-        int32_t jsout = fiftyoneDegreesProcessDeviceJSON(ws, output);
+        fiftyoneDegreesProcessDeviceJSON(ws, output);
         fiftyoneDegreesWorksetPoolRelease(instance->pool, ws);
         return output;
 	}
-
-	void freeMatch(char* output){
-    	fiftyoneDegreesJSONFree(output);
-  	}
 %}

@@ -33,8 +33,8 @@ my $userAgentString;
 
 $userAgentString //= "Mozilla/5.0 (Linux; Android 4.4.2; en-us; SAMSUNG SCH-I545 Build/KOT49H) AppleWebKit/537.36 (KHTML, like Gecko) Version/1.5 Chrome/28.0.1500.94 Mobile Safari/537.36";
 
-$httpHeadersString //= 	"User-Agent: Opera/9.52 (X11; Linux i686; U; en)\r\n" .
-						"Device-Stock-UA: $userAgentString\r\n";
+$httpHeadersString //= 	"HTTP_USER_AGENT: Opera/9.52 (X11; Linux i686; U; en)\r\n" .
+						"HTTP_DEVICE_STOCK_UA: $userAgentString\r\n";
 
 $propertyList //= "Id,BrowserName,BrowserVendor,BrowserVersion,CookiesCapable,IsTablet,IsMobile,IsCrawler";
 
@@ -46,38 +46,64 @@ my $r = GetOptions('filename|f=s' => \$filename,
 
 die "DAT file does not exist! usage: $0 -f <dat filename>\n" unless -e ("$filename");
 
-# Initialize Pattern library
+sub output_headers {
+	my $dsPointer = shift;
+	my @httpHeaders = ();
+	my $httpHeaderIndex = 0;
+	my $httpHeader = FiftyOneDegrees::PatternV3::getHttpHeaderName($dsPointer, $httpHeaderIndex);
+	while ($httpHeader ne "") {
+		push (@httpHeaders, $httpHeader);
+		$httpHeaderIndex++;
+		$httpHeader = FiftyOneDegrees::PatternV3::getHttpHeaderName($dsPointer, $httpHeaderIndex);
+	}
+	say "\r\n=== Supported HTTP Headers ===";
+	foreach $httpHeader (@httpHeaders) {
+		say $httpHeader;
+	}
+}
 
-# For pattern a dataset pointer is needed. This will be passd into other
-# PatternV3 functions.
-eval {
+sub output_properties {
+	my %properties = %{ decode_json(shift) };
+	# Loop through and print all returned properties
+	while (my ($key, $value) = each %properties) {
+		say $key . ": " . $value;
+	}
+}
 
-	my $json;
-	my $dsPointer = FiftyOneDegrees::PatternV3::dataSetInitWithPropertyString($filename, $propertyList, 10, 10000);
-
+sub output_user_agent {
 	say "\r\n=== User-Agent Data Input ===";
 	say $userAgentString;
-	$json = FiftyOneDegrees::PatternV3::getMatch($dsPointer, $userAgentString);
-
+	my $json = FiftyOneDegrees::PatternV3::getMatch(shift, $userAgentString);
 	say "\r\n=== User-Agent Data Output ===";
-	my %properties = %{ decode_json($json) };
-	# Loop through and print all returned properties
-	while (my ($key, $value) = each %properties) {
-		say $key . ": " . $value;
-	}
+	output_properties($json);
+}
 
+sub output_http_headers {
 	say "\r\n=== HTTP Headers Data Input ===";
 	say $httpHeadersString;
-	$json = FiftyOneDegrees::PatternV3::getMatchWithHeaders($dsPointer, $httpHeadersString);
-
+	my $json = FiftyOneDegrees::PatternV3::getMatchWithHeaders(shift, $httpHeadersString);
 	say "\r\n=== HTTP Headers Data Output ===";
-	my %properties = %{ decode_json($json) };
-	# Loop through and print all returned properties
-	while (my ($key, $value) = each %properties) {
-		say $key . ": " . $value;
-	}
+	output_properties($json);
+}
 
+eval {
+
+	# For pattern a dataset pointer is needed. This will be passed into other
+	# PatternV3 functions.
+	my $dsPointer = FiftyOneDegrees::PatternV3::dataSetInitWithPropertyString($filename, $propertyList, 10, 10000);
+
+	# Output the HTTP headers used for detection.
+	output_headers($dsPointer);
+
+	# Perform a detection using only the User-Agent header.
+	output_user_agent($dsPointer);
+
+	# Perform a detection using all the important HTTP headers.
+	output_http_headers($dsPointer);
+
+	# Release the instance of the dataset and associated memory.
 	FiftyOneDegrees::PatternV3::destroyDataset($dsPointer);
+
 };
 if ($@) {
     die "Error: $@\n";
