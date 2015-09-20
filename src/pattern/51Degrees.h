@@ -305,6 +305,7 @@ typedef struct fiftyoneDegrees_dataset_t {
 	const fiftyoneDegreesProfileOffset *profileOffsets;
 	int32_t httpHeadersCount; /* Number of unique HTTP headers in the array */
 	fiftyoneDegreesHttpHeader *httpHeaders; /* Array of HTTP headers the data set can process */
+	char **prefixedUpperHttpHeaders; /* Array of HTTP header strings in upper case form prefixed with HTTP_ */
 } fiftyoneDegreesDataSet;
 #pragma pack(pop)
 
@@ -691,6 +692,15 @@ EXTERNAL int32_t fiftyoneDegreesGetRequiredPropertyName(const fiftyoneDegreesDat
 * @return the number of bytes written for the http header
 */
 EXTERNAL int32_t fiftyoneDegreesGetHttpHeaderName(const fiftyoneDegreesDataSet *dataSet, int httpHeaderIndex, char *httpHeader, int size);
+
+/**
+ * Returns the name of the header in prefixed upper case form at the index
+ * provided, or NULL if the index is not valid.
+ * @param dataSet pointer to an initialised dataset
+ * @param httpHeaderIndex index of the HTTP header name required
+ * @returns name of the header, or NULL if index not valid
+ */
+EXTERNAL char* fiftyoneDegreesGetPrefixedUpperHttpHeaderName(const fiftyoneDegreesDataSet *dataSet, int httpHeaderIndex);
 
 /**
 * Gets the required property index of the property provided, or -1 if the

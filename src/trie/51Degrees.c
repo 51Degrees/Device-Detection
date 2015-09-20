@@ -48,6 +48,8 @@
 #define BITS32 (BYTE)1
 #define BITS64 (BYTE)2
 
+#define HTTP_PREFIX_UPPER "HTTP_"
+
 #pragma pack(push, 1)
 typedef struct t_node_children {
 	BYTE numberOfChildren;
@@ -120,6 +122,9 @@ static int32_t _uniqueHttpHeaderCount;
 
 // Pointer to the unique list of HTTP headers.
 static int32_t* _uniqueHttpHeaders = NULL;
+
+// Pointer to an array of prefixed upper HTTP headers.
+static char** _prefixedUpperHttpHeaders = NULL;
 
 // The number of properties contained in the system.
 static int32_t _propertiesCount;
@@ -268,6 +273,7 @@ fiftyoneDegreesDataSetInitStatus readCopyright(FILE *inputFilePtr) {
 
 // Fress the memory.
 void fiftyoneDegreesDestroy(void) {
+	int index;
 	if (_copyright != NULL) {
 		free(_copyright);
 		_copyright = NULL;
@@ -295,6 +301,15 @@ void fiftyoneDegreesDestroy(void) {
 	if (_properties != NULL) {
 		free(_properties);
 		_properties = NULL;
+	}
+	if (_prefixedUpperHttpHeaders != NULL) {
+		for (index = 0; index < _uniqueHttpHeaderCount; index++) {
+			if (_prefixedUpperHttpHeaders[index] != NULL) {
+				free(_prefixedUpperHttpHeaders[index]);
+				_prefixedUpperHttpHeaders[index] = NULL;
+			}
+		}
+		_prefixedUpperHttpHeaders = NULL;
 	}
 	if (_uniqueHttpHeaders != NULL) {
 		free(_uniqueHttpHeaders);
@@ -752,6 +767,10 @@ fiftyoneDegreesDeviceOffsets* fiftyoneDegreesGetDeviceOffsetsWithHeadersString(c
 		}
 		headerNameLength = setNextHttpHeaderName(headerValue + headerValueLength, endOfHeaders, &headerName);
 	}
+	if (offsets->size == 0) {
+		(offsets->firstOffset + offsets->size)->deviceOffset = 0;
+		offsets->size++;
+	}
 	return offsets;
 }
 
@@ -795,6 +814,59 @@ int fiftyoneDegreesGetHttpHeaderName(int httpHeaderIndex, char* httpHeader, int 
 		}
 	}
 	return length;
+}
+
+/**
+ * Initialises the prefixed upper HTTP header names for use with Perl, Python
+ * and PHP. These headers are in the form HTTP_XXXXXX_XXXX where User-Agent
+ * would appear as HTTP_USER_AGENT. This method avoids needing to duplicate
+ * the logic to format the header names in each API.
+ */
+static void initPrefixedUpperHttpHeaderNames() {
+	int index, httpHeaderIndex, length;
+	char *prefixedUpperHttpHeader, *httpHeaderName;
+	_prefixedUpperHttpHeaders = (char**)malloc(_uniqueHttpHeaderCount * sizeof(char*));
+	if (_prefixedUpperHttpHeaders != NULL) {
+		for (httpHeaderIndex = 0; httpHeaderIndex < _uniqueHttpHeaderCount; httpHeaderIndex++) {
+			httpHeaderName = _strings + _uniqueHttpHeaders[httpHeaderIndex];
+			length = strlen(httpHeaderName);
+			_prefixedUpperHttpHeaders[httpHeaderIndex] = (char*)malloc(
+				(length + sizeof(HTTP_PREFIX_UPPER) - 1) * sizeof(char));
+			if (_prefixedUpperHttpHeaders[httpHeaderIndex] != NULL) {
+				prefixedUpperHttpHeader = _prefixedUpperHttpHeaders[httpHeaderIndex];
+				memcpy(prefixedUpperHttpHeader, HTTP_PREFIX_UPPER, sizeof(HTTP_PREFIX_UPPER) - 1);
+				prefixedUpperHttpHeader += sizeof(HTTP_PREFIX_UPPER) - 1;
+				for (index = 0; index < length; index++) {
+					*prefixedUpperHttpHeader = toupper(*httpHeaderName);
+					if (*prefixedUpperHttpHeader == '-') {
+						*prefixedUpperHttpHeader = '_';
+					}
+					prefixedUpperHttpHeader++;
+					httpHeaderName++;
+				}
+				*prefixedUpperHttpHeader = 0;
+			}
+		}
+	}
+}
+
+/**
+ * Returns the name of the header in prefixed upper case form at the index
+ * provided, or NULL if the index is not valid.
+ * @param dataSet pointer to an initialised dataset
+ * @param httpHeaderIndex index of the HTTP header name required
+ * @returns name of the header, or NULL if index not valid
+ */
+char* fiftyoneDegreesGetPrefixedUpperHttpHeaderName(int httpHeaderIndex) {
+	char *prefixedUpperHeaderName = NULL;
+	if (_prefixedUpperHttpHeaders == NULL) {
+		initPrefixedUpperHttpHeaderNames();
+	}
+	if (httpHeaderIndex >= 0 &&
+		httpHeaderIndex < _uniqueHttpHeaderCount) {
+		prefixedUpperHeaderName = _prefixedUpperHttpHeaders[httpHeaderIndex];
+	}
+	return prefixedUpperHeaderName;
 }
 
 // Sets the propertyname string to the property name at the index provided.
@@ -917,6 +989,35 @@ int fiftyoneDegreesProcessDeviceCSV(int32_t deviceOffset, char* result, int resu
     return fiftyoneDegreesProcessDeviceOffsetsCSV(&deviceOffsets, result, resultLength);
 }
 
+// Escapes special characters for JSON strings.
+static int escapeJSON(char *start, char *end, char *max) {
+	char *current = end, *temp;
+	int charactersAdded = 0;
+	while (current >= start) {
+		if (*current == '"' ||
+			*current == '\\') {
+			// Move all the characters before the special
+			// character down by one.
+			temp = end;
+			// Check there is space remaining.
+			if (temp > max) {
+				break;
+			}
+			while (temp >= current) {
+				*temp = *(temp - 1);
+				temp--;
+			}
+			// Set the escape character and increase the
+			// end position by one.
+			*current = '\\';
+			charactersAdded++;
+			end++;
+		}
+		current--;
+	}
+	return charactersAdded;
+}
+
 // Process device properties into a JSON string for the device offsets provided.
 int fiftyoneDegreesProcessDeviceOffsetsJSON(fiftyoneDegreesDeviceOffsets *deviceOffsets, char* result, int resultLength) {
 	char* valuePos;
@@ -942,18 +1043,15 @@ int fiftyoneDegreesProcessDeviceOffsetsJSON(fiftyoneDegreesDeviceOffsets *device
             *(_requiredPropertiesNames + requiredPropertyIndex));
         if (currentPos >= endPos) return -1;
         // Add the values to the buffer.
+        valuePos = currentPos;
         currentPos += abs(fiftyoneDegreesGetValueFromOffsets(
             deviceOffsets,
             requiredPropertyIndex,
             currentPos,
             (int)(endPos - currentPos)));
         if (currentPos >= endPos) return -1;
-        while(valuePos != currentPos) {
-            if(*valuePos == '"'){
-                *valuePos = '\\';
-            }
-            valuePos++;
-        }
+        currentPos += escapeJSON(valuePos, currentPos, endPos);
+        if (currentPos >= endPos) return -1;
         currentPos += snprintf(
             currentPos,
             (int)(endPos - currentPos),

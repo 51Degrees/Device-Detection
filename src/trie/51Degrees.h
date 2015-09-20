@@ -87,6 +87,9 @@ EXTERNAL int fiftyoneDegreesGetHttpHeaderNameOffset(int httpHeaderIndex);
 // Returns a pointer to the HTTP header name at the index provided.
 EXTERNAL char* fiftyoneDegreesGetHttpHeaderNamePointer(int httpHeaderIndex);
 
+// Returns a pointer to the prefixed upper HTTP header name at the index provided.
+EXTERNAL char* fiftyoneDegreesGetPrefixedUpperHttpHeaderName(int httpHeaderIndex);
+
 // Sets the http header string to the header name at the index provided.
 EXTERNAL int fiftyoneDegreesGetHttpHeaderName(int httpHeaderIndex, char* httpHeader, int size);
 
@@ -103,6 +106,9 @@ EXTERNAL int fiftyoneDegreesProcessDeviceCSV(int deviceOffset, char* result, int
 // Converts the device offset to a JSON string returning the number of
 // characters used.
 EXTERNAL int fiftyoneDegreesProcessDeviceJSON(int deviceOffset, char* result, int resultLength);
+
+// Process device properties into a JSON string for the device offsets provided.
+EXTERNAL int fiftyoneDegreesProcessDeviceOffsetsJSON(fiftyoneDegreesDeviceOffsets *deviceOffsets, char* result, int resultLength);
 
 // Returns the number of characters which matched in the trie.
 EXTERNAL int fiftyoneDegreesGetMatchedUserAgentLength(char *userAgent);
