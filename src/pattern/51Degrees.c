@@ -71,6 +71,8 @@ const int16_t POWERS[] = { 1, 10, 100, 1000, 10000 };
 
 #define MIN_CACHE_SIZE 2
 
+#define HTTP_PREFIX_UPPER "HTTP_"
+
 /**
  * DATA FILE READ METHODS
  */
@@ -876,6 +878,15 @@ void linkedListRemove(fiftyoneDegreesLinkedSignatureList *linkedList, fiftyoneDe
 * @param dataSet pointer to the data set being destroyed
 */
 void fiftyoneDegreesDataSetFree(const fiftyoneDegreesDataSet *dataSet) {
+	int index;
+	if (dataSet->prefixedUpperHttpHeaders != NULL) {
+		for (index = 0; index < dataSet->httpHeadersCount; index++) {
+			if (dataSet->prefixedUpperHttpHeaders[index] != NULL) {
+				free((void*)dataSet->prefixedUpperHttpHeaders[index]);
+			}
+		}
+		free((void*)dataSet->prefixedUpperHttpHeaders);
+	}
 	free((void*)(dataSet->requiredProperties));
 	free((void*)(dataSet->strings));
 	free((void*)(dataSet->components));
@@ -1052,6 +1063,11 @@ fiftyoneDegreesDataSetInitStatus fiftyoneDegreesInitWithPropertyArray(const char
 	if (status != DATA_SET_INIT_STATUS_SUCCESS) {
 		return status;
 	}
+
+	// Set the prefixed upper headers to NULL as they may not be
+	// needed. If they are initialised later then the memory can
+	// be freed when the data set is destroyed.
+	dataSet->prefixedUpperHttpHeaders = NULL;
 
 	// Set the properties that are returned by the data set.
 	if (requiredProperties == NULL || count == 0) {
@@ -3289,7 +3305,7 @@ void fiftyoneDegreesMatchWithHeadersArray(fiftyoneDegreesWorkset *ws, char **htt
 	for (httpHeaderIndex = 0;
 		httpHeaderIndex < httpHeaderCount &&
 		importantHeaderIndex < ws->dataSet->httpHeadersCount;
-	httpHeaderIndex++) {
+		httpHeaderIndex++) {
 		for (dataSetHeaderIndex = 0; dataSetHeaderIndex < ws->dataSet->httpHeadersCount; dataSetHeaderIndex++) {
 			if (strcmp(ws->dataSet->httpHeaders[dataSetHeaderIndex].headerName, httpHeaderNames[httpHeaderIndex]) == 0)
 			{
@@ -3303,6 +3319,62 @@ void fiftyoneDegreesMatchWithHeadersArray(fiftyoneDegreesWorkset *ws, char **htt
 	}
 	ws->importantHeadersCount = importantHeaderIndex;
 	fiftyoneDegreesMatchForHttpHeaders(ws);
+}
+
+/**
+ * Initialises the prefixed upper HTTP header names for use with Perl, Python
+ * and PHP. These headers are in the form HTTP_XXXXXX_XXXX where User-Agent
+ * would appear as HTTP_USER_AGENT. This method avoids needing to duplicate
+ * the logic to format the header names in each API.
+ * @param dataSet pointer to a data set instance with uninitialised prefixed
+ * 		upper headers
+ */
+static void initPrefixedUpperHttpHeaderNames(const fiftyoneDegreesDataSet *dataSet) {
+	int index;
+	int httpHeaderIndex;
+	char *prefixedUpperHttpHeader;
+	const fiftyoneDegreesAsciiString *httpHeaderName;
+	((fiftyoneDegreesDataSet*)dataSet)->prefixedUpperHttpHeaders = (char**)malloc(dataSet->httpHeadersCount * sizeof(char*));
+	if (dataSet->prefixedUpperHttpHeaders != NULL) {
+		for (httpHeaderIndex = 0; httpHeaderIndex < dataSet->httpHeadersCount; httpHeaderIndex++) {
+			httpHeaderName = fiftyoneDegreesGetString(
+				dataSet,
+				(dataSet->httpHeaders + httpHeaderIndex)->headerNameOffset);
+			dataSet->prefixedUpperHttpHeaders[httpHeaderIndex] = (char*)malloc((httpHeaderName->length + sizeof(HTTP_PREFIX_UPPER) - 1) * sizeof(char));
+			if (dataSet->prefixedUpperHttpHeaders[httpHeaderIndex] != NULL) {
+				prefixedUpperHttpHeader = dataSet->prefixedUpperHttpHeaders[httpHeaderIndex];
+				memcpy(prefixedUpperHttpHeader, HTTP_PREFIX_UPPER, sizeof(HTTP_PREFIX_UPPER) - 1);
+				prefixedUpperHttpHeader += sizeof(HTTP_PREFIX_UPPER) - 1;
+				for (index = 0; index < httpHeaderName->length; index++) {
+					*prefixedUpperHttpHeader = toupper(*(&httpHeaderName->firstByte + index));
+					if (*prefixedUpperHttpHeader == '-') {
+						*prefixedUpperHttpHeader = '_';
+					}
+					prefixedUpperHttpHeader++;
+				}
+				*prefixedUpperHttpHeader = 0;
+			}
+		}
+	}
+}
+
+/**
+ * Returns the name of the header in prefixed upper case form at the index
+ * provided, or NULL if the index is not valid.
+ * @param dataSet pointer to an initialised dataset
+ * @param httpHeaderIndex index of the HTTP header name required
+ * @returns name of the header, or NULL if index not valid
+ */
+char* fiftyoneDegreesGetPrefixedUpperHttpHeaderName(const fiftyoneDegreesDataSet *dataSet, int httpHeaderIndex) {
+	char *prefixedUpperHeaderName = NULL;
+	if (dataSet->prefixedUpperHttpHeaders == NULL) {
+		initPrefixedUpperHttpHeaderNames(dataSet);
+	}
+	if (httpHeaderIndex >= 0 &&
+		httpHeaderIndex < dataSet->httpHeadersCount) {
+		prefixedUpperHeaderName = dataSet->prefixedUpperHttpHeaders[httpHeaderIndex];
+	}
+	return prefixedUpperHeaderName;
 }
 
 /**
@@ -3401,14 +3473,13 @@ int headerCompare(char *httpHeaderName, const fiftyoneDegreesAsciiString *unique
  */
 int getUniqueHttpHeaderIndex(const fiftyoneDegreesDataSet *dataSet, char* httpHeaderName, int length) {
 	int uniqueHeaderIndex;
-	static const char httpPrefix[] = "HTTP_";
-	static const int httpPrefixLength = sizeof(httpPrefix) - 1;
+	static const int httpPrefixLength = sizeof(HTTP_PREFIX_UPPER) - 1;
 	char *adjustedHttpHeaderName;
 	const fiftyoneDegreesAsciiString *header;
 
 	// Check if header is from a Perl or PHP wrapper in the form of HTTP_*
 	// and if present skip these characters.
-	if (strncmp(httpHeaderName, httpPrefix, httpPrefixLength) == 0) {
+	if (strncmp(httpHeaderName, HTTP_PREFIX_UPPER, httpPrefixLength) == 0) {
 		adjustedHttpHeaderName = httpHeaderName + httpPrefixLength;
 		length -= httpPrefixLength;
 	}

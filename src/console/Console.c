@@ -33,16 +33,7 @@
 #define snprintf _snprintf
 #endif
 
-#define RANDOM_INDEX(r) rand() / (RAND_MAX / r + 1)
-
-char *HTTP_HEADERS[] = {
-	"User-Agent",
-	"Device-Stock-UA",
-	"x-Device-User-Agent",
-	"X-Device-User-Agent",
-	"X-OperaMini-Phone-UA"
-};
-int HTTP_HEADERS_LENGTH = 5;
+#define RANDOM_INDEX(r) rand() % r
 
 char *TARGET_USER_AGENTS[] = {
     // Internet explorer
@@ -181,10 +172,10 @@ void run(fiftyoneDegreesDataSet *dataSet) {
 			for (index = 0; index < 5; index++) {
 
 				// Use multiple headers as arrays.
-				httpHeaderNames[0] = HTTP_HEADERS[RANDOM_INDEX(HTTP_HEADERS_LENGTH - 1)];
-				httpHeaderNames[1] = HTTP_HEADERS[RANDOM_INDEX(HTTP_HEADERS_LENGTH - 1)];
-				httpHeaderValues[0] = TARGET_USER_AGENTS[RANDOM_INDEX(TARGET_USER_AGENTS_LENGTH - 2)];
-				httpHeaderValues[1] = TARGET_USER_AGENTS[RANDOM_INDEX(TARGET_USER_AGENTS_LENGTH - 2)];
+				httpHeaderNames[0] = (ws->dataSet->httpHeaders + RANDOM_INDEX(ws->dataSet->httpHeadersCount))->headerName;
+				httpHeaderNames[1] = fiftyoneDegreesGetPrefixedUpperHttpHeaderName(ws->dataSet, RANDOM_INDEX(ws->dataSet->httpHeadersCount));
+				httpHeaderValues[0] = TARGET_USER_AGENTS[RANDOM_INDEX(TARGET_USER_AGENTS_LENGTH)];
+				httpHeaderValues[1] = TARGET_USER_AGENTS[RANDOM_INDEX(TARGET_USER_AGENTS_LENGTH)];
 				ws = fiftyoneDegreesWorksetPoolGet(pool);
 				fiftyoneDegreesMatchWithHeadersArray(ws, httpHeaderNames, httpHeaderValues, 2);
 				printf("\r\n\t\t\t*** HTTP Headers Array ***\r\n");
@@ -211,7 +202,7 @@ void run(fiftyoneDegreesDataSet *dataSet) {
 					ws = fiftyoneDegreesWorksetPoolGet(pool);
 					fiftyoneDegreesMatchWithHeadersString(ws, httpHeaders, httpHeadersLength);
 					printf("\r\n\t\t\t*** HTTP Headers String ***\r\n");
-					print50Columns("HTTP Headers:\t\t", httpHeaders, httpHeadersLength);
+					printf("%s\r\n",httpHeaders);
 					free((void*)httpHeaders);
 				}
 				reportResults(ws);
