@@ -3816,8 +3816,8 @@ static int escapeJSON(char *start, char *next, char *max) {
 /**
  * Process the workset results into a JSON string.
  * @param ws pointer to a workset with the results to return in JSON
- * @param json pointer to memory allocated with fiftyoneDegreesJSONCreate
- * @param
+ * @param JSON pointer to memory allocated with fiftyoneDegreesJSONCreate
+ * @return number of characters written to the JSON string
  */
 int32_t fiftyoneDegreesProcessDeviceJSON(fiftyoneDegreesWorkset *ws, char* json) {
 	int32_t propertyIndex, valueIndex, profileIndex;
@@ -3839,10 +3839,8 @@ int32_t fiftyoneDegreesProcessDeviceJSON(fiftyoneDegreesWorkset *ws, char* json)
 				"%d",
 				(*(ws->profiles + profileIndex))->profileId);
 			if (profileIndex < ws->profileCount - 1) {
-				currentPos += snprintf(
-					currentPos,
-					(int32_t)(endPos - currentPos),
-					"-");
+				*currentPos = '-';
+				currentPos++;
 			}
 		}
 		currentPos += snprintf(
