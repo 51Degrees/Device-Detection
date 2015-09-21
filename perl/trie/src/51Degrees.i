@@ -72,17 +72,31 @@
 	}
 }
 
+/* Methods that return new objects that SWIG should be responsible for freeing.
+ */
+%newobject getMatch;
+%newobject getMatchWithHeaders;
+
 %inline %{
 
-	static int outputBuffferSize = 10;
+	// The size of the output buffer containing the returned JSON string.
+	static int maxBufferSize = 10;
+
+	// The name of the file used to initialise the current data.
 	static char* currentFileName = NULL;
 
+	/* Releases the memory used for device detection ready for
+	 * reinitialisation.
+	 */
 	void destroy() {
 		fiftyoneDegreesDestroy();
 		free(currentFileName);
 		currentFileName = NULL;
 	}
 
+	/* Initialises the detector using the file provided. The JSON structure
+	 * returned from a match will contain the properties specified.
+	 */
 	void dataSetInitWithPropertyString(char *fileName, char* properties) {
 		if (currentFileName == NULL) {
 			initStatus = (fiftyoneDegreesDataSetInitStatus)fiftyoneDegreesInitWithPropertyString(fileName, properties);
@@ -109,35 +123,46 @@
 
 	/* Methods used for matching. */
 
+	/* Returns a JSON string with the required properties set for the
+	 * User-Agent provided.
+	 */
 	char* getMatch(char* userAgent) {
-		char *output = (char*)malloc(outputBuffferSize * sizeof(char));
+		int bufferSize = maxBufferSize;
+		char *output = (char*)malloc(bufferSize * sizeof(char));
 		int deviceOffset = fiftyoneDegreesGetDeviceOffset(userAgent);
-		int result = fiftyoneDegreesProcessDeviceJSON(deviceOffset, output, outputBuffferSize);
+		int result = fiftyoneDegreesProcessDeviceJSON(deviceOffset, output, bufferSize);
 		while (result < 0) {
 			free(output);
-			outputBuffferSize += 100;
-			output = (char*)malloc(outputBuffferSize * sizeof(char));
-			result = fiftyoneDegreesProcessDeviceJSON(deviceOffset, output, outputBuffferSize);
+			bufferSize += 1000;
+			output = (char*)malloc(bufferSize * sizeof(char));
+			result = fiftyoneDegreesProcessDeviceJSON(deviceOffset, output, bufferSize);
+			if (result > 0) {
+				maxBufferSize = bufferSize;
+			}
 		}
 		return output;
 	}
 
+	/* Returns a JSON string with the required properties set for the
+	 * HTTP headers provided.
+	 */
 	char* getMatchWithHeaders(char* userHeader) {
-		char *output = (char*)malloc(outputBuffferSize * sizeof(char));
+		int bufferSize = maxBufferSize;
+		char *output = (char*)malloc(bufferSize * sizeof(char));
 		fiftyoneDegreesDeviceOffsets* deviceOffsets = fiftyoneDegreesGetDeviceOffsetsWithHeadersString(
 			userHeader,
 			strlen(userHeader));
-		int result = fiftyoneDegreesProcessDeviceOffsetsJSON(deviceOffsets, output, outputBuffferSize);
+		int result = fiftyoneDegreesProcessDeviceOffsetsJSON(deviceOffsets, output, bufferSize);
 		while (result < 0) {
 			free(output);
-			outputBuffferSize += 100;
-			output = (char*)malloc(outputBuffferSize * sizeof(char));
-			result = fiftyoneDegreesProcessDeviceOffsetsJSON(deviceOffsets, output, outputBuffferSize);
+			bufferSize += 100;
+			output = (char*)malloc(bufferSize * sizeof(char));
+			result = fiftyoneDegreesProcessDeviceOffsetsJSON(deviceOffsets, output, bufferSize);
+			if (result > 0) {
+				maxBufferSize = bufferSize;
+			}
 		}
 		free(deviceOffsets);
 		return output;
   	}
 %}
-
-
-
