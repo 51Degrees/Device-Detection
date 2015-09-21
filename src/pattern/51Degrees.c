@@ -3861,8 +3861,8 @@ int32_t fiftyoneDegreesProcessDeviceJSON(fiftyoneDegreesWorkset *ws, char* json)
 				for (valueIndex = 0; valueIndex < ws->valuesCount; valueIndex++) {
 					valueName = fiftyoneDegreesGetString(ws->dataSet, ws->values[valueIndex]->nameOffset);
 					memcpy(currentPos, &valueName->firstByte, valueName->length - 1);
-					escapeJSON(currentPos, currentPos + valueName->length - 1, endPos);
-					currentPos += valueName->length - 1;
+					currentPos += valueName->length - 1 +
+						escapeJSON(currentPos, currentPos + valueName->length - 1, endPos);
 					if (valueIndex < ws->valuesCount - 1) {
 						*currentPos = '|';
 						currentPos++;
