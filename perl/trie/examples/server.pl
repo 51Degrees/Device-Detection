@@ -10,7 +10,7 @@
 
 	my $propertyList //= "Id,BrowserName,BrowserVendor,BrowserVersion,DeviceType,HardwareVendor,IsTablet,IsMobile,IsCrawler,ScreenInchesDiagonal";
 
-	my $filename //= "../../../data/51Degrees-EnterpriseV3.2.trie";
+	my $filename //= "../../../data/51Degrees-LiteV3.2.trie";
 
 	FiftyOneDegrees::TrieV3::dataSetInitWithPropertyString(
 		$filename,
@@ -40,7 +40,7 @@
 		my $matchHeaders = String::Buffer->new();
 		while (my ($key, $value) = each %headers) {
 			if ($importantHttpHeaders{$key}) {
-				$matchHeaders->writeln("$key: $value}");
+				$matchHeaders->writeln("$key: $value");
 				print "$key: $value\r\n";
 			}
 		}
