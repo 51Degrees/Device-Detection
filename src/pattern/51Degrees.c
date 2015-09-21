@@ -3756,18 +3756,78 @@ void fiftyoneDegreesJSONFree(void* json) {
 }
 
 /**
+ * Escapes a range of characters in a JSON string value.
+ * @param start the first character to be considered
+ * @param next the character after the last one to be considered
+ * @param max the last allocated pointer
+ * @return the number of characters that were escaped
+ */
+static int escapeJSON(char *start, char *next, char *max) {
+	const static char charactersToChange[] = "\\\"\r\n\t";
+	char *current = next - 1;
+	int changedCharacters = 0;
+	int currentShift;
+	int found = 0;
+
+	// Count the number of characters to escape.
+	while (current >= start) {
+		if (strchr(charactersToChange, *current) != NULL) {
+			changedCharacters++;
+		}
+		current--;
+	}
+
+	// Move characters to the right adding escape characters
+	// when required.
+	currentShift = changedCharacters;
+	current = next + changedCharacters;
+	if (current > max) {
+		return -1;
+	}
+	while (currentShift > 0) {
+		*current = *(current - currentShift);
+		found = 0;
+		if (*current == '\r') {
+			*current = 'r';
+			found = 1;
+		}
+		else if (*current == '\n') {
+			*current = 'n';
+			found = 1;
+		}
+		else if (*current == '\t') {
+			*current = 't';
+			found = 1;
+		}
+		else if (*current == '\\' || *current == '"') {
+			found = 1;
+		}
+		if (found == 1) {
+			current--;
+			*current = '\\';
+			currentShift--;
+		}
+		current--;
+	}
+
+	return changedCharacters;
+}
+
+/**
  * Process the workset results into a JSON string.
  * @param ws pointer to a workset with the results to return in JSON
  * @param json pointer to memory allocated with fiftyoneDegreesJSONCreate
  * @param
  */
 int32_t fiftyoneDegreesProcessDeviceJSON(fiftyoneDegreesWorkset *ws, char* json) {
-	int32_t propertyIndex, valueIndex, profileIndex, valueNameIndex, valueNameLength;
-	const char* valueName;
+	int32_t propertyIndex, valueIndex, profileIndex;
+	const fiftyoneDegreesAsciiString* valueName;
 	char* currentPos = json;
 	char* endPos = json + ws->dataSet->header.jsonBufferLength;
 
 	if (ws->profileCount > 0) {
+
+		// Add the device ID to the JSON.
 		currentPos += snprintf(
 			currentPos,
 			(int32_t)(endPos - currentPos),
@@ -3790,6 +3850,7 @@ int32_t fiftyoneDegreesProcessDeviceJSON(fiftyoneDegreesWorkset *ws, char* json)
 			(int32_t)(endPos - currentPos),
 			"\",\n");
 
+		// Add each of the required properties.
 		for (propertyIndex = 0; propertyIndex < ws->dataSet->requiredPropertyCount; propertyIndex++) {
 			if (fiftyoneDegreesSetValues(ws, propertyIndex) > 0) {
 				currentPos += snprintf(
@@ -3798,29 +3859,13 @@ int32_t fiftyoneDegreesProcessDeviceJSON(fiftyoneDegreesWorkset *ws, char* json)
 					"\"%s\": \"",
 					fiftyoneDegreesGetPropertyName(ws->dataSet, *(ws->dataSet->requiredProperties + propertyIndex)));
 				for (valueIndex = 0; valueIndex < ws->valuesCount; valueIndex++) {
-					valueName = fiftyoneDegreesGetValueName(ws->dataSet, *(ws->values + valueIndex));
-					valueNameLength = (int32_t)strlen(valueName);
-					for (valueNameIndex = 0; valueNameIndex < valueNameLength; valueNameIndex++) {
-						if (valueName[valueNameIndex] == 0) {
-							break;
-						}
-						else if (valueName[valueNameIndex] == '"') {
-							currentPos += snprintf(
-								currentPos,
-								(int32_t)(endPos - currentPos),
-								"\\");
-						}
-						currentPos += snprintf(
-							currentPos,
-							(int32_t)(endPos - currentPos),
-							"%c",
-							valueName[valueNameIndex]);
-					}
+					valueName = fiftyoneDegreesGetString(ws->dataSet, ws->values[valueIndex]->nameOffset);
+					memcpy(currentPos, &valueName->firstByte, valueName->length - 1);
+					escapeJSON(currentPos, currentPos + valueName->length - 1, endPos);
+					currentPos += valueName->length - 1;
 					if (valueIndex < ws->valuesCount - 1) {
-						currentPos += snprintf(
-							currentPos,
-							(int32_t)(endPos - currentPos),
-							"|");
+						*currentPos = '|';
+						currentPos++;
 					}
 				}
 				if (propertyIndex + 1 != ws->dataSet->requiredPropertyCount) {

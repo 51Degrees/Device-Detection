@@ -989,33 +989,62 @@ int fiftyoneDegreesProcessDeviceCSV(int32_t deviceOffset, char* result, int resu
     return fiftyoneDegreesProcessDeviceOffsetsCSV(&deviceOffsets, result, resultLength);
 }
 
-// Escapes special characters for JSON strings.
-static int escapeJSON(char *start, char *end, char *max) {
-	char *current = end, *temp;
-	int charactersAdded = 0;
+/**
+ * Escapes a range of characters in a JSON string value.
+ * @param start the first character to be considered
+ * @param next the character after the last one to be considered
+ * @param max the last allocated pointer
+ * @return the number of characters that were escaped
+ */
+static int escapeJSON(char *start, char *next, char *max) {
+	const static char charactersToChange[] = "\\\"\r\n\t";
+	char *current = next - 1;
+	int changedCharacters = 0;
+	int currentShift;
+	int found = 0;
+
+	// Count the number of characters to escape.
 	while (current >= start) {
-		if (*current == '"' ||
-			*current == '\\') {
-			// Move all the characters before the special
-			// character down by one.
-			temp = end;
-			// Check there is space remaining.
-			if (temp > max) {
-				break;
-			}
-			while (temp >= current) {
-				*temp = *(temp - 1);
-				temp--;
-			}
-			// Set the escape character and increase the
-			// end position by one.
-			*current = '\\';
-			charactersAdded++;
-			end++;
+		if (strchr(charactersToChange, *current) != NULL) {
+			changedCharacters++;
 		}
 		current--;
 	}
-	return charactersAdded;
+
+	// Move characters to the right adding escape characters
+	// when required.
+	currentShift = changedCharacters;
+	current = next + changedCharacters;
+	if (current > max) {
+		return -1;
+	}
+	while (currentShift > 0) {
+		*current = *(current - currentShift);
+		found = 0;
+		if (*current == '\r') {
+			*current = 'r';
+			found = 1;
+		}
+		else if (*current == '\n') {
+			*current = 'n';
+			found = 1;
+		}
+		else if (*current == '\t') {
+			*current = 't';
+			found = 1;
+		}
+		else if (*current == '\\' || *current == '"') {
+			found = 1;
+		}
+		if (found == 1) {
+			current--;
+			*current = '\\';
+			currentShift--;
+		}
+		current--;
+	}
+
+	return changedCharacters;
 }
 
 // Process device properties into a JSON string for the device offsets provided.
@@ -1050,7 +1079,7 @@ int fiftyoneDegreesProcessDeviceOffsetsJSON(fiftyoneDegreesDeviceOffsets *device
             currentPos,
             (int)(endPos - currentPos)));
         if (currentPos >= endPos) return -1;
-        currentPos += escapeJSON(valuePos, currentPos, endPos);
+        currentPos += escapeJSON(valuePos, currentPos - 1, endPos);
         if (currentPos >= endPos) return -1;
         currentPos += snprintf(
             currentPos,
