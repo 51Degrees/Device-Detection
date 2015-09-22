@@ -1,2 +1,27 @@
 # PHP
-/php/nbproject/private/
+
+# Ignore build directories
+.libs/
+build/
+modules/
+
+# Ignore common auto generated files
+Makefile*
+*.sh
+*.lo
+*.la
+ac*.m4
+*.cache/
+config.*
+configure*
+libtool
+missing
+mkinstalldirs
+install-sh
+.deps
+
+# Ignore 51Degrees copied files
+src/pattern
+src/cityhash
+src/threading.h
+
