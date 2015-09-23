@@ -38,7 +38,7 @@ $httpHeadersString //= 	"HTTP_USER_AGENT: Opera/9.52 (X11; Linux i686; U; en)\r\
 
 $propertyList //= "Id,BrowserName,BrowserVendor,BrowserVersion,CookiesCapable,IsTablet,IsMobile,IsCrawler";
 
-$filename //= "../../../data/51Degrees-EnterpriseV3.2.trie";
+$filename //= "../../../data/51Degrees-LiteV3.2.trie";
 
 my $r = GetOptions('filename|f=s' => \$filename,
                    'properties|p=s' => \$propertyList,
@@ -70,7 +70,7 @@ sub output_properties {
 sub output_user_agent {
 	say "\r\n=== User-Agent Data Input ===";
 	say $userAgentString;
-	my $json = FiftyOneDegrees::TrieV3::getMatch(NULL);
+	my $json = FiftyOneDegrees::TrieV3::getMatch($userAgentString);
 	say "\r\n=== User-Agent Data Output ===";
 	output_properties($json);
 }
@@ -78,7 +78,7 @@ sub output_user_agent {
 sub output_http_headers {
 	say "\r\n=== HTTP Headers Data Input ===";
 	say $httpHeadersString;
-	my $json = FiftyOneDegrees::TrieV3::getMatchWithHeaders(NULL);
+	my $json = FiftyOneDegrees::TrieV3::getMatchWithHeaders($httpHeadersString);
 	say "\r\n=== HTTP Headers Data Output ===";
 	output_properties($json);
 }

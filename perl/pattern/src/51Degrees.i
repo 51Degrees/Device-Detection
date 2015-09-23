@@ -74,6 +74,11 @@
 	}
 }
 
+/* Methods that return new objects that SWIG should be responsible for freeing.
+ */
+%newobject getMatch;
+%newobject getMatchWithHeaders;
+
 %inline %{
 
 	/* Initialise the dataset using the datafile and properties required. This
@@ -93,8 +98,7 @@
         return instance;
 	}
 
-	/*
-	 * This method is exposed to the PERL and is used to free all pools, cache
+	/* This method is exposed to the PERL and is used to free all pools, cache
 	 * and dataset.
 	 */
 	void destroyDataset(fiftyoneDegreesInstance* instance) {
@@ -124,21 +128,25 @@
 
 	/* Methods used for matching. */
 
+	/* Returns a JSON string with the required properties set for the
+	 * User-Agent provided.
+	 */
 	char* getMatch(fiftyoneDegreesInstance* instance, char* userAgent) {
 		fiftyoneDegreesWorkset *ws = fiftyoneDegreesWorksetPoolGet(instance->pool);
 		fiftyoneDegreesMatch(ws, userAgent);
-		char *output = (char*)malloc(ws->dataSet->header.jsonBufferLength * sizeof(char));
-		output = fiftyoneDegreesJSONCreate(ws);
+        char *output = fiftyoneDegreesJSONCreate(ws);
 		fiftyoneDegreesProcessDeviceJSON(ws, output);
 		fiftyoneDegreesWorksetPoolRelease(instance->pool, ws);
 		return output;
 	}
 
+	/* Returns a JSON string with the required properties set for the
+	 * HTTP headers provided.
+	 */
 	char* getMatchWithHeaders(fiftyoneDegreesInstance* instance, char* userHeader) {
         fiftyoneDegreesWorkset *ws = fiftyoneDegreesWorksetPoolGet(instance->pool);
         fiftyoneDegreesMatchWithHeadersString(ws, userHeader, strlen(userHeader));
         char *output = fiftyoneDegreesJSONCreate(ws);
-        output = fiftyoneDegreesJSONCreate(ws);
         fiftyoneDegreesProcessDeviceJSON(ws, output);
         fiftyoneDegreesWorksetPoolRelease(instance->pool, ws);
         return output;
