@@ -36,9 +36,9 @@ $userAgentString //= "Mozilla/5.0 (Linux; Android 4.4.2; en-us; SAMSUNG SCH-I545
 $httpHeadersString //= 	"HTTP_USER_AGENT: Opera/9.52 (X11; Linux i686; U; en)\r\n" .
 						"HTTP_DEVICE_STOCK_UA: $userAgentString\r\n";
 
-$propertyList //= "Id,BrowserName,BrowserVendor,BrowserVersion,CookiesCapable,IsTablet,IsMobile,IsCrawler";
+$propertyList //= "Id,BrowserName,BrowserVendor,BrowserVersion,CookiesCapable,IsTablet,IsMobile,IsCrawler,JavascriptImageOptimiser";
 
-$filename //= "../../../data/51Degrees-LiteV3.2.dat";
+$filename //= "../../../data/51Degrees-EnterpriseV3.2.dat";
 
 my $r = GetOptions('filename|f=s' => \$filename,
                    'properties|p=s' => \$propertyList,
