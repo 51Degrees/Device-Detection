@@ -764,7 +764,7 @@ int headerCompare(char *httpHeaderName, const char *uniqueHeader, int length) {
 }
 
 // Returns the index of the unique header, or -1 if the header is not important.
-int getUniqueHttpHeaderIndex(char* httpHeaderName, int length) {
+int fiftyoneDegreesGetUniqueHttpHeaderIndex(char* httpHeaderName, int length) {
 	int uniqueHeaderIndex;
 	static const char httpPrefix[] = "HTTP_";
 	static const int httpPrefixLength = sizeof(httpPrefix) - 1;
