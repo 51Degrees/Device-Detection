@@ -1028,7 +1028,10 @@ fiftyoneDegreesDataSetInitStatus fiftyoneDegreesInitWithPropertyString(const cha
 	status = fiftyoneDegreesInitWithPropertyArray(fileName, dataSet, requiredPropertiesArray, requiredPropertyCount);
 
 	if (requiredPropertiesArray != NULL) {
-		free(requiredPropertiesArray);
+		free((void*)requiredPropertiesArray);
+	}
+	if (copyRequiredProperties != NULL) {
+		free(copyRequiredProperties);
 	}
 
 	return status;
