@@ -5,7 +5,6 @@
 #########################
 
 use Test::More tests => 1;
-use JSON;
 use feature qw/say/;
 
 BEGIN { use_ok('FiftyOneDegrees::PatternV3') };
