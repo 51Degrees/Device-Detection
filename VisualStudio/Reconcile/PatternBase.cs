@@ -32,7 +32,7 @@ namespace FiftyOne.Reconcile
     [TestClass]
     public abstract class PatternBase
     {
-        protected abstract string DataFile { get ; }
+        protected abstract string DataFile { get; }
 
         protected PatternWrapper _unmanagedProvider;
         protected Provider _managedProvider;
@@ -57,8 +57,7 @@ namespace FiftyOne.Reconcile
             Parallel.ForEach(userAgents, userAgent =>
             {
                 var managedMatch = _managedProvider.Match(userAgent.Trim());
-                using (PatternWrapper.MatchResult unmanagedMatch =
-                    (PatternWrapper.MatchResult)_unmanagedProvider.Match(userAgent.Trim()))
+                using (var unmanagedMatch = _unmanagedProvider.Match(userAgent.Trim()))
                 {
                     // Does not use Equals in order to handle situatons where one
                     // or both of the UserAgent properties are null.
@@ -144,7 +143,7 @@ namespace FiftyOne.Reconcile
         /// Disposes of the providers if not already done so.
         /// </summary>
         /// <param name="disposing"></param>
-        protected virtual void Disposing(bool disposing) 
+        protected virtual void Disposing(bool disposing)
         {
             if (_managedProvider != null)
             {

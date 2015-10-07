@@ -5,10 +5,12 @@
 <html xmlns="http://www.w3.org/1999/xhtml">
 <head runat="server">
     <title>51Degrees C# / C Device Detection Demo</title>
+    <link rel="stylesheet" type="text/css" href="https://51degrees.com/Demos/examples.css" class="inline"/>
 </head>
 <body>
     <form id="formMain" runat="server">
-    <div>
+    <p><img src="https://51degrees.com/DesktopModules/FiftyOne/Distributor/Logo.ashx?utm_source=github&utm_medium=repository&utm_content=server&utm_campaign=MSVC-open-source" alt="51Degrees"/></p>
+    <div class="content">
         <asp:Literal runat="server" ID="Results" />
     </div>
     </form>
