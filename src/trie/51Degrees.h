@@ -45,6 +45,9 @@ typedef enum e_fiftyoneDegreesDataSetInitStatus {
 typedef struct fiftyoneDegrees_device_offset_t {
 	int httpHeaderOffset; /* Offset to the http header string */
 	int deviceOffset; /* Offset to the device */
+	size_t length; /* Number of characters in the matched User-Agent*/
+	const char *userAgent; /* Pointer to the User-Agent */
+	int difference; /* Difference in length between the target and matched User-Agent*/
 } fiftyoneDegreesDeviceOffset;
 
 /* Used to return results from a device detection operation */
