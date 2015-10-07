@@ -55,9 +55,9 @@ typedef struct t_node_children {
 	BYTE numberOfChildren;
 	BYTE offsetType;
 	union {
-	    uint16_t b16;
-	    uint32_t b32;
-	    int64_t b64;
+		uint16_t b16;
+		uint32_t b32;
+		int64_t b64;
 	} childrenOffsets;
 } NODE_CHILDREN;
 #pragma pack(pop)
@@ -429,7 +429,8 @@ void initSpecificProperties(const char* properties) {
 			start = end + 1;
 		}
 
-	} while (*end != '\0');
+		} while (*end != '\0');
+	}
 }
 
 // Initialises the properties provided.
@@ -463,7 +464,7 @@ void initSpecificPropertiesFromArray(const char** properties, int count) {
 			*(_requiredPropertiesNames + currentIndex) = _strings + (_properties + propertyIndex)->stringOffset;
 			currentIndex++;
 		}
-   }
+	}
 }
 
 // Initialises all the available properties.
@@ -477,10 +478,11 @@ void initAllProperties(void) {
 	_requiredProperties = (uint32_t*)malloc(_requiredPropertiesCount * sizeof(int));
 	_requiredPropertiesNames = (char**)malloc(_requiredPropertiesCount * sizeof(char*));
 
-	// Add all the available properties.
-	for(i = 0; i < _propertiesCount; i++) {
-		*(_requiredProperties + i) = i;
-		*(_requiredPropertiesNames + i) = _strings + (_properties + i)->stringOffset;
+		// Add all the available properties.
+		for (i = 0; i < _propertiesCount; i++) {
+			_requiredProperties[i] = i;
+			_requiredPropertiesNames[i] = _strings + _properties[i].stringOffset;
+		}
 	}
 }
 
@@ -536,42 +538,43 @@ BYTE getChildIndex(char value, int32_t lookupListPosition) {
 // Returns the size in bytes of the child offsets for the
 // child type provided.
 int getSizeOfOffsets(NODE_CHILDREN* children) {
-    switch(children->offsetType)
-    {
-        case BITS16: return sizeof(uint16_t);
-        case BITS32: return sizeof(uint32_t);
-        default: return sizeof(int64_t);
-    }
+	switch (children->offsetType)
+	{
+	case BITS16: return sizeof(uint16_t);
+	case BITS32: return sizeof(uint32_t);
+	default: return sizeof(int64_t);
+	}
 }
 
 int32_t* getNextNode(NODE_CHILDREN* children, BYTE childIndex) {
-    uint16_t *offset16;
-    uint32_t *offset32;
-    int64_t *offset64;
+	uint16_t *offset16;
+	uint32_t *offset32;
+	int64_t *offset64;
 
-    // If there's only one child the next node will appear
-    // immediately afterwards as there's no list of children.
-    if (children->numberOfChildren == 1) {
-        return (int32_t*)&children->offsetType;
-    }
+	// If there's only one child the next node will appear
+	// immediately afterwards as there's no list of children.
+	if (children->numberOfChildren == 1) {
+		return (int32_t*)&children->offsetType;
+	}
 
-    // There is more than 1 child so work out the next pointer for this
-    // node index.
-    if (childIndex == 0) {
-        return (int32_t*)(((BYTE*)&(children->childrenOffsets)) + (getSizeOfOffsets(children) * (children->numberOfChildren - 1)));
-    } else {
-        switch(children->offsetType) {
-            case BITS16:
-                offset16 = &(children->childrenOffsets.b16) + childIndex - 1;
-                return (int32_t*)(((BYTE*)offset16) + *offset16);
-            case BITS32:
-                offset32 = &(children->childrenOffsets.b32) + childIndex - 1;
-                return (int32_t*)(((BYTE*)offset32) + *offset32);
-            default:
-                offset64 = &(children->childrenOffsets.b64) + childIndex - 1;
-                return (int32_t*)(((BYTE*)offset64) + *offset64);
-        }
-    }
+	// There is more than 1 child so work out the next pointer for this
+	// node index.
+	if (childIndex == 0) {
+		return (int32_t*)(((BYTE*)&(children->childrenOffsets)) + (getSizeOfOffsets(children) * (children->numberOfChildren - 1)));
+	}
+	else {
+		switch (children->offsetType) {
+		case BITS16:
+			offset16 = &(children->childrenOffsets.b16) + childIndex - 1;
+			return (int32_t*)(((BYTE*)offset16) + *offset16);
+		case BITS32:
+			offset32 = &(children->childrenOffsets.b32) + childIndex - 1;
+			return (int32_t*)(((BYTE*)offset32) + *offset32);
+		default:
+			offset64 = &(children->childrenOffsets.b64) + childIndex - 1;
+			return (int32_t*)(((BYTE*)offset64) + *offset64);
+		}
+	}
 }
 
 // Declaration of main device index function.
@@ -579,39 +582,39 @@ int32_t getDeviceIndexForNode(char** userAgent, int32_t* node, int32_t parentDev
 
 int32_t getDeviceIndexChildren(char** userAgent, BYTE childIndex, NODE_CHILDREN *children, int parentDeviceIndex) {
 	*userAgent = *userAgent + 1;
-    return getDeviceIndexForNode(
-        userAgent,
-        getNextNode(children, childIndex),
-        parentDeviceIndex);
+	return getDeviceIndexForNode(
+		userAgent,
+		getNextNode(children, childIndex),
+		parentDeviceIndex);
 }
 
 int32_t getDeviceIndexFullNode(char** userAgent, NODE_FULL* node) {
-    BYTE childIndex = getChildIndex(**userAgent, node->lookupListOffset);
+	BYTE childIndex = getChildIndex(**userAgent, node->lookupListOffset);
 
-    // If the child index is invalid then return this device index.
-    if (childIndex >= node->children.numberOfChildren)
+	// If the child index is invalid then return this device index.
+	if (childIndex >= node->children.numberOfChildren)
 		return node->deviceIndex;
 
 	// Move to the next child.
-    return getDeviceIndexChildren(userAgent, childIndex, &(node->children), node->deviceIndex);
+	return getDeviceIndexChildren(userAgent, childIndex, &(node->children), node->deviceIndex);
 }
 
 int32_t getDeviceIndexNoDeviceNode(char** userAgent, NODE_NO_DEVICE_INDEX* node, int32_t parentDeviceIndex) {
-    BYTE childIndex = getChildIndex(**userAgent, abs(node->lookupListOffset));
+	BYTE childIndex = getChildIndex(**userAgent, abs(node->lookupListOffset));
 
-    // If the child index is invalid then return this device index.
-    if (childIndex >= node->children.numberOfChildren)
+	// If the child index is invalid then return this device index.
+	if (childIndex >= node->children.numberOfChildren)
 		return parentDeviceIndex;
 
 	// Move to the next child.
-    return getDeviceIndexChildren(userAgent, childIndex, &(node->children), parentDeviceIndex);
+	return getDeviceIndexChildren(userAgent, childIndex, &(node->children), parentDeviceIndex);
 }
 
 // Gets the index of the device associated with the user agent pointer
 // provided. The method moves right along the user agent by shifting
 // the pointer to the user agent left.
 int32_t getDeviceIndexForNode(char** userAgent, int32_t* node, int32_t parentDeviceIndex) {
-    if (*node >= 0)
+	if (*node >= 0)
 		return getDeviceIndexFullNode(userAgent, (NODE_FULL*)node);
 	return getDeviceIndexNoDeviceNode(userAgent, (NODE_NO_DEVICE_INDEX*)node, parentDeviceIndex);
 }
@@ -682,7 +685,7 @@ int setNextHttpHeaderName(char* start, char* end, char** name) {
 	char *current = start, *lastChar = start;
 	while (current <= end) {
 		if (*current == ' ' ||
-            *current == ':') {
+			*current == ':') {
 			*name = lastChar;
 			return (int)(current - lastChar);
 		}
@@ -708,9 +711,9 @@ int setNextHttpHeaderValue(char* start, char *end, char** value) {
 
 	// Move to the first non-space character.
 	while (lastChar <= end && (
-            *lastChar == ' ' ||
-            *lastChar == ':')) {
-        lastChar++;
+		*lastChar == ' ' ||
+		*lastChar == ':')) {
+		lastChar++;
 	}
 
 	// Set the value to the start character.
@@ -791,7 +794,7 @@ fiftyoneDegreesDeviceOffsets* fiftyoneDegreesGetDeviceOffsetsWithHeadersString(c
 	offsets->size = 0;
 	headerNameLength = setNextHttpHeaderName(httpHeaders, endOfHeaders, &headerName);
 	while (headerNameLength > 0 &&
-		   offsets->size < _uniqueHttpHeaderCount) {
+		offsets->size < _uniqueHttpHeaderCount) {
 		headerValueLength = setNextHttpHeaderValue(headerName + headerNameLength, endOfHeaders, &headerValue);
 		uniqueHeaderIndex = getUniqueHttpHeaderIndex(headerName, headerNameLength);
 		if (uniqueHeaderIndex >= 0) {
@@ -966,7 +969,7 @@ int fiftyoneDegreesGetValueFromOffsets(fiftyoneDegreesDeviceOffsets* deviceOffse
 
 // Returns how many properties have been loaded in the dataset.
 int32_t fiftyoneDegreesGetRequiredPropertiesCount(void) {
-  return _requiredPropertiesCount;
+	return _requiredPropertiesCount;
 }
 
 // Returns the names of the properties loaded in the dataset.
@@ -982,33 +985,33 @@ int fiftyoneDegreesProcessDeviceOffsetsCSV(fiftyoneDegreesDeviceOffsets *deviceO
 
 	// If no properties return nothing.
 	if (_requiredPropertiesCount == 0) {
-        *currentPos = 0;
+		*currentPos = 0;
 		return 0;
 	}
 
 	// Process each line of data using the relevant value separator. In this case, a pipe.
-	for(requiredPropertyIndex = 0; requiredPropertyIndex < _requiredPropertiesCount; requiredPropertyIndex++) {
-        // Add the property name to the buffer.
-        currentPos += snprintf(
-            currentPos,
-            (int)(endPos - currentPos),
-            "%s,",
-            *(_requiredPropertiesNames + requiredPropertyIndex));
-        if (currentPos >= endPos) return -1;
-        // Add the value(s) to the buffer.
-        currentPos += abs(fiftyoneDegreesGetValueFromOffsets(
-            deviceOffsets,
-            requiredPropertyIndex,
-            currentPos,
-            (int)(endPos - currentPos)));
-        if (currentPos >= endPos) return -1;
-        // Add a carriage return to terminate the line.
-        currentPos += snprintf(
-            currentPos,
-            (int)(endPos - currentPos),
-            "\n");
-        if (currentPos >= endPos) return -1;
-    }
+	for (requiredPropertyIndex = 0; requiredPropertyIndex < _requiredPropertiesCount; requiredPropertyIndex++) {
+		// Add the property name to the buffer.
+		currentPos += snprintf(
+			currentPos,
+			(int)(endPos - currentPos),
+			"%s,",
+			*(_requiredPropertiesNames + requiredPropertyIndex));
+		if (currentPos >= endPos) return -1;
+		// Add the value(s) to the buffer.
+		currentPos += abs(fiftyoneDegreesGetValueFromOffsets(
+			deviceOffsets,
+			requiredPropertyIndex,
+			currentPos,
+			(int)(endPos - currentPos)));
+		if (currentPos >= endPos) return -1;
+		// Add a carriage return to terminate the line.
+		currentPos += snprintf(
+			currentPos,
+			(int)(endPos - currentPos),
+			"\n");
+		if (currentPos >= endPos) return -1;
+	}
 
 	// Return the length of the string buffer used.
 	return (int)(currentPos - result);
@@ -1016,12 +1019,12 @@ int fiftyoneDegreesProcessDeviceOffsetsCSV(fiftyoneDegreesDeviceOffsets *deviceO
 
 // Process device properties into a CSV string for the device offset provided.
 int fiftyoneDegreesProcessDeviceCSV(int32_t deviceOffset, char* result, int resultLength) {
-    fiftyoneDegreesDeviceOffsets deviceOffsets;
-    fiftyoneDegreesDeviceOffset singleOffset;
-    deviceOffsets.firstOffset = &singleOffset;
-    singleOffset.deviceOffset = deviceOffset;
-    deviceOffsets.size = 1;
-    return fiftyoneDegreesProcessDeviceOffsetsCSV(&deviceOffsets, result, resultLength);
+	fiftyoneDegreesDeviceOffsets deviceOffsets;
+	fiftyoneDegreesDeviceOffset singleOffset;
+	deviceOffsets.firstOffset = &singleOffset;
+	singleOffset.deviceOffset = deviceOffset;
+	deviceOffsets.size = 1;
+	return fiftyoneDegreesProcessDeviceOffsetsCSV(&deviceOffsets, result, resultLength);
 }
 
 /**
@@ -1091,41 +1094,41 @@ int fiftyoneDegreesProcessDeviceOffsetsJSON(fiftyoneDegreesDeviceOffsets *device
 
 	// If no properties return empty JSON.
 	if (_requiredPropertiesCount == 0) {
-        currentPos += snprintf(currentPos, endPos - currentPos, "{ }");
+		currentPos += snprintf(currentPos, endPos - currentPos, "{ }");
 		return (int)(currentPos - result);
 	}
 
 	currentPos += snprintf(currentPos, endPos - currentPos, "{\n");
 
 	// Process each line of data using the relevant value separator. In this case, a pipe.
-	for(requiredPropertyIndex = 0; requiredPropertyIndex < _requiredPropertiesCount; requiredPropertyIndex++) {
-        // Add the next property to the buffer.
-        currentPos += snprintf(
-            currentPos,
-            (int)(endPos - currentPos),
-            "\"%s\": \"",
-            *(_requiredPropertiesNames + requiredPropertyIndex));
-        if (currentPos >= endPos) return -1;
-        // Add the values to the buffer.
-        valuePos = currentPos;
-        currentPos += abs(fiftyoneDegreesGetValueFromOffsets(
-            deviceOffsets,
-            requiredPropertyIndex,
-            currentPos,
-            (int)(endPos - currentPos)));
-        if (currentPos >= endPos) return -1;
-        currentPos += escapeJSON(valuePos, currentPos - 1, endPos);
-        if (currentPos >= endPos) return -1;
-        currentPos += snprintf(
-            currentPos,
-            (int)(endPos - currentPos),
-            "\"");
-        if (currentPos >= endPos) return -1;
-        if(requiredPropertyIndex + 1 != _requiredPropertiesCount) {
-            currentPos += snprintf(currentPos, endPos - currentPos, ",\n");
-            if (currentPos >= endPos) return -1;
-        }
-        if (currentPos >= endPos) return -1;
+	for (requiredPropertyIndex = 0; requiredPropertyIndex < _requiredPropertiesCount; requiredPropertyIndex++) {
+		// Add the next property to the buffer.
+		currentPos += snprintf(
+			currentPos,
+			(int)(endPos - currentPos),
+			"\"%s\": \"",
+			*(_requiredPropertiesNames + requiredPropertyIndex));
+		if (currentPos >= endPos) return -1;
+		// Add the values to the buffer.
+		valuePos = currentPos;
+		currentPos += abs(fiftyoneDegreesGetValueFromOffsets(
+			deviceOffsets,
+			requiredPropertyIndex,
+			currentPos,
+			(int)(endPos - currentPos)));
+		if (currentPos >= endPos) return -1;
+		currentPos += escapeJSON(valuePos, currentPos - 1, endPos);
+		if (currentPos >= endPos) return -1;
+		currentPos += snprintf(
+			currentPos,
+			(int)(endPos - currentPos),
+			"\"");
+		if (currentPos >= endPos) return -1;
+		if (requiredPropertyIndex + 1 != _requiredPropertiesCount) {
+			currentPos += snprintf(currentPos, endPos - currentPos, ",\n");
+			if (currentPos >= endPos) return -1;
+		}
+		if (currentPos >= endPos) return -1;
 	}
 	currentPos += snprintf(currentPos, endPos - currentPos, "\n}");
 	return (int)(currentPos - result);
@@ -1133,10 +1136,10 @@ int fiftyoneDegreesProcessDeviceOffsetsJSON(fiftyoneDegreesDeviceOffsets *device
 
 // Process device properties into a JSON string for the device offset provided.
 int fiftyoneDegreesProcessDeviceJSON(int32_t deviceOffset, char* result, int resultLength) {
-    fiftyoneDegreesDeviceOffsets deviceOffsets;
-    fiftyoneDegreesDeviceOffset singleOffset;
-    deviceOffsets.firstOffset = &singleOffset;
-    singleOffset.deviceOffset = deviceOffset;
-    deviceOffsets.size = 1;
-    return fiftyoneDegreesProcessDeviceOffsetsJSON(&deviceOffsets, result, resultLength);
+	fiftyoneDegreesDeviceOffsets deviceOffsets;
+	fiftyoneDegreesDeviceOffset singleOffset;
+	deviceOffsets.firstOffset = &singleOffset;
+	singleOffset.deviceOffset = deviceOffset;
+	deviceOffsets.size = 1;
+	return fiftyoneDegreesProcessDeviceOffsetsJSON(&deviceOffsets, result, resultLength);
 }
