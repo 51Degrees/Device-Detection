@@ -141,7 +141,6 @@ fiftyoneDegreesDataSetInitStatus readComponents(FILE *inputFilePtr, fiftyoneDegr
 	current = (byte*)dataSet->componentsData;
 	for (index = 0; index < dataSet->header.components.count; index++) {
 		dataSet->components[index] = (const fiftyoneDegreesComponent*)current;
-		// Have to take one away because the first offset is included in the
 		current += sizeof(fiftyoneDegreesComponent) +
 			(dataSet->components[index]->httpHeaderCount * sizeof(int32_t));
 		httpHeadersCount += dataSet->components[index]->httpHeaderCount;
