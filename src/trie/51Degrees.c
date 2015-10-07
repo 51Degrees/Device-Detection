@@ -433,11 +433,11 @@ void initSpecificProperties(const char* properties) {
 }
 
 // Initialises the properties provided.
-void initSpecificPropertiesFromArray(char** properties, int count) {
-    int i;
-    int propertyIndex, currentIndex = 0;
-    char *currentProperty;
-    int currentLength = 0;
+void initSpecificPropertiesFromArray(const char** properties, int count) {
+	int i;
+	int propertyIndex, currentIndex = 0;
+	const char *currentProperty;
+	int currentLength = 0;
 
 	// Count the number of valid properties.
 	_requiredPropertiesCount = 0;
@@ -485,9 +485,9 @@ void initAllProperties(void) {
 }
 
 // Initialises the memory using the file provided and a string of properties.
-fiftyoneDegreesDataSetInitStatus fiftyoneDegreesInitWithPropertyString(char* fileName, char* properties) {
+fiftyoneDegreesDataSetInitStatus fiftyoneDegreesInitWithPropertyString(const char* fileName, const char* properties) {
 	fiftyoneDegreesDataSetInitStatus status = DATA_SET_INIT_STATUS_SUCCESS;
-    status = readFile(fileName);
+	status = readFile((char*)fileName);
 	if (status == DATA_SET_INIT_STATUS_SUCCESS) {
 		// If no properties are provided then use all of them.
 		if (properties == NULL || strlen(properties) == 0)
@@ -617,8 +617,8 @@ int32_t getDeviceIndexForNode(char** userAgent, int32_t* node, int32_t parentDev
 }
 
 // Returns the index to a matching device based on the useragent provided.
-int32_t getDeviceIndex(char* userAgent) {
-	return getDeviceIndexForNode(&userAgent, _rootNode, -1);
+int32_t getDeviceIndex(const char* userAgent) {
+	return getDeviceIndexForNode((char**)&userAgent, _rootNode, -1);
 }
 
 // Returns the number of characters which matched in the trie.
@@ -813,23 +813,24 @@ char* getValueFromDevice(int32_t* device, int32_t propertyIndex) {
 }
 
 // Takes the results of getDeviceOffset and getPropertyIndex to return a value.
-char* fiftyoneDegreesGetValue(int deviceOffset, int propertyIndex) {
-    return getValueFromDevice(_devices + deviceOffset, propertyIndex);
+const char* fiftyoneDegreesGetValue(int deviceOffset, int propertyIndex) {
+	return getValueFromDevice(_devices + deviceOffset, propertyIndex);
 }
 
 // Returns the number of HTTP headers relevent to device detection.
 int fiftyoneDegreesGetHttpHeaderCount() {
-    return _uniqueHttpHeaderCount;
+	return _uniqueHttpHeaderCount;
 }
 
 // Returns a pointer to the HTTP header name at the index provided.
-char* fiftyoneDegreesGetHttpHeaderNamePointer(int httpHeaderIndex) {
-    return _strings + _uniqueHttpHeaders[httpHeaderIndex];
+const char* fiftyoneDegreesGetHttpHeaderNamePointer(int httpHeaderIndex) {
+	return httpHeaderIndex >= 0 && httpHeaderIndex < _uniqueHttpHeaderCount ?
+		_strings + _uniqueHttpHeaders[httpHeaderIndex] : NULL;
 }
 
 // Returns the HTTP header name offset at the index provided.
 int fiftyoneDegreesGetHttpHeaderNameOffset(int httpHeaderIndex) {
-    return _uniqueHttpHeaders[httpHeaderIndex];
+	return _uniqueHttpHeaders[httpHeaderIndex];
 }
 
 // Sets the http header string to the header name at the index provided.
@@ -859,7 +860,7 @@ int fiftyoneDegreesGetHttpHeaderName(int httpHeaderIndex, char* httpHeader, int 
 static void initPrefixedUpperHttpHeaderNames() {
 	int index, httpHeaderIndex, length;
 	char *prefixedUpperHttpHeader, *httpHeaderName;
-	_prefixedUpperHttpHeaders = (char**)malloc(_uniqueHttpHeaderCount * sizeof(char*));
+	_prefixedUpperHttpHeaders = (const char**)malloc(_uniqueHttpHeaderCount * sizeof(char*));
 	if (_prefixedUpperHttpHeaders != NULL) {
 		for (httpHeaderIndex = 0; httpHeaderIndex < _uniqueHttpHeaderCount; httpHeaderIndex++) {
 			httpHeaderName = _strings + _uniqueHttpHeaders[httpHeaderIndex];
@@ -891,8 +892,8 @@ static void initPrefixedUpperHttpHeaderNames() {
  * @param httpHeaderIndex index of the HTTP header name required
  * @returns name of the header, or NULL if index not valid
  */
-char* fiftyoneDegreesGetPrefixedUpperHttpHeaderName(int httpHeaderIndex) {
-	char *prefixedUpperHeaderName = NULL;
+const char* fiftyoneDegreesGetPrefixedUpperHttpHeaderName(int httpHeaderIndex) {
+	const char *prefixedUpperHeaderName = NULL;
 	if (_prefixedUpperHttpHeaders == NULL) {
 		initPrefixedUpperHttpHeaderNames();
 	}
@@ -922,7 +923,7 @@ int fiftyoneDegreesGetRequiredPropertyName(int requiredPropertyIndex, char* prop
 }
 
 int setValueFromDeviceOffset(int32_t deviceOffset, int32_t propertyIndex, char* values, int size) {
-	char *value = fiftyoneDegreesGetValue(deviceOffset, propertyIndex);
+	const char *value = fiftyoneDegreesGetValue(deviceOffset, propertyIndex);
 	int length = (int)strlen(value);
 	if (length <= size) {
 		strcpy(values, value);
