@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 
 '''
-:copyright: (c) 2013 by 51Degrees.mobi, see README.rst for more details.
+:copyright: (c) 2015 by 51Degrees.com, see README.md for more details.
 :license: MPL2, see LICENSE.txt for more details.
 '''
 
@@ -95,10 +95,7 @@ class _Device(object):
                 http_headers[self._normalized_header_name(name[5:])] = value
 
         # Match.
-        return mobile_detector.match(
-            self._request.META.get('HTTP_USER_AGENT', ''),
-            client_ip,
-            http_headers)
+        return mobile_detector.match(http_headers)
 
     def _normalized_header_name(self, value):
         value = value.replace('_', ' ')
