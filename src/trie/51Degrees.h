@@ -54,26 +54,26 @@ typedef struct fiftyoneDegrees_device_offsets_t {
 } fiftyoneDegreesDeviceOffsets;
 
 // Initialises the memory using the file and properies provided.
-EXTERNAL fiftyoneDegreesDataSetInitStatus fiftyoneDegreesInitWithPropertyArray(char* fileName, char** properties, int propertyCount);
-EXTERNAL fiftyoneDegreesDataSetInitStatus fiftyoneDegreesInitWithPropertyString(char *fileName, char *properties);
+EXTERNAL fiftyoneDegreesDataSetInitStatus fiftyoneDegreesInitWithPropertyArray(const char* fileName, const char** properties, int propertyCount);
+EXTERNAL fiftyoneDegreesDataSetInitStatus fiftyoneDegreesInitWithPropertyString(const char *fileName, const char *properties);
 
 // Returns the offset to a matching device based on the useragent provided.
-EXTERNAL int fiftyoneDegreesGetDeviceOffset(char *userAgent);
+EXTERNAL int fiftyoneDegreesGetDeviceOffset(const char *userAgent);
 
 // Returns the offsets to a matching devices based on the http headers provided.
 EXTERNAL fiftyoneDegreesDeviceOffsets* fiftyoneDegreesGetDeviceOffsetsWithHeadersString(char *httpHeaders, size_t length);
 
 // Returns the index of the property requested, or -1 if not available.
-EXTERNAL int fiftyoneDegreesGetPropertyIndex(char *value);
+EXTERNAL int fiftyoneDegreesGetPropertyIndex(const char *value);
 
 // Takes the results of getDeviceOffset and getPropertyIndex to return a value.
-EXTERNAL char* fiftyoneDegreesGetValue(int deviceOffset, int propertyIndex);
+EXTERNAL const char* fiftyoneDegreesGetValue(int deviceOffset, int propertyIndex);
 
 // Returns how many properties have been loaded in the dataset.
 EXTERNAL int fiftyoneDegreesGetRequiredPropertiesCount(void);
 
 // Returns the names of the properties loaded in the dataset.
-EXTERNAL char** fiftyoneDegreesGetRequiredPropertiesNames(void);
+EXTERNAL const char** fiftyoneDegreesGetRequiredPropertiesNames(void);
 
 // Frees the memory.
 EXTERNAL void fiftyoneDegreesDestroy(void);
@@ -85,10 +85,10 @@ EXTERNAL int fiftyoneDegreesGetHttpHeaderCount(void);
 EXTERNAL int fiftyoneDegreesGetHttpHeaderNameOffset(int httpHeaderIndex);
 
 // Returns a pointer to the HTTP header name at the index provided.
-EXTERNAL char* fiftyoneDegreesGetHttpHeaderNamePointer(int httpHeaderIndex);
+EXTERNAL const char* fiftyoneDegreesGetHttpHeaderNamePointer(int httpHeaderIndex);
 
 // Returns a pointer to the prefixed upper HTTP header name at the index provided.
-EXTERNAL char* fiftyoneDegreesGetPrefixedUpperHttpHeaderName(int httpHeaderIndex);
+EXTERNAL const char* fiftyoneDegreesGetPrefixedUpperHttpHeaderName(int httpHeaderIndex);
 
 // Sets the http header string to the header name at the index provided.
 EXTERNAL int fiftyoneDegreesGetHttpHeaderName(int httpHeaderIndex, char* httpHeader, int size);

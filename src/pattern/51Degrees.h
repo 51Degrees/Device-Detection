@@ -278,7 +278,7 @@ typedef struct fiftyoneDegrees_signature_t {
 #pragma pack(push, 4)
 typedef struct fiftyoneDegrees_http_header_t {
 	int32_t headerNameOffset; /* Offset to the string with the header name */
-	char *headerName; /* Pointer to the header name string information */
+	const char *headerName; /* Pointer to the header name string information */
 } fiftyoneDegreesHttpHeader;
 #pragma pack(pop)
 
@@ -305,7 +305,7 @@ typedef struct fiftyoneDegrees_dataset_t {
 	const fiftyoneDegreesProfileOffset *profileOffsets;
 	int32_t httpHeadersCount; /* Number of unique HTTP headers in the array */
 	fiftyoneDegreesHttpHeader *httpHeaders; /* Array of HTTP headers the data set can process */
-	char **prefixedUpperHttpHeaders; /* Array of HTTP header strings in upper case form prefixed with HTTP_ */
+	const char **prefixedUpperHttpHeaders; /* Array of HTTP header strings in upper case form prefixed with HTTP_ */
 } fiftyoneDegreesDataSet;
 #pragma pack(pop)
 
@@ -392,7 +392,7 @@ struct fiftyoneDegrees_resultset_cache_t {
 #pragma pack(push, 4)
 typedef struct fiftyoneDegrees_http_header_workset_t {
 	fiftyoneDegreesHttpHeader *header; /* Pointer to information about the header name and offset */
-	char *headerValue; /* Pointer to the header value */
+	const char *headerValue; /* Pointer to the header value */
 	int headerValueLength; /* The length of the header value */
 } fiftyoneDegreesHttpHeaderWorkset;
 #pragma pack(pop)
@@ -467,7 +467,7 @@ typedef struct fiftyoneDegrees_workset_pool_t {
  * @param count the number of elements in the requiredProperties array
  * @return the number of bytes read from the file
  */
-EXTERNAL fiftyoneDegreesDataSetInitStatus fiftyoneDegreesInitWithPropertyArray(const char *fileName, fiftyoneDegreesDataSet *dataSet, char** properties, int32_t count);
+EXTERNAL fiftyoneDegreesDataSetInitStatus fiftyoneDegreesInitWithPropertyArray(const char *fileName, fiftyoneDegreesDataSet *dataSet, const char** properties, int32_t count);
 
 /**
  * Initialises the data set passed to the method with the data from
@@ -480,7 +480,7 @@ EXTERNAL fiftyoneDegreesDataSetInitStatus fiftyoneDegreesInitWithPropertyArray(c
  *        the dataSet can return
  * @return the number of bytes read from the file
  */
-EXTERNAL fiftyoneDegreesDataSetInitStatus fiftyoneDegreesInitWithPropertyString(const char *fileName, fiftyoneDegreesDataSet *dataSet, char* properties);
+EXTERNAL fiftyoneDegreesDataSetInitStatus fiftyoneDegreesInitWithPropertyString(const char *fileName, fiftyoneDegreesDataSet *dataSet, const char* properties);
 
 /**
  * Destroys the data set releasing all memory available. Ensure all worksets
@@ -585,7 +585,7 @@ EXTERNAL void fiftyoneDegreesCSVFree(void* csv);
 *        createWorkset function
 * @param userAgent pointer to the target user agent
 */
-EXTERNAL void fiftyoneDegreesMatch(fiftyoneDegreesWorkset *ws, char* userAgent);
+EXTERNAL void fiftyoneDegreesMatch(fiftyoneDegreesWorkset *ws, const char* userAgent);
 
 /**
  * Passed array of HTTP header names and values. Sets the workset to
@@ -596,7 +596,7 @@ EXTERNAL void fiftyoneDegreesMatch(fiftyoneDegreesWorkset *ws, char* userAgent);
  * @param httpHeaderValues array of HTTP header values
  * @param the number of entires in each array
  */
-EXTERNAL void fiftyoneDegreesMatchWithHeadersArray(fiftyoneDegreesWorkset *ws, char **httpHeaderNames, char **httpHeaderValues, int httpHeaderCount);
+EXTERNAL void fiftyoneDegreesMatchWithHeadersArray(fiftyoneDegreesWorkset *ws, const char **httpHeaderNames, const char **httpHeaderValues, int httpHeaderCount);
 
 /**
  * Passed a string where each line contains the HTTP header name and value.
@@ -607,7 +607,7 @@ EXTERNAL void fiftyoneDegreesMatchWithHeadersArray(fiftyoneDegreesWorkset *ws, c
  * @param httpHeaders is a list of HTTP headers and values on each line
  * @param length number of characters in the headers array to consider
  */
-EXTERNAL void fiftyoneDegreesMatchWithHeadersString(fiftyoneDegreesWorkset *ws, char *httpHeaders, size_t length);
+EXTERNAL void fiftyoneDegreesMatchWithHeadersString(fiftyoneDegreesWorkset *ws, const char *httpHeaders, size_t length);
 
 /**
  * Passed a string where each line contains the HTTP header name and value.
@@ -618,7 +618,7 @@ EXTERNAL void fiftyoneDegreesMatchWithHeadersString(fiftyoneDegreesWorkset *ws, 
  * @param httpHeaders is a list of HTTP headers and values on each line
  * @param length number of characters in the headers array to consider
  */
-EXTERNAL int32_t fiftyoneDegreesSetHttpHeaders(fiftyoneDegreesWorkset *ws, char *httpHeaders, size_t length);
+EXTERNAL int32_t fiftyoneDegreesSetHttpHeaders(fiftyoneDegreesWorkset *ws, const char *httpHeaders, size_t length);
 
 /**
  * Sets the workset for the important headers included in the workset.
@@ -700,7 +700,7 @@ EXTERNAL int32_t fiftyoneDegreesGetHttpHeaderName(const fiftyoneDegreesDataSet *
  * @param httpHeaderIndex index of the HTTP header name required
  * @returns name of the header, or NULL if index not valid
  */
-EXTERNAL char* fiftyoneDegreesGetPrefixedUpperHttpHeaderName(const fiftyoneDegreesDataSet *dataSet, int httpHeaderIndex);
+EXTERNAL const char* fiftyoneDegreesGetPrefixedUpperHttpHeaderName(const fiftyoneDegreesDataSet *dataSet, int httpHeaderIndex);
 
 /**
 * Gets the required property index of the property provided, or -1 if the
@@ -709,7 +709,7 @@ EXTERNAL char* fiftyoneDegreesGetPrefixedUpperHttpHeaderName(const fiftyoneDegre
 * @param propertyName pointer to the name of the property required
 * @return the index of the property, or -1 if the property does not exist
 */
-EXTERNAL int32_t fiftyoneDegreesGetRequiredPropertyIndex(const fiftyoneDegreesDataSet *dataSet, char *propertyName);
+EXTERNAL int32_t fiftyoneDegreesGetRequiredPropertyIndex(const fiftyoneDegreesDataSet *dataSet, const char *propertyName);
 
 /**
  * Process the workset results into a CSV string.

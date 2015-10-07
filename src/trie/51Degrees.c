@@ -124,7 +124,7 @@ static int32_t _uniqueHttpHeaderCount;
 static int32_t* _uniqueHttpHeaders = NULL;
 
 // Pointer to an array of prefixed upper HTTP headers.
-static char** _prefixedUpperHttpHeaders = NULL;
+static const char** _prefixedUpperHttpHeaders = NULL;
 
 // The number of properties contained in the system.
 static int32_t _propertiesCount;
@@ -160,7 +160,7 @@ static int _requiredPropertiesCount;
 static uint32_t* _requiredProperties = NULL;
 
 // A list of pointers to the names of the properties.
-static char** _requiredPropertiesNames = NULL;
+static const char** _requiredPropertiesNames = NULL;
 
 // Reads the strings from the file.
 fiftyoneDegreesDataSetInitStatus readStrings(FILE *inputFilePtr) {
@@ -376,10 +376,10 @@ fiftyoneDegreesDataSetInitStatus readFile(char* fileName) {
 }
 
 // Returns the index of the property requested, or -1 if not available.
-int getPropertyIndexRange(char *property, size_t length) {
+int getPropertyIndexRange(const char *property, size_t length) {
 	int32_t i = 0;
-	for(i = 0; i < _propertiesCount; i++) {
-		if(strncmp(
+	for (i = 0; i < _propertiesCount; i++) {
+		if (strncmp(
 			_strings + (_properties + i)->stringOffset,
 			property,
 			length) == 0) {
@@ -390,13 +390,14 @@ int getPropertyIndexRange(char *property, size_t length) {
 }
 
 // Initialises the properties provided.
-void initSpecificProperties(char* properties) {
-	char *start, *end;
+void initSpecificProperties(const char* properties) {
+	char *start;
+	const char *end;
 	int propertyIndex, currentIndex = 0;
 
 	// Count the number of valid properties.
 	_requiredPropertiesCount = 0;
-	start = properties;
+	start = (char*)properties;
 	end = properties - 1;
 	do {
 		end++;
@@ -498,23 +499,20 @@ fiftyoneDegreesDataSetInitStatus fiftyoneDegreesInitWithPropertyString(char* fil
 }
 
 // Initialises the memory using the file provided.
-fiftyoneDegreesDataSetInitStatus fiftyoneDegreesInitWithPropertyArray(char* fileName, char** properties, int propertyCount) {
+fiftyoneDegreesDataSetInitStatus fiftyoneDegreesInitWithPropertyArray(const char* fileName, const char** properties, int propertyCount) {
 	fiftyoneDegreesDataSetInitStatus status = DATA_SET_INIT_STATUS_SUCCESS;
-    status = readFile(fileName);
-    if (status != DATA_SET_INIT_STATUS_SUCCESS) {
-        return status;
-    }
-    initSpecificPropertiesFromArray(properties, propertyCount);
-
+	status = readFile((char*)fileName);
+	if (status == DATA_SET_INIT_STATUS_SUCCESS) {
+		initSpecificPropertiesFromArray(properties, propertyCount);
+	}
 	return status;
 }
 
-
 // Returns the index of the property requested, or -1 if not available.
-int fiftyoneDegreesGetPropertyIndex(char *value) {
+int fiftyoneDegreesGetPropertyIndex(const char *value) {
 	int32_t i;
-	for(i = 0; i < _propertiesCount; i++) {
-		if(strcmp(
+	for (i = 0; i < _propertiesCount; i++) {
+		if (strcmp(
 			_strings + (_properties + i)->stringOffset,
 			value) == 0) {
 			return i;
@@ -631,8 +629,44 @@ int fiftyoneDegreesGetMatchedUserAgentLength(char *userAgent) {
 }
 
 // Returns the offset in the properties list to the first value for the device.
-int fiftyoneDegreesGetDeviceOffset(char* userAgent) {
-    return getDeviceIndex(userAgent) * _propertiesCount;
+int fiftyoneDegreesGetDeviceOffset(const char* userAgent) {
+	return getDeviceIndex(userAgent) * _propertiesCount;
+}
+
+// Sets the offsets structure passed to the method for the useragent provided.
+void fiftyoneDegreesSetDeviceOffset(const char* userAgent, int httpHeaderIndex, fiftyoneDegreesDeviceOffset *offset) {
+	char *lastCharacter = (char*)userAgent;
+	offset->httpHeaderOffset = _uniqueHttpHeaders[httpHeaderIndex];
+	offset->deviceOffset = getDeviceIndexForNode(&lastCharacter, _rootNode, -1) * _propertiesCount;
+	offset->length = lastCharacter - userAgent;
+	offset->userAgent = (char*)malloc(offset->length + 1 * sizeof(char));
+	memcpy((void*)offset->userAgent, userAgent, offset->length);
+	((char*)offset->userAgent)[offset->length] = 0;
+	offset->difference = (int)(strlen(userAgent) - offset->length);
+}
+
+// Creates a new device offsets structure with memory allocated.
+fiftyoneDegreesDeviceOffsets* fiftyoneDegreesCreateDeviceOffsets() {
+	fiftyoneDegreesDeviceOffsets* offsets = (fiftyoneDegreesDeviceOffsets*)malloc(sizeof(fiftyoneDegreesDeviceOffsets));
+	offsets->size = 0;
+	offsets->firstOffset = (fiftyoneDegreesDeviceOffset*)malloc(_uniqueHttpHeaderCount * sizeof(fiftyoneDegreesDeviceOffset));
+	return offsets;
+}
+
+// Frees the memory used by the offsets.
+void fiftyoneDegreesFreeDeviceOffsets(fiftyoneDegreesDeviceOffsets* offsets) {
+	int offsetIndex;
+	if (offsets != NULL) {
+		if (offsets->firstOffset != NULL) {
+			for (offsetIndex = 0; offsetIndex < offsets->size; offsetIndex++) {
+				if ((offsets->firstOffset + offsetIndex)->userAgent != NULL) {
+					free((void*)(offsets->firstOffset + offsetIndex)->userAgent);
+				}
+			}
+			free(offsets->firstOffset);
+		}
+		free(offsets);
+	}
 }
 
 /**
