@@ -324,6 +324,7 @@ char *req_p;            /* pointer to position in request data */
 #define USERAGENT_MAX_LENGTH 1024
 char userAgents[USERAGENT_COUNT][USERAGENT_MAX_LENGTH];
 int userAgentsCount = 0;
+int userAgentRandomCharacters = 0;
 
 /* overrides for ab-generated common headers */
 int opt_host = 0;       /* was an optional "Host:" header specified? */
@@ -726,9 +727,9 @@ static void write_request(struct connection * c)
                 xLength = (dst - xStart) - 2;
 
                 /*
-                 * randomly modify up to 20 characters to stress detection and caching.
+                 * randomly modify up to X characters to stress detection and caching.
                  */
-                randomCharacters = rand() % 20;
+                randomCharacters = userAgentRandomCharacters;
                 while (randomCharacters > 0) {
                     switch(rand() % 4) {
                         case 0:
@@ -1977,6 +1978,7 @@ static void usage(const char *progname)
     fprintf(stderr, "    -H attribute    Add Arbitrary header line, eg. 'Accept-Encoding: gzip'\n");
     fprintf(stderr, "                    Inserted after all normal header lines. (repeatable)\n");
     fprintf(stderr, "    -U filename     File of User-Agents to use randomly for each request\n");
+    fprintf(stderr, "    -R characters   Number of characters in User-Agents to change randomly\n");
     fprintf(stderr, "    -A attribute    Add Basic WWW Authentication, the attributes\n");
     fprintf(stderr, "                    are a colon separated username and password.\n");
     fprintf(stderr, "    -P attribute    Add Basic Proxy Authentication, the attributes\n");
@@ -2158,7 +2160,7 @@ int main(int argc, const char * const argv[])
 #endif
 
     apr_getopt_init(&opt, cntxt, argc, argv);
-    while ((status = apr_getopt(opt, "U:n:c:t:b:T:p:v:rkVhwix:y:z:C:H:P:A:g:X:de:Sq"
+    while ((status = apr_getopt(opt, "R:U:n:c:t:b:T:p:v:rkVhwix:y:z:C:H:P:A:g:X:de:Sq"
 #ifdef USE_SSL
             "Z:f:"
 #endif
@@ -2313,6 +2315,9 @@ int main(int argc, const char * const argv[])
             case 'V':
                 copyright();
                 return 0;
+            case 'R':
+                userAgentRandomCharacters = atoi(optarg);
+                break;
             case 'U':
                 initUserAgents(optarg);
                 break;
