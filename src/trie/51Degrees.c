@@ -1102,7 +1102,7 @@ int fiftyoneDegreesProcessDeviceOffsetsJSON(fiftyoneDegreesDeviceOffsets *device
 		return (int)(currentPos - result);
 	}
 
-	currentPos += snprintf(currentPos, endPos - currentPos, "{\n");
+	currentPos += snprintf(currentPos, endPos - currentPos, "{");
 
 	// Process each line of data using the relevant value separator. In this case, a pipe.
 	for (requiredPropertyIndex = 0; requiredPropertyIndex < _requiredPropertiesCount; requiredPropertyIndex++) {
@@ -1134,7 +1134,7 @@ int fiftyoneDegreesProcessDeviceOffsetsJSON(fiftyoneDegreesDeviceOffsets *device
 		}
 		if (currentPos >= endPos) return -1;
 	}
-	currentPos += snprintf(currentPos, endPos - currentPos, "\n}");
+	currentPos += snprintf(currentPos, endPos - currentPos, "}");
 	return (int)(currentPos - result);
 }
 
