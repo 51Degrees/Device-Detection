@@ -2236,7 +2236,7 @@ int32_t binarySearchNumericChildren(const fiftyoneDegreesNode *node, fiftyoneDeg
 	while (lower <= upper)
 	{
 		middle = lower + (upper - lower) / 2;
-		comparisonResult = (state->firstNodeNumericIndex + middle)->value - state->target;;
+		comparisonResult = (int16_t)((state->firstNodeNumericIndex + middle)->value - state->target);
 		if (comparisonResult == 0)
 			return middle;
 		else if (comparisonResult > 0)
