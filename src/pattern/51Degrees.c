@@ -775,11 +775,10 @@ int32_t* getProfileOffsetsFromSignature(const byte *signature) {
 
 /**
  * Returns a pointer to the first signature index of the node
- * @param dataSet pointer to the data set
  * @param node pointer whose first signature index is required
  * @return a pointer to the first signature index
  */
-const int32_t* getFirstRankedSignatureIndexForNode(const fiftyoneDegreesDataSet *dataSet, const fiftyoneDegreesNode *node) {
+const int32_t* getFirstRankedSignatureIndexForNode(const fiftyoneDegreesNode *node) {
 	return (int32_t*)(((byte*)node) + sizeof(fiftyoneDegreesNode) +
 		(node->childrenCount * sizeof(fiftyoneDegreesNodeIndex)) +
 		(node->numericChildrenCount * sizeof(fiftyoneDegreesNodeNumericIndex)));
