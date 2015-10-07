@@ -790,20 +790,17 @@ int fiftyoneDegreesGetUniqueHttpHeaderIndex(char* httpHeaderName, int length) {
 }
 
 // Returns the offsets to a matching devices based on the http headers provided.
-fiftyoneDegreesDeviceOffsets* fiftyoneDegreesGetDeviceOffsetsWithHeadersString(char *httpHeaders, size_t size) {
+void fiftyoneDegreesSetDeviceOffsetsWithHeadersString(fiftyoneDegreesDeviceOffsets *offsets, char *httpHeaders, size_t size) {
 	char *headerName, *headerValue, *endOfHeaders = httpHeaders + size;
 	int headerNameLength, headerValueLength, uniqueHeaderIndex = 0;
-	fiftyoneDegreesDeviceOffsets* offsets = (fiftyoneDegreesDeviceOffsets*)malloc(sizeof(fiftyoneDegreesDeviceOffsets));
-	offsets->firstOffset = (fiftyoneDegreesDeviceOffset*)malloc(_uniqueHttpHeaderCount * sizeof(fiftyoneDegreesDeviceOffset));
 	offsets->size = 0;
 	headerNameLength = setNextHttpHeaderName(httpHeaders, endOfHeaders, &headerName);
 	while (headerNameLength > 0 &&
 		offsets->size < _uniqueHttpHeaderCount) {
 		headerValueLength = setNextHttpHeaderValue(headerName + headerNameLength, endOfHeaders, &headerValue);
-		uniqueHeaderIndex = getUniqueHttpHeaderIndex(headerName, headerNameLength);
+		uniqueHeaderIndex = fiftyoneDegreesGetUniqueHttpHeaderIndex(headerName, headerNameLength);
 		if (uniqueHeaderIndex >= 0) {
-			(offsets->firstOffset + offsets->size)->httpHeaderOffset = *(_uniqueHttpHeaders + uniqueHeaderIndex);
-			(offsets->firstOffset + offsets->size)->deviceOffset = fiftyoneDegreesGetDeviceOffset(headerValue);
+			fiftyoneDegreesSetDeviceOffset(headerValue, uniqueHeaderIndex, (offsets->firstOffset + offsets->size));
 			offsets->size++;
 		}
 		headerNameLength = setNextHttpHeaderName(headerValue + headerValueLength, endOfHeaders, &headerName);
