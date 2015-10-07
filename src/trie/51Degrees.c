@@ -165,13 +165,13 @@ static const char** _requiredPropertiesNames = NULL;
 // Reads the strings from the file.
 fiftyoneDegreesDataSetInitStatus readStrings(FILE *inputFilePtr) {
 	if (fread(&_stringsSize, sizeof(int32_t), 1, inputFilePtr) != 1)
-        return DATA_SET_INIT_STATUS_CORRUPT_DATA;
+		return DATA_SET_INIT_STATUS_CORRUPT_DATA;
 	_strings = (char*)malloc(_stringsSize);
 	if (_strings == NULL)
-        return DATA_SET_INIT_STATUS_INSUFFICIENT_MEMORY;
+		return DATA_SET_INIT_STATUS_INSUFFICIENT_MEMORY;
 	if (fread(_strings, sizeof(BYTE), (size_t)_stringsSize, inputFilePtr) != (size_t)_stringsSize)
-        return DATA_SET_INIT_STATUS_CORRUPT_DATA;
-    return DATA_SET_INIT_STATUS_SUCCESS;
+		return DATA_SET_INIT_STATUS_CORRUPT_DATA;
+	return DATA_SET_INIT_STATUS_SUCCESS;
 }
 
 // Reads the HTTP headers from the file.
@@ -208,13 +208,13 @@ fiftyoneDegreesDataSetInitStatus readHttpHeaders(FILE *inputFilePtr) {
 
 // Reads the properties from the file.
 fiftyoneDegreesDataSetInitStatus readProperties(FILE *inputFilePtr) {
-	if(fread(&_propertiesSize, sizeof(int32_t), 1, inputFilePtr) != 1)
-        return DATA_SET_INIT_STATUS_CORRUPT_DATA;
+	if (fread(&_propertiesSize, sizeof(int32_t), 1, inputFilePtr) != 1)
+		return DATA_SET_INIT_STATUS_CORRUPT_DATA;
 	_properties = (fiftyoneDegreesProperty*)malloc(_propertiesSize);
 	if (_properties == NULL)
-        return DATA_SET_INIT_STATUS_INSUFFICIENT_MEMORY;
+		return DATA_SET_INIT_STATUS_INSUFFICIENT_MEMORY;
 	if (fread(_properties, sizeof(BYTE), (size_t)_propertiesSize, inputFilePtr) != (size_t)_propertiesSize)
-        return DATA_SET_INIT_STATUS_CORRUPT_DATA;
+		return DATA_SET_INIT_STATUS_CORRUPT_DATA;
 	_propertiesCount = _propertiesSize / sizeof(fiftyoneDegreesProperty);
 	return DATA_SET_INIT_STATUS_SUCCESS;
 }
@@ -222,53 +222,53 @@ fiftyoneDegreesDataSetInitStatus readProperties(FILE *inputFilePtr) {
 // Reads the profiles from the file.
 fiftyoneDegreesDataSetInitStatus readDevices(FILE *inputFilePtr) {
 	if (fread(&_devicesSize, sizeof(int32_t), 1, inputFilePtr) != 1)
-        return DATA_SET_INIT_STATUS_CORRUPT_DATA;
+		return DATA_SET_INIT_STATUS_CORRUPT_DATA;
 	_devices = (int32_t*)malloc(_devicesSize);
 	if (_devices == NULL)
-        return DATA_SET_INIT_STATUS_INSUFFICIENT_MEMORY;
+		return DATA_SET_INIT_STATUS_INSUFFICIENT_MEMORY;
 	if (fread(_devices, sizeof(BYTE), (size_t)_devicesSize, inputFilePtr) != (size_t)_devicesSize)
-        return DATA_SET_INIT_STATUS_CORRUPT_DATA;
-    return DATA_SET_INIT_STATUS_SUCCESS;
+		return DATA_SET_INIT_STATUS_CORRUPT_DATA;
+	return DATA_SET_INIT_STATUS_SUCCESS;
 }
 
 // Reads the lookups from the input file provided.
 fiftyoneDegreesDataSetInitStatus readLookupList(FILE *inputFilePtr) {
 	if (fread(&_lookupListSize, sizeof(int32_t), 1, inputFilePtr) != 1)
-        return DATA_SET_INIT_STATUS_CORRUPT_DATA;
+		return DATA_SET_INIT_STATUS_CORRUPT_DATA;
 	_lookupList = (LOOKUP_HEADER*)malloc(_lookupListSize);
-	if (_lookupList ==NULL)
-        return DATA_SET_INIT_STATUS_INSUFFICIENT_MEMORY;
+	if (_lookupList == NULL)
+		return DATA_SET_INIT_STATUS_INSUFFICIENT_MEMORY;
 	if (fread(_lookupList, sizeof(BYTE), _lookupListSize, inputFilePtr) != (size_t)_lookupListSize)
-        return DATA_SET_INIT_STATUS_CORRUPT_DATA;
-    return DATA_SET_INIT_STATUS_SUCCESS;
+		return DATA_SET_INIT_STATUS_CORRUPT_DATA;
+	return DATA_SET_INIT_STATUS_SUCCESS;
 }
 
 // Reads the nodes byte array into memory.
 fiftyoneDegreesDataSetInitStatus readNodes(FILE *inputFilePtr) {
 	if (fread(&_nodesSize, sizeof(int64_t), 1, inputFilePtr) != 1)
-        return DATA_SET_INIT_STATUS_CORRUPT_DATA;
+		return DATA_SET_INIT_STATUS_CORRUPT_DATA;
 	_rootNode = (int32_t*)malloc((size_t)_nodesSize);
-    if (_rootNode == 0)
-        return DATA_SET_INIT_STATUS_INSUFFICIENT_MEMORY;
+	if (_rootNode == 0)
+		return DATA_SET_INIT_STATUS_INSUFFICIENT_MEMORY;
 	if (_rootNode > 0) {
-        if (fread(_rootNode, sizeof(BYTE), (size_t)_nodesSize, inputFilePtr) != (size_t)_nodesSize) {
-            return DATA_SET_INIT_STATUS_CORRUPT_DATA;
-        }
+		if (fread(_rootNode, sizeof(BYTE), (size_t)_nodesSize, inputFilePtr) != (size_t)_nodesSize) {
+			return DATA_SET_INIT_STATUS_CORRUPT_DATA;
+		}
 	}
 
-    return DATA_SET_INIT_STATUS_SUCCESS;
+	return DATA_SET_INIT_STATUS_SUCCESS;
 }
 
 // Reads the copyright message into memory.
 fiftyoneDegreesDataSetInitStatus readCopyright(FILE *inputFilePtr) {
 	if (fread(&_copyrightSize, sizeof(int32_t), 1, inputFilePtr) != 1)
-        return DATA_SET_INIT_STATUS_CORRUPT_DATA;
+		return DATA_SET_INIT_STATUS_CORRUPT_DATA;
 	_copyright = (char*)malloc(_copyrightSize);
 	if (_copyright == NULL)
-        return DATA_SET_INIT_STATUS_INSUFFICIENT_MEMORY;
+		return DATA_SET_INIT_STATUS_INSUFFICIENT_MEMORY;
 	if (fread(_copyright, sizeof(BYTE), (size_t)_copyrightSize, inputFilePtr) != (size_t)_copyrightSize)
-        return DATA_SET_INIT_STATUS_CORRUPT_DATA;
-    return DATA_SET_INIT_STATUS_SUCCESS;
+		return DATA_SET_INIT_STATUS_CORRUPT_DATA;
+	return DATA_SET_INIT_STATUS_SUCCESS;
 }
 
 // Fress the memory.
@@ -330,17 +330,17 @@ void fiftyoneDegreesDestroy(void) {
 fiftyoneDegreesDataSetInitStatus readVersion(FILE *inputFilePtr) {
 	uint16_t version;
 	if (fread(&version, sizeof(uint16_t), 1, inputFilePtr) != -1) {
-	   if (version != 32)
-           return DATA_SET_INIT_STATUS_INCORRECT_VERSION;
-       return DATA_SET_INIT_STATUS_SUCCESS;
-   }
-   return DATA_SET_INIT_STATUS_CORRUPT_DATA;
+		if (version != 32)
+			return DATA_SET_INIT_STATUS_INCORRECT_VERSION;
+		return DATA_SET_INIT_STATUS_SUCCESS;
+	}
+	return DATA_SET_INIT_STATUS_CORRUPT_DATA;
 }
 
 // Reads the input file into memory returning 1 if it
 // was read unsuccessfully, otherwise 0.
 fiftyoneDegreesDataSetInitStatus readFile(char* fileName) {
-	#define READMETHODS 8
+#define READMETHODS 8
 	fiftyoneDegreesDataSetInitStatus status = DATA_SET_INIT_STATUS_SUCCESS;
 	FILE *inputFilePtr;
 	int readMethod;
@@ -359,7 +359,7 @@ fiftyoneDegreesDataSetInitStatus readFile(char* fileName) {
 
 	// If the file didn't open return -1.
 	if (inputFilePtr == NULL) {
-        return DATA_SET_INIT_STATUS_FILE_NOT_FOUND;
+		return DATA_SET_INIT_STATUS_FILE_NOT_FOUND;
 	}
 	// Read the various data segments if the version is
 	// one we can read.
