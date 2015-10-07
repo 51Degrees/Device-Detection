@@ -443,27 +443,29 @@ void initSpecificPropertiesFromArray(const char** properties, int count) {
 
 	// Count the number of valid properties.
 	_requiredPropertiesCount = 0;
-    for (i = 0; i < count; i++) {
-      currentProperty = properties[i];
-      currentLength = (int)strlen(currentProperty);
-      if (getPropertyIndexRange(currentProperty, currentLength) > 0)
-            _requiredPropertiesCount++;
-    }
+	for (i = 0; i < count; i++) {
+		currentProperty = properties[i];
+		currentLength = (int)strlen(currentProperty);
+		if (getPropertyIndexRange(currentProperty, currentLength) > 0)
+			_requiredPropertiesCount++;
+	}
 
-	// Create enough memory for the properties.
-	_requiredProperties = (uint32_t*)malloc(_requiredPropertiesCount * sizeof(int));
-	_requiredPropertiesNames = (char**)malloc(_requiredPropertiesCount * sizeof(char*));
+	if (_requiredPropertiesCount > 0) {
+		// Create enough memory for the properties.
+		_requiredProperties = (uint32_t*)malloc(_requiredPropertiesCount * sizeof(int));
+		_requiredPropertiesNames = (const char**)malloc(_requiredPropertiesCount * sizeof(const char*));
 
-	// Initialise the requiredProperties array.
-	for (i = 0; i < count; i++ ) {
-      currentProperty = properties[i];
-      currentLength = (int)strlen(currentProperty);
-      // If this is a valid property add it to the list.
-		propertyIndex = getPropertyIndexRange(currentProperty, currentLength);
-		if (propertyIndex > 0) {
-			*(_requiredProperties + currentIndex) = propertyIndex;
-			*(_requiredPropertiesNames + currentIndex) = _strings + (_properties + propertyIndex)->stringOffset;
-			currentIndex++;
+		// Initialise the requiredProperties array.
+		for (i = 0; i < count; i++) {
+			currentProperty = properties[i];
+			currentLength = (int)strlen(currentProperty);
+			// If this is a valid property add it to the list.
+			propertyIndex = getPropertyIndexRange(currentProperty, currentLength);
+			if (propertyIndex > 0) {
+				_requiredProperties[currentIndex] = propertyIndex;
+				_requiredPropertiesNames[currentIndex] = _strings + _properties[propertyIndex].stringOffset;
+				currentIndex++;
+			}
 		}
 	}
 }
