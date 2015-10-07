@@ -1,20 +1,29 @@
 use 5.010001;
 use ExtUtils::MakeMaker;
+
+# Name of the Perl module generated.
+$moduleName = "FiftyOneDegrees::TrieV3";
+
+# Call SWIG to build the Perl source files.
+system("swig", "-perl", "-c++", "-module", $moduleName, "-outdir", "lib/FiftyOneDegrees", "-o", "../../src/trie/51Degrees_perl.cxx", "../../src/trie/51Degrees.i");
+
 # See lib/ExtUtils/MakeMaker.pm for details of how to influence
 # the contents of the Makefile that is written.
 WriteMakefile(
-	NAME			=> 'FiftyOneDegrees::TrieV3',
-	VERSION			=> '3.2.0.0',
-	OBJECT			=> '../../src/trie/51Degrees.o src/51Degrees_wrap.o',
-    LDFROM          => '51Degrees.o 51Degrees_wrap.o',
-    #C				=> ['../../src/trie/51Degrees.c', 'src/51Degrees_wrap.c'],
-    CC				=> "gcc",
-    LD				=> "gcc",
+    NAME			=> $moduleName,
+    VERSION			=> '3.2.0.0',
+    LDFROM			=> '51Degrees.o Match.o Provider.o 51Degrees_perl.o',
+    OBJECT			=> '../../src/trie/51Degrees.o ../../src/trie/Match.o ../../src/trie/Provider.o ../../src/trie/51Degrees_perl.o',
+    INC				=> '-I../../src -I../../src/pattern',
+    CC				=> "g++",
+    LD				=> "g++",
     LIBS			=> ['-lm'],
-    PREREQ_PM		=> {}, # e.g., Module::Name => 1.1
+	DEFINE 			=> "-DHTTP_HEADERS_PREFIXED",
+    # OPTIMIZE		=> '-g', - Switch with O2 for debug compile
+    OPTIMIZE		=> '-O2',
     ($] >= 5.005 ?	## Add these new keywords supported since 5.005
       (ABSTRACT		=> 'A wrapper for 51Degrees Device Detection Trie library for detecting devices from their User-Agent.',
-       AUTHOR       => 'support@51degrees.com') : ()),
+       AUTHOR		=> ['support@51degrees.com']) : ()),
 );
 
 
