@@ -9,8 +9,8 @@ using System.Runtime.InteropServices;
 [assembly: AssemblyDescription("51degrees - Detection DLL Wrapper")]
 [assembly: AssemblyConfiguration("")]
 [assembly: AssemblyCompany("51 Degrees Mobile Experts Limited")]
-[assembly: AssemblyProduct("51degrees.mobi - Detection Wrapper")]
-[assembly: AssemblyCopyright("Copyright 51 Degrees Mobile Experts Limited 2009 - 2014")]
+[assembly: AssemblyProduct("51Degrees - Native Code Detection Wrapper")]
+[assembly: AssemblyCopyright("Copyright 51 Degrees Mobile Experts Limited 2009 - 2015")]
 [assembly: AssemblyTrademark("51Degrees")]
 [assembly: AssemblyCulture("")]
 
@@ -22,5 +22,5 @@ using System.Runtime.InteropServices;
 // The following GUID is for the ID of the typelib if this project is exposed to COM
 [assembly: Guid("e9fef6df-3136-4e1e-ab57-59ef723d7b39")]
 
-[assembly: AssemblyVersion("3.0.0.0")]
-[assembly: AssemblyFileVersion("3.0.0.0")]
+[assembly: AssemblyVersion("3.2.0.0")]
+[assembly: AssemblyFileVersion("3.2.0.0")]

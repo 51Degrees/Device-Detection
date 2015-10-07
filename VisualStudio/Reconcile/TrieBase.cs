@@ -58,12 +58,13 @@ namespace FiftyOne.Reconcile
             {
                 var managedMatch = _managedProvider.GetDeviceIndex(userAgent.Trim());
                 var managedMatchUserAgent = _managedProvider.GetUserAgent(userAgent.Trim());
-                using (TrieWrapper.MatchResult unmanagedMatch =
-                    (TrieWrapper.MatchResult)_unmanagedProvider.Match(userAgent.Trim()))
+                using (var unmanagedMatch = _unmanagedProvider.Match(userAgent.Trim()))
                 {
                     // Does not use Equals in order to handle situatons where one
                     // or both of the UserAgent properties are null.
-                    if (managedMatchUserAgent != unmanagedMatch.UserAgent)
+                    if ((String.IsNullOrEmpty(managedMatchUserAgent) &&
+                        String.IsNullOrEmpty(unmanagedMatch.UserAgent)) == false &&
+                        managedMatchUserAgent != unmanagedMatch.UserAgent)
                     {
                         Assert.Fail(String.Format(
                             "Different user agents for target user agent '{0}'.\r\n" +

@@ -28,7 +28,7 @@ namespace FiftyOne.UnitTests.HttpHeaders
         protected override IWrapper CreateWrapper()
         {
             Utils.CheckFileExists(DataFile);
-            return new PatternWrapper(DataFile, (string)null, 5000);
+            return new PatternWrapper(DataFile);
         }
     }
 }

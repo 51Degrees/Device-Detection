@@ -20,21 +20,27 @@
  * ********************************************************************* */
 
 using System;
+using System.Collections.Generic;
 
 namespace FiftyOne.Mobile.Detection.Provider.Interop
 {
     public interface IMatchResult : IDisposable
     {
         /// <summary>
-        /// A string representation of the user agent returned if any.
-        /// </summary>
-        string UserAgent { get; }
-        
-        /// <summary>
         /// Returns the value for the property provided.
         /// </summary>
         /// <param name="propertyName"></param>
         /// <returns></returns>
         string this[string propertyName] { get; }
+
+        IList<string> getValues(string propertyName);
+        IList<string> getValues(int propertyIndex);
+        string getValue(string propertyName);
+        string getValue(int propertyIndex);
+        string DeviceId { get; }
+        int Rank { get; }
+        int Difference { get; }
+        int Method { get; }
+        string UserAgent { get; }
     }
 }

@@ -1,6 +1,6 @@
 /* *********************************************************************
  * This Source Code Form is copyright of 51Degrees Mobile Experts Limited. 
- * Copyright © 2014 51Degrees Mobile Experts Limited, 5 Charlotte Close,
+ * Copyright 2015 51Degrees Mobile Experts Limited, 5 Charlotte Close,
  * Caversham, Reading, Berkshire, United Kingdom RG4 7BY
  * 
  * This Source Code Form is the subject of the following patent 
@@ -27,6 +27,7 @@ using System.Threading;
 using System.IO;
 using System.Collections.Specialized;
 using System.Diagnostics;
+using System.Linq;
 
 namespace FiftyOne.Mobile.Detection.Provider.Interop
 {
@@ -36,439 +37,12 @@ namespace FiftyOne.Mobile.Detection.Provider.Interop
     /// </summary>
     public class PatternWrapper : IWrapper
     {
-        #region Classes
-
-        internal class Provider : IDisposable
-        {
-            /// <summary>
-            /// Pointer to the memory allocated for the dataset.
-            /// </summary>
-            internal IntPtr DataSetPointer;
-
-            /// <summary>
-            /// Pointer to the memory allocated for the cache.
-            /// </summary>
-            internal IntPtr CachePointer;
-
-            /// <summary>
-            /// Pointer to the memory allocated for the pool of worksets.
-            /// </summary>
-            internal IntPtr PoolPointer;
-
-            /// <summary>
-            /// Used to signal when all worksets have been released.
-            /// </summary>
-            internal readonly AutoResetEvent AllWorksetsReleased = new AutoResetEvent(true);
-
-            /// <summary>
-            /// The number of allocated worksets.
-            /// </summary>
-            internal int AllocatedWorksets = 0;
-
-            /// <summary>
-            /// Map of property name strings to required indexes. Used when returning
-            /// property values from a detection.
-            /// </summary>
-            internal readonly SortedList<string, int> PropertyIndexes = new SortedList<string, int>();
-
-            /// <summary>
-            /// List of HTTP headers that the detection provider considers.
-            /// </summary>
-            internal readonly List<string> HttpHeaders = new List<string>();
-
-            /// <summary>
-            /// Construct the data set from the file provided.
-            /// </summary>
-            /// <param name="fileName">Path to the data set file.</param>
-            /// <param name="properties">Array of properties to include in the results.</param>
-            public Provider(string fileName, string[] properties) 
-                : this(fileName, String.Join(",", properties)) {}
-
-            /// <summary>
-            /// Construct the wrapper creating a workset for each CPU available.
-            /// </summary>
-            /// <param name="fileName">Path to the data set file.</param>
-            /// <param name="properties">Comma seperated list of properties to include in the results.
-            /// <param name="size">The size of the cache to be used with the wrapper</param>
-            /// </param>
-            public Provider(string fileName, string properties, int size = 0)
-            {
-                var file = new FileInfo(fileName);
-                if (file.Exists == false)
-                {
-                    throw new ArgumentException(String.Format(
-                        "File '{0}' does not exist", 
-                        fileName), 
-                        "fileName");
-                }
-                DataSetPointer = InitWithPropertyString(file.FullName, properties);
-                if (IntPtr.Zero == DataSetPointer)
-                {
-                    throw new Exception(String.Format(
-                        "Pattern data set initialisation failed with status code '{0}' for file '{1}'.",
-                        Marshal.GetLastWin32Error(),
-                        file.FullName));
-                }
-                CachePointer = size > 0 ? ResultsetCacheCreate(DataSetPointer, size) : IntPtr.Zero;
-                PoolPointer = WorksetPoolCreate(DataSetPointer, CachePointer, Environment.ProcessorCount * 10);
-
-                // Initialise the list of property names and indexes.
-                var propertyIndex = 0;
-                var property = new StringBuilder(256);
-                while (GetRequiredPropertyName(DataSetPointer, propertyIndex, property, property.Capacity) > 0)
-                {
-                    PropertyIndexes.Add(property.ToString(), propertyIndex);
-                    propertyIndex++;
-                }
-
-                // Initialise the list of http header names.
-                var httpHeaderIndex = 0;
-                var httpHeader = new StringBuilder(256);
-                while (GetHttpHeaderName(DataSetPointer, httpHeaderIndex, httpHeader, httpHeader.Capacity) > 0)
-                {
-                    HttpHeaders.Add(httpHeader.ToString());
-                    httpHeaderIndex++;
-                }
-                HttpHeaders.Sort();
-            }
-
-            /// <summary>
-            /// If the dispose method wasn't called for any reason frees
-            /// unmanaged memory.
-            /// </summary>
-            ~Provider()
-            {
-                Dispose(false);
-            }
-
-            /// <summary>
-            /// Disposes of the provider freeing unmanaged memory.
-            /// </summary>
-            public void Dispose()
-            {
-                Dispose(true);
-                GC.SuppressFinalize(this);
-            }
-
-            /// <summary>
-            /// Disposes of the dataset checking that all worksets have been
-            /// released before doing so.
-            /// </summary>
-            /// <param name="disposing"></param>
-            protected virtual void Dispose(bool disposing)
-            {
-                AllWorksetsReleased.WaitOne();
-                if (PoolPointer != IntPtr.Zero)
-                {
-                    Debug.WriteLine("Freeing Pool");
-                    WorksetPoolFree(PoolPointer);
-                    PoolPointer = IntPtr.Zero;
-                }
-                if (CachePointer != IntPtr.Zero)
-                {
-                    Debug.WriteLine("Freeing Cache");
-                    ResultsetCacheFree(CachePointer);
-                    CachePointer = IntPtr.Zero;
-                }
-                if (DataSetPointer != IntPtr.Zero) 
-                {
-                    Debug.WriteLine("Freeing DataSet");
-                    DataSetFree(DataSetPointer);
-                    DataSetPointer = IntPtr.Zero; 
-                }
-            }
-        }
-
-        /// <summary>
-        /// The results of a device detection match. Must be disposed before the 
-        /// provider used to create it is disposed.
-        /// </summary>
-        public class MatchResult : IMatchResult
-        {
-            /// <summary>
-            /// Reference to the provider used to create the match results.
-            /// </summary>
-            private readonly Provider _provider;
-
-            /// <summary>
-            /// Pointer to the workset allocated by the unmanaged code.
-            /// </summary>
-            private IntPtr _workSet;
-
-            /// <summary>
-            /// Memory used to retrieve the values.
-            /// </summary>
-            private readonly StringBuilder StringBuffer = new StringBuilder();
-
-            /// <summary>
-            /// Constructs a new instance of the match results for the user
-            /// agent provided.
-            /// </summary>
-            /// <param name="provider">Provider configured for device detection</param>
-            /// <param name="userAgent">User agent to be detected</param>
-            internal MatchResult(Provider provider, string userAgent)
-            {
-                _provider = provider;
-                _provider.AllWorksetsReleased.Reset();
-                Interlocked.Increment(ref _provider.AllocatedWorksets);
-                _workSet = WorksetPoolGet(provider.PoolPointer);
-                if (IntPtr.Zero == _workSet)
-                {
-                    throw new Exception("Could not get workset from pool.");
-                }
-                MatchFromUserAgent(_workSet, userAgent);
-            }
-
-            /// <summary>
-            /// Constructs a new instance of the match result for the HTTP
-            /// headers provided.
-            /// </summary>
-            /// <param name="provider">Provider configured for device detection</param>
-            /// <param name="headers">HTTP headers of the request for detection</param>
-            internal MatchResult(Provider provider, NameValueCollection headers)
-            {
-                _provider = provider;
-                _provider.AllWorksetsReleased.Reset();
-                Interlocked.Increment(ref _provider.AllocatedWorksets);
-                _workSet = WorksetPoolGet(provider.PoolPointer);
-                var httpHeaders = new StringBuilder();
-                for (int i = 0; i < headers.Count; i++)
-                {
-                    httpHeaders.AppendLine(String.Format("{0}: {1}",
-                        headers.Keys[i],
-                        String.Concat(headers.GetValues(i))));
-                }
-                MatchFromHeaders(_workSet, httpHeaders);
-            }
-
-            /// <summary>
-            /// Ensures any unmanaged memory is freed if dispose didn't run
-            /// for any reason.
-            /// </summary>
-            ~MatchResult()
-            {
-                Dispose(false);
-            }
-
-            /// <summary>
-            /// Frees unmanged memory when the instance is disposed.
-            /// </summary>
-            public void Dispose()
-            {
-                Dispose(true);
-                GC.SuppressFinalize(this);
-            }
-
-            /// <summary>
-            /// Releases the pointer to the workset back to the pool.
-            /// </summary>
-            /// <param name="disposing"></param>
-            protected virtual void Dispose(bool disposing)
-            {
-                if (_workSet != IntPtr.Zero &&
-                    _provider != null &&
-                    _provider.PoolPointer != IntPtr.Zero) 
-                {
-                    WorksetPoolRelease(_provider.PoolPointer, _workSet);
-                    // Reduce the number of worksets that are allocated.
-                    Interlocked.Decrement(ref _provider.AllocatedWorksets);
-                    // If the allocated worksets are now zero then signal
-                    // the provider to release the pool, cache and dataset
-                    // if it's being disposed of. Needed to ensure that
-                    // all worksets are released before disposing of the
-                    // provider.
-                    if (_provider.AllocatedWorksets == 0)
-                    {
-                        _provider.AllWorksetsReleased.Set();
-                    }
-                }
-                _workSet = IntPtr.Zero;
-            }
-
-            /// <summary>
-            /// Returns the values for the property provided.
-            /// </summary>
-            /// <param name="propertyName"></param>
-            /// <returns>Value of the property, otherwise null.</returns>
-            public string this[string propertyName]
-            {
-                get
-                {
-                    int index;
-                    if (_provider.PropertyIndexes.TryGetValue(propertyName, out index))
-                    {
-                        // Get the number of characters written. If the result is negative
-                        // then this indicates that the values string builder needs to be
-                        // set to the positive value and the method recalled.
-                        var charactersWritten = GetPropertyValues(_workSet, index, StringBuffer, StringBuffer.Capacity);
-                        if (charactersWritten < 0)
-                        {
-                            StringBuffer.Capacity = Math.Abs(charactersWritten);
-                            charactersWritten = GetPropertyValues(_workSet, index, StringBuffer, StringBuffer.Capacity);
-                        }
-                        return StringBuffer.ToString();
-                    }
-                    return null;
-                }
-            }
-
-            /// <summary>
-            /// A string representation of the user agent returned if any.
-            /// </summary>
-            public string UserAgent
-            {
-                get 
-                {
-                    var charactersWritten = GetUserAgent(_workSet, StringBuffer, StringBuffer.Capacity);
-                    if (charactersWritten < 0)
-                    {
-                        StringBuffer.Capacity = Math.Abs(charactersWritten);
-                        charactersWritten = GetUserAgent(_workSet, StringBuffer, StringBuffer.Capacity);
-                    }
-                    return charactersWritten == 0 ? null : StringBuffer.ToString();
-                }
-            }
-
-            /// <summary>
-            /// Returns the rank of the user agent.
-            /// </summary>
-            public int Rank
-            {
-                get { return GetRank(_workSet); }
-            }
-
-            /// <summary>
-            /// Returns the difference between the matched signature and the target.
-            /// </summary>
-            public int Difference
-            {
-                get { return GetDifference(_workSet); }
-            }
-
-            /// <summary>
-            /// The method used to obtain the match result.
-            /// </summary>
-            public int Method 
-            {
-                get { return GetMethod(_workSet); }
-            }
-
-            /// <summary>
-            /// The Id of the device.
-            /// </summary>
-            public string DeviceId
-            {
-                get
-                {
-                    var charactersWritten = GetDeviceId(_workSet, StringBuffer, StringBuffer.Capacity);
-                    if (charactersWritten < 0)
-                    {
-                        StringBuffer.Capacity = Math.Abs(charactersWritten);
-                        charactersWritten = GetDeviceId(_workSet, StringBuffer, StringBuffer.Capacity);
-                    }
-                    return StringBuffer.ToString();
-                }
-            }
-        }
-
-        #endregion
-
-        #region DLL Imports
-
-        [DllImport("FiftyOne.Mobile.Detection.Provider.Pattern.dll",
-            CallingConvention = CallingConvention.Cdecl, 
-            CharSet = CharSet.Ansi,
-            SetLastError = true)]
-        private static extern IntPtr InitWithPropertyString(String fileName, String properties);
-
-        [DllImport("FiftyOne.Mobile.Detection.Provider.Pattern.dll",
-            CallingConvention = CallingConvention.Cdecl)]
-        private static extern void DataSetFree(IntPtr dataSet);
-
-        [DllImport("FiftyOne.Mobile.Detection.Provider.Pattern.dll",
-            CallingConvention = CallingConvention.Cdecl)]
-        private static extern IntPtr ResultsetCacheCreate(IntPtr dataSet, int size);
-
-        [DllImport("FiftyOne.Mobile.Detection.Provider.Pattern.dll",
-            CallingConvention = CallingConvention.Cdecl)]
-        private static extern void ResultsetCacheFree(IntPtr cache);
-
-        [DllImport("FiftyOne.Mobile.Detection.Provider.Pattern.dll",
-            CallingConvention = CallingConvention.Cdecl)]
-        private static extern IntPtr WorksetPoolCreate(IntPtr dataSet, IntPtr cache, int size);
-
-        [DllImport("FiftyOne.Mobile.Detection.Provider.Pattern.dll",
-            CallingConvention = CallingConvention.Cdecl)]
-        private static extern void WorksetPoolFree(IntPtr pool);
-
-        [DllImport("FiftyOne.Mobile.Detection.Provider.Pattern.dll",
-            CallingConvention = CallingConvention.Cdecl)]
-        private static extern IntPtr WorksetPoolGet(IntPtr pool);
-
-        [DllImport("FiftyOne.Mobile.Detection.Provider.Pattern.dll",
-            CallingConvention = CallingConvention.Cdecl)]
-        private static extern void WorksetPoolRelease(IntPtr pool, IntPtr ws);
-
-        [DllImport("FiftyOne.Mobile.Detection.Provider.Pattern.dll",
-            CallingConvention = CallingConvention.Cdecl,
-            CharSet = CharSet.Ansi)]
-        private static extern int GetRequiredPropertyIndex(IntPtr dataSet, String propertyName);
-
-        [DllImport("FiftyOne.Mobile.Detection.Provider.Pattern.dll",
-            CallingConvention = CallingConvention.Cdecl,
-            CharSet = CharSet.Ansi)]
-        private static extern int GetRequiredPropertyName(IntPtr dataSet, int requiredPropertyIndex, StringBuilder propertyName, int size);
-
-        [DllImport("FiftyOne.Mobile.Detection.Provider.Pattern.dll",
-            CallingConvention = CallingConvention.Cdecl,
-            CharSet = CharSet.Ansi)]
-        private static extern int GetHttpHeaderName(IntPtr dataSet, int httpHeaderIndex, StringBuilder httpHeader, int size);
-
-        [DllImport("FiftyOne.Mobile.Detection.Provider.Pattern.dll",
-            CallingConvention = CallingConvention.Cdecl,
-            CharSet = CharSet.Ansi)]
-        private static extern void MatchFromUserAgent(IntPtr ws, String userAgent);
-
-        [DllImport("FiftyOne.Mobile.Detection.Provider.Pattern.dll",
-            CallingConvention = CallingConvention.Cdecl,
-            CharSet = CharSet.Ansi)]
-        private static extern void MatchFromHeaders(IntPtr ws, StringBuilder httpHeaders);
-
-        [DllImport("FiftyOne.Mobile.Detection.Provider.Pattern.dll",
-            CallingConvention = CallingConvention.Cdecl,
-            CharSet = CharSet.Ansi)]
-        private static extern int GetPropertyValues(IntPtr workSet, int requiredPropertyIndex, StringBuilder values, int size);
-
-        [DllImport("FiftyOne.Mobile.Detection.Provider.Pattern.dll",
-            CallingConvention = CallingConvention.Cdecl,
-            CharSet = CharSet.Ansi)]
-        private static extern int GetUserAgent(IntPtr workSet, StringBuilder userAgent, int size);
-
-        [DllImport("FiftyOne.Mobile.Detection.Provider.Pattern.dll",
-            CallingConvention = CallingConvention.Cdecl,
-            CharSet = CharSet.Ansi)]
-        private static extern int GetDeviceId(IntPtr workSet, StringBuilder deviceId, int size);
-        
-        [DllImport("FiftyOne.Mobile.Detection.Provider.Pattern.dll",
-            CallingConvention = CallingConvention.Cdecl)]
-        private static extern int GetRank(IntPtr workSet);
-
-        [DllImport("FiftyOne.Mobile.Detection.Provider.Pattern.dll",
-            CallingConvention = CallingConvention.Cdecl)]
-        private static extern int GetDifference(IntPtr workSet);
-
-        [DllImport("FiftyOne.Mobile.Detection.Provider.Pattern.dll",
-            CallingConvention = CallingConvention.Cdecl)]
-        private static extern int GetMethod(IntPtr workSet);
-
-        #endregion
-
         #region Fields
 
         /// <summary>
         /// Insance of a class wrapping the unmanaged dataset.
         /// </summary>
-        private readonly PatternWrapper.Provider _provider;
+        private readonly Pattern.Provider _provider;
 
         #endregion
 
@@ -484,9 +58,16 @@ namespace FiftyOne.Mobile.Detection.Provider.Interop
         /// Construct the wrapper creating a workset for each CPU available.
         /// </summary>
         /// <param name="fileName">Path to the data set file.</param>
+        /// <param name="size">The size of the cache to be used with the wrapper</param>
+        public PatternWrapper(string fileName, int size = 10000) : this(fileName, new string[] { }, size) { }
+
+        /// <summary>
+        /// Construct the wrapper creating a workset for each CPU available.
+        /// </summary>
+        /// <param name="fileName">Path to the data set file.</param>
         /// <param name="properties">Collection of properties to include in the results.</param>
         /// <param name="size">The size of the cache to be used with the wrapper</param>
-        public PatternWrapper(string fileName, IEnumerable<string> properties, int size = 5000) 
+        public PatternWrapper(string fileName, IEnumerable<string> properties, int size = 10000) 
             : this(fileName, String.Join(",", properties), size) {}
 
         /// <summary>
@@ -496,9 +77,11 @@ namespace FiftyOne.Mobile.Detection.Provider.Interop
         /// <param name="properties">Comma seperated list of properties to include in the results.
         /// <param name="size">The size of the cache to be used with the wrapper</param>
         /// </param>
-        public PatternWrapper(string fileName, string properties, int size = 5000)
+        public PatternWrapper(string fileName, string properties, int size = 10000)
         {
-            _provider = new Provider(fileName, properties, size);
+            _provider = new Pattern.Provider(fileName, properties, size, Environment.ProcessorCount);
+            _httpHeaders = new List<string>(_provider.getHttpHeaders());
+            _availableProperties = new List<string>(_provider.getAvailableProperties());
         }
         
         #endregion
@@ -510,16 +93,18 @@ namespace FiftyOne.Mobile.Detection.Provider.Interop
         /// </summary>
         public List<string> HttpHeaders
         {
-            get { return _provider.HttpHeaders; }
+            get { return _httpHeaders; }
         }
+        private readonly List<string> _httpHeaders;
 
         /// <summary>
         /// A list of properties available from the provider.
         /// </summary>
         public IList<string> AvailableProperties
         {
-            get { return _provider.PropertyIndexes.Keys; }
+            get { return _availableProperties; }
         }
+        private readonly List<string> _availableProperties;
 
         /// <summary>
         /// Returns a match result for the user agent provided.
@@ -528,7 +113,7 @@ namespace FiftyOne.Mobile.Detection.Provider.Interop
         /// <returns></returns>
         public IMatchResult Match(string userAgent)
         {
-            return new MatchResult(_provider, userAgent);
+            return (IMatchResult)_provider.getMatch(userAgent == null ? String.Empty : userAgent);
         }
 
         /// <summary>
@@ -538,7 +123,18 @@ namespace FiftyOne.Mobile.Detection.Provider.Interop
         /// <returns></returns>
         public IMatchResult Match(NameValueCollection headers)
         {
-            return new MatchResult(_provider, headers);
+            using (var mappedHeaders = new Pattern.MapStringString())
+            {
+                foreach (var header in HttpHeaders)
+                {
+                    var value = headers[header];
+                    if (String.IsNullOrEmpty(value) == false)
+                    {
+                        mappedHeaders.Add(header, value);
+                    }
+                }
+                return (IMatchResult)_provider.getMatch(mappedHeaders);
+            }
         }
 
         /// <summary>
