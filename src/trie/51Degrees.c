@@ -1007,8 +1007,10 @@ int32_t fiftyoneDegreesGetRequiredPropertiesCount(void) {
 }
 
 // Returns the names of the properties loaded in the dataset.
-char ** fiftyoneDegreesGetRequiredPropertiesNames(void) {
-  return _requiredPropertiesNames;
+const char ** fiftyoneDegreesGetRequiredPropertiesNames(void) {
+	return _requiredPropertiesNames;
+}
+
 }
 
 // Process device properties into a CSV string for the device offsets provided.
