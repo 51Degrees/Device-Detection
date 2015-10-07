@@ -283,7 +283,7 @@ void fiftyoneDegreesDestroy(void) {
 		_requiredProperties = NULL;
 	}
 	if (_requiredPropertiesNames != NULL) {
-		free(_requiredPropertiesNames);
+		free((void*)_requiredPropertiesNames);
 		_requiredPropertiesNames = NULL;
 	}
 	if (_rootNode != NULL) {
@@ -305,7 +305,7 @@ void fiftyoneDegreesDestroy(void) {
 	if (_prefixedUpperHttpHeaders != NULL) {
 		for (index = 0; index < _uniqueHttpHeaderCount; index++) {
 			if (_prefixedUpperHttpHeaders[index] != NULL) {
-				free(_prefixedUpperHttpHeaders[index]);
+				free((void*)_prefixedUpperHttpHeaders[index]);
 				_prefixedUpperHttpHeaders[index] = NULL;
 			}
 		}
