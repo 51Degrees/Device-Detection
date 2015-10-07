@@ -36,6 +36,7 @@
 /* Change snprintf to the Microsoft version */
 #ifdef _MSC_VER
 #define snprintf _snprintf
+#define strdup _strdup
 #endif
 
 /* Indicates that a method will be used by qsort */
