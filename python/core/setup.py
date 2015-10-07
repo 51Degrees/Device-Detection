@@ -6,7 +6,7 @@
 by 51Degrees. Check out http://51degrees.com for a detailed
 description, extra documentation and other useful information.
 
-:copyright: (c) 2013 by 51Degrees, see README.rst for more details.
+:copyright: (c) 2015 by 51Degrees, see README.md for more details.
 :license: MPL2, see LICENSE.txt for more details.
 '''
 
@@ -26,7 +26,7 @@ if sys.version_info[0] == 3:
 
 setup(
     name='51degrees-mobile-detector',
-    version=1.1,
+    version='3.2.0.0',
     author='51Degrees',
     author_email='info@51degrees.com',
     packages=find_packages(),
