@@ -815,7 +815,7 @@ void linkedListAdd(fiftyoneDegreesLinkedSignatureList *linkedList, int32_t ranke
  */
 void buildInitialList(fiftyoneDegreesWorkset *ws, const fiftyoneDegreesNode *node) {
 	int32_t index;
-	const int32_t *rankedSignatureIndex = getFirstRankedSignatureIndexForNode(ws->dataSet, node);
+	const int32_t *rankedSignatureIndex = getFirstRankedSignatureIndexForNode(node);
 	if (node->signatureCount == 1) {
 		// Only one signature so the first ranked signature index
 		// is the value for the ranked signature index.
@@ -2495,9 +2495,9 @@ int32_t setClosestSignaturesForNode(fiftyoneDegreesWorkset *ws, const fiftyoneDe
 	// ranked index in the nodeRankedSignatureIndexes array.
 	const int32_t *firstRankedSignatureIndex =
 		node->signatureCount == 1 ?
-		getFirstRankedSignatureIndexForNode(ws->dataSet, node) :
+		getFirstRankedSignatureIndexForNode(node) :
 		ws->dataSet->nodeRankedSignatureIndexes +
-		*getFirstRankedSignatureIndexForNode(ws->dataSet, node);
+		*getFirstRankedSignatureIndexForNode(node);
 	const int32_t *currentRankedSignatureIndex;
 
 	while (index < node->signatureCount &&
@@ -2889,9 +2889,7 @@ const byte* getNextClosestSignatureForSingleNode(fiftyoneDegreesWorkset *ws) {
 	const byte *signature;
 	int32_t rankedSignatureIndex;
 	if (ws->closestNodeRankedSignatureIndex < ws->nodes[0]->signatureCount) {
-		rankedSignatureIndex = *getFirstRankedSignatureIndexForNode(
-			ws->dataSet,
-			ws->nodes[0]);
+		rankedSignatureIndex = *getFirstRankedSignatureIndexForNode(ws->nodes[0]);
 		// If there is a count greater than 1 then the value relates
 		// to the first index in the list of node ranked signature
 		// indexes. If the count is 1 then the value is the index.
