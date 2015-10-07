@@ -477,9 +477,10 @@ void initAllProperties(void) {
 	// Set to include all properties.
 	_requiredPropertiesCount = _propertiesCount;
 
-	// Create enough memory for the properties.
-	_requiredProperties = (uint32_t*)malloc(_requiredPropertiesCount * sizeof(int));
-	_requiredPropertiesNames = (char**)malloc(_requiredPropertiesCount * sizeof(char*));
+	if (_requiredPropertiesCount > 0) {
+		// Create enough memory for the properties.
+		_requiredProperties = (uint32_t*)malloc(_requiredPropertiesCount * sizeof(int));
+		_requiredPropertiesNames = (const char**)malloc(_requiredPropertiesCount * sizeof(const char*));
 
 		// Add all the available properties.
 		for (i = 0; i < _propertiesCount; i++) {
