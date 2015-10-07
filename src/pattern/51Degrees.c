@@ -3579,7 +3579,7 @@ int32_t fiftyoneDegreesGetDeviceId(fiftyoneDegreesWorkset *ws, char *deviceId, i
 	// string terminator.
 	for (profileIndex = 0; profileIndex < ws->profileCount; profileIndex++) {
 		profileId = ws->profiles[profileIndex]->profileId;
-		length += profileId > 0 ? (int)(floor(log10(abs(profileId)))) + 2 : 1;
+		length += profileId > 0 ? (int)(floor(log10((float)abs(profileId)))) + 2 : 1;
 	}
 
 	// Set the device id if enough space available.
