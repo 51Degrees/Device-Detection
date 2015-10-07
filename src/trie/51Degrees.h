@@ -66,6 +66,15 @@ EXTERNAL int fiftyoneDegreesGetDeviceOffset(const char *userAgent);
 // Returns the offsets to a matching devices based on the http headers provided.
 EXTERNAL fiftyoneDegreesDeviceOffsets* fiftyoneDegreesGetDeviceOffsetsWithHeadersString(char *httpHeaders, size_t length);
 
+// Creates a new device offsets structure with memory allocated.
+EXTERNAL fiftyoneDegreesDeviceOffsets* fiftyoneDegreesCreateDeviceOffsets();
+
+// Frees the memory used by the offsets.
+EXTERNAL void fiftyoneDegreesFreeDeviceOffsets(fiftyoneDegreesDeviceOffsets* offsets);
+
+// Returns the offsets to a matching devices based on the http headers provided.
+EXTERNAL void fiftyoneDegreesSetDeviceOffsetsWithHeadersString(fiftyoneDegreesDeviceOffsets *offsets, char *httpHeaders, size_t size);
+
 // Returns the index of the property requested, or -1 if not available.
 EXTERNAL int fiftyoneDegreesGetPropertyIndex(const char *value);
 
