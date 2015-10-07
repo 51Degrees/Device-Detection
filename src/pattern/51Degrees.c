@@ -3348,17 +3348,16 @@ static void initPrefixedUpperHttpHeaderNames(const fiftyoneDegreesDataSet *dataS
 				(dataSet->httpHeaders + httpHeaderIndex)->headerNameOffset);
 			dataSet->prefixedUpperHttpHeaders[httpHeaderIndex] = (char*)malloc((httpHeaderName->length + sizeof(HTTP_PREFIX_UPPER) - 1) * sizeof(char));
 			if (dataSet->prefixedUpperHttpHeaders[httpHeaderIndex] != NULL) {
-				prefixedUpperHttpHeader = dataSet->prefixedUpperHttpHeaders[httpHeaderIndex];
+				prefixedUpperHttpHeader = (char*)dataSet->prefixedUpperHttpHeaders[httpHeaderIndex];
 				memcpy(prefixedUpperHttpHeader, HTTP_PREFIX_UPPER, sizeof(HTTP_PREFIX_UPPER) - 1);
 				prefixedUpperHttpHeader += sizeof(HTTP_PREFIX_UPPER) - 1;
 				for (index = 0; index < httpHeaderName->length; index++) {
-					*prefixedUpperHttpHeader = toupper(*(&httpHeaderName->firstByte + index));
+					*prefixedUpperHttpHeader = (char)toupper(*(&httpHeaderName->firstByte + index));
 					if (*prefixedUpperHttpHeader == '-') {
 						*prefixedUpperHttpHeader = '_';
 					}
 					prefixedUpperHttpHeader++;
 				}
-				*prefixedUpperHttpHeader = 0;
 			}
 		}
 	}
