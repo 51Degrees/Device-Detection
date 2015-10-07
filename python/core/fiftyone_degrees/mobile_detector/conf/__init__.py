@@ -14,7 +14,7 @@ Additionally, when using the mobile detector in a Django project, settings
 can also be specified using the FIFTYONE_DEGREES_MOBILE_DETECTOR_SETTINGS
 variable in the Django settings file.
 
-:copyright: (c) 2013 by 51Degrees.mobi, see README.rst for more details.
+:copyright: (c) 2015 by 51Degrees.com, see README.md for more details.
 :license: MPL2, see LICENSE.txt for more details.
 '''
 

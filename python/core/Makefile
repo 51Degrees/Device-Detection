@@ -15,3 +15,7 @@ clean:
 	rm -rf $(51DEGREES_PYTHON_CORE_ROOT)/{build,dist,*.egg-info}
 	find "$(51DEGREES_PYTHON_CORE_ROOT)" -name "*.pyc" | xargs rm -f
 	find "$(51DEGREES_PYTHON_CORE_ROOT)" -name "__pycache__" | xargs rm -rf
+
+install: sdist
+	pip install --verbose --upgrade dist/*
+	make clean
