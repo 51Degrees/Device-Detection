@@ -406,28 +406,29 @@ void initSpecificProperties(const char* properties) {
 			// if it is then increase the count.
 			if (getPropertyIndexRange(start, (end - start)) > 0)
 				_requiredPropertiesCount++;
-			start = end + 1;
+			start = (char*)end + 1;
 		}
 	} while (*end != '\0');
 
-	// Create enough memory for the properties.
-	_requiredProperties = (uint32_t*)malloc(_requiredPropertiesCount * sizeof(int));
-	_requiredPropertiesNames = (char**)malloc(_requiredPropertiesCount * sizeof(char*));
+	if (_requiredPropertiesCount > 0) {
+		// Create enough memory for the properties.
+		_requiredProperties = (uint32_t*)malloc(_requiredPropertiesCount * sizeof(int));
+		_requiredPropertiesNames = (const char**)malloc(_requiredPropertiesCount * sizeof(const char*));
 
-	start = properties;
-	end = properties - 1;
-	do {
-		end++;
-		if (*end == '|' || *end == ',' || *end == '\0') {
-			// If this is a valid property add it to the list.
-			propertyIndex = getPropertyIndexRange(start, (end - start));
-			if (propertyIndex > 0) {
-				*(_requiredProperties + currentIndex) = propertyIndex;
-				*(_requiredPropertiesNames + currentIndex) = _strings + (_properties + propertyIndex)->stringOffset;
-				currentIndex++;
+		start = (char*)properties;
+		end = properties - 1;
+		do {
+			end++;
+			if (*end == '|' || *end == ',' || *end == '\0') {
+				// If this is a valid property add it to the list.
+				propertyIndex = getPropertyIndexRange(start, (end - start));
+				if (propertyIndex >= 0) {
+					_requiredProperties[currentIndex] = propertyIndex;
+					_requiredPropertiesNames[currentIndex] = _strings + _properties[propertyIndex].stringOffset;
+					currentIndex++;
+				}
+				start = (char*)end + 1;
 			}
-			start = end + 1;
-		}
 
 		} while (*end != '\0');
 	}
