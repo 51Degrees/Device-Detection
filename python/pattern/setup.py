@@ -1,30 +1,30 @@
 '''
-51Degrees Mobile Detector (C Trie Wrapper)
+51Degrees Mobile Detector (V3 Pattern Wrapper)
 ==========================================
 
-51Degrees Mobile Detector is a Python wrapper of the C trie-based mobile
-detection solution by 51Degrees.mobi. Check out http://51degrees.mobi for
+51Degrees Mobile Detector is a Python wrapper of the C pattern-based mobile
+detection solution by 51Degrees.com. Check out http://51degrees.com for
 a detailed description, extra documentation and other useful information.
 
-:copyright: (c) 2013 by 51Degrees.mobi, see README.rst for more details.
+:copyright: (c) 2015 by 51Degrees.com, see README.md for more details.
 :license: MPL2, see LICENSE.txt for more details.
 '''
 
 from __future__ import absolute_import
 import os
+import sys
 import subprocess
 import shutil
 import tempfile
 from setuptools import setup, find_packages, Extension
 from distutils import ccompiler
 
-
 def has_snprintf():
     '''Checks C function snprintf() is available in the platform.
 
     '''
     cc = ccompiler.new_compiler()
-    tmpdir = tempfile.mkdtemp(prefix='51degrees-mobile-detector-v3-trie-wrapper-install-')
+    tmpdir = tempfile.mkdtemp(prefix='51degrees-mobile-detector-v3-wrapper-install-')
     try:
         try:
             source = os.path.join(tmpdir, 'snprintf.c')
@@ -49,17 +49,21 @@ if has_snprintf():
     define_macros.append(('HAVE_SNPRINTF', None))
 
 setup(
-    name='51degrees-mobile-detector-v3-trie-wrapper',
-    version='3.0.1.1',
+    name='51degrees-mobile-detector-v3-wrapper',
+    version='3.2.0.0',
     author='51Degrees.com',
-    author_email='info@51degrees.com',
+    author_email='support@51degrees.com',
     packages=find_packages(),
     include_package_data=True,
+    data_files=[(os.path.expanduser('~/51Degrees'), ['data/51Degrees-LiteV3.2.dat'])],
     ext_modules=[
-        Extension('_fiftyone_degrees_mobile_detector_v3_trie_wrapper',
+        Extension('_fiftyone_degrees_mobile_detector_v3_wrapper',
             sources=[
-                'wrapper.c',
-                os.path.join('lib', 'trie', '51Degrees.c')
+		'src/pattern/51Degrees.c',
+		'src/cityhash/city.c',
+                'src/pattern/51Degrees_python.cxx',
+		'src/pattern/Provider.cpp',
+		'src/pattern/Match.cpp',
             ],
             define_macros=define_macros,
             extra_compile_args=[
@@ -68,7 +72,7 @@ setup(
         ),
     ],
     url='http://51degrees.com',
-    description='51Degrees Mobile Detector (C Trie Wrapper).',
+    description='51Degrees Mobile Detector (C Pattern Wrapper).',
     long_description=__doc__,
     license='MPL2',
     classifiers = [
@@ -89,6 +93,6 @@ setup(
     ],
     install_requires=[
         'distribute',
-        '51degrees-mobile-detector',
+		'51degrees-mobile-detector',
     ],
 )

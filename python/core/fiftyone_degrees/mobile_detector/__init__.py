@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 
 '''
-:copyright: (c) 2013 by 51Degrees.mobi, see README.rst for more details.
+:copyright: (c) 2015 by 51Degrees.com, see README.md for more details.
 :license: MPL2, see LICENSE.txt for more details.
 '''
 
@@ -9,7 +9,6 @@ from __future__ import absolute_import
 from abc import ABCMeta
 from fiftyone_degrees.mobile_detector.conf import settings
 from fiftyone_degrees.mobile_detector import usage
-
 
 class Device(object):
     '''Simple device wrapper.
@@ -39,7 +38,6 @@ class Device(object):
                 if name == aname.lower():
                     return value
         return None
-
     def __getstate__(self):
         return self.__dict__
 
@@ -83,69 +81,10 @@ class _Matcher(object):
         raise NotImplementedError('Please implement this method.')
 
 
-class _WrapperMatcher(_Matcher):
-    '''Abstract wrapped matcher class.
-
-    '''
-    __metaclass__ = ABCMeta
-
-    def __init__(self, module, package):
-        try:
-            self._module = __import__(module)
-        except ImportError:
-            raise Exception(
-                'Requested matching method is not available. '
-                'Please install "%s" package.' % package)
-
-    def _match(self, user_agent):
-        # Delegate on wrapped implementation.
-        csv = None
-        try:
-            csv = self._module.match(user_agent)
-        except Exception as e:
-            settings.logger.error(
-                'Got exception while matching user agent string "%s": %s.'
-                % (user_agent, unicode(e),))
-
-        # Pythonize result.
-        result = Device(self.ID)
-        if csv:
-            for prop in csv.split('\n'):
-                if prop:
-                    index = prop.find(',')
-                    if index > 0:
-                        result.set_property(prop[0:index], prop[index+1:])
-
-        # Done!
-        return result
-
-
-class _LitePatternWrapperMatcher(_WrapperMatcher):
-    ID = 'lite-pattern-wrapper'
-
-    def __init__(self):
-        super(_LitePatternWrapperMatcher, self).__init__(
-            '_fiftyone_degrees_mobile_detector_lite_pattern_wrapper',
-            '51degrees-mobile-detector-lite-pattern-wrapper')
-        self._module.init('|'.join(settings.PROPERTIES))
-
-
-class _PremiumPatternWrapperMatcher(_WrapperMatcher):
-    ID = 'premium-pattern-wrapper'
-
-    def __init__(self):
-        super(_PremiumPatternWrapperMatcher, self).__init__(
-            '_fiftyone_degrees_mobile_detector_premium_pattern_wrapper',
-            '51degrees-mobile-detector-premium-pattern-wrapper')
-        self._module.init('|'.join(settings.PROPERTIES))
-
-class _V3WrapperMatcher(_WrapperMatcher):
+class _V3WrapperMatcher(_Matcher):
     ID = 'v3-wrapper'
 
     def __init__(self):
-        super(_V3WrapperMatcher, self).__init__(
-            '_fiftyone_degrees_mobile_detector_v3_wrapper',
-			'51degrees-mobile-detector-v3-wrapper')
         if settings.V3_WRAPPER_DATABASE:
             try:
                 # Does the database file exists and is it readable?
@@ -157,21 +96,53 @@ class _V3WrapperMatcher(_WrapperMatcher):
                     'exist or is not readable. Please, '
                     'check your settings.' % settings.V3_WRAPPER_DATABASE)
             else:
-                self._module.init(
-                    settings.V3_WRAPPER_DATABASE,
-                    '|'.join(settings.PROPERTIES))
+		from FiftyOneDegrees import fiftyone_degrees_mobile_detector_v3_wrapper
+		self.provider = fiftyone_degrees_mobile_detector_v3_wrapper.Provider(settings.V3_WRAPPER_DATABASE, settings.PROPERTIES, int(settings.CACHE_SIZE), int(settings.POOL_SIZE))
         else:
             raise Exception(
                 'Trie-based detection method depends on an external '
                 'database file. Please, check your settings.')
 
-class _V3TrieWrapperMatcher(_WrapperMatcher):
+    def _match(self, user_agent):
+        # Delegate on wrapped implementation.
+        returnedMatch = None
+        try:
+            returnedMatch = self.provider.getMatch(user_agent)
+        except Exception as e:
+            settings.logger.error(
+                'Got exception while matching user agent string "%s": %s.'
+                % (user_agent, unicode(e),))
+
+        # Pythonize result.
+        result = Device(self.ID)
+
+	if returnedMatch:
+		result.set_property('Id', returnedMatch.getDeviceId())
+		result.set_property('MatchMethod', returnedMatch.getMethod())
+		result.set_property('Difference', returnedMatch.getDifference())
+		result.set_property('Rank', returnedMatch.getRank())
+		if settings.PROPERTIES == '':
+			for key in self.provider.getAvailableProperties():
+				value = returnedMatch.getValues(key)
+				if value:
+					result.set_property(key, ' '.join(value))
+				else:
+					result.set_property(key, 'N/A in Lite')
+		else:
+			for key in settings.PROPERTIES.split(','):
+				value = returnedMatch.getValues(key)
+				if value:
+					result.set_property(key, ' '.join(value))
+
+        # Done!
+        return result
+
+
+
+class _V3TrieWrapperMatcher(_Matcher):
     ID = 'v3-trie-wrapper'
 
     def __init__(self):
-        super(_V3TrieWrapperMatcher, self).__init__(
-            '_fiftyone_degrees_mobile_detector_v3_trie_wrapper',
-			'51degrees-mobile-detector-v3-trie-wrapper')
         if settings.V3_TRIE_WRAPPER_DATABASE:
             try:
                 # Does the database file exists and is it readable?
@@ -183,44 +154,49 @@ class _V3TrieWrapperMatcher(_WrapperMatcher):
                     'exist or is not readable. Please, '
                     'check your settings.' % settings.V3_TRIE_WRAPPER_DATABASE)
             else:
-                self._module.init(
-                    settings.V3_TRIE_WRAPPER_DATABASE,
-                    '|'.join(settings.PROPERTIES))
+		from FiftyOneDegrees import fiftyone_degrees_mobile_detector_v3_trie_wrapper
+		self.provider = fiftyone_degrees_mobile_detector_v3_trie_wrapper.Provider(settings.V3_TRIE_WRAPPER_DATABASE, settings.PROPERTIES)
         else:
             raise Exception(
                 'Trie-based detection method depends on an external '
                 'database file. Please, check your settings.')
 
+    def _match(self, user_agent):
+        # Delegate on wrapped implementation.
+        returnedMatch = None
+        try:
+            returnedMatch = self.provider.getMatch(user_agent)
+        except Exception as e:
+            settings.logger.error(
+                'Got exception while matching user agent string "%s": %s.'
+                % (user_agent, unicode(e),))
 
-class _TrieWrapperMatcher(_WrapperMatcher):
-    ID = 'trie-wrapper'
+        # Pythonize result.
+        result = Device(self.ID)
 
-    def __init__(self):
-        super(_TrieWrapperMatcher, self).__init__(
-            '_fiftyone_degrees_mobile_detector_trie_wrapper',
-            '51degrees-mobile-detector-trie-wrapper')
-        if settings.TRIE_WRAPPER_DATABASE:
-            try:
-                # Does the database file exists and is it readable?
-                with open(settings.TRIE_WRAPPER_DATABASE):
-                    pass
-            except IOError:
-                raise Exception(
-                    'The provided detection database file (%s) does not '
-                    'exist or is not readable. Please, '
-                    'check your settings.' % settings.TRIE_WRAPPER_DATABASE)
-            else:
-                self._module.init(
-                    settings.TRIE_WRAPPER_DATABASE,
-                    '|'.join(settings.PROPERTIES))
-        else:
-            raise Exception(
-                'Trie-based detection method depends on an external '
-                'database file. Please, check your settings.')
+	print settings.PROPERTIES
+	if returnedMatch:
+		if settings.PROPERTIES == '':
+			for key in self.provider.getAvailableProperties():
+				value = returnedMatch.getValues(key)
+				if value:
+					result.set_property(key, ' '.join(value))
+				else:
+					result.set_property(key, 'N/A in Lite')
+		else:
+			for key in settings.PROPERTIES.split(','):
+				value = returnedMatch.getValues(key)
+				if value:
+					result.set_property(key, ' '.join(value))
+
+        # Done!
+        return result
+
+
 
 
 # Register matching methods.
-for klass in [_LitePatternWrapperMatcher, _PremiumPatternWrapperMatcher, _TrieWrapperMatcher, _V3WrapperMatcher, _V3TrieWrapperMatcher]:
+for klass in [_V3WrapperMatcher, _V3TrieWrapperMatcher]:
     _Matcher.register(klass.ID, klass)
 
 
@@ -251,3 +227,4 @@ def match(user_agent, client_ip=None, http_headers=None, method=None):
 
     # Match!
     return matcher.match(user_agent, client_ip, http_headers)
+

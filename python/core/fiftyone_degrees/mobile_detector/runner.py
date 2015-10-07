@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 
 '''
-:copyright: (c) 2013 by 51Degrees.mobi, see README.rst for more details.
+:copyright: (c) 2015 by 51Degrees.com, see README.md for more details.
 :license: MPL2, see LICENSE.txt for more details.
 '''
 
@@ -120,7 +120,7 @@ def main():
 
   %(cmd)s update-premium-pattern-wrapper
       Downloads and installs latest premium pattern wrapper package available
-      at 51Degrees.mobi website (a valid license key is required).
+      at 51Degrees.com website (a valid license key is required).
 
 ''' % {
         'cmd': os.path.basename(sys.argv[0])
