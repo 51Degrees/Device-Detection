@@ -1011,6 +1011,15 @@ const char ** fiftyoneDegreesGetRequiredPropertiesNames(void) {
 	return _requiredPropertiesNames;
 }
 
+// Returns the index in the array of required properties for this name, or -1 if not found.
+int fiftyoneDegreesGetRequiredPropertyIndex(const char *propertyName) {
+	int requiredPropertyIndex;
+	for (requiredPropertyIndex = 0; requiredPropertyIndex < _requiredPropertiesCount; requiredPropertyIndex++) {
+		if (strcmp(propertyName, _requiredPropertiesNames[requiredPropertyIndex]) == 0) {
+			return requiredPropertyIndex;
+		}
+	}
+	return -1;
 }
 
 // Process device properties into a CSV string for the device offsets provided.
