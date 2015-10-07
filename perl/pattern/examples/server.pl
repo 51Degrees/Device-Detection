@@ -1,4 +1,25 @@
-#!/usr/bin/perl
+# *********************************************************************
+# This Source Code Form is copyright of 51Degrees Mobile Experts Limited.
+# Copyright 2015 51Degrees Mobile Experts Limited, 5 Charlotte Close,
+# Caversham, Reading, Berkshire, United Kingdom RG4 7BY
+#
+# This Source Code Form is the subject of the following patent
+# applications, owned by 51Degrees Mobile Experts Limited of 5 Charlotte
+# Close, Caversham, Reading, Berkshire, United Kingdom RG4 7BY:
+# European Patent Application No. 13192291.6; and
+# United States Patent Application Nos. 14/085,223 and 14/085,301.
+#
+# This Source Code Form is subject to the terms of the Mozilla Public
+# License, v. 2.0.
+#
+# If a copy of the MPL was not distributed with this file, You can obtain
+# one at http://mozilla.org/MPL/2.0/.
+#
+# This Source Code Form is "Incompatible With Secondary Licenses", as
+# defined by the Mozilla Public License, v. 2.0.
+# **********************************************************************
+
+#!/usr/bin/env perl
 {
 	package TestServer;
 
@@ -6,57 +27,177 @@
 	use base qw(HTTP::Server::Simple::CGI);
 	use FiftyOneDegrees::PatternV3;
 	use String::Buffer;
-	use JSON;
 
-	my $propertyList //= "Id,BrowserName,BrowserVendor,BrowserVersion,DeviceType,HardwareVendor,IsTablet,IsMobile,IsCrawler,ScreenInchesDiagonal";
+    # List of 51Degrees properties to make available. Where a property is not
+    # supported in the provided data file it will not be available.
+	my $propertyList = "BrowserName,BrowserVendor,BrowserVersion," .
+                    "DeviceType,HardwareVendor,IsTablet,IsMobile," .
+                    "IsCrawler,ScreenInchesDiagonal,ScreenPixelsWidth";
 
-	my $filename //= "../../../data/51Degrees-LiteV3.2.dat";
+	# Replace with the following lines for Premium or Enterprise data.
+	#
+	# my $filename = "../../../data/51Degrees-PremiumV3.2.dat";
+	# my $filename = "../../../data/51Degrees-EnterpriseV3.2.dat";
+	#
+	# Premium and Enterprise data files contain more properties, are updated
+    # more frequently and are more accurate than the free Lite data.
+	#
+	# See https://51degrees.com/compare-data-options to get data files.
+    #
+    # Set the location of the source data file for the web server.
+	my $filename = "../../../data/51Degrees-LiteV3.2.dat";
 
-	my $dsPointer = FiftyOneDegrees::PatternV3::dataSetInitWithPropertyString(
-		$filename,
-		$propertyList,
-		10, # 10 concurrent detections
-		10000 # Cache size of 10,000
-	);
+    # Create a device detection provider with a cache for 50,000 User-Agents
+    # and 20 concurrent detections.
+    my $provider = new FiftyOneDegrees::PatternV3::Provider(
+        $filename, $propertyList, 50000, 20);
 
-	my %importantHttpHeaders = ();
-	my $importantHttpHeaderIndex = 0;
+    # An array of the important HTTP headers in prefixed uppercase format
+    # (i.e. HTTP_USER_AGENT rather than User-Agent) to send to the detection
+    # algorithim.
+    my $importantHttpHeaders = $provider->getHttpHeaders();
 
-	my $importantHttpHeader = FiftyOneDegrees::PatternV3::getHttpHeaderName($dsPointer, $importantHttpHeaderIndex);
-	while ($importantHttpHeader ne "") {
-		$importantHttpHeaders{$importantHttpHeader} = $importantHttpHeader;
-		$importantHttpHeaderIndex++;
-		$importantHttpHeader = FiftyOneDegrees::PatternV3::getHttpHeaderName($dsPointer, $importantHttpHeaderIndex);
+    # Array of all the properties available. May not match $propertyList as
+    # properties may not be supported by the provided data file.
+    my $properties = $provider->getAvailableProperties();
+
+	# The number of rows in a table listing each property requested.
+	my $propertyRows = (scalar (split(',', $propertyList)) + 1);
+
+	# Build some HTML button snippets to add to the generated page.
+	my $dataOptions;
+	if ('Lite' == $provider->getDataSetName()) {
+		$dataOptions = '<a class="button" target="_blank" href="https://51degrees.com/compare-data-options" title="Compare Premium and Enterprise Data Options">Compare Data Options</a>';
 	}
+	my $methodHyperLink = '<a class="button" target="_blank" href="https://51degrees.com/support/documentation/pattern" title="How Pattern Device Detection Works">About Metrics</a>';
+	my $propertiesHyperLink = '<a class="button" target="_blank" href="https://51degrees.com/resources/property-dictionary" title="Review All Properties">More Properties</a>';
+	my $propertyNotFound = '<a target="_blank" href="https://51degrees.com/compare-data-options">Switch Data Set</a>';
 
+    # Relate URL paths to response handlers.
+    my %dispatch = (
+        '/json' => \&resp_json,
+    );
+
+    # Listen for incoming requests performing device detection and providing
+    # simple output for the example.
 	sub handle_request {
 		my $self = shift;
-		my $q  = shift;   # CGI.pm object
-		return if !ref $q;
+		my $cgi  = shift;   # CGI.pm object
+		return if !ref $cgi;
 
-		print "HTTP/1.0 200 OK\r\n";
-		print $q->header('text/plain');
+		# Create a map with all relevant HTTP header names and values.
+		my %headers = map { $_ => $cgi->http($_) } $cgi->http();
+		my $matchingHttpHeaders = new FiftyOneDegrees::PatternV3::MapStringString();
+		foreach $httpHeader (@$importantHttpHeaders) {
+            my $value = $headers{$httpHeader};
+            if ($value) {
+                $matchingHttpHeaders->set($httpHeader, $value);
+            }
+        }
 
-		# Create a string with all relevant HTTP header names and values.
-		print "Found the following important HTTP headers:\n";
-		my %headers = map { $_ => $q->http($_) } $q->http();
-		my $matchHeaders = String::Buffer->new();
-		while (my ($key, $value) = each %headers) {
-			if ($importantHttpHeaders{$key}) {
-				$matchHeaders->writeln("$key: $value");
-				print "$key: $value\r\n";
+        print "HTTP/1.0 200 OK\r\n";
+
+		my $handler = $dispatch{$cgi->path_info()};
+        if (ref($handler) ne "CODE") {
+            $handler = \&resp_default;
+        }
+
+        $handler->($cgi, $matchingHttpHeaders);
+	}
+
+	# Provides a JSON plan text response with properties for the requesting device.
+	sub resp_json {
+        my $cgi = shift;
+		my $matchingHttpHeaders = shift;
+
+		print $cgi->header('text/plain');
+
+		# Get the JSON for the available properties for these headers.
+		my $json = $provider->getMatchJson($matchingHttpHeaders);
+
+		# Display the result.
+		print $json;
+	}
+
+	# Outputs a standard HTML table with the match results.
+	sub resp_match {
+		my $match = shift;
+
+        print '<table>';
+        print '<tr><th colspan="2">Match Metrics</th><td rowspan="5">' . $methodHyperLink . '</td></tr>';
+        print '<tr><td>Id</td><td>' . $match->getDeviceId() . '</td></tr>';
+        print '<tr><td>Method</td><td>' . $match->getMethod() . '</td></tr>';
+        print '<tr><td>Difference</td><td>' . $match->getDifference() . '</td></tr>';
+        print '<tr><td>Rank</td><td>' . $match->getRank() . '</td></tr>';
+
+        print '<tr><th colspan="2">Device Properties</th><td rowspan="' . $propertyRows . '">' . $propertiesHyperLink . '</td></tr>';
+        foreach $property (split(',', $propertyList)) {
+            my $values = $match->getValues($property);
+			print '<tr><td><a target="_blank" href="https://51degrees.com/resources/property-dictionary#' . $property .
+					' title="Read About ' . $property . '">' . $property . '</a></td><td>';
+			if (scalar @$values > 0) {
+				print join(',', @$values);
 			}
-		}
+			else {
+				print $propertyNotFound;
+			}
+			print '</td></tr>';
+        }
+        print '</table>';
+	}
 
-		# Get the properties for these headers.
-		my $json = FiftyOneDegrees::PatternV3::getMatchWithHeaders($dsPointer, $matchHeaders->flush());
-		my %properties = %{ decode_json($json) };
+	# Outputs details about the requesting device.
+	sub resp_default {
+		my $cgi = shift;
+		my $matchingHttpHeaders = shift;
 
-		# Output the properties and values.
-		print "\nDetected the following properties:\n";
-		while (my ($key, $value) = each %properties) {
-			print "$key: $value\r\n";
+		print $cgi->header('text/html');
+
+        print '<!doctype html>';
+        print '<html>';
+        print '<link rel="stylesheet" type="text/css" href="https://51degrees.com/Demos/examples.css" class="inline">';
+        print '<body>';
+        print '<div class="content">';
+        print '<p><img src="https://51degrees.com/DesktopModules/FiftyOne/Distributor/Logo.ashx?utm_source=github&utm_medium=repository&utm_content=server&utm_campaign=perl-open-source"></p>';
+        print '<h1>Perl Pattern - Device Detection Server Example</h1>';
+
+        print '<table>';
+        print '<tr><th colspan="3">Data Set Information</th></tr>';
+        print '<tr><td>Name</td><td>' . $provider->getDataSetName() . '</td><td rowspan="6">' . $dataOptions . '</td></tr>';
+        print '<tr><td>Format</td><td>' . $provider->getDataSetFormat() . '</td></tr>';
+        print '<tr><td>Published Date</td><td>' . $provider->getDataSetPublishedDate() . '</td></tr>';
+        print '<tr><td>Next Update Date</td><td>' . $provider->getDataSetNextUpdateDate() . '</td></tr>';
+        print '<tr><td>Signature Count</td><td>' . $provider->getDataSetSignatureCount() . '</td></tr>';
+        print '<tr><td>Device Combinations</td><td>' . $provider->getDataSetDeviceCombinations() . '</td></tr>';
+        print '</table>';
+
+        # Display the matching device details for the User-Agent.
+		my $userAgent = $matchingHttpHeaders->get("HTTP_USER_AGENT");
+        print '<table>';
+        print '<tr><th colspan="2">Match from User-Agent</th></tr>';
+        print '<tr><td>User-Agent</td><td>' . $userAgent . '</td></tr>';
+        print '</table>';
+		resp_match($provider->getMatch($userAgent));
+
+        # Display the matching device details for the HTTP headers.
+		print '<table>';
+        print '<tr><th colspan="2">Match with HTTP Headers</th></tr>';
+        print '<tr><th colspan="2">Relevant HTTP Headers</th></tr>';
+        foreach $headerName (@$importantHttpHeaders) {
+			print '<tr><td>' . $headerName . '</td><td>';
+			if ($matchingHttpHeaders->has_key($headerName)) {
+				print $matchingHttpHeaders->get($headerName);
+			} else {
+				print '<i>header not set</i>';
+			}
+			print '</td></tr>';
 		}
+        print '</table>';
+		resp_match($provider->getMatch($matchingHttpHeaders));
+
+		print '</div>';
+		print '</body>';
+		print '</html>';
 	}
 }
 
