@@ -809,6 +809,12 @@ void fiftyoneDegreesSetDeviceOffsetsWithHeadersString(fiftyoneDegreesDeviceOffse
 		(offsets->firstOffset + offsets->size)->deviceOffset = 0;
 		offsets->size++;
 	}
+}
+
+// Returns the offsets to a matching devices based on the http headers provided.
+fiftyoneDegreesDeviceOffsets* fiftyoneDegreesGetDeviceOffsetsWithHeadersString(char *httpHeaders, size_t size) {
+	fiftyoneDegreesDeviceOffsets* offsets = fiftyoneDegreesCreateDeviceOffsets();
+	fiftyoneDegreesSetDeviceOffsetsWithHeadersString(offsets, httpHeaders, size);
 	return offsets;
 }
 
@@ -937,6 +943,32 @@ int setValueFromDeviceOffset(int32_t deviceOffset, int32_t propertyIndex, char* 
 		length = -length;
 	}
 	return length;
+}
+
+// Returns a pointer to the value for the property based on the device offsets provided.
+const char* fiftyoneDegreesGetValuePtrFromOffsets(fiftyoneDegreesDeviceOffsets* deviceOffsets, int requiredPropertyIndex) {
+	int deviceHttpHeaderIndex, propertyHttpHeaderIndex;
+	int32_t propertyHttpHeaderOffset;
+	fiftyoneDegreesProperty *property;
+	if (deviceOffsets->size == 1) {
+		return fiftyoneDegreesGetValue(
+			deviceOffsets->firstOffset->deviceOffset,
+			_requiredProperties[requiredPropertyIndex]);
+	}
+	else {
+		property = _properties + _requiredProperties[requiredPropertyIndex];
+		for (propertyHttpHeaderIndex = 0; propertyHttpHeaderIndex < property->headerCount; propertyHttpHeaderIndex++) {
+			propertyHttpHeaderOffset = *(_httpHeaders + property->headerFirstIndex + propertyHttpHeaderIndex);
+			for (deviceHttpHeaderIndex = 0; deviceHttpHeaderIndex < deviceOffsets->size; deviceHttpHeaderIndex++) {
+				if (propertyHttpHeaderOffset == (deviceOffsets->firstOffset + deviceHttpHeaderIndex)->httpHeaderOffset) {
+					return fiftyoneDegreesGetValue(
+						(deviceOffsets->firstOffset + deviceHttpHeaderIndex)->deviceOffset,
+						_requiredProperties[requiredPropertyIndex]);
+				}
+			}
+		}
+	}
+	return NULL;
 }
 
 // Sets the values string to the property values for the device offests and index provided.
