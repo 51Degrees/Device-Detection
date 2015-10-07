@@ -3637,27 +3637,37 @@ int32_t fiftyoneDegreesGetSignatureAsString(fiftyoneDegreesWorkset *ws, char *si
  * @return the number of values that were set.
  */
 int32_t fiftyoneDegreesSetValues(fiftyoneDegreesWorkset *ws, int32_t requiredPropertyIndex) {
-	int32_t profileIndex, valueIndex;
+	int32_t profileIndex = 0, valueIndex;
 	const fiftyoneDegreesProfile *profile;
 	const fiftyoneDegreesProperty *property = *(ws->dataSet->requiredProperties + requiredPropertyIndex);
-	int32_t *firstValueIndex;
+	int32_t *profileValueIndexes;
 	int32_t propertyIndex;
 	const fiftyoneDegreesValue *value;
 	ws->valuesCount = 0;
 	if (property != NULL) {
 		propertyIndex = getPropertyIndex(ws->dataSet, property);
-		for (profileIndex = 0; profileIndex < ws->profileCount; profileIndex++) {
+		while (profileIndex < ws->profileCount &&
+			ws->valuesCount == 0) {
 			profile = *(ws->profiles + profileIndex);
 			if (profile->componentIndex == property->componentIndex) {
-				firstValueIndex = (int32_t*)((byte*)profile + sizeof(fiftyoneDegreesProfile));
-				for (valueIndex = 0; valueIndex < profile->valueCount; valueIndex++) {
-					value = ws->dataSet->values + *(firstValueIndex + valueIndex);
-					if (value->propertyIndex == propertyIndex) {
-						*(ws->values + ws->valuesCount) = value;
+				profileValueIndexes = (int32_t*)((byte*)profile + sizeof(fiftyoneDegreesProfile));
+				valueIndex = 0;
+				while(valueIndex < profile->valueCount &&
+					ws->valuesCount == 0) {
+					value = ws->dataSet->values + profileValueIndexes[valueIndex];
+					while (value->propertyIndex == propertyIndex) {
+						ws->values[ws->valuesCount] = value;
 						ws->valuesCount++;
+						valueIndex++;
+						if (valueIndex == profile->valueCount) {
+							break;
+						}
+						value = ws->dataSet->values + profileValueIndexes[valueIndex];
 					}
+					valueIndex++;
 				}
 			}
+			profileIndex++;
 		}
 	}
 	return ws->valuesCount;
