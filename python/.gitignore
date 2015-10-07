@@ -1,0 +1,16 @@
+# Python
+*.c
+*.h
+*.hpp
+*.cpp
+*.i
+*.dat
+*.trie
+*.cxx
+*.pyc
+*.egg-info
+fiftyone_degrees_mobile_detector_v3_wrapper.py
+fiftyone_degrees_mobile_detector_v3_trie_wrapper.py
+dist/
+build/
+src/

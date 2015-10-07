@@ -9,7 +9,7 @@ using System.Runtime.InteropServices;
 [assembly: AssemblyDescription("51degrees - Detection Demo Web Site")]
 [assembly: AssemblyConfiguration("")]
 [assembly: AssemblyCompany("51 Degrees Mobile Experts Limited")]
-[assembly: AssemblyProduct("51degrees.mobi - Detection Demo Web Site")]
+[assembly: AssemblyProduct("51Degrees - Detection Demo Web Site")]
 [assembly: AssemblyCopyright("Copyright 51 Degrees Mobile Experts Limited 2009 - 2015")]
 [assembly: AssemblyTrademark("51Degrees")]
 [assembly: AssemblyCulture("")]

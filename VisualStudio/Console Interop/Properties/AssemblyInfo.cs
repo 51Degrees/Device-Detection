@@ -5,13 +5,13 @@ using System.Runtime.InteropServices;
 // General Information about an assembly is controlled through the following 
 // set of attributes. Change these attribute values to modify the information
 // associated with an assembly.
-[assembly: AssemblyTitle("Console Interop")]
-[assembly: AssemblyDescription("")]
+[assembly: AssemblyTitle("51degrees - C# Console Example")]
+[assembly: AssemblyDescription("51degrees - C# Console Example")]
 [assembly: AssemblyConfiguration("")]
-[assembly: AssemblyCompany("")]
-[assembly: AssemblyProduct("Console Interop")]
-[assembly: AssemblyCopyright("Copyright ©  2015")]
-[assembly: AssemblyTrademark("")]
+[assembly: AssemblyCompany("51 Degrees Mobile Experts Limited")]
+[assembly: AssemblyProduct("51Degrees - Native Code Detection Wrapper")]
+[assembly: AssemblyCopyright("Copyright 51 Degrees Mobile Experts Limited 2009 - 2015")]
+[assembly: AssemblyTrademark("51Degrees")]
 [assembly: AssemblyCulture("")]
 
 // Setting ComVisible to false makes the types in this assembly not visible 

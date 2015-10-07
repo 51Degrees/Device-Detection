@@ -1,6 +1,6 @@
 /* *********************************************************************
  * This Source Code Form is copyright of 51Degrees Mobile Experts Limited.
- * Copyright © 2014 51Degrees Mobile Experts Limited, 5 Charlotte Close,
+ * Copyright 2015 51Degrees Mobile Experts Limited, 5 Charlotte Close,
  * Caversham, Reading, Berkshire, United Kingdom RG4 7BY
  *
  * This Source Code Form is the subject of the following patent
@@ -45,6 +45,9 @@ typedef enum e_fiftyoneDegreesDataSetInitStatus {
 typedef struct fiftyoneDegrees_device_offset_t {
 	int httpHeaderOffset; /* Offset to the http header string */
 	int deviceOffset; /* Offset to the device */
+	size_t length; /* Number of characters in the matched User-Agent*/
+	const char *userAgent; /* Pointer to the User-Agent */
+	int difference; /* Difference in length between the target and matched User-Agent*/
 } fiftyoneDegreesDeviceOffset;
 
 /* Used to return results from a device detection operation */
@@ -54,26 +57,41 @@ typedef struct fiftyoneDegrees_device_offsets_t {
 } fiftyoneDegreesDeviceOffsets;
 
 // Initialises the memory using the file and properies provided.
-EXTERNAL fiftyoneDegreesDataSetInitStatus fiftyoneDegreesInitWithPropertyArray(char* fileName, char** properties, int propertyCount);
-EXTERNAL fiftyoneDegreesDataSetInitStatus fiftyoneDegreesInitWithPropertyString(char *fileName, char *properties);
+EXTERNAL fiftyoneDegreesDataSetInitStatus fiftyoneDegreesInitWithPropertyArray(const char* fileName, const char** properties, int propertyCount);
+EXTERNAL fiftyoneDegreesDataSetInitStatus fiftyoneDegreesInitWithPropertyString(const char *fileName, const char *properties);
 
 // Returns the offset to a matching device based on the useragent provided.
-EXTERNAL int fiftyoneDegreesGetDeviceOffset(char *userAgent);
+EXTERNAL int fiftyoneDegreesGetDeviceOffset(const char *userAgent);
+
+// Sets the offsets structure passed to the method for the useragent provided.
+EXTERNAL void fiftyoneDegreesSetDeviceOffset(const char* userAgent, int httpHeaderIndex, fiftyoneDegreesDeviceOffset *offset);
 
 // Returns the offsets to a matching devices based on the http headers provided.
 EXTERNAL fiftyoneDegreesDeviceOffsets* fiftyoneDegreesGetDeviceOffsetsWithHeadersString(char *httpHeaders, size_t length);
 
+// Creates a new device offsets structure with memory allocated.
+EXTERNAL fiftyoneDegreesDeviceOffsets* fiftyoneDegreesCreateDeviceOffsets();
+
+// Frees the memory used by the offsets.
+EXTERNAL void fiftyoneDegreesFreeDeviceOffsets(fiftyoneDegreesDeviceOffsets* offsets);
+
+// Returns the offsets to a matching devices based on the http headers provided.
+EXTERNAL void fiftyoneDegreesSetDeviceOffsetsWithHeadersString(fiftyoneDegreesDeviceOffsets *offsets, char *httpHeaders, size_t size);
+
 // Returns the index of the property requested, or -1 if not available.
-EXTERNAL int fiftyoneDegreesGetPropertyIndex(char *value);
+EXTERNAL int fiftyoneDegreesGetPropertyIndex(const char *value);
 
 // Takes the results of getDeviceOffset and getPropertyIndex to return a value.
-EXTERNAL char* fiftyoneDegreesGetValue(int deviceOffset, int propertyIndex);
+EXTERNAL const char* fiftyoneDegreesGetValue(int deviceOffset, int propertyIndex);
 
 // Returns how many properties have been loaded in the dataset.
 EXTERNAL int fiftyoneDegreesGetRequiredPropertiesCount(void);
 
 // Returns the names of the properties loaded in the dataset.
-EXTERNAL char** fiftyoneDegreesGetRequiredPropertiesNames(void);
+EXTERNAL const char** fiftyoneDegreesGetRequiredPropertiesNames(void);
+
+// Returns the index in the array of required properties for this name, or -1 if not found.
+EXTERNAL int fiftyoneDegreesGetRequiredPropertyIndex(const char *propertyName);
 
 // Frees the memory.
 EXTERNAL void fiftyoneDegreesDestroy(void);
@@ -85,19 +103,25 @@ EXTERNAL int fiftyoneDegreesGetHttpHeaderCount(void);
 EXTERNAL int fiftyoneDegreesGetHttpHeaderNameOffset(int httpHeaderIndex);
 
 // Returns a pointer to the HTTP header name at the index provided.
-EXTERNAL char* fiftyoneDegreesGetHttpHeaderNamePointer(int httpHeaderIndex);
+EXTERNAL const char* fiftyoneDegreesGetHttpHeaderNamePointer(int httpHeaderIndex);
 
 // Returns a pointer to the prefixed upper HTTP header name at the index provided.
-EXTERNAL char* fiftyoneDegreesGetPrefixedUpperHttpHeaderName(int httpHeaderIndex);
+EXTERNAL const char* fiftyoneDegreesGetPrefixedUpperHttpHeaderName(int httpHeaderIndex);
 
 // Sets the http header string to the header name at the index provided.
 EXTERNAL int fiftyoneDegreesGetHttpHeaderName(int httpHeaderIndex, char* httpHeader, int size);
+
+// Gets the unique index of the header, or -1 if the header isn't important.
+EXTERNAL int fiftyoneDegreesGetUniqueHttpHeaderIndex(char* httpHeaderName, int length);
 
 // Sets the propertyname string to the property name at the index provided.
 EXTERNAL int fiftyoneDegreesGetRequiredPropertyName(int requiredPropertyIndex, char* propertyName, int size);
 
 // Sets the values string to the property values for the device offests and index provided.
 EXTERNAL int fiftyoneDegreesGetValueFromOffsets(fiftyoneDegreesDeviceOffsets* deviceOffsets, int requiredPropertyIndex, char* values, int size);
+
+// Returns a pointer to the value for the property based on the device offsets provided.
+EXTERNAL const char* fiftyoneDegreesGetValuePtrFromOffsets(fiftyoneDegreesDeviceOffsets* deviceOffsets, int requiredPropertyIndex);
 
 // Converts the device offset to a CSV string returning the number of
 // characters used.

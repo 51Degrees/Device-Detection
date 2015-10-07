@@ -1,6 +1,6 @@
 ﻿/* *********************************************************************
  * This Source Code Form is copyright of 51Degrees Mobile Experts Limited. 
- * Copyright © 2014 51Degrees Mobile Experts Limited, 5 Charlotte Close,
+ * Copyright 2015 51Degrees Mobile Experts Limited, 5 Charlotte Close,
  * Caversham, Reading, Berkshire, United Kingdom RG4 7BY
  * 
  * This Source Code Form is the subject of the following patent 
@@ -31,7 +31,7 @@ namespace FiftyOne.UnitTests.Performance.Premium
 
         protected override int MaxInitializeTime
         {
-            get { return 500; }
+            get { return 800; }
         }
 
         protected override IEnumerable<string> RequiredProperties

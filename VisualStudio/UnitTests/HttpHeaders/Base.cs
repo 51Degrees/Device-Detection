@@ -1,6 +1,6 @@
 ﻿/* *********************************************************************
  * This Source Code Form is copyright of 51Degrees Mobile Experts Limited. 
- * Copyright © 2014 51Degrees Mobile Experts Limited, 5 Charlotte Close,
+ * Copyright 2015 51Degrees Mobile Experts Limited, 5 Charlotte Close,
  * Caversham, Reading, Berkshire, United Kingdom RG4 7BY
  * 
  * This Source Code Form is the subject of the following patent 
@@ -55,22 +55,14 @@ namespace FiftyOne.UnitTests.HttpHeaders
                 deviceIterator.MoveNext())
             {
                 var headers = new NameValueCollection();
-                switch(random.Next(4))
+                switch(random.Next(3))
                 {
                     case 0:
-                        // Use PHP and Perl HTTP header formats.
-                        var header = httpHeaders[random.Next(httpHeaders.Length)]; 
-                        header = header.ToUpperInvariant();
-                        header = header.Replace("-", "_");
-                        headers.Add("HTTP_" + header, deviceIterator.Current);
-                        headers.Add("HTTP_USER_AGENT", userAgentIterator.Current);
-                        break;
-                    case 1:
                         // Capitialise HTTP headers.
                         headers.Add(httpHeaders[random.Next(httpHeaders.Length)].ToUpperInvariant(), deviceIterator.Current);
                         headers.Add("User-Agent".ToUpperInvariant(), userAgentIterator.Current);
                         break;
-                    case 2:
+                    case 1:
                         // Lower HTTP headers.
                         headers.Add(httpHeaders[random.Next(httpHeaders.Length)].ToLowerInvariant(), deviceIterator.Current);
                         headers.Add("User-Agent".ToLowerInvariant(), userAgentIterator.Current);
