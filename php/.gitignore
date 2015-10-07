@@ -21,7 +21,8 @@ install-sh
 .deps
 
 # Ignore 51Degrees copied files
-src/pattern
-src/cityhash
-src/threading.h
+pattern/src/pattern
+pattern/src/cityhash
+pattern/src/threading.h
+trie/src/trie
 
