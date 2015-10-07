@@ -865,18 +865,19 @@ int fiftyoneDegreesGetHttpHeaderName(int httpHeaderIndex, char* httpHeader, int 
  * the logic to format the header names in each API.
  */
 static void initPrefixedUpperHttpHeaderNames() {
-	int index, httpHeaderIndex, length;
+	int index, httpHeaderIndex;
+	size_t length;
 	char *prefixedUpperHttpHeader, *httpHeaderName;
 	_prefixedUpperHttpHeaders = (const char**)malloc(_uniqueHttpHeaderCount * sizeof(char*));
 	if (_prefixedUpperHttpHeaders != NULL) {
 		for (httpHeaderIndex = 0; httpHeaderIndex < _uniqueHttpHeaderCount; httpHeaderIndex++) {
 			httpHeaderName = _strings + _uniqueHttpHeaders[httpHeaderIndex];
 			length = strlen(httpHeaderName);
-			_prefixedUpperHttpHeaders[httpHeaderIndex] = (char*)malloc(
-				(length + sizeof(HTTP_PREFIX_UPPER) - 1) * sizeof(char));
-			if (_prefixedUpperHttpHeaders[httpHeaderIndex] != NULL) {
-				prefixedUpperHttpHeader = _prefixedUpperHttpHeaders[httpHeaderIndex];
-				memcpy(prefixedUpperHttpHeader, HTTP_PREFIX_UPPER, sizeof(HTTP_PREFIX_UPPER) - 1);
+			prefixedUpperHttpHeader = (char*)malloc(
+				(length + sizeof(HTTP_PREFIX_UPPER)) * sizeof(char));
+			if (prefixedUpperHttpHeader != NULL) {
+				_prefixedUpperHttpHeaders[httpHeaderIndex] = (const char*)prefixedUpperHttpHeader;
+				memcpy((void*)prefixedUpperHttpHeader, HTTP_PREFIX_UPPER, sizeof(HTTP_PREFIX_UPPER) - 1);
 				prefixedUpperHttpHeader += sizeof(HTTP_PREFIX_UPPER) - 1;
 				for (index = 0; index < length; index++) {
 					*prefixedUpperHttpHeader = toupper(*httpHeaderName);
