@@ -1,6 +1,6 @@
 /* *********************************************************************
  * This Source Code Form is copyright of 51Degrees Mobile Experts Limited.
- * Copyright © 2014 51Degrees Mobile Experts Limited, 5 Charlotte Close,
+ * Copyright 2015 51Degrees Mobile Experts Limited, 5 Charlotte Close,
  * Caversham, Reading, Berkshire, United Kingdom RG4 7BY
  *
  * This Source Code Form is the subject of the following patent
@@ -31,8 +31,6 @@ namespace FiftyOne.Demo.WebSite
     {
         private const string DETECTION_PARAM_ROW = "<tr><th>{0}</th><td>{1}</td><td>{2}</td></tr>";
 
-        private const string DETECTION_PATTERN_PARAM_ROW = "<tr><th>{0}</th><td>{1}</td><td>N/A*</td></tr>";
-
         // IMPORTANT: For a full list of properties see: 
         // https://51degrees.com/resources/property-dictionary
 
@@ -43,11 +41,9 @@ namespace FiftyOne.Demo.WebSite
             // unmanaged resources are freed before the method finishes. If this is 
             // not included then the dispose methods of the providers in the Global.asax
             // will enter an infinite wait.
-            using (PatternWrapper.MatchResult patternProperties = 
-                (PatternWrapper.MatchResult)Global.PatternProvider.Match(Request.Headers))
+            using (var patternMatch = Global.PatternProvider.Match(Request.Headers))
             {
-                using (TrieWrapper.MatchResult trieProperties =
-                    (TrieWrapper.MatchResult)Global.TrieProvider.Match(Request.Headers))
+                using (var trieMatch = Global.TrieProvider.Match(Request.Headers))
                 {
                     // Output the properties from each provider.
                     var builder = new StringBuilder();
@@ -65,22 +61,21 @@ namespace FiftyOne.Demo.WebSite
                             property);
                         builder.AppendFormat(
                             "<td>{0}</td>",
-                            patternProperties[property]);
+                            patternMatch[property]);
                         builder.AppendFormat(
                             "<td>{0}</td>",
-                            trieProperties[property]);
+                            trieMatch[property]);
                         builder.Append("</tr>");
                     }
 
                     // Append detection properties used to provide a confidence indicator
                     // concerning the matched results.
-                    builder.AppendFormat(DETECTION_PARAM_ROW, "Matched User-Agent", patternProperties.UserAgent, trieProperties.UserAgent);
-                    builder.AppendFormat(DETECTION_PARAM_ROW, "DeviceId", patternProperties.DeviceId, trieProperties["Id"]);
-                    builder.AppendFormat(DETECTION_PATTERN_PARAM_ROW, "Method", patternProperties.Method);
-                    builder.AppendFormat(DETECTION_PATTERN_PARAM_ROW, "Rank", patternProperties.Rank);
-                    builder.AppendFormat(DETECTION_PATTERN_PARAM_ROW, "Difference", patternProperties.Difference);
+                    builder.AppendFormat(DETECTION_PARAM_ROW, "Matched User-Agent", patternMatch.UserAgent, trieMatch.UserAgent);
+                    builder.AppendFormat(DETECTION_PARAM_ROW, "DeviceId", patternMatch.DeviceId, trieMatch.DeviceId);
+                    builder.AppendFormat(DETECTION_PARAM_ROW, "Method", patternMatch.Method, trieMatch.Method);
+                    builder.AppendFormat(DETECTION_PARAM_ROW, "Rank", patternMatch.Rank, trieMatch.Rank);
+                    builder.AppendFormat(DETECTION_PARAM_ROW, "Difference", patternMatch.Difference, trieMatch.Difference);
                     builder.Append("</table>");
-                    builder.Append("<p>* Trie device detection does not return Method, Rank or Difference values.</p>");
                     Results.Text = builder.ToString();
                 }
             }

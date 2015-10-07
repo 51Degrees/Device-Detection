@@ -1,8 +1,7 @@
-REM Create the pcre_chartables.c source file for this platform.
-
-cd %1..\..\src\pattern\pcre
-if exist pcre_chartables.c del pcre_chartables.c
-if exist dftables.c cl /w dftables.c
-if exist dftables.exe dftables.exe pcre_chartables.c
-if exist dftables.exe del dftables.exe
-if exist dftables.obj del dftables.obj
+@for %%X in (swig.exe) do (set SWIG_EXE=%%~$PATH:X)
+@if defined SWIG_EXE (
+@echo SWIG auto generated code being rebuilt.
+swig -c++ -csharp -namespace FiftyOne.Mobile.Detection.Provider.Interop.Pattern -dllimport FiftyOne.Mobile.Detection.Provider.Pattern.dll -outdir ../Interop/Pattern -o ../../src/pattern/51Degrees_csharp.cxx ../../src/pattern/51Degrees.i
+) else (
+@echo SWIG not found. SWIG auto generated code will not be rebuilt.
+)

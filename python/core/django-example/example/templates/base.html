@@ -1,0 +1,22 @@
+<html>
+<head>
+</head>
+<body>
+    <pre>
+
+        Detection Method: {{ device.method }}
+
+	HTTP Headers
+	{% if request.META.HTTP_DEVICE_STOCK_UA %}HTTP_DEVICE_STOCK_UA: {{ request.META.HTTP_DEVICE_STOCK_UA }}{% else %}HTTP_DEVICE_STOCK_UA: <i>header not set</i>{% endif %}
+	{% if request.META.HTTP_X_DEVICE_USER_AGENT %}HTTP_X_DEVICE_USER_AGENT: {{ request.META.HTTP_X_DEVICE_USER_AGENT }}{% else %}HTTP_X_DEVICE_USER_AGENT: <i>header not set</i>{% endif %}
+	{% if request.META.HTTP_OPERAMINI_PHONE_UA %}HTTP_OPERAMINI_PHONE_UA: {{ request.META.HTTP_OPERAMINI_PHONE_UA }}{% else %}HTTP_OPERAMINI_PHONE_UA: <i>header not set</i>{% endif %}
+	{% if request.META.HTTP_USER_AGENT %}HTTP_USER_AGENT: {{ request.META.HTTP_USER_AGENT }}{% else %}HTTP_USER_AGENT: <i>header not set</i>{% endif %}
+
+	Matched Properties
+        {% for name, value in device.properties.items %}
+            {{ name }}: {{ value }}
+        {% endfor %}
+    </pre>
+
+</body>
+</html>

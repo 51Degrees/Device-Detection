@@ -5,11 +5,11 @@ using System.Runtime.InteropServices;
 // General Information about an assembly is controlled through the following 
 // set of attributes. Change these attribute values to modify the information
 // associated with an assembly.
-[assembly: AssemblyTitle("51degrees - Interop - Unit Tests")]
-[assembly: AssemblyDescription("51degrees - Interop - Unit Tetss")]
+[assembly: AssemblyTitle("51Degrees - Interop - Unit Tests")]
+[assembly: AssemblyDescription("51Degrees - Interop - Unit Tetss")]
 [assembly: AssemblyConfiguration("")]
 [assembly: AssemblyCompany("51 Degrees Mobile Experts Limited")]
-[assembly: AssemblyProduct("51degrees - Interop - Unit Tests")]
+[assembly: AssemblyProduct("51Degrees - Native Code Detection Wrapper")]
 [assembly: AssemblyCopyright("Copyright 51 Degrees Mobile Experts Limited 2009 - 2015")]
 [assembly: AssemblyTrademark("51Degrees")]
 [assembly: AssemblyCulture("")]

@@ -1,6 +1,6 @@
 ﻿/* *********************************************************************
  * This Source Code Form is copyright of 51Degrees Mobile Experts Limited. 
- * Copyright © 2014 51Degrees Mobile Experts Limited, 5 Charlotte Close,
+ * Copyright 2015 51Degrees Mobile Experts Limited, 5 Charlotte Close,
  * Caversham, Reading, Berkshire, United Kingdom RG4 7BY
  * 
  * This Source Code Form is the subject of the following patent 
@@ -20,21 +20,27 @@
  * ********************************************************************* */
 
 using System;
+using System.Collections.Generic;
 
 namespace FiftyOne.Mobile.Detection.Provider.Interop
 {
     public interface IMatchResult : IDisposable
     {
         /// <summary>
-        /// A string representation of the user agent returned if any.
-        /// </summary>
-        string UserAgent { get; }
-        
-        /// <summary>
         /// Returns the value for the property provided.
         /// </summary>
         /// <param name="propertyName"></param>
         /// <returns></returns>
         string this[string propertyName] { get; }
+
+        IList<string> getValues(string propertyName);
+        IList<string> getValues(int propertyIndex);
+        string getValue(string propertyName);
+        string getValue(int propertyIndex);
+        string DeviceId { get; }
+        int Rank { get; }
+        int Difference { get; }
+        int Method { get; }
+        string UserAgent { get; }
     }
 }

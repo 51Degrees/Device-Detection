@@ -8,7 +8,7 @@ using System.Threading.Tasks;
 
 /* *********************************************************************
  * This Source Code Form is copyright of 51Degrees Mobile Experts Limited.
- * Copyright 2014 51Degrees Mobile Experts Limited, 5 Charlotte Close,
+ * Copyright 2015 51Degrees Mobile Experts Limited, 5 Charlotte Close,
  * Caversham, Reading, Berkshire, United Kingdom RG4 7BY
  *
  * This Source Code Form is the subject of the following patent
@@ -57,7 +57,7 @@ namespace Console_Interop
                         {
                             using (var patternResults = pattern.Match(line.Trim()))
                             {
-                                Output(pattern, (PatternWrapper.MatchResult)patternResults);
+                                Output(pattern, patternResults);
                             }
                             using (var trieResults = trie.Match(line.Trim()))
                             {
@@ -72,9 +72,10 @@ namespace Console_Interop
             Console.ReadKey();
         }
 
-        private static void Output(PatternWrapper wrapper, PatternWrapper.MatchResult results)
+        private static void Output(PatternWrapper wrapper, IMatchResult results)
         {
             Output((IWrapper)wrapper, (IMatchResult)results);
+            Console.WriteLine("User-Agent -> {0}", results.UserAgent);
             Console.WriteLine("Rank -> {0}", results.Rank);
             Console.WriteLine("Difference -> {0}", results.Difference);
             Console.WriteLine("Method -> {0}", results.Method);
@@ -83,12 +84,11 @@ namespace Console_Interop
         private static void Output(IWrapper wrapper, IMatchResult results)
         {
             Console.WriteLine(wrapper.GetType().Name);
-            Console.WriteLine("UserAgent -> {0}", results.UserAgent);
             foreach (var item in wrapper.AvailableProperties)
             {
                 Console.WriteLine("{0} -> {1}",
                     item,
-                    results[item]);
+                    results.getValue(item));
             }
         }
     }

@@ -5,7 +5,7 @@
 
 /* *********************************************************************
 * This Source Code Form is copyright of 51Degrees Mobile Experts Limited.
-* Copyright 2014 51Degrees Mobile Experts Limited, 5 Charlotte Close,
+* Copyright 2015 51Degrees Mobile Experts Limited, 5 Charlotte Close,
 * Caversham, Reading, Berkshire, United Kingdom RG4 7BY
 *
 * This Source Code Form is the subject of the following patent
@@ -59,7 +59,7 @@ char *TARGET_USER_AGENTS[] = {
 };
 int TARGET_USER_AGENTS_LENGTH = 9;
 
-char* PROPERTIES[] = {
+const char* PROPERTIES[] = {
     "IsMobile",
     "ScreenPixelsWidth",
     "ScreenPixelsHeight",
@@ -139,8 +139,8 @@ void run(fiftyoneDegreesDataSet *dataSet) {
 	fiftyoneDegreesWorksetPool *pool = NULL;
 	int32_t index, httpHeadersLength;
 	size_t httpHeadersSize;
-	char *httpHeaderNames[2];
-	char *httpHeaderValues[2];
+	const char *httpHeaderNames[2];
+	const char *httpHeaderValues[2];
 	char *httpHeaders;
 
     printf("Name:\t\t\t%s\r\n", &(fiftyoneDegreesGetString(dataSet, dataSet->header.nameOffset)->firstByte));
@@ -154,7 +154,7 @@ void run(fiftyoneDegreesDataSet *dataSet) {
            dataSet->header.nextUpdate.year);
     printf("Signatures:\t\t%d\r\n", dataSet->header.signatures.count);
     printf("Device Combinations:\t%d\r\n", dataSet->header.deviceCombinations);
-    printf("Data set version:\t%s\r\n", &(fiftyoneDegreesGetString(dataSet, dataSet->header.formatOffset)->firstByte));
+    printf("Data set format:\t%s\r\n", &(fiftyoneDegreesGetString(dataSet, dataSet->header.formatOffset)->firstByte));
     printf("\r\n");
 
 	cache = fiftyoneDegreesResultsetCacheCreate(dataSet, 3);

@@ -10,7 +10,7 @@
 
 /* *********************************************************************
  * This Source Code Form is copyright of 51Degrees Mobile Experts Limited.
- * Copyright 2014 51Degrees Mobile Experts Limited, 5 Charlotte Close,
+ * Copyright 2015 51Degrees Mobile Experts Limited, 5 Charlotte Close,
  * Caversham, Reading, Berkshire, United Kingdom RG4 7BY
  *
  * This Source Code Form is the subject of the following patent
@@ -36,6 +36,7 @@
 /* Change snprintf to the Microsoft version */
 #ifdef _MSC_VER
 #define snprintf _snprintf
+#define strdup _strdup
 #endif
 
 /* Indicates that a method will be used by qsort */
@@ -140,7 +141,6 @@ fiftyoneDegreesDataSetInitStatus readComponents(FILE *inputFilePtr, fiftyoneDegr
 	current = (byte*)dataSet->componentsData;
 	for (index = 0; index < dataSet->header.components.count; index++) {
 		dataSet->components[index] = (const fiftyoneDegreesComponent*)current;
-		// Have to take one away because the first offset is included in the
 		current += sizeof(fiftyoneDegreesComponent) +
 			(dataSet->components[index]->httpHeaderCount * sizeof(int32_t));
 		httpHeadersCount += dataSet->components[index]->httpHeaderCount;
@@ -470,7 +470,7 @@ int32_t fiftyoneDegreesGetRequiredPropertyName(const fiftyoneDegreesDataSet *dat
  * @param propertyName pointer to the name of the property required
  * @return the index of the property, or -1 if the property does not exist
  */
-int32_t fiftyoneDegreesGetRequiredPropertyIndex(const fiftyoneDegreesDataSet *dataSet, char *propertyName) {
+int32_t fiftyoneDegreesGetRequiredPropertyIndex(const fiftyoneDegreesDataSet *dataSet, const char *propertyName) {
 	int index;
 	const char *currentPropertyName;
 	for (index = 0; index < dataSet->requiredPropertyCount; index++) {
@@ -774,11 +774,10 @@ int32_t* getProfileOffsetsFromSignature(const byte *signature) {
 
 /**
  * Returns a pointer to the first signature index of the node
- * @param dataSet pointer to the data set
  * @param node pointer whose first signature index is required
  * @return a pointer to the first signature index
  */
-const int32_t* getFirstRankedSignatureIndexForNode(const fiftyoneDegreesDataSet *dataSet, const fiftyoneDegreesNode *node) {
+const int32_t* getFirstRankedSignatureIndexForNode(const fiftyoneDegreesNode *node) {
 	return (int32_t*)(((byte*)node) + sizeof(fiftyoneDegreesNode) +
 		(node->childrenCount * sizeof(fiftyoneDegreesNodeIndex)) +
 		(node->numericChildrenCount * sizeof(fiftyoneDegreesNodeNumericIndex)));
@@ -815,7 +814,7 @@ void linkedListAdd(fiftyoneDegreesLinkedSignatureList *linkedList, int32_t ranke
  */
 void buildInitialList(fiftyoneDegreesWorkset *ws, const fiftyoneDegreesNode *node) {
 	int32_t index;
-	const int32_t *rankedSignatureIndex = getFirstRankedSignatureIndexForNode(ws->dataSet, node);
+	const int32_t *rankedSignatureIndex = getFirstRankedSignatureIndexForNode(node);
 	if (node->signatureCount == 1) {
 		// Only one signature so the first ranked signature index
 		// is the value for the ranked signature index.
@@ -927,10 +926,10 @@ void setAllProperties(fiftyoneDegreesDataSet *dataSet) {
  * @param properties array of properties to be returned
  * @param count number of elements in the properties array
  */
-void setProperties(fiftyoneDegreesDataSet *dataSet, char** properties, int32_t count) {
+void setProperties(fiftyoneDegreesDataSet *dataSet, const char** properties, int32_t count) {
 	int32_t index, propertyIndex;
 	int16_t requiredPropertyLength;
-	char *requiredPropertyName;
+	const char *requiredPropertyName;
 	const fiftyoneDegreesAsciiString *propertyName;
 
 	// Allocate memory for this number of properties.
@@ -960,7 +959,7 @@ void setProperties(fiftyoneDegreesDataSet *dataSet, char** properties, int32_t c
  * @param input char array containing separated values
  * @return number of separators
  */
-int32_t getSeparatorCount(char* input) {
+int32_t getSeparatorCount(const char* input) {
 	int32_t index = 0, count = 0;
 	if (input != NULL && *input != 0) {
 		while (*(input + index) != 0) {
@@ -987,29 +986,34 @@ int32_t getSeparatorCount(char* input) {
  *        the dataSet can return
  * @return the number of bytes read from the file
  */
-fiftyoneDegreesDataSetInitStatus fiftyoneDegreesInitWithPropertyString(const char *fileName, fiftyoneDegreesDataSet *dataSet, char* requiredProperties) {
+fiftyoneDegreesDataSetInitStatus fiftyoneDegreesInitWithPropertyString(const char *fileName, fiftyoneDegreesDataSet *dataSet, const char* requiredProperties) {
 	int32_t requiredPropertyCount = getSeparatorCount(requiredProperties);
 	int32_t index, count = 0;
-	char **requiredPropertiesArray = NULL;
-	char *last = requiredProperties;
+	const char **requiredPropertiesArray = NULL;
+	char *currentProperty, *copyRequiredProperties = NULL;
 	fiftyoneDegreesDataSetInitStatus status = DATA_SET_INIT_STATUS_NOT_SET;
 
 	// Determine if properties were provided.
 	if (requiredPropertyCount > 0) {
-		// Allocate pointers for each of the properties.
-		requiredPropertiesArray = (char**)malloc(requiredPropertyCount * sizeof(char*));
-		if (requiredPropertiesArray != NULL) {
-			// Change the input string so that the separators are changed to nulls.
-			for (index = 0; count < requiredPropertyCount; index++) {
-				if (*(requiredProperties + index) == ',' ||
-					*(requiredProperties + index) == '|' ||
-					*(requiredProperties + index) == ' ' ||
-					*(requiredProperties + index) == '\t' ||
-					*(requiredProperties + index) == 0) {
-					*(requiredProperties + index) = 0;
-					requiredPropertiesArray[count] = last;
-					last = requiredProperties + index + 1;
-					count++;
+		// Copy the properties as we'll be null terminating at the seperators.
+		copyRequiredProperties = strdup(requiredProperties);
+		if (copyRequiredProperties != NULL) {
+			// Allocate pointers for each of the properties.
+			requiredPropertiesArray = (const char**)malloc(requiredPropertyCount * sizeof(char*));
+			currentProperty = copyRequiredProperties;
+			if (requiredPropertiesArray != NULL) {
+				// Change the input string so that the separators are changed to nulls.
+				for (index = 0; count < requiredPropertyCount; index++) {
+					if (*(copyRequiredProperties + index) == ',' ||
+						*(copyRequiredProperties + index) == '|' ||
+						*(copyRequiredProperties + index) == ' ' ||
+						*(copyRequiredProperties + index) == '\t' ||
+						*(copyRequiredProperties + index) == 0) {
+						*(copyRequiredProperties + index) = 0;
+						requiredPropertiesArray[count] = currentProperty;
+						currentProperty = copyRequiredProperties + index + 1;
+						count++;
+					}
 				}
 			}
 		}
@@ -1023,7 +1027,10 @@ fiftyoneDegreesDataSetInitStatus fiftyoneDegreesInitWithPropertyString(const cha
 	status = fiftyoneDegreesInitWithPropertyArray(fileName, dataSet, requiredPropertiesArray, requiredPropertyCount);
 
 	if (requiredPropertiesArray != NULL) {
-		free(requiredPropertiesArray);
+		free((void*)requiredPropertiesArray);
+	}
+	if (copyRequiredProperties != NULL) {
+		free(copyRequiredProperties);
 	}
 
 	return status;
@@ -1040,7 +1047,7 @@ fiftyoneDegreesDataSetInitStatus fiftyoneDegreesInitWithPropertyString(const cha
  * @param count the number of elements in the requiredProperties array
  * @return the number of bytes read from the file
  */
-fiftyoneDegreesDataSetInitStatus fiftyoneDegreesInitWithPropertyArray(const char *fileName, fiftyoneDegreesDataSet *dataSet, char** requiredProperties, int32_t count) {
+fiftyoneDegreesDataSetInitStatus fiftyoneDegreesInitWithPropertyArray(const char *fileName, fiftyoneDegreesDataSet *dataSet, const char** requiredProperties, int32_t count) {
 	FILE *inputFilePtr;
 	fiftyoneDegreesDataSetInitStatus status;
 
@@ -1641,7 +1648,7 @@ fiftyoneDegreesWorkset *fiftyoneDegreesWorksetCreate(const fiftyoneDegreesDataSe
 		ws->values = (const fiftyoneDegreesValue**)malloc(dataSet->header.maxValues * sizeof(const fiftyoneDegreesValue*));
 		ws->profiles = (const fiftyoneDegreesProfile**)malloc(RESULTSET_PROFILES_SIZE(dataSet->header));
 		ws->tempProfiles = (const fiftyoneDegreesProfile**)malloc(RESULTSET_PROFILES_SIZE(dataSet->header));
-		ws->targetUserAgentArray = (byte*)malloc(RESULTSET_TARGET_USERAGENT_ARRAY_SIZE(dataSet->header));
+		ws->targetUserAgentArray = (char*)malloc(RESULTSET_TARGET_USERAGENT_ARRAY_SIZE(dataSet->header));
 		ws->importantHeaders = (fiftyoneDegreesHttpHeaderWorkset*)malloc(ws->dataSet->httpHeadersCount * sizeof(fiftyoneDegreesHttpHeaderWorkset));
 
 		// Check all the memory was allocated correctly and also
@@ -1817,7 +1824,7 @@ void resetCounters(fiftyoneDegreesWorkset *ws) {
  * @param userAgent char pointer to the user agent. Trimmed if longer than
  *        the maximum allowed for matching
  */
-void setTargetUserAgentArray(fiftyoneDegreesWorkset *ws, char* userAgent, int userAgentLength) {
+void setTargetUserAgentArray(fiftyoneDegreesWorkset *ws, const char* userAgent, int userAgentLength) {
 	uint16_t index = 0;
 	ws->hashCodeSet = 0;
 
@@ -1908,7 +1915,7 @@ void setTargetUserAgentArray(fiftyoneDegreesWorkset *ws, char* userAgent, int us
  * @param string pointer to be compared with the target user agent
  * @return the difference between the characters, or 0 if equal
  */
-int32_t compareTo(byte* targetUserAgentArray, int32_t startIndex, fiftyoneDegreesString *string) {
+int32_t compareTo(const char* targetUserAgentArray, int32_t startIndex, fiftyoneDegreesString *string) {
 	int32_t i, o, difference;
 	for (i = string->length - 1, o = startIndex + string->length - 1; i >= 0; i--, o--)
 	{
@@ -2160,7 +2167,7 @@ void resetNextCharacterPositionIndex(fiftyoneDegreesWorkset *ws) {
  * @param length of the characters from start to conver to a number
  * @return the numeric integer of the characters specified
  */
-int32_t getNumber(const byte *array, int32_t start, int32_t length) {
+int32_t getNumber(const char *array, int32_t start, int32_t length) {
 	int32_t i, p;
 	int32_t value = 0;
 	for (i = start + length - 1, p = 0; i >= start && p < POWERS_COUNT; i--, p++)
@@ -2228,7 +2235,7 @@ int32_t binarySearchNumericChildren(const fiftyoneDegreesNode *node, fiftyoneDeg
 	while (lower <= upper)
 	{
 		middle = lower + (upper - lower) / 2;
-		comparisonResult = (state->firstNodeNumericIndex + middle)->value - state->target;;
+		comparisonResult = (int16_t)((state->firstNodeNumericIndex + middle)->value - state->target);
 		if (comparisonResult == 0)
 			return middle;
 		else if (comparisonResult > 0)
@@ -2490,9 +2497,9 @@ int32_t setClosestSignaturesForNode(fiftyoneDegreesWorkset *ws, const fiftyoneDe
 	// ranked index in the nodeRankedSignatureIndexes array.
 	const int32_t *firstRankedSignatureIndex =
 		node->signatureCount == 1 ?
-		getFirstRankedSignatureIndexForNode(ws->dataSet, node) :
+		getFirstRankedSignatureIndexForNode(node) :
 		ws->dataSet->nodeRankedSignatureIndexes +
-		*getFirstRankedSignatureIndexForNode(ws->dataSet, node);
+		*getFirstRankedSignatureIndexForNode(node);
 	const int32_t *currentRankedSignatureIndex;
 
 	while (index < node->signatureCount &&
@@ -2642,8 +2649,8 @@ void fillClosestSignatures(fiftyoneDegreesWorkset *ws) {
  * @param value to be checked
  * @return 1 if the value is numeric, otherwise 0
  */
-byte getIsNumeric(byte *value) {
-	return (*value >= (byte)'0' && *value <= (byte)'9');
+byte getIsNumeric(const char *value) {
+	return (*value >= (char)'0' && *value <= (char)'9');
 }
 
 /**
@@ -2663,7 +2670,7 @@ int32_t calculateNumericDifference(const fiftyoneDegreesAsciiString *characters,
 	while (newNodeIndex < characters->length &&
 		newTargetIndex < ws->targetUserAgentArrayLength &&
 		getIsNumeric(ws->targetUserAgentArray + newTargetIndex) &&
-		getIsNumeric((byte*)(&(characters->firstByte) + newNodeIndex)))
+		getIsNumeric(&(characters->firstByte) + newNodeIndex))
 	{
 		newNodeIndex++;
 		newTargetIndex++;
@@ -2675,7 +2682,7 @@ int32_t calculateNumericDifference(const fiftyoneDegreesAsciiString *characters,
 	while (
 		nodeIndex >= 0 &&
 		getIsNumeric(ws->targetUserAgentArray + *targetIndex) &&
-		getIsNumeric((byte*)(&(characters->firstByte) + *nodeIndex)))
+		getIsNumeric(&(characters->firstByte) + *nodeIndex))
 	{
 		(*nodeIndex)--;
 		(*targetIndex)--;
@@ -2884,9 +2891,7 @@ const byte* getNextClosestSignatureForSingleNode(fiftyoneDegreesWorkset *ws) {
 	const byte *signature;
 	int32_t rankedSignatureIndex;
 	if (ws->closestNodeRankedSignatureIndex < ws->nodes[0]->signatureCount) {
-		rankedSignatureIndex = *getFirstRankedSignatureIndexForNode(
-			ws->dataSet,
-			ws->nodes[0]);
+		rankedSignatureIndex = *getFirstRankedSignatureIndexForNode(ws->nodes[0]);
 		// If there is a count greater than 1 then the value relates
 		// to the first index in the list of node ranked signature
 		// indexes. If the count is 1 then the value is the index.
@@ -3120,7 +3125,7 @@ fiftyoneDegreesResultset *fiftyoneDegreesAddToCache(fiftyoneDegreesWorkset *ws) 
 * @param userAgent pointer to the target user agent
 * @param userAgentLength of the user agent string
 */
-void internalMatch(fiftyoneDegreesWorkset *ws, char* userAgent, int userAgentLength) {
+void internalMatch(fiftyoneDegreesWorkset *ws, const char* userAgent, int userAgentLength) {
 	fiftyoneDegreesResultset *rs = NULL;
 	setTargetUserAgentArray(ws, userAgent, userAgentLength);
 	if (ws->targetUserAgentArrayLength >= ws->dataSet->header.minUserAgentLength) {
@@ -3204,7 +3209,7 @@ void internalMatch(fiftyoneDegreesWorkset *ws, char* userAgent, int userAgentLen
 *        createWorkset function
 * @param userAgent pointer to the target user agent
 */
-void fiftyoneDegreesMatch(fiftyoneDegreesWorkset *ws, char* userAgent) {
+void fiftyoneDegreesMatch(fiftyoneDegreesWorkset *ws, const char* userAgent) {
 	resetCounters(ws);
 	internalMatch(ws, userAgent, 0);
 }
@@ -3300,7 +3305,7 @@ void fiftyoneDegreesMatchForHttpHeaders(fiftyoneDegreesWorkset *ws) {
  * @param httpHeaderValues array of HTTP header values
  * @param httpHeaderCount the number of entires in each array
  */
-void fiftyoneDegreesMatchWithHeadersArray(fiftyoneDegreesWorkset *ws, char **httpHeaderNames, char **httpHeaderValues, int httpHeaderCount) {
+void fiftyoneDegreesMatchWithHeadersArray(fiftyoneDegreesWorkset *ws, const char **httpHeaderNames, const char **httpHeaderValues, int httpHeaderCount) {
 	int httpHeaderIndex, dataSetHeaderIndex, importantHeaderIndex = 0;
 	for (httpHeaderIndex = 0;
 		httpHeaderIndex < httpHeaderCount &&
@@ -3334,7 +3339,7 @@ static void initPrefixedUpperHttpHeaderNames(const fiftyoneDegreesDataSet *dataS
 	int httpHeaderIndex;
 	char *prefixedUpperHttpHeader;
 	const fiftyoneDegreesAsciiString *httpHeaderName;
-	((fiftyoneDegreesDataSet*)dataSet)->prefixedUpperHttpHeaders = (char**)malloc(dataSet->httpHeadersCount * sizeof(char*));
+	((fiftyoneDegreesDataSet*)dataSet)->prefixedUpperHttpHeaders = (const char**)malloc(dataSet->httpHeadersCount * sizeof(const char*));
 	if (dataSet->prefixedUpperHttpHeaders != NULL) {
 		for (httpHeaderIndex = 0; httpHeaderIndex < dataSet->httpHeadersCount; httpHeaderIndex++) {
 			httpHeaderName = fiftyoneDegreesGetString(
@@ -3342,17 +3347,16 @@ static void initPrefixedUpperHttpHeaderNames(const fiftyoneDegreesDataSet *dataS
 				(dataSet->httpHeaders + httpHeaderIndex)->headerNameOffset);
 			dataSet->prefixedUpperHttpHeaders[httpHeaderIndex] = (char*)malloc((httpHeaderName->length + sizeof(HTTP_PREFIX_UPPER) - 1) * sizeof(char));
 			if (dataSet->prefixedUpperHttpHeaders[httpHeaderIndex] != NULL) {
-				prefixedUpperHttpHeader = dataSet->prefixedUpperHttpHeaders[httpHeaderIndex];
+				prefixedUpperHttpHeader = (char*)dataSet->prefixedUpperHttpHeaders[httpHeaderIndex];
 				memcpy(prefixedUpperHttpHeader, HTTP_PREFIX_UPPER, sizeof(HTTP_PREFIX_UPPER) - 1);
 				prefixedUpperHttpHeader += sizeof(HTTP_PREFIX_UPPER) - 1;
 				for (index = 0; index < httpHeaderName->length; index++) {
-					*prefixedUpperHttpHeader = toupper(*(&httpHeaderName->firstByte + index));
+					*prefixedUpperHttpHeader = (char)toupper(*(&httpHeaderName->firstByte + index));
 					if (*prefixedUpperHttpHeader == '-') {
 						*prefixedUpperHttpHeader = '_';
 					}
 					prefixedUpperHttpHeader++;
 				}
-				*prefixedUpperHttpHeader = 0;
 			}
 		}
 	}
@@ -3365,8 +3369,8 @@ static void initPrefixedUpperHttpHeaderNames(const fiftyoneDegreesDataSet *dataS
  * @param httpHeaderIndex index of the HTTP header name required
  * @returns name of the header, or NULL if index not valid
  */
-char* fiftyoneDegreesGetPrefixedUpperHttpHeaderName(const fiftyoneDegreesDataSet *dataSet, int httpHeaderIndex) {
-	char *prefixedUpperHeaderName = NULL;
+const char* fiftyoneDegreesGetPrefixedUpperHttpHeaderName(const fiftyoneDegreesDataSet *dataSet, int httpHeaderIndex) {
+	const char *prefixedUpperHeaderName = NULL;
 	if (dataSet->prefixedUpperHttpHeaders == NULL) {
 		initPrefixedUpperHttpHeaderNames(dataSet);
 	}
@@ -3386,8 +3390,8 @@ char* fiftyoneDegreesGetPrefixedUpperHttpHeaderName(const fiftyoneDegreesDataSet
  * @param value to be set when returned
  * @returns the number of characters in the value
  */
-int setNextHttpHeaderName(char* start, char* end, char** name) {
-	char *current = start, *lastChar = start;
+int setNextHttpHeaderName(const char* start, const char* end, char** name) {
+	char *current = (char*)start, *lastChar = (char*)start;
 	while (current <= end) {
 		if (*current == ' ' ||
 			*current == ':') {
@@ -3411,7 +3415,7 @@ int setNextHttpHeaderName(char* start, char* end, char** name) {
  * @param value to be set when returned
  * @returns the number of characters in the value
  */
-int setNextHttpHeaderValue(char* start, char *end, char** value) {
+int setNextHttpHeaderValue(char* start, const char *end, char** value) {
 	char *lastChar = start, *current;
 
 	// Move to the first non-space character.
@@ -3513,8 +3517,9 @@ int getUniqueHttpHeaderIndex(const fiftyoneDegreesDataSet *dataSet, char* httpHe
  * @param httpHeaders is a list of HTTP headers and values on each line
  * @param size is the valid characters in the httpHeaders string
  */
-int32_t fiftyoneDegreesSetHttpHeaders(fiftyoneDegreesWorkset *ws, char *httpHeaders, size_t size) {
-	char *headerName, *headerValue, *endOfHeaders = httpHeaders + size;
+int32_t fiftyoneDegreesSetHttpHeaders(fiftyoneDegreesWorkset *ws, const char *httpHeaders, size_t size) {
+	char *headerName, *headerValue;
+	const char *endOfHeaders = httpHeaders + size;
 	int headerNameLength, headerValueLength, uniqueHeaderIndex = 0;
 	ws->importantHeadersCount = 0;
 	headerNameLength = setNextHttpHeaderName(httpHeaders, endOfHeaders, &headerName);
@@ -3542,7 +3547,7 @@ int32_t fiftyoneDegreesSetHttpHeaders(fiftyoneDegreesWorkset *ws, char *httpHead
  * @param httpHeaders is a list of HTTP headers and values on each line
  * @param size is the valid characters in the httpHeaders string
  */
-void fiftyoneDegreesMatchWithHeadersString(fiftyoneDegreesWorkset *ws, char *httpHeaders, size_t size) {
+void fiftyoneDegreesMatchWithHeadersString(fiftyoneDegreesWorkset *ws, const char *httpHeaders, size_t size) {
 	fiftyoneDegreesSetHttpHeaders(ws, httpHeaders, size);
 	fiftyoneDegreesMatchForHttpHeaders(ws);
 }
@@ -3573,7 +3578,7 @@ int32_t fiftyoneDegreesGetDeviceId(fiftyoneDegreesWorkset *ws, char *deviceId, i
 	// string terminator.
 	for (profileIndex = 0; profileIndex < ws->profileCount; profileIndex++) {
 		profileId = ws->profiles[profileIndex]->profileId;
-		length += profileId > 0 ? (int)(floor(log10(abs(profileId)))) + 2 : 1;
+		length += profileId > 0 ? (int)(floor(log10((float)abs(profileId)))) + 2 : 1;
 	}
 
 	// Set the device id if enough space available.
