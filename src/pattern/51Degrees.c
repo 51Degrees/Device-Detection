@@ -1646,7 +1646,7 @@ fiftyoneDegreesWorkset *fiftyoneDegreesWorksetCreate(const fiftyoneDegreesDataSe
 		ws->values = (const fiftyoneDegreesValue**)malloc(dataSet->header.maxValues * sizeof(const fiftyoneDegreesValue*));
 		ws->profiles = (const fiftyoneDegreesProfile**)malloc(RESULTSET_PROFILES_SIZE(dataSet->header));
 		ws->tempProfiles = (const fiftyoneDegreesProfile**)malloc(RESULTSET_PROFILES_SIZE(dataSet->header));
-		ws->targetUserAgentArray = (byte*)malloc(RESULTSET_TARGET_USERAGENT_ARRAY_SIZE(dataSet->header));
+		ws->targetUserAgentArray = (char*)malloc(RESULTSET_TARGET_USERAGENT_ARRAY_SIZE(dataSet->header));
 		ws->importantHeaders = (fiftyoneDegreesHttpHeaderWorkset*)malloc(ws->dataSet->httpHeadersCount * sizeof(fiftyoneDegreesHttpHeaderWorkset));
 
 		// Check all the memory was allocated correctly and also
@@ -2165,7 +2165,7 @@ void resetNextCharacterPositionIndex(fiftyoneDegreesWorkset *ws) {
  * @param length of the characters from start to conver to a number
  * @return the numeric integer of the characters specified
  */
-int32_t getNumber(const byte *array, int32_t start, int32_t length) {
+int32_t getNumber(const char *array, int32_t start, int32_t length) {
 	int32_t i, p;
 	int32_t value = 0;
 	for (i = start + length - 1, p = 0; i >= start && p < POWERS_COUNT; i--, p++)
@@ -2668,7 +2668,7 @@ int32_t calculateNumericDifference(const fiftyoneDegreesAsciiString *characters,
 	while (newNodeIndex < characters->length &&
 		newTargetIndex < ws->targetUserAgentArrayLength &&
 		getIsNumeric(ws->targetUserAgentArray + newTargetIndex) &&
-		getIsNumeric((byte*)(&(characters->firstByte) + newNodeIndex)))
+		getIsNumeric(&(characters->firstByte) + newNodeIndex))
 	{
 		newNodeIndex++;
 		newTargetIndex++;
@@ -2680,7 +2680,7 @@ int32_t calculateNumericDifference(const fiftyoneDegreesAsciiString *characters,
 	while (
 		nodeIndex >= 0 &&
 		getIsNumeric(ws->targetUserAgentArray + *targetIndex) &&
-		getIsNumeric((byte*)(&(characters->firstByte) + *nodeIndex)))
+		getIsNumeric(&(characters->firstByte) + *nodeIndex))
 	{
 		(*nodeIndex)--;
 		(*targetIndex)--;

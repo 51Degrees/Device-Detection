@@ -77,7 +77,7 @@ typedef struct fiftyoneDegreesRange_t {
 #pragma pack(push, 1)
 typedef struct fiftyoneDegrees_ascii_string_t {
 	const int16_t length;
-	const byte firstByte;
+	const char firstByte;
 } fiftyoneDegreesAsciiString;
 #pragma pack(pop)
 
@@ -400,7 +400,7 @@ typedef struct fiftyoneDegrees_http_header_workset_t {
 #pragma pack(push, 1)
 typedef struct fiftyoneDegrees_workset_t {
 	const fiftyoneDegreesDataSet *dataSet; /* A pointer to the data set to use for the match */
-	byte *targetUserAgentArray; /* An array of bytes representing the target user agent */
+	char *targetUserAgentArray; /* An array of bytes representing the target user agent */
 	uint16_t targetUserAgentArrayLength; /* The length of the target user agent */
 	uint64_t targetUserAgentHashCode; /* The hash code of the target user agent */
 	byte hashCodeSet; /* 0 if the hash code has not been calculated */
