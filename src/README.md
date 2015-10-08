@@ -1,6 +1,6 @@
-![51Degrees](https://51degrees.com/DesktopModules/FiftyOne/Distributor/Logo.ashx?utm_source=github&utm_medium=repository&utm_content=home&utm_campaign=c-open-source "THE Fastest and Most Accurate Device Detection") **Device Detection in C / C++** includes PHP, Python, Perl, .NET and Node.js
+![51Degrees](https://51degrees.com/DesktopModules/FiftyOne/Distributor/Logo.ashx?utm_source=github&utm_medium=repository&utm_content=src_home&utm_campaign=c-open-source "THE Fastest and Most Accurate Device Detection") **Device Detection in C / C++** includes PHP, Python, Perl, .NET and Node.js
 
-[Recent Changes](#recent-changes "Review recent major changes") | [Supported Databases](https://51degrees.com/compare-data-options?utm_source=github&utm_medium=repository&utm_content=home-menu&utm_campaign=c-open-source "Different device databases which can be used with 51Degrees device detection") | [Developer Documention](https://51degrees.com/support/documentation?utm_source=github&utm_medium=repository&utm_content=home-menu&utm_campaign=c-open-source "Full getting started guide and advanced developer documentation") | [Available Properties](https://51degrees.com/resources/property-dictionary?utm_source=github&utm_medium=repository&utm_content=home-menu&utm_campaign=c-open-source "View all available properties and values")
+[Supported Databases](https://51degrees.com/compare-data-options?utm_source=github&utm_medium=repository&utm_content=src_compare-data-options&utm_campaign=c-open-source "Different device databases which can be used with 51Degrees device detection") | [Developer Documention](https://51degrees.com/support/documentation?utm_source=github&utm_medium=repository&utm_content=src_documentation&utm_campaign=c-open-source "Full getting started guide and advanced developer documentation") | [Available Properties](https://51degrees.com/resources/property-dictionary?utm_source=github&utm_medium=repository&utm_content=src_property_dictionary&utm_campaign=c-open-source "View all available properties and values")
 
 <sup>Need [.NET](https://github.com/51Degrees/.NET-Device-Detection "THE Fastest and most Accurate device detection for .NET") | [Java](https://github.com/51Degrees/Java-Device-Detection "THE Fastest and most Accurate device detection for Java") | [PHP Script](https://github.com/51Degrees/51Degrees-PHP)?</sup>
 
@@ -10,7 +10,7 @@ This folder contains all the core source code used by associated C APIs as well 
 * Trie - source code related to the Trie device detection algorithm.
 * Shared - functions that are provided by 3rd parties or are shared across the two algorithms.
 
-[Understand Trie & Pattern Algorithms](https://51degrees.com/support/documentation/how-device-detection-works?utm_source=github&utm_medium=repository&utm_content=home-menu&utm_campaign=c-open-source "Two different methods can be used for Device Detection. We recommend Pattern is used for all except very high performance detection requirements")
+[Understand Trie & Pattern Algorithms](https://51degrees.com/support/documentation/how-device-detection-works?utm_source=github&utm_medium=repository&utm_content=src_algorithms&utm_campaign=c-open-source "Two different methods can be used for Device Detection. We recommend Pattern is used for all except very high performance detection requirements")
 
 # Included Files
 File Name | Description
