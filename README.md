@@ -337,7 +337,7 @@ ProcPat [Data file path] [Properties]
 
 For example: Id,IsMobile will return the Id of the matched device and True or False to indicate if the device is a mobile.
 
-See httpa://51Degrees.com/Products/DeviceData/PropertyDictionary for a list of valid properties.
+See https://51degrees.com/resources/property-dictionary for a list of valid properties.
 
 Example:  
 
@@ -359,13 +359,13 @@ PerfPat [Data file path] [Useragents file] [Properties]
 
 **[Useragents file]** A path to a list of user agents to be used in the performance test.
 
-http://51Degrees/Million.zip contains a test file of one million user agents for testing purposes.
+http://51Degrees.com/Million.zip contains a test file of one million user agents for testing purposes.
 
 **[Properties]** A comma separated list of properties to be returned. If not provided Id will be used.
 
 For example: Id,IsMobile will return the Id of the matched device and True or False to indicate if the device is a mobile.
 
-See http://51Degrees/Products/DeviceData/PropertyDictionary for a list of valid properties.
+See https://51degrees.com/resources/property-dictionary for a list of valid properties.
 
 Example: PerfPat data/51Degrees-Lite.dat million.csv Id,IsMobile
 
@@ -387,7 +387,7 @@ ProcTrie DataFile [Properties]
 
 For example: Id,IsMobile will return the Id of the matched device and True or False to indicate if the device is a mobile.
 
-See http://51Degrees/Products/DeviceData/PropertyDictionary for a list of valid properties.
+See https://51degrees.com/resources/property-dictionary for a list of valid properties.
 
 Example:  
 
@@ -411,13 +411,13 @@ PerfTrie [Trie data file] [Useragents file] [Properties]
 
 **[Useragents file]** A path to a list of user agents to be used in the performance test.
 
-http://51Degrees/Million.zip contains a test file of one million useragents.
+http://51Degrees.com/Million.zip contains a test file of one million useragents.
 
 **[Properties]** A comma separated list of properties to be returned. If not provided Id will be used.
 
 For example: Id,IsMobile will return the Id of the matched device and True or False to indicate if the device is a mobile.
 
-See http://51Degrees/Products/DeviceData/PropertyDictionary for a list of valid properties.
+See https://51degrees.com/resources/property-dictionary for a list of valid properties.
 
 Example: 
 
