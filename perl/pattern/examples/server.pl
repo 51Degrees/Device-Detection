@@ -69,9 +69,11 @@
 	if ('Lite' == $provider->getDataSetName()) {
 		$dataOptions = '<a class="button" target="_blank" href="https://51degrees.com/compare-data-options" title="Compare Premium and Enterprise Data Options">Compare Data Options</a>';
 	}
-	my $methodHyperLink = '<a class="button" target="_blank" href="https://51degrees.com/support/documentation/pattern" title="How Pattern Device Detection Works">About Metrics</a>';
-	my $propertiesHyperLink = '<a class="button" target="_blank" href="https://51degrees.com/resources/property-dictionary" title="Review All Properties">More Properties</a>';
-	my $propertyNotFound = '<a target="_blank" href="https://51degrees.com/compare-data-options">Switch Data Set</a>';
+	my $methodHyperLinkUA = '<a class="button" target="_blank" href="https://51degrees.com/support/documentation/pattern?utm_source=github&utm_medium=repository&utm_content=example_pattern_ua&utm_campaign=perl-open-source" title="How Pattern Device Detection Works">About Metrics</a>';
+	my $propertiesHyperLinkUA = '<a class="button" target="_blank" href="https://51degrees.com/resources/property-dictionary?utm_source=github&utm_medium=repository&utm_content=example_pattern_properties_ua&utm_campaign=perl-open-source" title="Review All Properties">More Properties</a>';
+	my $methodHyperLinkHeaders = '<a class="button" target="_blank" href="https://51degrees.com/support/documentation/pattern?utm_source=github&utm_medium=repository&utm_content=example_pattern_headers&utm_campaign=perl-open-source" title="How Pattern Device Detection Works">About Metrics</a>';
+	my $propertiesHyperLinkHeaders = '<a class="button" target="_blank" href="https://51degrees.com/resources/property-dictionary?utm_source=github&utm_medium=repository&utm_content=example_pattern_properties_headers&utm_campaign=perl-open-source" title="Review All Properties">More Properties</a>';
+	my $propertyNotFound = '<a target="_blank" href="https://51degrees.com/compare-data-options?utm_source=github&utm_medium=repository&utm_content=example_pattern_compare&utm_campaign=perl-open-source">Switch Data Set</a>';
 
     # Relate URL paths to response handlers.
     my %dispatch = (
@@ -123,14 +125,6 @@
 	sub resp_match {
 		my $match = shift;
 
-        print '<table>';
-        print '<tr><th colspan="2">Match Metrics</th><td rowspan="5">' . $methodHyperLink . '</td></tr>';
-        print '<tr><td>Id</td><td>' . $match->getDeviceId() . '</td></tr>';
-        print '<tr><td>Method</td><td>' . $match->getMethod() . '</td></tr>';
-        print '<tr><td>Difference</td><td>' . $match->getDifference() . '</td></tr>';
-        print '<tr><td>Rank</td><td>' . $match->getRank() . '</td></tr>';
-
-        print '<tr><th colspan="2">Device Properties</th><td rowspan="' . $propertyRows . '">' . $propertiesHyperLink . '</td></tr>';
         foreach $property (split(',', $propertyList)) {
             my $values = $match->getValues($property);
 			print '<tr><td><a target="_blank" href="https://51degrees.com/resources/property-dictionary#' . $property .
@@ -177,7 +171,17 @@
         print '<tr><th colspan="2">Match from User-Agent</th></tr>';
         print '<tr><td>User-Agent</td><td>' . $userAgent . '</td></tr>';
         print '</table>';
-		resp_match($provider->getMatch($userAgent));
+
+	my $match = $provider->getMatch($userAgent);
+        print '<table>';
+        print '<tr><th colspan="2">Match Metrics</th><td rowspan="5">' . $methodHyperLinkUA . '</td></tr>';
+        print '<tr><td>Id</td><td>' . $match->getDeviceId() . '</td></tr>';
+        print '<tr><td>Method</td><td>' . $match->getMethod() . '</td></tr>';
+        print '<tr><td>Difference</td><td>' . $match->getDifference() . '</td></tr>';
+        print '<tr><td>Rank</td><td>' . $match->getRank() . '</td></tr>';
+
+        print '<tr><th colspan="2">Device Properties</th><td rowspan="' . $propertyRows . '">' . $propertiesHyperLinkUA . '</td></tr>';
+		resp_match($match);
 
         # Display the matching device details for the HTTP headers.
 		print '<table>';
@@ -193,7 +197,17 @@
 			print '</td></tr>';
 		}
         print '</table>';
-		resp_match($provider->getMatch($matchingHttpHeaders));
+
+	my $match = $provider->getMatch($matchingHttpHeaders);
+        print '<table>';
+        print '<tr><th colspan="2">Match Metrics</th><td rowspan="5">' . $methodHyperLinkHeaders . '</td></tr>';
+        print '<tr><td>Id</td><td>' . $match->getDeviceId() . '</td></tr>';
+        print '<tr><td>Method</td><td>' . $match->getMethod() . '</td></tr>';
+        print '<tr><td>Difference</td><td>' . $match->getDifference() . '</td></tr>';
+        print '<tr><td>Rank</td><td>' . $match->getRank() . '</td></tr>';
+
+        print '<tr><th colspan="2">Device Properties</th><td rowspan="' . $propertyRows . '">' . $propertiesHyperLinkHeaders . '</td></tr>';
+		resp_match($match);
 
 		print '</div>';
 		print '</body>';

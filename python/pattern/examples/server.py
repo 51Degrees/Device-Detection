@@ -18,8 +18,8 @@ from FiftyOneDegrees import fiftyone_degrees_mobile_detector_v3_wrapper
 ####################################################
 
 dataOptions = '<a class="button" target="_blank" href="https://51degrees.com/compare-data-options?utm_source=github&utm_medium=repository&utm_content=server_pattern_compare&utm_campaign=python-open-source" title="Compare Premium and Enterprise Data Options">Compare Data Options</a>'
-methodHyperLink = '<a class="button" target="_blank" href="https://51degrees.com/support/documentation/pattern" title="How Pattern Device Detection Works">About Metrics</a>'
-0
+methodHyperLinkUA = '<a class="button" target="_blank" href="https://51degrees.com/support/documentation/pattern?utm_source=github&utm_medium=repository&utm_content=example_pattern_ua&utm_campaign=python-open-source" title="How Pattern Device Detection Works">About Metrics</a>'
+methodHyperLinkHeaders = '<a class="button" target="_blank" href="https://51degrees.com/support/documentation/pattern?utm_source=github&utm_medium=repository&utm_content=example_pattern_headers&utm_campaign=python-open-source" title="How Pattern Device Detection Works">About Metrics</a>'
 propertiesHyperLinkUA = '<a class="button" target="_blank" href="https://51degrees.com/resources/property-dictionary?utm_source=github&utm_medium=repository&utm_content=server_pattern_properties_ua&utm_campaign=python-open-source" title="Review All Properties">All Properties</a>'
 propertiesHyperLinkHeaders = '<a class="button" target="_blank" href="https://51degrees.com/resources/property-dictionary?utm_source=github&utm_medium=repository&utm_content=server_pattern_properties_headers&utm_campaign=python-open-source" title="Review All Properties">All Properties</a>'
 propertyNotFound = '<a target="_blank" href="https://51degrees.com/compare-data-options?utm_source=github&utm_medium=repository&utm_content=server_pattern_compare&utm_campaign=python-open-source">Switch Data Set</a>'
@@ -95,7 +95,7 @@ class GetHandler(CGIHTTPServer.CGIHTTPRequestHandler):
 # Output properties from match
 #######################################################
 
-	self.outputProperties(match, propertiesHyperLinkUA)
+	self.outputProperties(match, propertiesHyperLinkUA, methodHyperLinkUA)
 
 ########################################################
 # Set http headers from browser
@@ -125,7 +125,7 @@ class GetHandler(CGIHTTPServer.CGIHTTPRequestHandler):
 # Output properties
 ########################################################
 
-	self.outputProperties(match, propertiesHyperLinkHeaders)
+	self.outputProperties(match, propertiesHyperLinkHeaders, methodHyperLinkHeaders)
 
 #######################################################
 # End html formatting
@@ -139,7 +139,7 @@ class GetHandler(CGIHTTPServer.CGIHTTPRequestHandler):
 # Function which outputs match properties in table
 #########################################################
 
-    def outputProperties(self, match, propertiesHyperLink):
+    def outputProperties(self, match, propertiesHyperLink, methodHyperLink):
         self.wfile.write('<table>')
         self.wfile.write('<tr><th colspan="2">Match Metrics</th><td rowspan="5">%s</td></tr>' % methodHyperLink)
         self.wfile.write('<tr><td>Id</td><td>%s</td></tr>' % match.getDeviceId())
