@@ -72,7 +72,7 @@ typedef enum e_fiftyoneDegrees_DataSetInitStatus {
 typedef struct fiftyoneDegreesRange_t {
 	const int16_t lower;
 	const int16_t upper;
-} fiftyoneDegreesRANGE;
+} fiftyoneDegreesRange;
 
 #pragma pack(push, 1)
 typedef struct fiftyoneDegrees_ascii_string_t {
@@ -212,7 +212,7 @@ typedef struct fiftyoneDegrees_numeric_node_state {
 	int32_t target;
 	const fiftyoneDegreesNode *node;
 	const fiftyoneDegreesNodeNumericIndex *firstNodeNumericIndex;
-	const fiftyoneDegreesRANGE *range;
+	const fiftyoneDegreesRange *range;
 	int32_t startIndex;
 	int32_t lowIndex;
 	int32_t highIndex;
