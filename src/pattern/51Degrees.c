@@ -56,7 +56,7 @@
 #define FALSE 0
 
 /* Ranges used when performing a numeric match */
-const fiftyoneDegreesRANGE RANGES[] = {
+const fiftyoneDegreesRange RANGES[] = {
 		{ 0, 10 },
 		{ 10, 100 },
 		{ 100, 1000 },
@@ -64,7 +64,7 @@ const fiftyoneDegreesRANGE RANGES[] = {
 		{ 10000, SHRT_MAX }
 };
 
-#define RANGES_COUNT sizeof(RANGES) / sizeof(fiftyoneDegreesRANGE)
+#define RANGES_COUNT sizeof(RANGES) / sizeof(fiftyoneDegreesRange)
 
 const int16_t POWERS[] = { 1, 10, 100, 1000, 10000 };
 
@@ -2208,17 +2208,19 @@ int32_t getCurrentPositionAsNumeric(fiftyoneDegreesWorkset *ws, const fiftyoneDe
 }
 
 /**
- * Determines the integer ranges that can be compared to the target.
- * @param state whose range field needs to be set
+ * Gets the integer ranges for the target integer.
+ * @param target whose range needs to be returned
+ * @returns the range of values that relate to the target
  */
-void setRange(fiftyoneDegreesNumericNodeState *state) {
+const fiftyoneDegreesRange* getRange(int target) {
 	int32_t index;
 	for (index = 0; index < RANGES_COUNT; index++) {
-		if (state->target >= RANGES[index].lower &&
-			state->target < RANGES[index].upper) {
-			state->range = &RANGES[index];
+		if (target >= RANGES[index].lower &&
+			target < RANGES[index].upper) {
+			return &RANGES[index];
 		}
 	}
+	return &RANGES[RANGES_COUNT - 1];
 }
 
 /**
@@ -2255,7 +2257,7 @@ int32_t binarySearchNumericChildren(const fiftyoneDegreesNode *node, fiftyoneDeg
  */
 void setNumericNodeState(const fiftyoneDegreesNode *node, fiftyoneDegreesNumericNodeState *state) {
 	if (state->target >= 0 && state->target <= SHRT_MAX) {
-		setRange(state);
+		state->range = getRange(state->target);
 		state->node = node;
 		state->firstNodeNumericIndex = getFirstNumericIndexForNode(node);
 
