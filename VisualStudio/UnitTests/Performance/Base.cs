@@ -51,7 +51,7 @@ namespace FiftyOne.UnitTests.Performance
         {
             var results = Utils.DetectLoopMultiThreaded(
                 _wrapper,
-                UserAgentGenerator.GetBadUserAgents(),
+                UserAgentGenerator.GetBadUserAgents(100000),
                 Utils.GetAllProperties,
                 RequiredProperties);
             Assert.IsTrue(results.AverageTime.TotalMilliseconds < guidanceTime,
@@ -65,7 +65,7 @@ namespace FiftyOne.UnitTests.Performance
         {
             var results = Utils.DetectLoopSingleThreaded(
                 _wrapper,
-                UserAgentGenerator.GetBadUserAgents(),
+                UserAgentGenerator.GetBadUserAgents(100000),
                 Utils.GetAllProperties,
                 RequiredProperties);
             Assert.IsTrue(results.AverageTime.TotalMilliseconds < guidanceTime,
