@@ -28,6 +28,17 @@
 %{
 	#include "Provider.hpp"
 	#include "Match.hpp"
+
+	#ifdef SWIGPHP
+	Provider *provider;
+
+	PHP_INI_BEGIN()
+	PHP_INI_ENTRY("FiftyOneDegreesPatternV3.data_file", "/usr/lib/php5/51Degrees.dat", PHP_INI_ALL, NULL)
+	PHP_INI_ENTRY("FiftyOneDegreesPatternV3.pool_size", "10", PHP_INI_ALL, NULL)
+	PHP_INI_ENTRY("FiftyOneDegreesPatternV3.cache_size", "10000", PHP_INI_ALL, NULL)
+	PHP_INI_ENTRY("FiftyOneDegreesPatternV3.property_list", NULL, PHP_INI_ALL, NULL)
+	PHP_INI_END()
+	#endif
 %}
 
 %include exception.i
@@ -66,6 +77,26 @@
  * Allow partial C# classes
  */
 %typemap(csclassmodifiers) SWIGTYPE "public partial class"
+
+
+#ifdef SWIGPHP
+/*
+ * PHP global variable for the Provider
+ */
+%immutable provider;
+Provider *provider;
+
+%minit {
+
+	REGISTER_INI_ENTRIES();
+	char *filePath = INI_STR("FiftyOneDegreesPatternV3.data_file");
+	int poolSize = INI_INT("FiftyOneDegreesPatternV3.pool_size");
+	int cacheSize = INI_INT("FiftyOneDegreesPatternV3.cache_size");
+	char *propertyList = INI_STR("FiftyOneDegreesPatternV3.property_list");
+
+	provider = new Provider(filePath, propertyList, cacheSize, poolSize);
+}
+#endif
 
 class Match {
 
@@ -114,4 +145,7 @@ class Provider {
 
     std::string getMatchJson(const std::string &userAgent);
     std::string getMatchJson(const std::map<std::string, std::string> &headers);
+
+    Match* getMatchForDeviceId(std::string deviceIdString);
+    Match* getMatchForDeviceIds(vector<int> deviceId, int size);
 };
