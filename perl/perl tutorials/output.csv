@@ -1,0 +1,21 @@
+User-Agent|IsMobile|BrowserName
+Mozilla/5.0 (compatible; bingbot/2.0; +http://www.bing.com/bingbot.htm)|False|Unknown
+Mozilla/5.0 (compatible; Googlebot/2.1; +http://www.google.com/bot.html)|False|Unknown
+Mozilla/5.0 (Windows NT 6.1; WOW64; Trident/7.0; rv:11.0) like Gecko|False|Internet Explorer
+Mozilla/5.0 (compatible; Baiduspider/2.0; +http://www.baidu.com/search/spider.html)|False|Unknown
+Mozilla/5.0 (compatible; AhrefsBot/5.0; +http://ahrefs.com/robot/)|False|Unknown
+Amazon CloudFront|False|Unknown
+Mozilla/5.0 (iPhone; CPU iPhone OS 6_0 like Mac OS X) AppleWebKit/536.26 (KHTML, like Gecko) Version/6.0 Mobile/10A5376e Safari/8536.25 (compatible; Googlebot/2.1; +http://www.google.com/bot.html)|True|Mobile Safari
+Mozilla/5.0 (compatible; Yahoo! Slurp; http://help.yahoo.com/help/us/ysearch/slurp)|False|Unknown
+Mozilla/5.0 (iPhone; CPU iPhone OS 7_1_2 like Mac OS X) AppleWebKit/537.51.2 (KHTML, like Gecko) Version/7.0 Mobile/11D257 Safari/9537.53|True|Mobile Safari
+Pingdom.com_bot_version_1.4_(http://www.pingdom.com/)|False|Unknown
+Mozilla/5.0 (compatible; MSIE 9.0; Windows NT 6.1; WOW64; Trident/5.0)|False|Internet Explorer
+Mozilla/5.0 (Windows NT 6.1; Trident/7.0; rv:11.0) like Gecko|False|Internet Explorer
+Mozilla/5.0 (iPad; CPU OS 7_1_2 like Mac OS X) AppleWebKit/537.51.2 (KHTML, like Gecko) Version/7.0 Mobile/11D257 Safari/9537.53|True|Mobile Safari
+Mozilla/5.0 (compatible; YandexBot/3.0; +http://yandex.com/bots)|False|Unknown
+Mozilla/5.0 (compatible; MJ12bot/v1.4.5; http://www.majestic12.co.uk/bot.php?+)|False|Unknown
+Mozilla/5.0 (iPhone; CPU iPhone OS 7_1_1 like Mac OS X) AppleWebKit/537.51.2 (KHTML, like Gecko) Version/7.0 Mobile/11D201 Safari/9537.53|True|Mobile Safari
+Mozilla/5.0 (compatible; MSIE 9.0; Windows NT 6.1; Trident/5.0)|False|Internet Explorer
+Mozilla/5.0 (Windows NT 6.3; WOW64; Trident/7.0; rv:11.0) like Gecko|False|Internet Explorer
+Mozilla/5.0 (Windows NT 6.1; WOW64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/35.0.1916.153 Safari/537.36|False|Chrome
+Mozilla/5.0 (compatible; MSIE 10.0; Windows NT 6.1; WOW64; Trident/6.0)|False|Internet Explorer
