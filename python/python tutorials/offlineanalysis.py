@@ -17,10 +17,14 @@ the CSV.
 # // Snippet Start
 from FiftyOneDegrees import fiftyone_degrees_mobile_detector_v3_wrapper
 from fiftyone_degrees.mobile_detector.conf import settings
+import sys
+
 dataFile = settings.V3_WRAPPER_DATABASE
-properties = 'IsMobile,BrowserName'
+properties = 'IsMobile,PlatformName,PlatformVersion'
 cacheSize =  settings.CACHE_SIZE
 poolSize = settings.POOL_SIZE
+
+outputFile = 'offlineProcessingOutput.csv'
 
 provider = fiftyone_degrees_mobile_detector_v3_wrapper.Provider(
 	dataFile,
@@ -28,23 +32,31 @@ provider = fiftyone_degrees_mobile_detector_v3_wrapper.Provider(
 	cacheSize,
 	poolSize)
 
-fin = open('20000 User Agents.csv', 'r')
-fout = open('output.csv', 'w')
-fout.write('User-Agent')
-for name in properties.split(','):
-	fout.write('|' + name)
-
-fout.write('\n')
-i = 0
-while i < 20 :
-	userAgent = fin.readline().rstrip('\n')
-	fout.write(userAgent)
-	device = provider.getMatch(userAgent)
+def output_offline_processing():
+	fin = open('../../data/20000 User Agents.csv', 'r')
+	fout = open(outputFile, 'w')
+	fout.write('User-Agent')
 	for name in properties.split(','):
-		value = device.getValue(name)
-		fout.write('|' + value)
+		fout.write('|' + name)
+
 	fout.write('\n')
-	i = i + 1
-fin.close()
-fout.close()
+	i = 0
+	while i < 20 :
+		userAgent = fin.readline().rstrip('\n')
+		fout.write(userAgent)
+		device = provider.getMatch(userAgent)
+		for name in properties.split(','):
+			value = device.getValue(name)
+			fout.write('|' + value)
+		fout.write('\n')
+		i = i + 1
+	fin.close()
+	fout.close()
+
+def main():
+	sys.stdout.write('Stating Offline Processing\n')
+	output_offline_processing()
+	sys.stdout.write('Output Writen to %s\n' % outputFile)
+if __name__ == '__main__':
+	main()
 # // Snippet End

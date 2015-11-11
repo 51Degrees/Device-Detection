@@ -1,14 +1,70 @@
 #!/usr/bin/env python
 '''
+This Source Code Form is copyright of 51Degrees Mobile Experts Limited.
+Copyright (c) 2015 51Degrees Mobile Experts Limited, 5 Charlotte Close,
+Caversham, Reading, Berkshire, United Kingdom RG4 7BY
+
+This Source Code Form is the subject of the following patent
+applications, owned by 51Degrees Mobile Experts Limited of 5 Charlotte
+Close, Caversham, Reading, Berkshire, United Kingdom RG4 7BY:
+European Patent Application No. 13192291.6; and
+United States Patent Application Nos. 14/085,223 and 14/085,301.
+
+This Source Code Form is subject to the terms of the Mozilla Public
+License, v. 2.0.
+
+If a copy of the MPL was not distributed with this file, You can obtain
+one at http://mozilla.org/MPL/2.0/.
+
+This Source Code Form is "Incompatible With Secondary Licenses", as
+defined by the Mozilla Public License, v. 2.0.
+'''
+
+'''
 <turorial>
+Getting started example of using 51Degrees device detection match metrics 
+information. The example shows how to:
 <ol>
-<li>Imports the detector and settings modules,
-<li>Sets the data file, properties, cache size and pool size,
-<li>Initialises the provider,
-<li>Sets a User-Agent,
-<li>Gets a match for the User-Agent. This returns a match object,
-<li>Lists the match metrics for the matched device.
+<li>Import settings from the 51Degrees settings file
+<p><code>
+dataFile = settings.V3_WRAPPER_DATABASE<br>
+properties = settings.PROPERTIES<br>
+cacheSize = settings.CACHE_SIZE<br>
+poolSize = settings.POOL_SIZE<br>
+</code></p>
+<li>Instantiate the 51Degrees device detection provider with these
+properties
+<p><code>
+provider = fiftyone_degrees_mobile_detector_v3_wrapper.Provider(dataFile,
+	properties,
+	cacheSize,
+	poolSize)
+</code></p>
+<li>Produce a match for a single HTTP User-Agent header
+<p><code>
+match = provider.getMatch(userAgent)
+</code><p>
+<li>Obtain device Id: consists of four components separated by a hyphen 
+symbol: Hardware-Platform-Browser-IsCrawler where each Component 
+represents an ID of the corresponding Profile.
+<p><code>match.getDeviceId()</code>
+<li>obtain match method: provides information about the 
+algorithm that was used to perform detection for a particular User-Agent. 
+For more information on what each method means please see: 
+<a href="https://51degrees.com/support/documentation/pattern">
+How device detection works</a>
+<p><code>match.getMethod()</code>
+<li>obtain difference:  used when detection method is not Exact or None. 
+This is an integer value and the larger the value the less confident the 
+detector is in this result.
+<p><code>match.getDifference()</code>
+<li>obtain signature rank: an integer value that indicates how popular 
+the device is. The lower the rank the more popular the signature.
+<p><code>match.getRank()</code>
 </ol>
+This example can be run in any directory, but assumes your
+settings file contains a valid dataFile location and has the
+IsMobile property selected.
 </turorial>
 '''
 # // Snippet Start
@@ -16,11 +72,25 @@ from FiftyOneDegrees import fiftyone_degrees_mobile_detector_v3_wrapper
 from fiftyone_degrees.mobile_detector.conf import settings
 import sys
 
+'''
+Imports settings from the settings file. The Default settings file, and
+details on how to change it can be output by running the command
+<p><code>
+51degrees-mobile-detector settings
+</p></code>
+'''
 dataFile = settings.V3_WRAPPER_DATABASE
-properties = 'BrowserName,BrowserVendor,BrowserVersion,DeviceType,HardwareVendor,IsTablet,IsMobile,IsCrawler,ScreenInchesDiagonal,ScreenPixelsWidth'
+properties = settings.PROPERTIES
 cacheSize = settings.CACHE_SIZE
 poolSize = settings.POOL_SIZE
 
+'''
+Initialises the device detection provider with settings from the settings
+file. By default this will use the included Lite data file For more info
+see:
+<a href="https://51degrees.com/compare-data-options">compare data options
+</a>
+'''
 provider = fiftyone_degrees_mobile_detector_v3_wrapper.Provider(dataFile,
 properties,
 cacheSize,
@@ -35,18 +105,28 @@ desktopUserAgent = "Mozilla/5.0 (Windows NT 6.3; WOW64; rv:41.0) Gecko/20100101 
 # User-Agent string of a MediaHub device.
 mediaHubUserAgent = "Mozilla/5.0 (Linux; Android 4.4.2; X7 Quad Core Build/KOT49H) AppleWebKit/537.36 (KHTML, like Gecko) Version/4.0 Chrome/30.0.0.0 Safari/537.36"
 
+'''
+output_metadata function. Takes a match object as an argument and
+prints the meta data relating to the specific match.
+'''
 def output_metadata(match):
 	sys.stdout.write('   Id: %s\n' % match.getDeviceId())
 	sys.stdout.write('   MatchMethod: %s\n' % match.getMethod())
 	sys.stdout.write('   Difference: %s\n' % match.getDifference())
 	sys.stdout.write('   Rank: %s\n' % match.getRank())
+
 def main():
+	sys.stdout.write('Starting Getting Started Match Metrics Example.\n')
+
+# Carries out a match with a mobile User-Agent.
 	sys.stdout.write('Mobile User-Agent: %s\n' % mobileUserAgent)
 	match = provider.getMatch(mobileUserAgent)
 	output_metadata(match)
+# Carries out a match with a desktop User-Agent.
 	sys.stdout.write('Desktop User-Agent: %s\n' % desktopUserAgent)
 	match = provider.getMatch(mobileUserAgent)
 	output_metadata(match)
+# Carries out a match with a MediaHub User-Agent.
 	sys.stdout.write('Media Hub User-Agent: %s\n' % mediaHubUserAgent)
 	match = provider.getMatch(mobileUserAgent)
 	output_metadata(match)
