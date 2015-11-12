@@ -88,6 +88,7 @@ my $propertyList = "IsMobile,PlatformName,PlatformVersion";
 my $cacheSize = 10000;
 my $poolSize = 20;
 
+my $inputFile = "../../data/20000 User Agents.csv";
 my $outputFile = "offlineProcessingOutput.csv";
 
 # Initialises the device detection provider with the settings declared above.
@@ -110,7 +111,7 @@ say "Starting Offline Processing.";
 # the column titles. Then reads the first 20 User-Agents from the input
 # file, runs a match for each and writes results to the output file.
 
-open my $file_in, "../../data/20000 User Agents.csv";
+open my $file_in, $inputFile;
 open file_out, ">$outputFile";
 
 print file_out "User-Agent";

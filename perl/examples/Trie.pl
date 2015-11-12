@@ -22,24 +22,20 @@ defined by the Mozilla Public License, v. 2.0.
 
 =tutorial
 <tutorial>
-Getting started example of using 51Degrees device detection. The example
+Getting started example of using 51Degrees trie device detection. The example
 shows how to:
 <ol>
 <li>Set the various settings for 51Degrees detector
 <p><code>
-my $filename = "51Degrees-LiteV3.2.dat";<br>
+my $filename = "51Degrees-LiteV3.2.trie";<br>
 my $propertyList = "IsMobile"<br>
-my $cacheSize = 10000;<br>
-my $poolSize = 20;
 </code></p>
 <li>Instantiate the 51Degrees device detection provider with these
 properties
 <p><code>
-my $provider = new FiftyOneDegrees::PatternV3::Provider(
-	$dataFile,
-	$properties,
-	$cacheSize,
-	$poolSize);
+my $provider = new FiftyOneDegrees::TrieV3::Provider(<br>
+	$dataFile,<br>
+	$properties);
 </code></p>
 <li>Produce a match for a single HTTP User-Agent header
 <p><code>
@@ -52,25 +48,32 @@ $match->getValue('IsMobile')
 </ol>
 This example assumes you are running from the original subdirectory
 i.e. Device-Detection/perl/examples/ and the 51Degrees Perl module
-is installed. 
+is installed.
+By comparing this to the gettingstarted.pl example which uses the 
+pattern method, you can see the differences are the module name, the
+data file, and it does not use a cache or pool, so these do not need
+to be set.
 </tutorial>
 =cut
-use FiftyOneDegrees::PatternV3;
+use FiftyOneDegrees::TrieV3;
 use feature qw/say/;
 
-my $filename = "../../data/51Degrees-LiteV3.2.dat";
+my $filename = "../../data/51Degrees-LiteV3.2.trie";
 my $propertyList = "IsMobile";
-my $cacheSize = 10000;
-my $poolSize = 20;
 
 # User-Agent string of an iPhone mobile device.
-my $mobileUserAgent = "Mozilla/5.0 (iPhone; CPU iPhone OS 7_1 like Mac OS X) AppleWebKit/537.51.2 (KHTML, like Gecko) 'Version/7.0 Mobile/11D167 Safari/9537.53";
+my $mobileUserAgent = "Mozilla/5.0 (iPhone; CPU iPhone OS 7_1 like Mac OS X) ".
+"AppleWebKit/537.51.2 (KHTML, like Gecko) 'Version/7.0 ".
+"Mobile/11D167 Safari/9537.53";
 
 # User-Agent string of Firefox Web browser version 41 on dektop.
-my $desktopUserAgent = "Mozilla/5.0 (Windows NT 6.3; WOW64; rv:41.0) Gecko/20100101 Firefox/41.0";
+my $desktopUserAgent = "Mozilla/5.0 (Windows NT 6.3; WOW64; rv:41.0) ".
+"Gecko/20100101 Firefox/41.0";
 
 # User-Agent string of a MediaHub device.
-my $mediaHubUserAgent = "Mozilla/5.0 (Linux; Android 4.4.2; X7 Quad Core Build/KOT49H) AppleWebKit/537.36 (KHTML, like Gecko) Version/4.0 Chrome/30.0.0.0 Safari/537.36";
+my $mediaHubUserAgent = "Mozilla/5.0 (Linux; Android 4.4.2; X7 Quad Core ".
+"Build/KOT49H) AppleWebKit/537.36 (KHTML, like Gecko) Version/4.0 ".
+"Chrome/30.0.0.0 Safari/537.36";
 
 # Initialises the device detection provider with the settings declared above.
 # This uses Lite data file. For more info
@@ -78,29 +81,27 @@ my $mediaHubUserAgent = "Mozilla/5.0 (Linux; Android 4.4.2; X7 Quad Core Build/K
 # <a href="https://51degrees.com/compare-data-options">compare data options
 # </a>
 
-my $provider = new FiftyOneDegrees::PatternV3::Provider(
+my $provider = new FiftyOneDegrees::TrieV3::Provider(
 	$filename,
-	$propertyList,
-	$cacheSize,
-	$poolSize);
+	$propertyList);
 
-say "Starting Getting Started Example.";
+say "Starting Getting Started Trie Example.";
 
 # Carries out a match with a mobile User-Agent.
 say "\nMobile User-Agent: $mobileUserAgent";
 my $match = $provider->getMatch($mobileUserAgent);
 my $isMobile =  $match->getValue("IsMobile");
-say "IsMobile: $isMobile";
+say "   IsMobile: $isMobile";
 
 # Carries out a desktop with a mobile User-Agent.
 say "\nDesktop User-Agent: $desktopUserAgent";
 my $match = $provider->getMatch($desktopUserAgent);
 my $isMobile =  $match->getValue("IsMobile");
-say "IsMobile: $isMobile";
+say "   IsMobile: $isMobile";
 
 # Carries out a MediaHub with a mobile User-Agent.
 say "\nMediaHub User-Agent: $mediaHubUserAgent";
 my $match = $provider->getMatch($mediaHubUserAgent);
 my $isMobile =  $match->getValue("IsMobile");
-say "IsMobile: $isMobile";
+say "   IsMobile: $isMobile";
 

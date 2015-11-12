@@ -35,40 +35,43 @@ poolSize = settings.POOL_SIZE<br>
 <li>Instantiate the 51Degrees device detection provider with these
 properties
 <p><code>
-provider = fiftyone_degrees_mobile_detector_v3_wrapper.Provider(dataFile,
-	properties,
-	cacheSize,
+provider = fiftyone_degrees_mobile_detector_v3_wrapper.Provider(dataFile,<br>
+	properties,<br>
+	cacheSize,<br>
 	poolSize)
 </code></p>
 <li>Open an input file with a list of User-Agents, and an output file,
 <p><code>
-fin = open('../../data/20000 User Agents.csv', 'r')
+fin = open('../../data/20000 User Agents.csv', 'r')<br>
 fout = open(outputFile, 'w')
 </code></p>
 <li>Write a header to the output file with the property names in '|'
 separated CSV format ('|' sepparated because some User-Agents contain
 commas)
 <p><code>
-fout.write('User-Agent')
-for name in properties.split(','):
-	fout.write('|' + name)
+fout.write('User-Agent')<br>
+for name in properties.split(','):<br>
+	fout.write('|' + name)<br>
 fout.write('\n')
 </code></p>
 <li>For the first 20 User-Agents in the input file, performa match then
 write the User-Agent along with the values for chosen properties to
 the CSV.
 <p><code>
-while i < 20 :
-	userAgent = fin.readline().rstrip('\n')
-	fout.write(userAgent)
-	device = provider.getMatch(userAgent)
-	for name in properties.split(','):
-		value = device.getValue(name)
-		fout.write('|' + value)
-	fout.write('\n')
+while i < 20 :<br>
+	userAgent = fin.readline().rstrip('\n')<br>
+	fout.write(userAgent)<br>
+	device = provider.getMatch(userAgent)<br>
+	for name in properties.split(','):<br>
+		value = device.getValue(name)<br>
+		fout.write('|' + value)<br>
+	fout.write('\n')<br>
 	i = i + 1
 </code></p>
 </ol>
+This example can be run in any directory, but assumes your
+settings file contains a valid dataFile location and has the
+IsMobile property selected.
 </tutorial>
 '''
 # // Snippet Start
@@ -81,6 +84,7 @@ properties = 'IsMobile,PlatformName,PlatformVersion'
 cacheSize =  settings.CACHE_SIZE
 poolSize = settings.POOL_SIZE
 
+inputFile = '../../data/20000 User Agents.csv'
 outputFile = 'offlineProcessingOutput.csv'
 
 provider = fiftyone_degrees_mobile_detector_v3_wrapper.Provider(
@@ -90,7 +94,7 @@ provider = fiftyone_degrees_mobile_detector_v3_wrapper.Provider(
 	poolSize)
 
 def output_offline_processing():
-	fin = open('../../data/20000 User Agents.csv', 'r')
+	fin = open(inputFile, 'r')
 	fout = open(outputFile, 'w')
 	fout.write('User-Agent')
 	for name in properties.split(','):
@@ -101,12 +105,12 @@ def output_offline_processing():
 	while i < 20 :
 		userAgent = fin.readline().rstrip('\n')
 		fout.write(userAgent)
-		device = provider.getMatch(userAgent)
+		match = provider.getMatch(userAgent)
 		for name in properties.split(','):
-			value = device.getValue(name)
+			value = match.getValue(name)
 			fout.write('|' + value)
 		fout.write('\n')
-		i = i + 1
+		i += 1
 	fin.close()
 	fout.close()
 
