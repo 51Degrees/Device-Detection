@@ -106,12 +106,12 @@ desktopUserAgent = "Mozilla/5.0 (Windows NT 6.3; WOW64; rv:41.0) Gecko/20100101 
 mediaHubUserAgent = "Mozilla/5.0 (Linux; Android 4.4.2; X7 Quad Core Build/KOT49H) AppleWebKit/537.36 (KHTML, like Gecko) Version/4.0 Chrome/30.0.0.0 Safari/537.36"
 
 '''
-output_metadata function. Takes a match object as an argument and
-prints the meta data relating to the specific match.
+output_metrics function. Takes a match object as an argument and
+prints the match metrics relating to the specific match.
 '''
-def output_metadata(match):
+def output_metrics(match):
 	sys.stdout.write('   Id: %s\n' % match.getDeviceId())
-	sys.stdout.write('   MatchMethod: %s\n' % match.getMethod())
+	sys.stdout.write('   Match Method: %s\n' % match.getMethod())
 	sys.stdout.write('   Difference: %s\n' % match.getDifference())
 	sys.stdout.write('   Rank: %s\n' % match.getRank())
 
@@ -121,15 +121,15 @@ def main():
 # Carries out a match with a mobile User-Agent.
 	sys.stdout.write('Mobile User-Agent: %s\n' % mobileUserAgent)
 	match = provider.getMatch(mobileUserAgent)
-	output_metadata(match)
+	output_metrics(match)
 # Carries out a match with a desktop User-Agent.
 	sys.stdout.write('Desktop User-Agent: %s\n' % desktopUserAgent)
 	match = provider.getMatch(mobileUserAgent)
-	output_metadata(match)
+	output_metrics(match)
 # Carries out a match with a MediaHub User-Agent.
 	sys.stdout.write('Media Hub User-Agent: %s\n' % mediaHubUserAgent)
 	match = provider.getMatch(mobileUserAgent)
-	output_metadata(match)
+	output_metrics(match)
 
 if __name__ == '__main__':
 	main()

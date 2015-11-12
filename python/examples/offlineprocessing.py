@@ -111,7 +111,7 @@ def output_offline_processing():
 	fout.close()
 
 def main():
-	sys.stdout.write('Stating Offline Processing\n')
+	sys.stdout.write('Starting Offline Processing\n')
 	output_offline_processing()
 	sys.stdout.write('Output Writen to %s\n' % outputFile)
 if __name__ == '__main__':
