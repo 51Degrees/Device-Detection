@@ -80,7 +80,7 @@ from fiftyone_degrees.mobile_detector.conf import settings
 import sys
 
 dataFile = settings.V3_WRAPPER_DATABASE
-properties = 'IsMobile,PlatformName,PlatformVersion'
+properties = settings.PROPERTIES
 cacheSize =  settings.CACHE_SIZE
 poolSize = settings.POOL_SIZE
 
