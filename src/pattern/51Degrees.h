@@ -751,6 +751,13 @@ EXTERNAL int32_t fiftyoneDegreesGetSignatureAsString(fiftyoneDegreesWorkset *ws,
 EXTERNAL int32_t fiftyoneDegreesGetDeviceId(fiftyoneDegreesWorkset *ws, char *deviceId, int size);
 
 /**
+ * Sets the workset for the device Id provided.
+ * @param ws pointer to the work set associated with the match.
+ * @param deviceId string representation of the device id to use for the match.
+ */
+EXTERNAL void fiftyoneDegreesMatchForDeviceId(fiftyoneDegreesWorkset *ws, char *deviceId);
+
+/**
  * OBSOLETE METHODS - RETAINED FOR BACKWARDS COMPAITABILITY
  */
 
