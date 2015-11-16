@@ -117,7 +117,7 @@ def output_offline_processing():
 def main():
 	sys.stdout.write('Starting Offline Processing\n')
 	output_offline_processing()
-	sys.stdout.write('Output Writen to %s\n' % outputFile)
+	sys.stdout.write('Output Written to %s\n' % outputFile)
 if __name__ == '__main__':
 	main()
 # // Snippet End
