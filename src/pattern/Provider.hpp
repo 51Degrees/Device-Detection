@@ -77,8 +77,7 @@ class Provider {
         string getMatchJson(const string &userAgent);
         string getMatchJson(const map<string, string> &headers);
 
-        Match* getMatchForDeviceId(std::string deviceIdString);
-        Match* getMatchForDeviceIds(vector<std::string> deviceId);
+		Match* getMatchForDeviceId(const string &deviceId);
 
 	protected:
 

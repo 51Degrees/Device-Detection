@@ -2393,8 +2393,6 @@ const fiftyoneDegreesNode* getCompleteNumericNode(fiftyoneDegreesWorkset *ws, co
 	return foundNode;
 }
 
-
-
 /**
  * Passed two nodes and determines if their character positions overlap
  * @param a the first node to test
@@ -3598,6 +3596,67 @@ int32_t fiftyoneDegreesGetDeviceId(fiftyoneDegreesWorkset *ws, char *deviceId, i
 		}
 	}
 	return length <= size ? length : -length;
+}
+
+/**
+ * Gets the profile associated with the profileId or NULL if there is no 
+ * corresponding profile.
+ */
+static const fiftyoneDegreesProfile* findProfileForProfileId(
+		const fiftyoneDegreesDataSet *dataSet, const int profileId) {
+	int32_t upper = dataSet->header.profileOffsets.count - 1;
+	int32_t lower = 0, middle;
+	if (upper >= 0)
+	{
+		while (lower <= upper)
+		{
+			middle = lower + (upper - lower) / 2;
+			if (dataSet->profileOffsets[middle].profileId == profileId) {
+				return (fiftyoneDegreesProfile*)(dataSet->profiles + 
+					dataSet->profileOffsets[middle].offset);
+			}
+			else if (profileId < dataSet->profileOffsets[middle].profileId) {
+				upper = middle - 1;
+			}
+			else {
+				lower = middle + 1;
+			}
+		}
+	}
+	return NULL;
+}
+
+/**
+* Sets the workset for the device Id provided.
+* @param ws pointer to the work set associated with the match.
+* @param deviceId string representation of the device id to use for the match.
+*/
+void fiftyoneDegreesMatchForDeviceId(fiftyoneDegreesWorkset *ws, const char *deviceId) {
+	char *start = ws->input, *current = ws->input;
+	int lastId = 0, profileId;
+	const fiftyoneDegreesProfile *profile;
+	resetCounters(ws);
+	ws->profileCount = 0;
+	if (strncpy(ws->input, deviceId, strlen(deviceId)) == ws->input) {
+		while (lastId == 0 && ws->profileCount < ws->dataSet->header.components.count) {
+			lastId = *current == 0;
+			if (*current == '-' || *current == 0) {
+				*current = 0;
+				profileId = atoi(start);
+				if (profileId != 0) {
+					profile = findProfileForProfileId(ws->dataSet, profileId);
+					if (profile != NULL) {
+						ws->profiles[ws->profileCount] = profile;
+						ws->profileCount++;
+					}
+				}
+				start = current + 1;
+			}
+			current++;
+		}
+		ws->signature = NULL;
+		ws->method = NONE;
+	}
 }
 
 /**

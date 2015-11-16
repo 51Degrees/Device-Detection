@@ -313,6 +313,17 @@ SWIGEXPORT void SWIGSTDCALL SWIGRegisterStringCallback_FiftyOneDegreesPatternV3(
 	#include "Provider.hpp"
 	#include "Match.hpp"
 
+	#ifdef SWIGPHP
+	Provider *provider;
+
+	PHP_INI_BEGIN()
+	PHP_INI_ENTRY("FiftyOneDegreesPatternV3.data_file", "/usr/lib/php5/51Degrees.dat", PHP_INI_ALL, NULL)
+	PHP_INI_ENTRY("FiftyOneDegreesPatternV3.pool_size", "10", PHP_INI_ALL, NULL)
+	PHP_INI_ENTRY("FiftyOneDegreesPatternV3.cache_size", "10000", PHP_INI_ALL, NULL)
+	PHP_INI_ENTRY("FiftyOneDegreesPatternV3.property_list", NULL, PHP_INI_ALL, NULL)
+	PHP_INI_END()
+	#endif
+
 
 SWIGINTERN void SWIG_CSharpException(int code, const char *msg) {
   if (code == SWIG_ValueError) {
@@ -2676,6 +2687,38 @@ SWIGEXPORT char * SWIGSTDCALL CSharp_Provider_getMatchJson__SWIG_1(void * jarg1,
     }
   }
   jresult = SWIG_csharp_string_callback((&result)->c_str()); 
+  return jresult;
+}
+
+
+SWIGEXPORT void * SWIGSTDCALL CSharp_Provider_getMatchForDeviceId(void * jarg1, char * jarg2) {
+  void * jresult ;
+  Provider *arg1 = (Provider *) 0 ;
+  std::string arg2 ;
+  Match *result = 0 ;
+  
+  arg1 = (Provider *)jarg1; 
+  if (!jarg2) {
+    SWIG_CSharpSetPendingExceptionArgument(SWIG_CSharpArgumentNullException, "null string", 0);
+    return 0;
+  }
+  (&arg2)->assign(jarg2); 
+  {
+    try {
+      result = (Match *)(arg1)->getMatchForDeviceId(arg2);;
+    }
+    catch(runtime_error& e) {
+      {
+        SWIG_CSharpException(SWIG_RuntimeError, e.what()); return 0; 
+      };
+    }
+    catch(invalid_argument& e) {
+      {
+        SWIG_CSharpException(SWIG_ValueError, e.what()); return 0; 
+      };
+    }
+  }
+  jresult = (void *)result; 
   return jresult;
 }
 

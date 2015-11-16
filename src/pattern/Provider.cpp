@@ -560,19 +560,9 @@ string Provider::getMatchJson(const map<string, string>& headers) {
 	return result;
 }
 
-Match* Provider::getMatchForDeviceId(std::string deviceId) {
+Match* Provider::getMatchForDeviceId(const string& deviceId) {
 	Match *result = new Match();
 	initMatch(result);
-	fiftyoneDegreesMatchForDeviceId(result->ws, (char*)deviceId.c_str());
-    return result;
-}
-
-Match* Provider::getMatchForDeviceIds(vector<std::string> deviceId) {
-    int i;
-	Match *result = new Match();
-	initMatch(result);
-    for ( i=0; i<deviceId.size(); i++) {
-        fiftyoneDegreesMatchForDeviceId(result->ws, (char*)deviceId[i].c_str());
-    }
+	fiftyoneDegreesMatchForDeviceId(result->ws, deviceId.c_str());
     return result;
 }

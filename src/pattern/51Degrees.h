@@ -755,7 +755,7 @@ EXTERNAL int32_t fiftyoneDegreesGetDeviceId(fiftyoneDegreesWorkset *ws, char *de
  * @param ws pointer to the work set associated with the match.
  * @param deviceId string representation of the device id to use for the match.
  */
-EXTERNAL void fiftyoneDegreesMatchForDeviceId(fiftyoneDegreesWorkset *ws, char *deviceId);
+EXTERNAL void fiftyoneDegreesMatchForDeviceId(fiftyoneDegreesWorkset *ws, const char *deviceId);
 
 /**
  * OBSOLETE METHODS - RETAINED FOR BACKWARDS COMPAITABILITY

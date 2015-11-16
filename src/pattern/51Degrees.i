@@ -78,7 +78,6 @@
  */
 %typemap(csclassmodifiers) SWIGTYPE "public partial class"
 
-
 #ifdef SWIGPHP
 /*
  * PHP global variable for the Provider
@@ -147,5 +146,4 @@ class Provider {
     std::string getMatchJson(const std::map<std::string, std::string> &headers);
 
     Match* getMatchForDeviceId(std::string deviceId);
-    Match* getMatchForDeviceIds(vector<std::string> deviceId);
 };
