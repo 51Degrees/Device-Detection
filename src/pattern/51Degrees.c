@@ -3637,10 +3637,10 @@ void fiftyoneDegreesMatchForDeviceId(fiftyoneDegreesWorkset *ws, const char *dev
 	const fiftyoneDegreesProfile *profile;
 	resetCounters(ws);
 	ws->profileCount = 0;
-	if (strncpy(ws->input, deviceId, strlen(deviceId)) == ws->input) {
+	if (strncpy(ws->input, deviceId, strlen(deviceId) + 1) == ws->input) {
 		while (lastId == 0 && ws->profileCount < ws->dataSet->header.components.count) {
 			lastId = *current == 0;
-			if (*current == '-' || *current == 0) {
+			if (isdigit(*current) == 0 || *current == 0) {
 				*current = 0;
 				profileId = atoi(start);
 				if (profileId != 0) {
