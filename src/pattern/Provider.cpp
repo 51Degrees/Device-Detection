@@ -559,3 +559,62 @@ string Provider::getMatchJson(const map<string, string>& headers) {
 	fiftyoneDegreesWorksetPoolRelease(pool, ws);
 	return result;
 }
+
+
+int Provider::getMatchForDeviceId(std::string deviceIdString) {
+    vector<int> deviceIdArray(10);
+
+int i = 0;
+size_t pos = 0;
+std::string token;
+std::string delimiter = "-";
+while ((pos = deviceIdString.find(delimiter)) != std::string::npos) {
+    token = deviceIdString.substr(0, pos);
+    deviceIdArray[i++] = atoi(token.c_str());
+    deviceIdString.erase(0, pos + delimiter.length());
+}
+    //return deviceIdArray[3];
+	return getMatchForDeviceIds(deviceIdArray, i);
+}
+
+int Provider::getMatchForDeviceIds(vector<int> deviceId, int size) {
+    int32_t index;
+    int32_t i, j, profileCount = 0;
+    fiftyoneDegreesProfile* profile;
+    Match* matchId = new Match();
+    initMatch(matchId);
+    matchId->ws->profileCount = 0;
+    //return dataSet->header.profileOffsets.count;
+    for (i = 0; i < size ; i++) {
+        for (j = 0; j < 100; j++) {
+       // profile = getProfileByIndex(dataSet, j);
+        profile = (fiftyoneDegreesProfile*)dataSet->profiles + (dataSet->profileOffsets + j )->offset;
+                    //(fiftyoneDegreesProfile*)matchId->ws->dataSet->profiles[index];// + (dataSet->profileOffsets + index)->offset;
+            //return deviceId[i];
+            //return profile->profileId;
+            //return (dataSet->profileOffsets->offset + 1);
+            if (j == 0)
+                return profile->profileId;
+            if (deviceId[i] == (int)profile->profileId) {
+                return 23;
+                matchId->ws->profiles[j] = profile;
+                profileCount++;
+            }
+        }
+    }
+    return 12;//matchId->ws->profileCount;
+    matchId->ws->profileCount = profileCount;
+    for (j = 0; j < dataSet->requiredPropertyCount; j++) {
+        int32_t a = fiftyoneDegreesSetValues(matchId->ws, j);
+    }
+    	/* Default the other values as no data available */
+	matchId->ws->signature = NULL;
+	matchId->ws->signatureAsString = 0;
+	matchId->ws->closestNodes = 0;
+
+	matchId->ws->targetUserAgent = NULL;
+    //fiftyoneDegreesSetValues(matchId->ws, 2);
+    //return profileId;
+    //return matchId;
+    //return matchId->ws->profileCount;//matchId->ws->profileCount;
+}
