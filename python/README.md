@@ -1,4 +1,4 @@
-![51Degrees](https://51degrees.com/DesktopModules/FiftyOne/Distributor/Logo.ashx?utm_source=github&utm_medium=repository&utm_content=readme_main&utm_campaign=python-open-source "THE Fasstest and Most Accurate Device Detection") **Device Detection in C** Python wrapper
+![51Degrees](https://51degrees.com/DesktopModules/FiftyOne/Distributor/Logo.ashx?utm_source=github&utm_medium=repository&utm_content=readme_main&utm_campaign=python-open-source "THE Fastest and Most Accurate Device Detection") **Device Detection in C** Python wrapper
 
 [Supported Databases](https://51degrees.com/compare-data-options?utm_source=github&utm_medium=repository&utm_content=compare-data-options&utm_campaign=python-open-source "Different device databases which can be used with 51Degrees device detection") | [Developer Documention](https://51degrees.com/support/documentation?utm_source=github&utm_medium=repository&utm_content=documentation&utm_campaign=python-open-source "Full getting started guide and advanced developer documentation") | [Available Properties](https://51degrees.com/resources/property-dictionary?utm_source=github&utm_medium=repository&utm_content=property_dictionary&utm_campaign=python-open-source "View all available properties and values")
 
@@ -139,7 +139,7 @@ If you want to set up automatic updates, add your license key to your settings a
 
 ## Usage
 #### Core
-By executing the following a useful help page will be displayed explaing basic usage.
+By executing the following a useful help page will be displayed explaining basic usage.
 ```
 $ 51degrees-mobile-detector
 ```
@@ -190,7 +190,16 @@ To use your chosen wrapper without going through the core, open a Python console
 ```
 
 #### Examples
-Both Pattern and Trie packages include the follow examples
+In the examples folder, you can find examples of various functionalities that the 51Degrees detector has such as:
+- Matching with a User-Agent
+- Matching with a device id
+- Evaluating match metrics
+- Offline processing
+- Strongly typed variables
+A full explanation of these can be found within the files or at [Python Tutorials](https://51Degrees/support/documentation/python/tutorials).
+
+
+Both Pattern and Trie packages also include the following examples
 
 *Note: If they are not already, be sure to mark these as executable first with*
 ```
