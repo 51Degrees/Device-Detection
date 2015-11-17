@@ -92,17 +92,17 @@ echo "Rank: ".$match->getRank()."<br>\n";
 echo "Starting Getting Started Match Metrics Example.<br>\n";
 
 // Carries out a match with a mobile User-Agent.
-echo "<br>\nUser-Agent: ".$mobileUserAgent."<br>\n";
+echo "<br>\nMobile User-Agent: ".$mobileUserAgent."<br>\n";
 $match = $provider->getMatch($mobileUserAgent);
 output_metrics($match);
 
 // Carries out a match with a desktop User-Agent.
-echo "<br>\nUser-Agent: ".$desktopUserAgent."<br>\n";
+echo "<br>\nDesktop User-Agent: ".$desktopUserAgent."<br>\n";
 $match = $provider->getMatch($desktopUserAgent);
 output_metrics($match);
 
 // Carries out a match with a MediaHub User-Agent.
-echo "<br>\nUser-Agent: ".$mediaHubUserAgent."<br>\n";
+echo "<br>\nMediaHub User-Agent: ".$mediaHubUserAgent."<br>\n";
 $match = $provider->getMatch($mediaHubUserAgent);
 output_metrics($match);
 // Snippet End

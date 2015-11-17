@@ -65,17 +65,17 @@ $mediaHubUserAgent = "Mozilla/5.0 (Linux; Android 4.4.2; X7 Quad Core ".
 echo "Starting Getting Started Example.<br>\n";
 
 // Carries out a match with a mobile User-Agent.
-echo "<br>\nUser-Agent: ".$mobileUserAgent."<br>\n";
+echo "<br>\nMobile User-Agent: ".$mobileUserAgent."<br>\n";
 $match = $provider->getMatch($mobileUserAgent);
 echo "IsMobile: ".$match->getValue("IsMobile")."<br>\n";
 
 // Carries out a match with a desktop User-Agent.
-echo "<br>\nUser-Agent: ".$mobileUserAgent."<br>\n";
+echo "<br>\nDesktop User-Agent: ".$mobileUserAgent."<br>\n";
 $match = $provider->getMatch($desktopUserAgent);
 echo "IsMobile: ".$match->getValue("IsMobile")."<br>\n";
 
 // Carries out a match with a MediaHub User-Agent.
-echo "<br>\nUser-Agent: ".$mobileUserAgent."<br>\n";
+echo "<br>\nMediaHub User-Agent: ".$mobileUserAgent."<br>\n";
 $match = $provider->getMatch($mediaHubUserAgent);
 echo "IsMobile: ".$match->getValue("IsMobile")."<br>\n";
 // Snippet End

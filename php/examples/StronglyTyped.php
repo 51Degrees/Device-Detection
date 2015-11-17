@@ -84,7 +84,7 @@ function isMobile($match) {
 echo "Starting Getting Started Strongly Typed Example.<br>\n";
 
 // Determines whether the mobile User-Agent is a mobile device.
-echo "<br>\nUser-Agent: ".$mobileUserAgent."<br>\n";
+echo "<br>\nMobile User-Agent: ".$mobileUserAgent."<br>\n";
 $match = $provider->getMatch("mobileUserAgent");
 $isMobileBool = isMobile($match);
 if ($isMobileBool) {
@@ -95,7 +95,7 @@ else {
 }
 
 // Determines whether the desktop User-Agent is a mobile device.
-echo "<br>\nUser-Agent: ".$desktopUserAgent."<br>\n";
+echo "<br>\nDesktop User-Agent: ".$desktopUserAgent."<br>\n";
 $match = $provider->getMatch("desktopUserAgent");
 $isMobileBool = isMobile($match);
 if ($isMobileBool) {
@@ -106,7 +106,7 @@ else {
 }
 
 // Determines whether the MediaHub User-Agent is a mobile device.
-echo "<br>\nUser-Agent: ".$mediaHubUserAgent."<br>\n";
+echo "<br>\nMediaHub User-Agent: ".$mediaHubUserAgent."<br>\n";
 $match = $provider->getMatch("mediaHubUserAgent");
 $isMobileBool = isMobile($match);
 if ($isMobileBool) {
