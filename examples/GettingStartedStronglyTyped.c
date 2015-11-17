@@ -1,3 +1,76 @@
+/**
+ * This Source Code Form is copyright of 51Degrees Mobile Experts Limited.
+ * Copyright (c) 2015 51Degrees Mobile Experts Limited, 5 Charlotte Close,
+ * Caversham, Reading, Berkshire, United Kingdom RG4 7BY
+ * 
+ * This Source Code Form is the subject of the following patent
+ * applications, owned by 51Degrees Mobile Experts Limited of 5 Charlotte
+ * Close, Caversham, Reading, Berkshire, United Kingdom RG4 7BY:
+ * European Patent Application No. 13192291.6; and
+ * United States Patent Application Nos. 14/085,223 and 14/085,301.
+ * 
+ * This Source Code Form is subject to the terms of the Mozilla Public
+ * License, v. 2.0.
+ * 
+ * If a copy of the MPL was not distributed with this file, You can obtain
+ * one at http://mozilla.org/MPL/2.0/.
+ * 
+ * This Source Code Form is "Incompatible With Secondary Licenses", as
+ * defined by the Mozilla Public License, v. 2.0.
+ */
+/*
+<tutorial>
+Strongly Typed example of using 51Degrees device detection. 
+The example shows how to:
+<ol>
+<li>Set the various settings for 51Degrees detector
+<p><code>
+const char* fileName = "../data/51Degrees-LiteV3.2.dat";<br>
+const char* properties = "IsMobile";
+</code></p>
+<li>Instantiate the 51Degrees device detection provider with these
+properties
+<p><code>
+fiftyoneDegreesInitWithPropertyString(fileName, &dataSet, properties);
+</code></p>
+<li>Create a workset with which to find a match
+<p><code>
+ws = fiftyoneDegreesWorksetCreate(&dataSet, NULL);
+</code></p>
+<li>Produce a match for a single HTTP User-Agent
+<p><code>
+fiftyoneDegreesMatch(ws, userAgent);
+</code></p>
+<li>Extract the boolean value of the IsMobile property
+<p><code>
+requiredPropertyIndex = fiftyoneDegreesGetRequiredPropertyIndex
+(ws->dataSet, "IsMobile");<br>
+fiftyoneDegreesSetValues(ws, requiredPropertyIndex);<br>
+valueName = fiftyoneDegreesGetString(ws->dataSet, 
+ws->values[0]->nameOffset);<br>
+isMobile = &(valueName->firstByte);<br>
+if (strcmp(isMobile, "True") == 0) {<br>
+	return true;<br>
+}<br>
+else {<br>
+	return false;<br>
+}
+</code></p>
+<li>Release the memory taken by the workset
+<p><code>
+fiftyoneDegreesWorksetFree(ws);
+</code></p>
+<li>Finaly release the memory taken by the dataset
+<p><code>
+fiftyoneDegreesDataSetFree(&dataSet);
+</code></p>
+</ol>
+This example assumes you have compiled with 51Degrees.c
+and city.c.
+</tutorial>
+*/
+
+// Snippet Start
 #include <stdio.h>
 #include <string.h>
 #include <stdbool.h>
@@ -29,10 +102,20 @@ int main(int argc, char* argv[]) {
 
     printf("Starting Getting Started Strongly Typed Example\n");
 
+/**
+ * Initialises the device detection dataset with the above settings. 
+ * This uses the Lite data file For more info
+ * see:
+ * <a href="https://51degrees.com/compare-data-options">compare data options
+ * </a>
+ */
     fiftyoneDegreesInitWithPropertyString(fileName, &dataSet, properties);
 
-    printf("\nUser-Agent: %s\n", mobileUserAgent);
+// Created workset.
     ws = fiftyoneDegreesWorksetCreate(&dataSet, NULL);
+
+// Carries out a match with a mobile User-Agent.
+    printf("\nUser-Agent: %s\n", mobileUserAgent);
     fiftyoneDegreesMatch(ws, mobileUserAgent);
     isMobileBool = getIsMobileBool(ws);
     if (isMobileBool){
@@ -42,8 +125,8 @@ int main(int argc, char* argv[]) {
         printf("Non-Mobile\n");
     }
 
+// Carries out a match with a desktop User-Agent.
     printf("\nUser-Agent: %s\n", desktopUserAgent);
-    ws = fiftyoneDegreesWorksetCreate(&dataSet, NULL);
     fiftyoneDegreesMatch(ws, desktopUserAgent);
     isMobileBool = getIsMobileBool(ws);
     if (isMobileBool){
@@ -53,8 +136,8 @@ int main(int argc, char* argv[]) {
         printf("Non-Mobile\n");
     }
 
+// Carries out a match with a MediaHub User-Agent.
     printf("\nUser-Agent: %s\n", mediaHubUserAgent);
-    ws = fiftyoneDegreesWorksetCreate(&dataSet, NULL);
     fiftyoneDegreesMatch(ws, mediaHubUserAgent);
     isMobileBool = getIsMobileBool(ws);
     if (isMobileBool){
@@ -63,8 +146,20 @@ int main(int argc, char* argv[]) {
     else {
         printf("Non-Mobile\n");
     }
+
+// Frees the workset.
+    fiftyoneDegreesWorksetFree(ws);
+
+// Frees the dataset.
+    fiftyoneDegreesDataSetFree(&dataSet);
 }
 
+/**
+ * Returns a boolean representation of the value associated with the IsMobile
+ * property.
+ * @param initialised workset of type fiftyoneDegreesWorkset
+ * @returns a boolean representation of the value for IsMobile
+ */
 bool getIsMobileBool(fiftyoneDegreesWorkset* ws) {
     int requiredPropertyIndex;
     const char* isMobile;
@@ -78,6 +173,8 @@ bool getIsMobileBool(fiftyoneDegreesWorkset* ws) {
         return true;
     }
     else {
-    return false;
+    	return false;
     }
 }
+
+// Snippet End

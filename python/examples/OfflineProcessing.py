@@ -42,7 +42,7 @@ provider = fiftyone_degrees_mobile_detector_v3_wrapper.Provider(dataFile,<br>
 </code></p>
 <li>Open an input file with a list of User-Agents, and an output file,
 <p><code>
-fin = open('../../data/20000 User Agents.csv', 'r')<br>
+fin = open(inputFile, 'r')<br>
 fout = open(outputFile, 'w')
 </code></p>
 <li>Write a header to the output file with the property names in '|'
@@ -79,6 +79,13 @@ from FiftyOneDegrees import fiftyone_degrees_mobile_detector_v3_wrapper
 from fiftyone_degrees.mobile_detector.conf import settings
 import sys
 
+'''
+Imports settings from the settings file. The Default settings file, and
+details on how to change it can be output by running the command
+<p><code>
+51degrees-mobile-detector settings
+</p></code>
+'''
 dataFile = settings.V3_WRAPPER_DATABASE
 properties = settings.PROPERTIES
 cacheSize =  settings.CACHE_SIZE
@@ -87,12 +94,21 @@ poolSize = settings.POOL_SIZE
 inputFile = '../../data/20000 User Agents.csv'
 outputFile = 'offlineProcessingOutput.csv'
 
+'''
+Initialises the device detection provider with settings from the settings
+file. By default this will use the included Lite data file For more info
+see:
+<a href="https://51degrees.com/compare-data-options">compare data options
+</a>
+'''
 provider = fiftyone_degrees_mobile_detector_v3_wrapper.Provider(
 	dataFile,
 	properties,
 	cacheSize,
 	poolSize)
 
+# Carries out match for first 20 User-Agents and prints results to
+# output file.
 def output_offline_processing():
 	fin = open(inputFile, 'r')
 	fout = open(outputFile, 'w')
