@@ -59,6 +59,7 @@ For Ubuntu based distributions these can be found on apt, use
 $ sudo pip install django
 ```
 ## Install
+<installation>
 ### Linux
 #### From pip
 This is the quickest and easiest way to install 51Degrees python detector. Just use
@@ -110,7 +111,7 @@ $ export FIFTYONE_DEGREES_MOBILE_DETECTOR_SETTINGS=~/51degrees-mobile-detector.s
 ```
 
 This can be permanently set by adding this line to your ``~/.profile`` file.
-
+</installation>
 ### Settings
 #### General Settings
  - ``DETECTION_METHOD`` (defaults to ``'v3-wrapper'``). Sets the preferred mobile device detection method. Available options are ``v3-wrapper`` (requires 51degrees-mobile-detector-v3-wrapper package), ``v3-trie-wrapper`` (requires 51degrees-mobile-detector-v3-trie-wrapper package).
