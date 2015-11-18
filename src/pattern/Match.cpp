@@ -128,6 +128,7 @@ vector<string> Match::getValues(string& propertyName) {
 /**
  * Returns relevant parts of the User-Agent which most closely matched the
  * target User-Agent
+ * @returns the relevant parts of the User-Agent as a string
  */
 string Match::getUserAgent() {
     string result;
@@ -144,6 +145,7 @@ string Match::getUserAgent() {
 /**
  * Returns the unique device ID if the Id property was included in the required
  * list of properties when the Provider was constructed.
+ * @returns the device ID as a string
  */
 string Match::getDeviceId() {
     string result;
@@ -158,6 +160,7 @@ string Match::getDeviceId() {
 /**
  * Returns the Rank of the signature found.
  * See https://51degrees.com/support/documentation/pattern for more details.
+ * @returns the Rank of the signature found as a string
  */
 int Match::getRank() {
     return fiftyoneDegreesGetSignatureRank(ws);
@@ -167,6 +170,7 @@ int Match::getRank() {
  * Returns the difference between the result returned and the target
  * User-Agent.
  * See https://51degrees.com/support/documentation/pattern for more details.
+ * @returns the difference as an integer
  */
 int Match::getDifference() {
     return ws->difference;
@@ -175,6 +179,7 @@ int Match::getDifference() {
 /**
  * Returns the method used to determine the match result.
  * See https://51degrees.com/support/documentation/pattern for more details.
+ * @returns the method used as an integer
  */
 int Match::getMethod() {
     return ws->method;
