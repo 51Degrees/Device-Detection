@@ -73,65 +73,90 @@ fiftyoneDegreesWorkset *ws = NULL;
 fiftyoneDegreesDataSet dataSet;
 
 const char* getIsMobile(fiftyoneDegreesWorkset* ws);
+void run(fiftyoneDegreesDataSet* dataSet);
 
 int main(int argc, char* argv[]) {
+	const char* properties = "IsMobile";
+	/**
+	* Initialises the device detection dataset with the above settings.
+	* This uses the Lite data file For more info
+	* see:
+	* <a href="https://51degrees.com/compare-data-options">compare data options
+	* </a>
+	*/
+	if (argc > 1) {
+		switch (fiftyoneDegreesInitWithPropertyString(argv[1], &dataSet, properties)) {
+		case DATA_SET_INIT_STATUS_INSUFFICIENT_MEMORY:
+			printf("Insufficient memory to load '%s'.", argv[1]);
+			break;
+		case DATA_SET_INIT_STATUS_CORRUPT_DATA:
+			printf("Device data file '%s' is corrupted.", argv[1]);
+			break;
+		case DATA_SET_INIT_STATUS_INCORRECT_VERSION:
+			printf("Device data file '%s' is not correct version.", argv[1]);
+			break;
+		case DATA_SET_INIT_STATUS_FILE_NOT_FOUND:
+			printf("Device data file '%s' not found.", argv[1]);
+			break;
+		case DATA_SET_INIT_STATUS_NOT_SET:
+			printf("Device data file '%s' could not be loaded.", argv[1]);
+			break;
+		default:
+			run(&dataSet);
+			break;
+		}
+	}
 
-const char* fileName = "../data/51Degrees-LiteV3.2.dat";
-const char* properties = "IsMobile";
-const char* isMobile;
+	// Wait for a character to be pressed.
+	fgetc(stdin);
+}
 
-// User-Agent string of an iPhone mobile device.
-const char* mobileUserAgent = ("Mozilla/5.0 (iPhone; CPU iPhone OS 7_1 like Mac OS X) "
-"AppleWebKit/537.51.2 (KHTML, like Gecko) 'Version/7.0 Mobile/11D167 "
-"Safari/9537.53");
+void run(fiftyoneDegreesDataSet* dataSet) {
+	const char* isMobile;
 
-// User-Agent string of Firefox Web browser version 41 on dektop.
-const char* desktopUserAgent = ("Mozilla/5.0 (Windows NT 6.3; WOW64; rv:41.0) "
-"Gecko/20100101 Firefox/41.0");
+	// User-Agent string of an iPhone mobile device.
+	const char* mobileUserAgent = ("Mozilla/5.0 (iPhone; CPU iPhone OS 7_1 like Mac OS X) "
+		"AppleWebKit/537.51.2 (KHTML, like Gecko) 'Version/7.0 Mobile/11D167 "
+		"Safari/9537.53");
 
-// User-Agent string of a MediaHub device.
-const char* mediaHubUserAgent = ("Mozilla/5.0 (Linux; Android 4.4.2; X7 Quad Core "
-"Build/KOT49H) AppleWebKit/537.36 (KHTML, like Gecko) Version/4.0 "
-"Chrome/30.0.0.0 Safari/537.36");
+	// User-Agent string of Firefox Web browser version 41 on dektop.
+	const char* desktopUserAgent = ("Mozilla/5.0 (Windows NT 6.3; WOW64; rv:41.0) "
+		"Gecko/20100101 Firefox/41.0");
 
-printf("Starting Getting Started Example.\n");
+	// User-Agent string of a MediaHub device.
+	const char* mediaHubUserAgent = ("Mozilla/5.0 (Linux; Android 4.4.2; X7 Quad Core "
+		"Build/KOT49H) AppleWebKit/537.36 (KHTML, like Gecko) Version/4.0 "
+		"Chrome/30.0.0.0 Safari/537.36");
 
-/**
- * Initialises the device detection dataset with the above settings. 
- * This uses the Lite data file For more info
- * see:
- * <a href="https://51degrees.com/compare-data-options">compare data options
- * </a>
- */
-fiftyoneDegreesInitWithPropertyString(fileName, &dataSet, properties);
+	printf("Starting Getting Started Example.\n");
 
-// Creates a workset.
-ws = fiftyoneDegreesWorksetCreate(&dataSet, NULL);
+	// Creates a workset.
+	ws = fiftyoneDegreesWorksetCreate(dataSet, NULL);
 
-printf("\nUser-Agent: %s\n", mobileUserAgent);
+	printf("\nUser-Agent: %s\n", mobileUserAgent);
 
-// Carries out a match for a mobile User-Agent.
-fiftyoneDegreesMatch(ws, mobileUserAgent);
-isMobile = getIsMobile(ws);
-printf("   IsMobile: %s\n", isMobile);
+	// Carries out a match for a mobile User-Agent.
+	fiftyoneDegreesMatch(ws, mobileUserAgent);
+	isMobile = getIsMobile(ws);
+	printf("   IsMobile: %s\n", isMobile);
 
-// Carries out a match for a desktop User-Agent.
-printf("\nUser-Agent: %s\n", desktopUserAgent);
-fiftyoneDegreesMatch(ws, desktopUserAgent);
-isMobile = getIsMobile(ws);
-printf("   IsMobile: %s\n", isMobile);
+	// Carries out a match for a desktop User-Agent.
+	printf("\nUser-Agent: %s\n", desktopUserAgent);
+	fiftyoneDegreesMatch(ws, desktopUserAgent);
+	isMobile = getIsMobile(ws);
+	printf("   IsMobile: %s\n", isMobile);
 
-// Carries out a match for a MediaHub User-Agent.
-printf("\nUser-Agent: %s\n", mediaHubUserAgent);
-fiftyoneDegreesMatch(ws, mediaHubUserAgent);
-isMobile = getIsMobile(ws);
-printf("   IsMobile: %s\n", isMobile);
+	// Carries out a match for a MediaHub User-Agent.
+	printf("\nUser-Agent: %s\n", mediaHubUserAgent);
+	fiftyoneDegreesMatch(ws, mediaHubUserAgent);
+	isMobile = getIsMobile(ws);
+	printf("   IsMobile: %s\n", isMobile);
 
-// Frees workset.
-fiftyoneDegreesWorksetFree(ws);
+	// Frees workset.
+	fiftyoneDegreesWorksetFree(ws);
 
-// Frees dataset.
-fiftyoneDegreesDataSetFree(&dataSet);
+	// Frees dataset.
+	fiftyoneDegreesDataSetFree(dataSet);
 }
 
 /**
@@ -141,11 +166,12 @@ fiftyoneDegreesDataSetFree(&dataSet);
  * @returns a string representation of the value for IsMobile
  */
 const char* getIsMobile(fiftyoneDegreesWorkset* ws) {
-    int requiredPropertyIndex;
+    int32_t requiredPropertyIndex;
     const char* isMobile;
     const fiftyoneDegreesAsciiString* valueName;
+	const char* property = "IsMobile";
 
-    requiredPropertyIndex = fiftyoneDegreesGetRequiredPropertyIndex(ws->dataSet, "IsMobile");
+    requiredPropertyIndex = fiftyoneDegreesGetRequiredPropertyIndex(ws->dataSet, property);
     fiftyoneDegreesSetValues(ws, requiredPropertyIndex);
     valueName = fiftyoneDegreesGetString(ws->dataSet, ws->values[0]->nameOffset);
     isMobile = &(valueName->firstByte);

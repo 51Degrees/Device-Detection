@@ -77,14 +77,42 @@ and city.c.
 #include "../src/pattern/51Degrees.h"
 
 fiftyoneDegreesDataSet dataSet;
+fiftyoneDegreesWorkset *ws = NULL;
 
+void run(fiftyoneDegreesDataSet* dataSet);
 bool getIsMobileBool(fiftyoneDegreesWorkset* ws);
 
 int main(int argc, char* argv[]) {
-    const char* fileName = "../data/51Degrees-LiteV3.2.dat";
     const char* properties = "IsMobile";
-    bool isMobileBool;
-    fiftyoneDegreesWorkset *ws = NULL;
+	if (argc > 1) {
+		switch (fiftyoneDegreesInitWithPropertyString(argv[1], &dataSet, properties)) {
+		case DATA_SET_INIT_STATUS_INSUFFICIENT_MEMORY:
+			printf("Insufficient memory to load '%s'.", argv[1]);
+			break;
+		case DATA_SET_INIT_STATUS_CORRUPT_DATA:
+			printf("Device data file '%s' is corrupted.", argv[1]);
+			break;
+		case DATA_SET_INIT_STATUS_INCORRECT_VERSION:
+			printf("Device data file '%s' is not correct version.", argv[1]);
+			break;
+		case DATA_SET_INIT_STATUS_FILE_NOT_FOUND:
+			printf("Device data file '%s' not found.", argv[1]);
+			break;
+		case DATA_SET_INIT_STATUS_NOT_SET:
+			printf("Device data file '%s' could not be loaded.", argv[1]);
+			break;
+		default:
+			run(&dataSet);
+			break;
+		}
+	}
+
+	// Wait for a character to be pressed.
+	fgetc(stdin);
+}
+
+void run(fiftyoneDegreesDataSet* dataSet) {
+	bool isMobileBool;
 
     // User-Agent string of an iPhone mobile device.
     const char* mobileUserAgent = ("Mozilla/5.0 (iPhone; CPU iPhone OS 7_1 like Mac OS X) "
@@ -102,17 +130,8 @@ int main(int argc, char* argv[]) {
 
     printf("Starting Getting Started Strongly Typed Example\n");
 
-/**
- * Initialises the device detection dataset with the above settings. 
- * This uses the Lite data file For more info
- * see:
- * <a href="https://51degrees.com/compare-data-options">compare data options
- * </a>
- */
-    fiftyoneDegreesInitWithPropertyString(fileName, &dataSet, properties);
-
 // Created workset.
-    ws = fiftyoneDegreesWorksetCreate(&dataSet, NULL);
+    ws = fiftyoneDegreesWorksetCreate(dataSet, NULL);
 
 // Carries out a match with a mobile User-Agent.
     printf("\nUser-Agent: %s\n", mobileUserAgent);
@@ -151,7 +170,7 @@ int main(int argc, char* argv[]) {
     fiftyoneDegreesWorksetFree(ws);
 
 // Frees the dataset.
-    fiftyoneDegreesDataSetFree(&dataSet);
+    fiftyoneDegreesDataSetFree(dataSet);
 }
 
 /**

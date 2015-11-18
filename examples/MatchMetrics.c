@@ -84,10 +84,44 @@ and city.c.
 fiftyoneDegreesDataSet dataSet;
 
 void output_match_metrics(fiftyoneDegreesWorkset* ws);
+int run(fiftyoneDegreesDataSet* dataSet);
 
 int main(int argc, char* argv[]) {
-    const char* fileName = "../data/51Degrees-LiteV3.2.dat";
-    const char* properties = "IsMobile";
+	const char* properties = "IsMobile";
+	/**
+	* Initialises the device detection dataset with the above settings.
+	* This uses the Lite data file For more info
+	* see:
+	* <a href="https://51degrees.com/compare-data-options">compare data options
+	* </a>
+	*/
+	if (argc > 1) {
+		switch (fiftyoneDegreesInitWithPropertyString(argv[1], &dataSet, properties)) {
+		case DATA_SET_INIT_STATUS_INSUFFICIENT_MEMORY:
+			printf("Insufficient memory to load '%s'.", argv[1]);
+			break;
+		case DATA_SET_INIT_STATUS_CORRUPT_DATA:
+			printf("Device data file '%s' is corrupted.", argv[1]);
+			break;
+		case DATA_SET_INIT_STATUS_INCORRECT_VERSION:
+			printf("Device data file '%s' is not correct version.", argv[1]);
+			break;
+		case DATA_SET_INIT_STATUS_FILE_NOT_FOUND:
+			printf("Device data file '%s' not found.", argv[1]);
+			break;
+		case DATA_SET_INIT_STATUS_NOT_SET:
+			printf("Device data file '%s' could not be loaded.", argv[1]);
+			break;
+		default:
+			run(&dataSet);
+			break;
+		}
+	}
+
+	// Wait for a character to be pressed.
+	fgetc(stdin);
+}
+int run(fiftyoneDegreesDataSet* dataSet) {
     fiftyoneDegreesWorkset *ws = NULL;
 
     // User-Agent string of an iPhone mobile device.
@@ -106,17 +140,8 @@ int main(int argc, char* argv[]) {
 
     printf("Starting Getting Started Match Metrics Example\n");
 
-/**
- * Initialises the device detection dataset with the above settings. 
- * This uses the Lite data file For more info
- * see:
- * <a href="https://51degrees.com/compare-data-options">compare data options
- * </a>
- */
-    fiftyoneDegreesInitWithPropertyString(fileName, &dataSet, properties);
-
 // Creates a workset.
-    ws = fiftyoneDegreesWorksetCreate(&dataSet, NULL);
+    ws = fiftyoneDegreesWorksetCreate(dataSet, NULL);
 
 // Carries out a match with a mobile User-Agent.
     printf("\nUser-Agent: %s\n", mobileUserAgent);
@@ -137,7 +162,7 @@ int main(int argc, char* argv[]) {
     fiftyoneDegreesWorksetFree(ws);
 
 // Frees the dataset.
-    fiftyoneDegreesDataSetFree(&dataSet);
+    fiftyoneDegreesDataSetFree(dataSet);
 }
 
 /**
@@ -146,9 +171,8 @@ int main(int argc, char* argv[]) {
  * @param initialised workset of type fiftyoneDegreesWorkset
  */
 void output_match_metrics(fiftyoneDegreesWorkset* ws) {
-    int deviceIdSize = ws->dataSet->header.components.count * 10;
-    char deviceId[deviceIdSize];
-    fiftyoneDegreesGetDeviceId(ws, deviceId, deviceIdSize);
+    char deviceId[40];
+    fiftyoneDegreesGetDeviceId(ws, deviceId, 40);
 
     int method = ws->method;
     int difference = ws->difference;

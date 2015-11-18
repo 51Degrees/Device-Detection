@@ -73,12 +73,39 @@ fiftyoneDegreesWorkset *ws = NULL;
 fiftyoneDegreesDataSet dataSet;
 
 const char* getIsMobile(fiftyoneDegreesWorkset* ws);
+void run(fiftyoneDegreesDataSet* dataSet);
 
 int main(int argc, char* argv[]) {
-
-const char* fileName = "../data/51Degrees-LiteV3.2.dat";
 const char* properties = "IsMobile";
-const char* isMobile;
+if (argc > 1) {
+	switch (fiftyoneDegreesInitWithPropertyString(argv[1], &dataSet, properties)) {
+	case DATA_SET_INIT_STATUS_INSUFFICIENT_MEMORY:
+		printf("Insufficient memory to load '%s'.", argv[1]);
+		break;
+	case DATA_SET_INIT_STATUS_CORRUPT_DATA:
+		printf("Device data file '%s' is corrupted.", argv[1]);
+		break;
+	case DATA_SET_INIT_STATUS_INCORRECT_VERSION:
+		printf("Device data file '%s' is not correct version.", argv[1]);
+		break;
+	case DATA_SET_INIT_STATUS_FILE_NOT_FOUND:
+		printf("Device data file '%s' not found.", argv[1]);
+		break;
+	case DATA_SET_INIT_STATUS_NOT_SET:
+		printf("Device data file '%s' could not be loaded.", argv[1]);
+		break;
+	default:
+		run(&dataSet);
+		break;
+	}
+}
+
+// Wait for a character to be pressed.
+fgetc(stdin);
+}
+
+void run(fiftyoneDegreesDataSet* dataSet) {
+	const char* isMobile;
 
 // Device id string of an iPhone mobile device.
 const char* mobileDeviceId = "12280-48866-24305-18092";
@@ -92,17 +119,8 @@ const char* mediaHubDeviceId = "41231-46303-24154-18092";
 
 printf("Starting Match For Device Id Example.\n");
 
-/**
- * Initialises the device detection dataset with the above settings. 
- * This uses the Lite data file For more info
- * see:
- * <a href="https://51degrees.com/compare-data-options">compare data options
- * </a>
- */
-fiftyoneDegreesInitWithPropertyString(fileName, &dataSet, properties);
-
 // Creates a workset.
-ws = fiftyoneDegreesWorksetCreate(&dataSet, NULL);
+ws = fiftyoneDegreesWorksetCreate(dataSet, NULL);
 
 // Carries out a match for a mobile device id.
 printf("\nMobileDeviceId: %s\n", mobileDeviceId);
@@ -126,7 +144,7 @@ printf("   IsMobile: %s\n", isMobile);
 fiftyoneDegreesWorksetFree(ws);
 
 // Frees the dataset.
-fiftyoneDegreesDataSetFree(&dataSet);
+fiftyoneDegreesDataSetFree(dataSet);
 }
 
 /**

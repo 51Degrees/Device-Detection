@@ -89,50 +89,64 @@ and city.c.
 
 fiftyoneDegreesWorkset *ws = NULL;
 fiftyoneDegreesDataSet dataSet;
+char *inputFile;
+char *properties[3];
 
 const char* getValue(fiftyoneDegreesWorkset* ws, char* propertyName);
+void run(fiftyoneDegreesDataSet* dataSet, char* properties[], int propertiesCount, char *inputFile);
 
 int main(int argc, char* argv[]) {
+	properties[0] = "IsMobile";
+	properties[1] = "PlatformName";
+	properties[2] = "PlatformVersion";
+	int propertiesCount = 3;
+	if (argc > 1) {
+		switch (fiftyoneDegreesInitWithPropertyArray(argv[1], &dataSet, properties, propertiesCount)) {
+		case DATA_SET_INIT_STATUS_INSUFFICIENT_MEMORY:
+			printf("Insufficient memory to load '%s'.", argv[1]);
+			break;
+		case DATA_SET_INIT_STATUS_CORRUPT_DATA:
+			printf("Device data file '%s' is corrupted.", argv[1]);
+			break;
+		case DATA_SET_INIT_STATUS_INCORRECT_VERSION:
+			printf("Device data file '%s' is not correct version.", argv[1]);
+			break;
+		case DATA_SET_INIT_STATUS_FILE_NOT_FOUND:
+			printf("Device data file '%s' not found.", argv[1]);
+			break;
+		case DATA_SET_INIT_STATUS_NOT_SET:
+			printf("Device data file '%s' could not be loaded.", argv[1]);
+			break;
+		default:
+			inputFile = argv[2];
+			run(&dataSet, properties, propertiesCount, inputFile);
+			break;
+		}
+	}
 
-    const char* fileName = "../data/51Degrees-LiteV3.2.dat";
-    char properties[] = "IsMobile,PlatformName,PlatformVersion";
-    char *propertiesArray[1000];
+	// Wait for a character to be pressed.
+	fgetc(stdin);
+}
+
+void run(fiftyoneDegreesDataSet* dataSet, char* properties[], int propertiesCount, char *inputFile) {
     char userAgent[1000];
     const char* value;
     int i, j;
 
-/**
- * Initialises the device detection dataset with the above settings. 
- * This uses the Lite data file For more info
- * see:
- * <a href="https://51degrees.com/compare-data-options">compare data options
- * </a>
- */
-    fiftyoneDegreesInitWithPropertyString(fileName, &dataSet, properties);
-
 // Creates workset.
-    ws = fiftyoneDegreesWorksetCreate(&dataSet, NULL);
+    ws = fiftyoneDegreesWorksetCreate(dataSet, NULL);
 
     printf("Starting Offline Processing Example.\n");
 
 // Opens input and output files.
-    char* inputFile = "../data/20000 User Agents.csv";
     char* outputFile = "offlineProcessingOutput.csv";
     FILE* fin = fopen(inputFile, "r");
     FILE* fout = fopen(outputFile, "w");
 
-// Converts properties list to array.
-    char *tok = strtok(properties, ",");
-    while (tok != NULL) {
-        propertiesArray[i++] = tok;
-        tok = strtok(NULL, ",");
-    }
-    int propertiesCount = i;
-
 // Print CSV headers to output file.
     fprintf(fout, "User-Agent");
     for (j=0;j<propertiesCount;j++) {
-        fprintf(fout, "|%s", propertiesArray[j]);
+        fprintf(fout, "|%s", properties[j]);
     }
     fprintf(fout, "\n");
 
@@ -144,7 +158,7 @@ int main(int argc, char* argv[]) {
         fprintf(fout, "%s", userAgent);
         fiftyoneDegreesMatch(ws, userAgent);
         for (j=0;j<propertiesCount;j++) {
-            value = getValue(ws, propertiesArray[j]);
+            value = getValue(ws, properties[j]);
             fprintf(fout, "|%s", value);
         }
         fprintf(fout, "\n");
@@ -156,7 +170,7 @@ int main(int argc, char* argv[]) {
     fiftyoneDegreesWorksetFree(ws);
 
 // Frees dataset.
-    fiftyoneDegreesDataSetFree(&dataSet);
+    fiftyoneDegreesDataSetFree(dataSet);
 }
 
 /**
