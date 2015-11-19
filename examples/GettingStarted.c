@@ -60,7 +60,10 @@ fiftyoneDegreesDataSetFree(&dataSet);
 </code></p>
 </ol>
 This example assumes you have compiled with 51Degrees.c
-and city.c.
+and city.c. This will happen automaticaly if you are compiling
+as part of the Visual Studio solution. Additionaly, when running,
+the location of a 51Degrees data file must be passed as a 
+command line argument.
 </tutorial>
 */
 
