@@ -45,7 +45,22 @@ This package includes the follow examples:
 3. Visual Studio solution with example web site, command line projects and C++
   projects to demonstrate how to access from managed and unmanaged code.
   
-4. PHP extension.
+4. Getting started, takes some common User-Agents and returns the value of
+  the IsMobile property.
+  
+5. Match Metrics, takes some common User-Agents and returns various metrics
+  relating to the match carried out on them.
+  
+6. Offline Processing, takes an input file with a list of User-Agent,
+  processes them and writes results to an output file.
+  
+7. Stronly Typed, takes some common User-Agents and returns the value of
+  the IsMobile property as a boolean.
+  
+8. Match for Device Id, takes some common device ids and returns the value of
+  the IsMobile property.
+  
+9. PHP extension.
 
 Use the following instructions to compile different versions for different 
 target platforms.
@@ -82,6 +97,10 @@ src/Pattern - all source files related to Pattern matching detection.
   51Degrees.c - All the code and necessary data. Quite large.
   ProcPat.c - The command line interface wrapper.
   PerfPat.c - The command line performance test executable.
+  Provider.cpp - Uses 51Degrees.c and Match.cpp to serve a Provider object.
+  Provider.hpp - The header file for Provider.cpp.
+  Match.cpp - Uses 51Degrees.c to serve a match object.
+  Match.cpp - The header file for Match.cpp.
 
 src/Trie - all source files related to Trie matching detection.
 
