@@ -48,6 +48,7 @@ $ sudo apt-get install gcc make php5 php5-dev git
 ```
 
 ## Install
+<installation>
 ### Linux
 First, clone 51Degrees/Device-Detection repository using git:
 ```console
@@ -74,8 +75,9 @@ In the includes directory, there is a php file which contains all the classes ne
 ```php5
 require(path/to/FiftyOneDegreesPatternV3.php);
 ```
-
+</installation>
 ## Configure
+<configuration>
 Before using the extension you must supply the PHP environment with information on the location of the module and the module parameters. This should be done by editing your PHP.ini file.
 
 If you are not sure where the PHP.ini file is located on your system you can create a .php page and place in your server directory. Add the following php code to the page
@@ -131,7 +133,7 @@ This setting tells the extension where the 51Degrees Trie data file is located. 
 
 #### FiftyOneDegreesTrieV3.property_list
 This is essentially a list of properties you wish the dataset to be initialized with. Premium data file provides over 130 properties and Enterprise over 160 properties. This setting allows you to only choose properties you are interested in. Leaving this setting line empty or not including it at all will return a full list of properties in detection results.
-
+</configuration>
 ## Usage
 
 To use the 51Degrees extension, start by fetching the provider that will have been initialised on server startup. Then this object can be called to process a new match object which can return properties of the specific matched device. This can be seen in the code below:

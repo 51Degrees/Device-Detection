@@ -52,6 +52,7 @@ $ sudo perl -MCPAN -e shell
 ```
 
 ## Install
+<installation>
 #### Linux
 
 To install, go to the directory for your chosen detection method (i.e. Pattern or Trie) with
@@ -67,7 +68,7 @@ $ perl Makefile.PL
 $ sudo make install
 
 ```
-
+</installation>
 ## Usage
 #### Basics
 

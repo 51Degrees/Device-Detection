@@ -94,10 +94,10 @@ Then install with
 ```
 $ sudo make install
 ```
-
+</installation>
 When you're done installing, check it's set up correctly by recreating the output in the Usage section below. Or if you've cloned this repository, try the examples.
 ## Configure
-
+<configuration>
 Before start matching user agents, you may wish to configure the solution to use a different datadase for example. You can easily generate a sample settings file running the following command
 ```
 $ 51degrees-mobile-detector settings > ~/51degrees-mobile-detector.settings.py
@@ -111,7 +111,6 @@ $ export FIFTYONE_DEGREES_MOBILE_DETECTOR_SETTINGS=~/51degrees-mobile-detector.s
 ```
 
 This can be permanently set by adding this line to your ``~/.profile`` file.
-</installation>
 ### Settings
 #### General Settings
  - ``DETECTION_METHOD`` (defaults to ``'v3-wrapper'``). Sets the preferred mobile device detection method. Available options are ``v3-wrapper`` (requires 51degrees-mobile-detector-v3-wrapper package), ``v3-trie-wrapper`` (requires 51degrees-mobile-detector-v3-trie-wrapper package).
@@ -134,7 +133,7 @@ This can be permanently set by adding this line to your ``~/.profile`` file.
  - ``USAGE_SHARER_ENABLED`` (defaults to ``True``). Indicates if usage data should be shared with 51Degrees.com. We recommended leaving this value unchanged to ensure we're improving the performance and accuracy of the solution.
 
  - Adavanced usage sharer settings are detailed in your settings file.
-
+</configuration>
 #### Automatic updates
 If you want to set up automatic updates, add your license key to your settings and add the ``51degrees-mobile-detector update-premium-pattern-wrapper`` command to your cron.
 
