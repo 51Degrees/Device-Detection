@@ -19,6 +19,9 @@
  * defined by the Mozilla Public License, v. 2.0.
  ********************************************************************** */
 
+/**
+* \defgroup FiftyOneDegreesFunctions
+*/
 #ifndef FIFTYONEDEGREES_H_INCLUDED
 #define FIFTYONEDEGREES_H_INCLUDED
 
@@ -457,6 +460,7 @@ typedef struct fiftyoneDegrees_workset_pool_t {
  */
 
 /**
+ * \ingroup FiftyOneDegreesFunctions
  * Initialises the data set passed to the method with the data from
  * the file provided. If required properties is provided the data set
  * will only return those contained in the array.
@@ -470,6 +474,7 @@ typedef struct fiftyoneDegrees_workset_pool_t {
 EXTERNAL fiftyoneDegreesDataSetInitStatus fiftyoneDegreesInitWithPropertyArray(const char *fileName, fiftyoneDegreesDataSet *dataSet, const char** properties, int32_t count);
 
 /**
+ * \ingroup FiftyOneDegreesFunctions
  * Initialises the data set passed to the method with the data from
  * the file provided. If required properties is provided the data set
  * will only return those listed and separated by comma, pipe, space
@@ -483,6 +488,7 @@ EXTERNAL fiftyoneDegreesDataSetInitStatus fiftyoneDegreesInitWithPropertyArray(c
 EXTERNAL fiftyoneDegreesDataSetInitStatus fiftyoneDegreesInitWithPropertyString(const char *fileName, fiftyoneDegreesDataSet *dataSet, const char* properties);
 
 /**
+ * \ingroup FiftyOneDegreesFunctions
  * Destroys the data set releasing all memory available. Ensure all worksets
  * cache and pool structs are freed prior to calling this method.
  * @param dataSet pointer to the data set being destroyed
@@ -490,6 +496,7 @@ EXTERNAL fiftyoneDegreesDataSetInitStatus fiftyoneDegreesInitWithPropertyString(
 EXTERNAL void fiftyoneDegreesDataSetFree(const fiftyoneDegreesDataSet *dataSet);
 
 /**
+ * \ingroup FiftyOneDegreesFunctions
  * Creates a new cache used to speed up duplicate detections.
  * The cache must be destroyed with the fiftyoneDegreesFreeCache method.
  * If the cache size is lower then 2 then no cache is created.
@@ -500,12 +507,14 @@ EXTERNAL void fiftyoneDegreesDataSetFree(const fiftyoneDegreesDataSet *dataSet);
 EXTERNAL fiftyoneDegreesResultsetCache *fiftyoneDegreesResultsetCacheCreate(const fiftyoneDegreesDataSet *dataSet, int32_t size);
 
 /**
+ * \ingroup FiftyOneDegreesFunctions
  * Releases the memory used by the cache.
  * @param pointer to the cache created previously
  */
 EXTERNAL void fiftyoneDegreesResultsetCacheFree(const fiftyoneDegreesResultsetCache *rsc);
 
 /**
+ * \ingroup FiftyOneDegreesFunctions
  * Creates a new workset pool for the data set and cache provided.
  * @param dataset pointer to a data set structure
  * @param cache pointer to a cache, or NULL if no cache to be used
@@ -514,6 +523,7 @@ EXTERNAL void fiftyoneDegreesResultsetCacheFree(const fiftyoneDegreesResultsetCa
 EXTERNAL fiftyoneDegreesWorksetPool *fiftyoneDegreesWorksetPoolCreate(fiftyoneDegreesDataSet *dataSet, fiftyoneDegreesResultsetCache *cache, int32_t size);
 
 /**
+ * \ingroup FiftyOneDegreesFunctions
  * Frees all worksets in the pool and releases all memory. Ensure all worksets
  * have been released back to the pool before calling this method.
  * @param pool pointer to the pool created by fiftyoneDegreesWorksetPoolCreate
@@ -521,6 +531,7 @@ EXTERNAL fiftyoneDegreesWorksetPool *fiftyoneDegreesWorksetPoolCreate(fiftyoneDe
 EXTERNAL void fiftyoneDegreesWorksetPoolFree(fiftyoneDegreesWorksetPool *pool);
 
 /**
+ * \ingroup FiftyOneDegreesFunctions
  * Gets a workset from the pool, or creates a new one if none are available
  * @param pool pointer to a pool structure
  * @returns pointer to a workset that is free and ready for use
@@ -528,6 +539,7 @@ EXTERNAL void fiftyoneDegreesWorksetPoolFree(fiftyoneDegreesWorksetPool *pool);
 EXTERNAL fiftyoneDegreesWorkset *fiftyoneDegreesWorksetPoolGet(fiftyoneDegreesWorksetPool *pool);
 
 /**
+ * \ingroup FiftyOneDegreesFunctions
  * Releases the workset provided back to the pool making it available for future
  * use.
  * @param pool containing worksets
@@ -536,6 +548,7 @@ EXTERNAL fiftyoneDegreesWorkset *fiftyoneDegreesWorksetPoolGet(fiftyoneDegreesWo
 EXTERNAL void fiftyoneDegreesWorksetPoolRelease(fiftyoneDegreesWorksetPool *pool, fiftyoneDegreesWorkset *ws);
 
 /**
+ * \ingroup FiftyOneDegreesFunctions
  * Creates a new workset to perform matches using the dataset provided.
  * The workset must be destroyed using the freeWorkset method when it's
  * finished with to release memory.
@@ -546,12 +559,14 @@ EXTERNAL void fiftyoneDegreesWorksetPoolRelease(fiftyoneDegreesWorksetPool *pool
 EXTERNAL fiftyoneDegreesWorkset* fiftyoneDegreesWorksetCreate(const fiftyoneDegreesDataSet *dataSet, const fiftyoneDegreesResultsetCache *cache);
 
 /**
+ * \ingroup FiftyOneDegreesFunctions
  * Releases the memory used by the workset.
  * @param pointer to the workset created previously
  */
 EXTERNAL void fiftyoneDegreesWorksetFree(const fiftyoneDegreesWorkset *ws);
 
 /**
+ * \ingroup FiftyOneDegreesFunctions
  * Allocates memory sufficiently large to store JSON results.
  * @param ws pointer to a workset with the results to return in JSON
  * @returns pointer to memory space to store JSON results
@@ -559,12 +574,14 @@ EXTERNAL void fiftyoneDegreesWorksetFree(const fiftyoneDegreesWorkset *ws);
 EXTERNAL char* fiftyoneDegreesJSONCreate(fiftyoneDegreesWorkset *ws);
 
 /**
+ * \ingroup FiftyOneDegreesFunctions
  * Frees the memory space previously allocated by fiftyoneDegreesJSONCreate.
  * @param json pointer to the memory space to be freed
  */
 EXTERNAL void fiftyoneDegreesJSONFree(void* json);
 
 /**
+ * \ingroup FiftyOneDegreesFunctions
  * Allocates memory sufficiently large to store CSV results.
  * @param ws pointer to a workset with the results to return in CSV
  * @returns pointer to memory space to store CSV results
@@ -572,12 +589,14 @@ EXTERNAL void fiftyoneDegreesJSONFree(void* json);
 EXTERNAL char* fiftyoneDegreesCSVCreate(fiftyoneDegreesWorkset *ws);
 
 /**
+ * \ingroup FiftyOneDegreesFunctions
  * Frees the memory space previously allocated by fiftyoneDegreesCSVCreate.
  * @param csv pointer to the memory space to be freed
  */
 EXTERNAL void fiftyoneDegreesCSVFree(void* csv);
 
 /**
+ * \ingroup FiftyOneDegreesFunctions
 * Main entry method used for perform a match. First the cache is checked to
 * determine if the userAgent has already been found. If not then detection
 * is performed. The cache is then updated before the resultset is returned.
@@ -588,6 +607,7 @@ EXTERNAL void fiftyoneDegreesCSVFree(void* csv);
 EXTERNAL void fiftyoneDegreesMatch(fiftyoneDegreesWorkset *ws, const char* userAgent);
 
 /**
+ * \ingroup FiftyOneDegreesFunctions
  * Passed array of HTTP header names and values. Sets the workset to
  * the results for these headers.
  * @param ws pointer to a work set to be used for the match created via
@@ -599,6 +619,7 @@ EXTERNAL void fiftyoneDegreesMatch(fiftyoneDegreesWorkset *ws, const char* userA
 EXTERNAL void fiftyoneDegreesMatchWithHeadersArray(fiftyoneDegreesWorkset *ws, const char **httpHeaderNames, const char **httpHeaderValues, int httpHeaderCount);
 
 /**
+ * \ingroup FiftyOneDegreesFunctions
  * Passed a string where each line contains the HTTP header name and value.
  * The first space character seperates the HTTP header name at the beginning of
  * the line and the value.
@@ -610,6 +631,7 @@ EXTERNAL void fiftyoneDegreesMatchWithHeadersArray(fiftyoneDegreesWorkset *ws, c
 EXTERNAL void fiftyoneDegreesMatchWithHeadersString(fiftyoneDegreesWorkset *ws, const char *httpHeaders, size_t length);
 
 /**
+ * \ingroup FiftyOneDegreesFunctions
  * Passed a string where each line contains the HTTP header name and value.
  * The first space character and/or colon seperates the HTTP header name
  * at the beginning of the line and the value. Does not perform a device
@@ -621,6 +643,7 @@ EXTERNAL void fiftyoneDegreesMatchWithHeadersString(fiftyoneDegreesWorkset *ws, 
 EXTERNAL int32_t fiftyoneDegreesSetHttpHeaders(fiftyoneDegreesWorkset *ws, const char *httpHeaders, size_t length);
 
 /**
+ * \ingroup FiftyOneDegreesFunctions
  * Sets the workset for the important headers included in the workset.
  * @param ws pointer to a work set to be used for the match created via
  *        createWorkset function
@@ -628,6 +651,7 @@ EXTERNAL int32_t fiftyoneDegreesSetHttpHeaders(fiftyoneDegreesWorkset *ws, const
 EXTERNAL void fiftyoneDegreesMatchForHttpHeaders(fiftyoneDegreesWorkset *ws);
 
 /**
+ * \ingroup FiftyOneDegreesFunctions
  * Sets the values associated with the require property index in the workset
  * so that an array of values can be read.
  * @param ws pointer to the work set associated with the match
@@ -638,6 +662,7 @@ EXTERNAL void fiftyoneDegreesMatchForHttpHeaders(fiftyoneDegreesWorkset *ws);
 EXTERNAL int32_t fiftyoneDegreesSetValues(fiftyoneDegreesWorkset *ws, int32_t requiredPropertyIndex);
 
 /**
+ * \ingroup FiftyOneDegreesFunctions
  * Returns a pointer to the ascii string at the byte offset provided
  * @param dataSet pointer to the data set
  * @param offset to the ascii string required
@@ -646,6 +671,7 @@ EXTERNAL int32_t fiftyoneDegreesSetValues(fiftyoneDegreesWorkset *ws, int32_t re
 EXTERNAL const fiftyoneDegreesAsciiString* fiftyoneDegreesGetString(const fiftyoneDegreesDataSet *dataSet, int32_t offset);
 
 /**
+ * \ingroup FiftyOneDegreesFunctions
 * Sets the values character array to the values of the required property
 * provided. If the values character array is too small then only the values
 * that can be fitted in are added.
@@ -658,6 +684,7 @@ EXTERNAL const fiftyoneDegreesAsciiString* fiftyoneDegreesGetString(const fiftyo
 EXTERNAL int32_t fiftyoneDegreesGetValues(fiftyoneDegreesWorkset *ws, int32_t requiredPropertyIndex, char *values, int32_t size);
 
 /**
+ * \ingroup FiftyOneDegreesFunctions
  * Returns the name of the value provided.
  * @param dataSet pointer to the data set containing the value
  * @param value pointer whose name is required
@@ -666,6 +693,7 @@ EXTERNAL int32_t fiftyoneDegreesGetValues(fiftyoneDegreesWorkset *ws, int32_t re
 EXTERNAL const char* fiftyoneDegreesGetValueName(const fiftyoneDegreesDataSet *dataSet, const fiftyoneDegreesValue *value);
 
 /**
+ * \ingroup FiftyOneDegreesFunctions
  * Returns the name of the property provided.
  * @param dataSet pointer to the data set containing the property
  * @param property pointer whose name is required
@@ -674,6 +702,7 @@ EXTERNAL const char* fiftyoneDegreesGetValueName(const fiftyoneDegreesDataSet *d
 EXTERNAL const char* fiftyoneDegreesGetPropertyName(const fiftyoneDegreesDataSet *dataSet, const fiftyoneDegreesProperty *property);
 
 /**
+ * \ingroup FiftyOneDegreesFunctions
 * Gets the required property name at the index provided.
 * @param dataset pointer to an initialised dataset
 * @param index of the property required
@@ -684,6 +713,7 @@ EXTERNAL const char* fiftyoneDegreesGetPropertyName(const fiftyoneDegreesDataSet
 EXTERNAL int32_t fiftyoneDegreesGetRequiredPropertyName(const fiftyoneDegreesDataSet *dataSet, int requiredPropertyIndex, char *propertyName, int size);
 
 /**
+ * \ingroup FiftyOneDegreesFunctions
 * Gets the http header name at the index provided.
 * @param dataset pointer to an initialised dataset
 * @param index of the http header required
@@ -694,6 +724,7 @@ EXTERNAL int32_t fiftyoneDegreesGetRequiredPropertyName(const fiftyoneDegreesDat
 EXTERNAL int32_t fiftyoneDegreesGetHttpHeaderName(const fiftyoneDegreesDataSet *dataSet, int httpHeaderIndex, char *httpHeader, int size);
 
 /**
+ * \ingroup FiftyOneDegreesFunctions
  * Returns the name of the header in prefixed upper case form at the index
  * provided, or NULL if the index is not valid.
  * @param dataSet pointer to an initialised dataset
@@ -703,6 +734,7 @@ EXTERNAL int32_t fiftyoneDegreesGetHttpHeaderName(const fiftyoneDegreesDataSet *
 EXTERNAL const char* fiftyoneDegreesGetPrefixedUpperHttpHeaderName(const fiftyoneDegreesDataSet *dataSet, int httpHeaderIndex);
 
 /**
+ * \ingroup FiftyOneDegreesFunctions
 * Gets the required property index of the property provided, or -1 if the
 * property is not available in the dataset.
 * @param dataset pointer to an initialised dataset
@@ -712,6 +744,7 @@ EXTERNAL const char* fiftyoneDegreesGetPrefixedUpperHttpHeaderName(const fiftyon
 EXTERNAL int32_t fiftyoneDegreesGetRequiredPropertyIndex(const fiftyoneDegreesDataSet *dataSet, const char *propertyName);
 
 /**
+ * \ingroup FiftyOneDegreesFunctions
  * Process the workset results into a CSV string.
  * @param ws pointer to a workset with the results to return in CSV
  * @param csv pointer to memory allocated with fiftyoneDegreesCSVCreate
@@ -719,6 +752,7 @@ EXTERNAL int32_t fiftyoneDegreesGetRequiredPropertyIndex(const fiftyoneDegreesDa
 EXTERNAL int32_t fiftyoneDegreesProcessDeviceCSV(fiftyoneDegreesWorkset *ws, char* csv);
 
 /**
+ * \ingroup FiftyOneDegreesFunctions
  * Process the workset results into a JSON string.
  * @param ws pointer to a workset with the results to return in JSON
  * @param json pointer to memory allocated with fiftyoneDegreesJSONCreate
@@ -726,6 +760,7 @@ EXTERNAL int32_t fiftyoneDegreesProcessDeviceCSV(fiftyoneDegreesWorkset *ws, cha
 EXTERNAL int32_t fiftyoneDegreesProcessDeviceJSON(fiftyoneDegreesWorkset *ws, char* json);
 
 /**
+ * \ingroup FiftyOneDegreesFunctions
  * Returns the rank of the signature set in the workset.
  * @param ws pointer to the work set associated with the match
  * @returns the rank of the signature if available, or INT_MAX
@@ -733,6 +768,7 @@ EXTERNAL int32_t fiftyoneDegreesProcessDeviceJSON(fiftyoneDegreesWorkset *ws, ch
 EXTERNAL int32_t fiftyoneDegreesGetSignatureRank(fiftyoneDegreesWorkset *ws);
 
 /**
+ * \ingroup FiftyOneDegreesFunctions
 * Gets the signature as a string representing relevent user agent characters.
 * @param ws pointer to the work set associated with the match
 * @param signatureAsString pointer to memory to place the signature
@@ -742,6 +778,7 @@ EXTERNAL int32_t fiftyoneDegreesGetSignatureRank(fiftyoneDegreesWorkset *ws);
 EXTERNAL int32_t fiftyoneDegreesGetSignatureAsString(fiftyoneDegreesWorkset *ws, char *signatureAsString, int size);
 
 /**
+ * \ingroup FiftyOneDegreesFunctions
 * Gets the device id as a string.
 * @param ws pointer to the work set associated with the match
 * @param deviceId pointer to memory to place the device id
@@ -751,6 +788,7 @@ EXTERNAL int32_t fiftyoneDegreesGetSignatureAsString(fiftyoneDegreesWorkset *ws,
 EXTERNAL int32_t fiftyoneDegreesGetDeviceId(fiftyoneDegreesWorkset *ws, char *deviceId, int size);
 
 /**
+ * \ingroup FiftyOneDegreesFunctions
  * Sets the workset for the device Id provided.
  * @param ws pointer to the work set associated with the match.
  * @param deviceId string representation of the device id to use for the match.
