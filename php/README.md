@@ -36,7 +36,7 @@ All methods use an external data file which can easilly be updated.
 
 ## Dependencies
 
-- gcc
+- g++
 - make
 - php5
 - php5-dev
@@ -44,7 +44,7 @@ All methods use an external data file which can easilly be updated.
 
 For Ubuntu based distributions these can be found on apt, use
 ```
-$ sudo apt-get install gcc make php5 php5-dev git
+$ sudo apt-get install g++ make php5 php5-dev git
 ```
 
 ## Install
