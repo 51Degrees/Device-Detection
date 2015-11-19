@@ -142,6 +142,7 @@ Provider::~Provider() {
  * Checks the initialisation status result and throws a C++ exception if the
  * result is anything other than success. The text of the exception can be used
  * by the high level language to provide a message to the user.
+ * This method should not be called as it is part of the internal logic.
  * @param initStatus status enum value
  * @param fileName of the data source
  */
@@ -176,6 +177,7 @@ void Provider::initExecption(
 
 /**
  * Initialises the Provider.
+ * This method should not be called as it is part of the internal logic.
  * @param fileName of the data source
  * @param cacheSize the number of prior User-Agent detections to cache
  * @param poolSize the maximum number of worksets to create for the pool
@@ -191,6 +193,7 @@ void Provider::init(const string &fileName, int cacheSize, int poolSize) {
 
 /**
  * Initialises the Provider.
+ * This method should not be called as it is part of the internal logic.
  * @param fileName of the data source
  * @param propertyString contains comma seperated property names to be available
  * to query from associated match results.
@@ -212,6 +215,7 @@ void Provider::init(
 
 /**
  * Initialises the Provider.
+ * This method should not be called as it is part of the internal logic.
  * @param fileName of the data source
  * @param propertiesArray array of property names to be available to query from
  * the associated match results.
@@ -243,6 +247,7 @@ void Provider::init(
 /**
  * Completes the process of initialising the provider by either freeing memory
  * if the data set could be create, or initialising dependent data structures.
+ * This method should not be called as it is part of the internal logic.
  * @param initStatus the status returned from the call to create the data set
  * @param fileName of the data source
  * @param cacheSize the number of prior User-Agent detections to cache
@@ -269,6 +274,7 @@ void Provider::initComplete(
  * definition can be used to force the Provider to use HTTP_ prefixed upper
  * case header name keys. Perl and PHP are examples of such languages where this
  * directive is required.
+ * This method should not be called as it is part of the internal logic.
  */
 void Provider::initHttpHeaders() {
 	for (int httpHeaderIndex = 0;
@@ -285,6 +291,7 @@ void Provider::initHttpHeaders() {
  * source data set. This may return fewer properties than the number requested
  * at construction where the data set source file does not contain details
  * of the property name requested.
+ * This method should not be called as it is part of the internal logic.
  */
 void Provider::initAvailableProperites() {
 	const fiftyoneDegreesAsciiString *propertyName;
@@ -303,6 +310,7 @@ void Provider::initAvailableProperites() {
 /**
  * Initialises a new match instance for the provider ready to perform device
  * detection.
+ * This method should not be called as it is part of the internal logic.
  */
 void Provider::initMatch(Match *match) {
 	match->pool = this->pool;
@@ -417,6 +425,7 @@ void Provider::matchForHttpHeaders(
 /**
  * Completes the result map with all properties supported by the Provider and
  * their values for the detection results contained in the workset provided.
+ * This method should not be called as it is part of the internal logic.
  * @param ws instance of a workset configured with the results of the match
  * @param result to place the properties and values
  */
@@ -560,6 +569,11 @@ string Provider::getMatchJson(const map<string, string>& headers) {
 	return result;
 }
 
+/**
+* Completes device detection for the device id provided.
+* @param device id used for the match
+* @returns new Match instance configured to provide access to the results
+*/
 Match* Provider::getMatchForDeviceId(const char *deviceId) {
 	Match *result = new Match();
 	initMatch(result);
@@ -567,6 +581,11 @@ Match* Provider::getMatchForDeviceId(const char *deviceId) {
 	return result;
 }
 
+/**
+* Completes device detection for the device id provided.
+* @param device id used for the match
+* @returns new Match instance configured to provide access to the results
+*/
 Match* Provider::getMatchForDeviceId(const string& deviceId) {
 	return getMatchForDeviceId(deviceId.c_str());
 }
