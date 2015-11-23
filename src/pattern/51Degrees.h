@@ -21,6 +21,9 @@
 
 /**
 * \defgroup FiftyOneDegreesFunctions
+* These functions are the core that all 51Degrees
+* C based API's build on. All the detections happen
+* here. 
 */
 #ifndef FIFTYONEDEGREES_H_INCLUDED
 #define FIFTYONEDEGREES_H_INCLUDED
