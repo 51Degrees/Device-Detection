@@ -459,7 +459,9 @@ typedef struct fiftyoneDegrees_workset_pool_t {
 } fiftyoneDegreesWorksetPool;
 
 /**
+ * \cond
  * EXTERNAL METHODS
+ * \endcond
  */
 
 /**
