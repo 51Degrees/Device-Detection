@@ -20,12 +20,12 @@
  */
 /*
 <tutorial>
-Match for getting started example of using 51Degrees device detection. 
+Getting started example of using 51Degrees device detection. 
 The example shows how to:
 <ol>
 <li>Set the various settings for 51Degrees detector
 <p><code>
-const char* fileName = "../data/51Degrees-LiteV3.2.dat";<br>
+const char* fileName = argv[1];<br>
 const char* properties = "IsMobile";
 </code></p>
 <li>Instantiate the 51Degrees device detection provider with these
@@ -80,6 +80,7 @@ void run(fiftyoneDegreesDataSet* dataSet);
 
 int main(int argc, char* argv[]) {
 	const char* properties = "IsMobile";
+	const char* fileName = argv[1];
 	/**
 	* Initialises the device detection dataset with the above settings.
 	* This uses the Lite data file For more info
@@ -88,21 +89,21 @@ int main(int argc, char* argv[]) {
 	* </a>
 	*/
 	if (argc > 1) {
-		switch (fiftyoneDegreesInitWithPropertyString(argv[1], &dataSet, properties)) {
+		switch (fiftyoneDegreesInitWithPropertyString(fileName, &dataSet, properties)) {
 		case DATA_SET_INIT_STATUS_INSUFFICIENT_MEMORY:
-			printf("Insufficient memory to load '%s'.", argv[1]);
+			printf("Insufficient memory to load '%s'.", fileName);
 			break;
 		case DATA_SET_INIT_STATUS_CORRUPT_DATA:
-			printf("Device data file '%s' is corrupted.", argv[1]);
+			printf("Device data file '%s' is corrupted.", fileName);
 			break;
 		case DATA_SET_INIT_STATUS_INCORRECT_VERSION:
-			printf("Device data file '%s' is not correct version.", argv[1]);
+			printf("Device data file '%s' is not correct version.", fileName);
 			break;
 		case DATA_SET_INIT_STATUS_FILE_NOT_FOUND:
-			printf("Device data file '%s' not found.", argv[1]);
+			printf("Device data file '%s' not found.", fileName);
 			break;
 		case DATA_SET_INIT_STATUS_NOT_SET:
-			printf("Device data file '%s' could not be loaded.", argv[1]);
+			printf("Device data file '%s' could not be loaded.", fileName);
 			break;
 		default:
 			run(&dataSet);

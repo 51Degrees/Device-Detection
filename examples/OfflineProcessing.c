@@ -25,7 +25,7 @@ The example shows how to:
 <ol>
 <li>Set the various settings for 51Degrees detector
 <p><code>
-const char* fileName = "../data/51Degrees-LiteV3.2.dat";<br>
+const char* fileName = argv[1];<br>
 const char* properties = "IsMobile";
 </code></p>
 <li>Instantiate the 51Degrees device detection provider with these
@@ -104,25 +104,33 @@ int main(int argc, char* argv[]) {
 	properties[1] = "PlatformName";
 	properties[2] = "PlatformVersion";
 	int propertiesCount = 3;
+	const char* fileName = argv[1];
+	inputFile = argv[2];
+	/**
+	* Initialises the device detection dataset with the above settings.
+	* This uses the Lite data file For more info
+	* see:
+	* <a href="https://51degrees.com/compare-data-options">compare data options
+	* </a>
+	*/
 	if (argc > 1) {
-		switch (fiftyoneDegreesInitWithPropertyArray(argv[1], &dataSet, properties, propertiesCount)) {
+		switch (fiftyoneDegreesInitWithPropertyArray(fileName, &dataSet, properties, propertiesCount)) {
 		case DATA_SET_INIT_STATUS_INSUFFICIENT_MEMORY:
-			printf("Insufficient memory to load '%s'.", argv[1]);
+			printf("Insufficient memory to load '%s'.", fileName);
 			break;
 		case DATA_SET_INIT_STATUS_CORRUPT_DATA:
-			printf("Device data file '%s' is corrupted.", argv[1]);
+			printf("Device data file '%s' is corrupted.", fileName);
 			break;
 		case DATA_SET_INIT_STATUS_INCORRECT_VERSION:
-			printf("Device data file '%s' is not correct version.", argv[1]);
+			printf("Device data file '%s' is not correct version.", fileName);
 			break;
 		case DATA_SET_INIT_STATUS_FILE_NOT_FOUND:
-			printf("Device data file '%s' not found.", argv[1]);
+			printf("Device data file '%s' not found.", fileName);
 			break;
 		case DATA_SET_INIT_STATUS_NOT_SET:
-			printf("Device data file '%s' could not be loaded.", argv[1]);
+			printf("Device data file '%s' could not be loaded.", fileName);
 			break;
 		default:
-			inputFile = argv[2];
 			run(&dataSet, properties, propertiesCount, inputFile);
 			break;
 		}
@@ -191,9 +199,14 @@ const char* getValue(fiftyoneDegreesWorkset* ws, char* propertyName) {
     const fiftyoneDegreesAsciiString* valueName;
 
     requiredPropertyIndex = fiftyoneDegreesGetRequiredPropertyIndex(ws->dataSet, propertyName);
-    fiftyoneDegreesSetValues(ws, requiredPropertyIndex);
-    valueName = fiftyoneDegreesGetString(ws->dataSet, ws->values[0]->nameOffset);
-    result = &(valueName->firstByte);
-    return result;
+	if (requiredPropertyIndex != -1) {
+		fiftyoneDegreesSetValues(ws, requiredPropertyIndex);
+		valueName = fiftyoneDegreesGetString(ws->dataSet, ws->values[0]->nameOffset);
+		result = &(valueName->firstByte);
+		return result;
+	}
+	else
+		return "";
+
 }
 // Snippet End

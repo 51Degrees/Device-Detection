@@ -25,7 +25,7 @@ The example shows how to:
 <ol>
 <li>Set the various settings for 51Degrees detector
 <p><code>
-const char* fileName = "../data/51Degrees-LiteV3.2.dat";<br>
+const char* fileName = argv[1];<br>
 const char* properties = "IsMobile";
 </code></p>
 <li>Instantiate the 51Degrees device detection provider with these
@@ -49,17 +49,17 @@ int deviceIdSize = ws->dataSet->header.components.count * 10;<br>
 char deviceId[deviceIdSize];<br>
 fiftyoneDegreesGetDeviceId(ws, deviceId, deviceIdSize)
 </code></p>
-<li>obtain match method: provides information about the 
+<li>Obtain match method: provides information about the 
 algorithm that was used to perform detection for a particular User-Agent. 
 For more information on what each method means please see: 
 <a href="https://51degrees.com/support/documentation/pattern">
 How device detection works</a>
 <p><code>ws->method</code></p>
-<li>obtain difference:  used when detection method is not Exact or None. 
+<li>Obtain difference:  used when detection method is not Exact or None. 
 This is an integer value and the larger the value the less confident the 
 detector is in this result.
 <p><code>ws->difference</code></p>
-<li>obtain signature rank: an integer value that indicates how popular 
+<li>Obtain signature rank: an integer value that indicates how popular 
 the device is. The lower the rank the more popular the signature.
 <p><code>fiftyoneDegreesGetSignatureRank()</code></p>
 <li>Release the memory taken by the workset
@@ -91,6 +91,7 @@ int run(fiftyoneDegreesDataSet* dataSet);
 
 int main(int argc, char* argv[]) {
 	const char* properties = "IsMobile";
+	const char* fileName = argv[1];
 	/**
 	* Initialises the device detection dataset with the above settings.
 	* This uses the Lite data file For more info
@@ -99,21 +100,21 @@ int main(int argc, char* argv[]) {
 	* </a>
 	*/
 	if (argc > 1) {
-		switch (fiftyoneDegreesInitWithPropertyString(argv[1], &dataSet, properties)) {
+		switch (fiftyoneDegreesInitWithPropertyString(fileName, &dataSet, properties)) {
 		case DATA_SET_INIT_STATUS_INSUFFICIENT_MEMORY:
-			printf("Insufficient memory to load '%s'.", argv[1]);
+			printf("Insufficient memory to load '%s'.", fileName);
 			break;
 		case DATA_SET_INIT_STATUS_CORRUPT_DATA:
-			printf("Device data file '%s' is corrupted.", argv[1]);
+			printf("Device data file '%s' is corrupted.", fileName);
 			break;
 		case DATA_SET_INIT_STATUS_INCORRECT_VERSION:
-			printf("Device data file '%s' is not correct version.", argv[1]);
+			printf("Device data file '%s' is not correct version.", fileName);
 			break;
 		case DATA_SET_INIT_STATUS_FILE_NOT_FOUND:
-			printf("Device data file '%s' not found.", argv[1]);
+			printf("Device data file '%s' not found.", fileName);
 			break;
 		case DATA_SET_INIT_STATUS_NOT_SET:
-			printf("Device data file '%s' could not be loaded.", argv[1]);
+			printf("Device data file '%s' could not be loaded.", fileName);
 			break;
 		default:
 			run(&dataSet);
