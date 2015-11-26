@@ -1,6 +1,6 @@
 ﻿using System;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
-using Match_For_Device_Id;
+using FiftyOne.Example.Illustration.CSharp.MatchForDeviceId;
 
 namespace Examples_Tests
 {
@@ -10,8 +10,7 @@ namespace Examples_Tests
         [TestMethod]
         public void Examples_Match_For_Device_Id()
         {
-            PrivateType ExampleClass = new PrivateType(typeof(Program));
-            ExampleClass.InvokeStatic("run", new object[] { Constants.LITE_PATTERN_V32 });
+            Program.Run(Constants.LITE_PATTERN_V32);
         }
     }
 }

@@ -18,6 +18,7 @@
  * This Source Code Form is "Incompatible With Secondary Licenses", as
  * defined by the Mozilla Public License, v. 2.0.
  */
+
 /*
 <tutorial>
 Offline processing example of using 51Degrees device detection. 
@@ -74,7 +75,6 @@ make sure to add the path to a 51Degrees data file and
 "20000 User Agents.csv" as arguments.
 </tutorial>
 */
-// Snippet Start
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -83,11 +83,12 @@ using System.Threading.Tasks;
 using FiftyOne.Mobile.Detection.Provider.Interop.Pattern;
 using System.IO;
 
-namespace Offline_Processing
+namespace FiftyOne.Example.Illustration.CSharp.OfflineProcessing
 {
     public class Program
     {
-        static void run(string fileName, string inputFile)
+        // Snippet Start
+        public static void Run(string fileName, string inputFile)
         {
             int i, j;
             string outputFile = "OfflineProcessingOutput.csv";
@@ -95,13 +96,13 @@ namespace Offline_Processing
             Match match;
             string propertiesList = "IsMobile,PlatformName,PlatformVersion";
 
-            /**
-            * Initialises the device detection dataset with the above settings.
-            * This uses the Lite data file For more info
-            * see:
-            * <a href="https://51degrees.com/compare-data-options">compare data options
-            * </a>
-            */
+            /*
+             * Initialises the device detection dataset with the above settings.
+             * This uses the Lite data file For more info
+             * see:
+             * <a href="https://51degrees.com/compare-data-options">compare data options
+             * </a>
+             */
             Provider provider = new Provider(fileName, propertiesList);
 
             // Fetched available properties as a VectorString.
@@ -140,14 +141,14 @@ namespace Offline_Processing
 
             Console.WriteLine("Output Written to " + outputFile);
         }
+        // Snippet End
 
         static void Main(string[] args)
         {
-            run(args[0], args[1]);
+            Run(args[0], args[1]);
 
             // Waits for a character to be pressed.
             Console.ReadKey();
         }
     }
 }
-// Snippet End

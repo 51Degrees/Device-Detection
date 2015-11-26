@@ -18,6 +18,7 @@
  * This Source Code Form is "Incompatible With Secondary Licenses", as
  * defined by the Mozilla Public License, v. 2.0.
  */
+
 /*
 <tutorial>
 Match for device id example of using 51Degrees device detection. 
@@ -49,7 +50,6 @@ are preset correctly. If you are running outside of Visual Studio,
 make sure to add the path to a 51Degrees data file as an argument.
 </tutorial>
 */
-// Snippet Start
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -57,11 +57,12 @@ using System.Text;
 using System.Threading.Tasks;
 using FiftyOne.Mobile.Detection.Provider.Interop.Pattern;
 
-namespace Match_For_Device_Id
+namespace FiftyOne.Example.Illustration.CSharp.MatchForDeviceId
 {
     public class Program
     {
-        static void run(string fileName)
+        // Snippet Start
+        public static void Run(string fileName)
         {
             string IsMobile;
             Match match;
@@ -104,13 +105,14 @@ namespace Match_For_Device_Id
             IsMobile = match.getValue("IsMobile");
             Console.WriteLine("   IsMobile: " + IsMobile);
         }
+        // Snippet End
+
         static void Main(string[] args)
         {
-            run(args[0]);
+            Run(args[0]);
 
             // Waits for a character to be pressed.
             Console.ReadKey();
         }
     }
 }
-// Snippet End

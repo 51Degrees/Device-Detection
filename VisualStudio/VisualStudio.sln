@@ -77,8 +77,6 @@ Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "Match For Device Id", "Exam
 EndProject
 Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "Offline Processing", "Examples\Offline Processing\Offline Processing.vcxproj", "{634FC4BB-117C-46E5-B50D-B4E6AA3D8C79}"
 EndProject
-Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "CS Examples", "CS Examples", "{6246177A-DE09-4C58-8AC2-33960A109884}"
-EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Getting Started", "CS Examples\Getting Started\Getting Started.csproj", "{8F58E14B-0484-4D54-A885-D5E15A5595AF}"
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Match Metrics", "CS Examples\Match Metrics\Match Metrics.csproj", "{26F53BDC-09CF-4ABD-BC77-5AEBDEB001FD}"

@@ -1,6 +1,6 @@
 ﻿using System;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
-using Offline_Processing;
+using FiftyOne.Example.Illustration.CSharp.OfflineProcessing;
 
 namespace Examples_Tests
 {
@@ -10,8 +10,7 @@ namespace Examples_Tests
         [TestMethod]
         public void Examples_Offline_Processing()
         {
-            PrivateType ExampleClass = new PrivateType(typeof(Program));
-            ExampleClass.InvokeStatic("run", new object[] { Constants.LITE_PATTERN_V32, Constants.GOOD_USERAGENTS_FILE });
+            Program.Run(Constants.LITE_PATTERN_V32, Constants.GOOD_USERAGENTS_FILE);
         }
     }
 }
