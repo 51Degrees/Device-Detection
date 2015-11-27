@@ -93,6 +93,7 @@ In the examples folder, you can find examples of various functionalities that th
 - Evaluating match metrics
 - Offline processing
 - Strongly typed variables
+
 A full explanation of these can be found within the files or at [Perl Tutorials](https://51Degrees/support/documentation/perl/tutorials).
 
 Both Pattern and Trie also contain the following examples
