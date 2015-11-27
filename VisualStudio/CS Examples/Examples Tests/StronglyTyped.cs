@@ -8,9 +8,19 @@ namespace Examples_Tests
     public class StronglyTyped
     {
         [TestMethod]
-        public void Examples_Strongly_Typed()
+        public void Examples_Strongly_Typed_Lite()
         {
             Program.Run(Constants.LITE_PATTERN_V32);
+        }
+        [TestMethod]
+        public void Examples_Strongly_Typed_Premium()
+        {
+            Program.Run(Constants.PREMIUM_PATTERN_V32);
+        }
+        [TestMethod]
+        public void Examples_Strongly_Typed_Enterprise()
+        {
+            Program.Run(Constants.ENTERPRISE_PATTERN_V32);
         }
     }
 }

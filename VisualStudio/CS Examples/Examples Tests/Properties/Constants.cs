@@ -32,5 +32,9 @@ namespace Examples_Tests
         public const string GOOD_USERAGENTS_FILE = "../../../../../../data/20000 User Agents.csv";
 
         public const string LITE_PATTERN_V32 = "../../../../../../data/51Degrees-LiteV3.2.dat";
+        
+        public const string ENTERPRISE_PATTERN_V32 = "../../../../../../data/51Degrees-EnterpriseV3.2.dat";
+       
+        public const string PREMIUM_PATTERN_V32 = "../../../../../../data/51Degrees-PremiumV3.2.dat";
     }
 }
