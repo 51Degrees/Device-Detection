@@ -34,6 +34,10 @@ Two detection methods are supported.
 
 All methods use an external data file which can easilly be updated.
 
+## Breaking Changes
+
+The PHP API is now built from the same source as every other C based API. This means new features are introduced as soon as they are developed. It can still be used in nearly the same way but some of the namings and syntax has changed slightly. This readme will explain the usage fully.
+
 ## Dependencies
 
 - g++
