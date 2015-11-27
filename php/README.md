@@ -123,7 +123,7 @@ This setting tells the extension where the 51Degrees Pattern data file is locate
 #### FiftyOneDegreesPatternV3.property_list
 This is essentially a list of properties you wish the dataset to be initialized with. Premium data file provides over 130 properties and Enterprise over 160 properties. This setting allows you to only choose properties you are interested in. Leaving this setting line empty or not including it at all will return a full list of properties in detection results.
 
-#### fiftyone_degrees.cache_size
+#### FiftyOneDegreesPatternV3.cache_size
 This setting tells the detector how many elements should be cached. Cache helps to speed up device detection by keeping a list of the most frequently encountered devices in memory, hence reducing the amount of requests to the device data.
 
 #### FiftyOneDegreesPatternV3.pool_size
