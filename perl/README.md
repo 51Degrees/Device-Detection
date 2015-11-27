@@ -52,6 +52,7 @@ $ sudo perl -MCPAN -e shell
 ```
 
 ## Install
+<installation>
 #### Linux
 
 To install, go to the directory for your chosen detection method (i.e. Pattern or Trie) with
@@ -67,7 +68,7 @@ $ perl Makefile.PL
 $ sudo make install
 
 ```
-
+</installation>
 ## Usage
 #### Basics
 
@@ -86,8 +87,16 @@ print "IsMobile: " . $match->getValue("IsMobile") . "\r\n";
 print "DeviceType: " . $match->getValue("DeviceType") . "\r\n";
 ```
 #### Examples
+In the examples folder, you can find examples of various functionalities that the 51Degrees detector has such as:
+- Matching with a User-Agent
+- Matching with a device id
+- Evaluating match metrics
+- Offline processing
+- Strongly typed variables
 
-Both Pattern and Trie contain the following examples
+A full explanation of these can be found within the files or at [Perl Tutorials](https://51Degrees/support/documentation/perl/tutorials).
+
+Both Pattern and Trie also contain the following examples
 
 **console.pl** which takes no input and returns matches from predefined User-Agent and HTTP headers seperately. Is run with
 ```

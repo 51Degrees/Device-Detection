@@ -9,7 +9,7 @@ Use C code like...
 ```c
 fiftyoneDegreesDataSet dataSet;
 fiftyoneDegreesWorkset *workSet;
-fiftyoneDegreesInitWithPropertyString("[DATA FILE LOCATION]" , &dataSet, 
+fiftyoneDegreesInitWithPropertyString("[DATA FILE LOCATION]" , &dataSet,
     "IsMobile,DeviceType,ScreenInchesDiagonal,PriceBand");
 workSet = fiftyoneDegreesCreateWorkset(dataSet);
 fiftyoneDegreesMatch(workset, "[YOUR USERAGENT]");
@@ -27,27 +27,42 @@ Use this project to detect device properties using HTTP browser user agents as i
 
 Two detection methods are supported.
 
-Pattern:  Searches for device signatures in a useragent. Unlike previous versions, this does not use regular expression and uses an external data file for easy updates.
+Pattern:  Searches for device signatures in a User-Agent. Unlike previous versions, this does not use regular expression and uses an external data file for easy updates.
 
 Trie: A large binary Trie (pronounced Try) populated with device Patterns. Uses a separate data file. Very fast.
 
-This package includes the follow examples:
+This package includes the following examples:
 
 1. Command line process which takes a user agent via stdin and return a device
   id via stdout. Can easily be modified to return other properties.
   (ProcPat & ProcTrie projects)
 
-2. Command line performance evaluation programme which takes a file of user 
+2. Command line performance evaluation programme which takes a file of user
   agents and returns a performance score measured in detections per second
   per CPU core.
   (PerfPat & PerfTrie projects)
 
 3. Visual Studio solution with example web site, command line projects and C++
   projects to demonstrate how to access from managed and unmanaged code.
-  
-4. PHP extension.
 
-Use the following instructions to compile different versions for different 
+4. Getting started, takes some common User-Agents and returns the value of
+  the IsMobile property.
+
+5. Match Metrics, takes some common User-Agents and returns various metrics
+  relating to the match carried out on them.
+
+6. Offline Processing, takes an input file with a list of User-Agent,
+  processes them and writes results to an output file.
+
+7. Stronly Typed, takes some common User-Agents and returns the value of
+  the IsMobile property as a boolean.
+
+8. Match for Device Id, takes some common device ids and returns the value of
+  the IsMobile property.
+
+9. PHP extension.
+
+Use the following instructions to compile different versions for different
 target platforms.
 
 ### Included Files
@@ -64,14 +79,14 @@ CodeBlocks - project files for CodeBlocks IDE for 5 generic project types.
   Console.* - Project files using standard C source.
 
 data - Open source device data files.
-  51Degrees-Lite.dat - uncompressed data file for use with Pattern.
-  51Degrees-Lite.Trie - uncompressed data file for use with Trie.
-  20000 User Agents.csv - file with 20,000 popular useragents.
+  51Degrees-LiteV3.2.dat - uncompressed data file for use with Pattern.
+  51Degrees-LiteV3.2.trie - uncompressed data file for use with Trie.
+  20000 User Agents.csv - file with 20,000 popular User-Agents.
 
 **[Compare Device Databases](https://51degrees.com/compare-data-options?utm_source=github&utm_medium=repository&utm_content=home-cta&utm_campaign=c-open-source "Compare different data file options for 51Degrees device detection")**
 
 php/ - Files for PHP extension. See php/README.md for details.
- 
+
 src/ - all generic C files used across multiple platforms.
 
   threading.h - Macros used for threading including locking, signalling and running multi threaded operations for GCC and MSVC compilers.  
@@ -82,6 +97,10 @@ src/Pattern - all source files related to Pattern matching detection.
   51Degrees.c - All the code and necessary data. Quite large.
   ProcPat.c - The command line interface wrapper.
   PerfPat.c - The command line performance test executable.
+  Provider.cpp - Uses 51Degrees.c and Match.cpp to serve a Provider object.
+  Provider.hpp - The header file for Provider.cpp.
+  Match.cpp - Uses 51Degrees.c to serve a match object.
+  Match.cpp - The header file for Match.cpp.
 
 src/Trie - all source files related to Trie matching detection.
 
@@ -89,6 +108,10 @@ src/Trie - all source files related to Trie matching detection.
   51Degrees.c - Source code needed to interrogate the data.
   ProcTrie.c - The command line interface wrapper.
   PerfTrie.c - The command line performance test executable.
+  Provider.cpp - Uses 51Degrees.c and Match.cpp to serve a Provider object.
+  Provider.hpp - The header file for Provider.cpp.
+  Match.cpp - Uses 51Degrees.c to serve a match object.
+  Match.cpp - The header file for Match.cpp.
 
 src/cityhash - a port of Google's cityhash algorithm to C by Alexander Nusov.
 
@@ -101,7 +124,7 @@ src/snprintf - source files to provide safe, OS independent snprintf functions i
   snprintf.h - The snprintf header file.
   snprintf.c - The snprintf implementation.
   LICENSE.txt - Licence under which snprintf is distributed.
-  
+
 VisualStudio/ - all files related exclusively to Windows and Visual Studio 2013.
 
   Win32build.bat - Builds command line executable in 32 bit Windows.
@@ -123,7 +146,20 @@ VisualStudio/ - all files related exclusively to Windows and Visual Studio 2013.
   Console Interop/Console Interop.csproj - Project file for a console application which demonstrates access to the Interop wrapper.
   Console Interop/Program.cs - Main method with simple code to prove the Interop wrappers are working.
   Console Interop/Properties/AssemblyInfo.cs - Project header information.
-  
+
+  Examples/Getting Started/Getting Started.* - Project files for a getting started example.
+  Examples/Match For Device Id/Match For Device Id.* - Project files for a match for device id example.
+  Exampes/Match Metrics/Match Metrics.* - Project files for a match metrics example.
+  Examples/Offline Processing/Offline Processing.* - Project files for an offline processing example.
+  Exampels/Stronly Typed/Strongly Typed.* - Project files for a strongly typed example.
+
+  CS Examples/Getting Started/* - Project files for a getting started example/
+  CS Examples/Match For Device Id/* - Project files for a match for device id example.
+  CS Examples/Match Metrics/* - Project files for a match metrics example.
+  CS Examples/Offline Processing/* - Project files for an offline processing example.
+  CS Examples/Strongly Typed/* - Project files for a strongly typed example.
+  CS Examples/Examples Tests/* - Project files for tests which test each example.
+
   Demo/Web Site.csproj - Demo web site using the Interop assembly to request properties associated with the requesting device.
   Demo/Default.aspx.* - Demo web page used to display properties. See these files for examples of how to create providers and reTrieve properties.
   Demo/Properties/AssemblyInfo.cs - Project header information.
@@ -131,7 +167,7 @@ VisualStudio/ - all files related exclusively to Windows and Visual Studio 2013.
   Performance/FiftyOne.Mobile.Detection.Performance.vcxproj - Project file for the multi threaded Windows command line executable.
   Performance/Performance.cpp - Main class for the executable.
   Performance/*.cpp & *.h - Related files to the C++ programme.
-  
+
   PerfPat/PerfPat.vcxproj - Project file using standard C source.
   PerfTrie/PerfTrie.vcxproj - Project file using standard C source.
   ProcPat/ProcPat.vcxproj - Project file using standard C source.
@@ -146,7 +182,7 @@ VisualStudio/ - all files related exclusively to Windows and Visual Studio 2013.
 
 #### Version 3.1.6.X
 
-1. Pattern now supports multi threading for both GCC and MSVC compilers. Multi threading can be turned off with the use of **FIFTYONEDEGREES___NO___THREADING** 
+1. Pattern now supports multi threading for both GCC and MSVC compilers. Multi threading can be turned off with the use of **FIFTYONEDEGREES___NO___THREADING**
    directive.
 2. Pattern includes options for a cache of previous detections.
 3. Pattern supports a workset pool for use in a multi threaded environment.
@@ -237,7 +273,7 @@ The Trie data file is very large as it contains 10s of millions of index strings
 
 All Windows specific files are located in the Windows folder. They rely on Visual Studio 2010 or greater to build.
 
-Execute the x64Build.bat or x86Build.bat files to compiler a 32 or 64 bit version of the DLLs. 
+Execute the x64Build.bat or x86Build.bat files to compiler a 32 or 64 bit version of the DLLs.
 
 3 DLLs are compiled and placed in the following directories.
 
@@ -395,7 +431,7 @@ Example:
 ProcTrie data/51Degrees-Lite.Trie IsMobile,Id
 ```
 
-Enter user agent strings to view the returned Id and IsMobile values, or an empty string to quit. 
+Enter user agent strings to view the returned Id and IsMobile values, or an empty string to quit.
 
 #### PerfTrie
 
@@ -419,7 +455,7 @@ For example: Id,IsMobile will return the Id of the matched device and True or Fa
 
 See https://51degrees.com/resources/property-dictionary for a list of valid properties.
 
-Example: 
+Example:
 
 ```
 PerfTrie data/51Degrees-Lite.Trie million.csv Id,IsMobile

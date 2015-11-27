@@ -77,6 +77,9 @@ class Provider {
         string getMatchJson(const string &userAgent);
         string getMatchJson(const map<string, string> &headers);
 
+		Match* getMatchForDeviceId(const char *deviceId);
+		Match* getMatchForDeviceId(const string &deviceId);
+
 	protected:
 
 	private:

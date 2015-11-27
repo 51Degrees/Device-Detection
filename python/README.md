@@ -1,4 +1,4 @@
-![51Degrees](https://51degrees.com/DesktopModules/FiftyOne/Distributor/Logo.ashx?utm_source=github&utm_medium=repository&utm_content=readme_main&utm_campaign=python-open-source "THE Fasstest and Most Accurate Device Detection") **Device Detection in C** Python wrapper
+![51Degrees](https://51degrees.com/DesktopModules/FiftyOne/Distributor/Logo.ashx?utm_source=github&utm_medium=repository&utm_content=readme_main&utm_campaign=python-open-source "THE Fastest and Most Accurate Device Detection") **Device Detection in C** Python wrapper
 
 [Supported Databases](https://51degrees.com/compare-data-options?utm_source=github&utm_medium=repository&utm_content=compare-data-options&utm_campaign=python-open-source "Different device databases which can be used with 51Degrees device detection") | [Developer Documention](https://51degrees.com/support/documentation?utm_source=github&utm_medium=repository&utm_content=documentation&utm_campaign=python-open-source "Full getting started guide and advanced developer documentation") | [Available Properties](https://51degrees.com/resources/property-dictionary?utm_source=github&utm_medium=repository&utm_content=property_dictionary&utm_campaign=python-open-source "View all available properties and values")
 
@@ -59,6 +59,7 @@ For Ubuntu based distributions these can be found on apt, use
 $ sudo pip install django
 ```
 ## Install
+<installation>
 ### Linux
 #### From pip
 This is the quickest and easiest way to install 51Degrees python detector. Just use
@@ -93,10 +94,10 @@ Then install with
 ```
 $ sudo make install
 ```
-
+</installation>
 When you're done installing, check it's set up correctly by recreating the output in the Usage section below. Or if you've cloned this repository, try the examples.
 ## Configure
-
+<configuration>
 Before start matching user agents, you may wish to configure the solution to use a different datadase for example. You can easily generate a sample settings file running the following command
 ```
 $ 51degrees-mobile-detector settings > ~/51degrees-mobile-detector.settings.py
@@ -110,7 +111,6 @@ $ export FIFTYONE_DEGREES_MOBILE_DETECTOR_SETTINGS=~/51degrees-mobile-detector.s
 ```
 
 This can be permanently set by adding this line to your ``~/.profile`` file.
-
 ### Settings
 #### General Settings
  - ``DETECTION_METHOD`` (defaults to ``'v3-wrapper'``). Sets the preferred mobile device detection method. Available options are ``v3-wrapper`` (requires 51degrees-mobile-detector-v3-wrapper package), ``v3-trie-wrapper`` (requires 51degrees-mobile-detector-v3-trie-wrapper package).
@@ -133,13 +133,13 @@ This can be permanently set by adding this line to your ``~/.profile`` file.
  - ``USAGE_SHARER_ENABLED`` (defaults to ``True``). Indicates if usage data should be shared with 51Degrees.com. We recommended leaving this value unchanged to ensure we're improving the performance and accuracy of the solution.
 
  - Adavanced usage sharer settings are detailed in your settings file.
-
+</configuration>
 #### Automatic updates
 If you want to set up automatic updates, add your license key to your settings and add the ``51degrees-mobile-detector update-premium-pattern-wrapper`` command to your cron.
 
 ## Usage
 #### Core
-By executing the following a useful help page will be displayed explaing basic usage.
+By executing the following a useful help page will be displayed explaining basic usage.
 ```
 $ 51degrees-mobile-detector
 ```
@@ -190,7 +190,17 @@ To use your chosen wrapper without going through the core, open a Python console
 ```
 
 #### Examples
-Both Pattern and Trie packages include the follow examples
+In the examples folder, you can find examples of various functionalities that the 51Degrees detector has such as:
+- Matching with a User-Agent
+- Matching with a device id
+- Evaluating match metrics
+- Offline processing
+- Strongly typed variables
+
+A full explanation of these can be found within the files or at [Python Tutorials](https://51Degrees/support/documentation/python/tutorials).
+
+
+Both Pattern and Trie packages also include the following examples
 
 *Note: If they are not already, be sure to mark these as executable first with*
 ```
