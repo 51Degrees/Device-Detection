@@ -156,6 +156,7 @@ In the examples folder, you can find examples of various functionalities that th
 - Evaluating match metrics
 - Offline processing
 - Strongly typed variables
+
 A full explanation of these can be found within the files or at [PHP Tutorials](https://51Degrees/support/documentation/php/tutorials).
 
 You can find an example PHP page within the Device-Detection/php/examples directory called example.php. It demonstrates the output of each of the above function presented in a neat form that lists HTTP headers and provides useful links. To use this page copy it to your Web server public directory and access it through a Web browser.
