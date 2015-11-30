@@ -4,7 +4,7 @@
 :copyright: (c) 2015 by 51Degrees.com, see README.md for more details.
 :license: MPL2, see LICENSE.txt for more details.
 '''
-
+# // Snippet Start
 from BaseHTTPServer import BaseHTTPRequestHandler
 import CGIHTTPServer
 import cgitb; cgitb.enable()  ## This line enables CGI error reporting
@@ -216,3 +216,4 @@ if __name__ == '__main__':
 	signal.signal(signal.SIGINT, ctrlc)
 	server.serve_forever()
 
+# // Snippet End

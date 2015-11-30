@@ -26,38 +26,38 @@ Offline processing example of using 51Degrees device detection. The example
 shows how to:
 <ol>
 <li>Import settings from the 51Degrees settings file
-<p><code>
+<p><pre class="prettyprint lang-py">
 dataFile = settings.V3_WRAPPER_DATABASE<br>
 properties = settings.PROPERTIES<br>
 cacheSize = settings.CACHE_SIZE<br>
 poolSize = settings.POOL_SIZE<br>
-</code></p>
+</pre></p>
 <li>Instantiate the 51Degrees device detection provider with these
 properties
-<p><code>
+<p><pre class="prettyprint lang-py">
 provider = fiftyone_degrees_mobile_detector_v3_wrapper.Provider(dataFile,<br>
 	properties,<br>
 	cacheSize,<br>
 	poolSize)
-</code></p>
+</pre></p>
 <li>Open an input file with a list of User-Agents, and an output file,
-<p><code>
+<p><pre class="prettyprint lang-py">
 fin = open(inputFile, 'r')<br>
 fout = open(outputFile, 'w')
-</code></p>
+</pre></p>
 <li>Write a header to the output file with the property names in '|'
 separated CSV format ('|' sepparated because some User-Agents contain
 commas)
-<p><code>
+<p><pre class="prettyprint lang-py">
 fout.write('User-Agent')<br>
 for name in properties.split(','):<br>
 	fout.write('|' + name)<br>
 fout.write('\n')
-</code></p>
+</pre></p>
 <li>For the first 20 User-Agents in the input file, performa match then
 write the User-Agent along with the values for chosen properties to
 the CSV.
-<p><code>
+<p><pre class="prettyprint lang-py">
 while i < 20 :<br>
 	userAgent = fin.readline().rstrip('\n')<br>
 	fout.write(userAgent)<br>
@@ -67,7 +67,7 @@ while i < 20 :<br>
 		fout.write('|' + value)<br>
 	fout.write('\n')<br>
 	i = i + 1
-</code></p>
+</pre></p>
 </ol>
 This example can be run in any directory, but assumes your
 settings file contains a valid dataFile location and has the
@@ -82,9 +82,9 @@ import sys
 '''
 Imports settings from the settings file. The Default settings file, and
 details on how to change it can be output by running the command
-<p><code>
+<p><pre class="prettyprint lang-py">
 51degrees-mobile-detector settings
-</p></code>
+</p></pre>
 '''
 dataFile = settings.V3_WRAPPER_DATABASE
 properties = settings.PROPERTIES
