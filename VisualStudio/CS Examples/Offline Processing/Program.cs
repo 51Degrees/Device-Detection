@@ -145,7 +145,9 @@ namespace FiftyOne.Example.Illustration.CSharp.OfflineProcessing
 
         static void Main(string[] args)
         {
-            Run(args[0], args[1]);
+            string fileName = args.Length > 0 ? args[0] : "../../../../../../data/51Degrees-LiteV3.2.dat";
+            string inputFile = args.Length > 1 ? args[1] : "../../../../../../data/20000 User Agents.csv";
+            Run(fileName, inputFile);
 
             // Waits for a character to be pressed.
             Console.ReadKey();

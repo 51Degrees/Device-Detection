@@ -140,7 +140,8 @@ namespace FiftyOne.Example.Illustration.CSharp.StronglyTyped
 
         static void Main(string[] args)
         {
-            Run(args[0]);
+            string fileName = args.Length > 0 ? args[0] : "../../../../../../data/51Degrees-LiteV3.2.dat";
+            Run(fileName);
 
             // Waits for a character to be pressed.
             Console.ReadKey();
