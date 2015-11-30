@@ -24,25 +24,25 @@ Strongly Typed example of using 51Degrees device detection.
 The example shows how to:
 <ol>
 <li>Set the various settings for 51Degrees detector
-<p><code>
+<p><pre class="prettyprint lang-c">
 const char* fileName = argv[1];<br>
 const char* properties = "IsMobile";
-</code></p>
+</pre></p>
 <li>Instantiate the 51Degrees device detection provider with these
 properties
-<p><code>
+<p><pre class="prettyprint lang-c">
 fiftyoneDegreesInitWithPropertyString(fileName, &dataSet, properties);
-</code></p>
+</pre></p>
 <li>Create a workset with which to find a match
-<p><code>
+<p><pre class="prettyprint lang-c">
 ws = fiftyoneDegreesWorksetCreate(&dataSet, NULL);
-</code></p>
+</pre></p>
 <li>Produce a match for a single HTTP User-Agent
-<p><code>
+<p><pre class="prettyprint lang-c">
 fiftyoneDegreesMatch(ws, userAgent);
-</code></p>
+</pre></p>
 <li>Extract the boolean value of the IsMobile property
-<p><code>
+<p><pre class="prettyprint lang-c">
 requiredPropertyIndex = fiftyoneDegreesGetRequiredPropertyIndex
 (ws->dataSet, "IsMobile");<br>
 fiftyoneDegreesSetValues(ws, requiredPropertyIndex);<br>
@@ -55,15 +55,15 @@ if (strcmp(isMobile, "True") == 0) {<br>
 else {<br>
 	return false;<br>
 }
-</code></p>
+</pre></p>
 <li>Release the memory taken by the workset
-<p><code>
+<p><pre class="prettyprint lang-c">
 fiftyoneDegreesWorksetFree(ws);
-</code></p>
+</pre></p>
 <li>Finaly release the memory taken by the dataset
-<p><code>
+<p><pre class="prettyprint lang-c">
 fiftyoneDegreesDataSetFree(&dataSet);
-</code></p>
+</pre></p>
 </ol>
 This example assumes you have compiled with 51Degrees.c
 and city.c. This will happen automaticaly if you are compiling
