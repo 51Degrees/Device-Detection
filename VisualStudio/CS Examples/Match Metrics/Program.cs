@@ -58,10 +58,9 @@ the device is. The lower the rank the more popular the signature.
 <p><code>rank =  match.Rank;</code></p>
 </ol>
 This tutorial assumes you are building this from within the
-51Degrees Visual Studio solution. Running the executable produced
-inside Visual Studio will ensure all the command line arguments
-are preset correctly. If you are running outside of Visual Studio,
-make sure to add the path to a 51Degrees data file as an argument.
+51Degrees Visual Studio solution.  Additionaly, when running,
+the location of a 51Degrees data file must be passed as a 
+command line argument if you wish to use premium or enterprise
 </tutorial>
 */
 using System;

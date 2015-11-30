@@ -63,7 +63,8 @@ This example assumes you have compiled with 51Degrees.c
 and city.c. This will happen automaticaly if you are compiling
 as part of the Visual Studio solution. Additionaly, when running,
 the location of a 51Degrees data file must be passed as a
-command line argument.
+command line argument if you wish to use premium or enterprise
+data files.
 </tutorial>
 */
 
@@ -80,7 +81,8 @@ void run(fiftyoneDegreesDataSet* dataSet);
 
 int main(int argc, char* argv[]) {
 const char* properties = "IsMobile";
-const char* fileName = argv[1];
+const char* fileName = argc > 1 ? argv[1] : "../../../data/51Degrees-LiteV3.2.dat";
+
 /**
 * Initialises the device detection dataset with the above settings.
 * This uses the Lite data file For more info
@@ -88,7 +90,7 @@ const char* fileName = argv[1];
 * <a href="https://51degrees.com/compare-data-options">compare data options
 * </a>
 */
-if (argc > 1) {
+if (fileName != NULL) {
 	switch (fiftyoneDegreesInitWithPropertyString(fileName, &dataSet, properties)) {
 	case DATA_SET_INIT_STATUS_INSUFFICIENT_MEMORY:
 		printf("Insufficient memory to load '%s'.", fileName);

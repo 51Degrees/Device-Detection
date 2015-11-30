@@ -81,8 +81,8 @@ This example assumes you have compiled with 51Degrees.c
 and city.c. This will happen automaticaly if you are compiling
 as part of the Visual Studio solution. Additionaly, when running,
 the location of a 51Degrees data file and an input file
-(20000 User Agents.csv is included in the data folder) must be 
-passed as command line arguments.
+must be passed as a command line argument if you wish to use 
+premium or enterprise data files.
 </tutorial>
 */
 
@@ -93,7 +93,6 @@ passed as command line arguments.
 
 fiftyoneDegreesWorkset *ws = NULL;
 fiftyoneDegreesDataSet dataSet;
-char *inputFile;
 char *properties[3];
 
 const char* getValue(fiftyoneDegreesWorkset* ws, char* propertyName);
@@ -104,8 +103,9 @@ int main(int argc, char* argv[]) {
 	properties[1] = "PlatformName";
 	properties[2] = "PlatformVersion";
 	int propertiesCount = 3;
-	const char* fileName = argv[1];
-	inputFile = argv[2];
+	const char* fileName = argc > 1 ? argv[1] : "../../../data/51Degrees-LiteV3.2.dat";
+	const char* inputFile = argc > 2 ? argv[2] : "../../../data/20000 User Agents.csv";
+
 	/**
 	* Initialises the device detection dataset with the above settings.
 	* This uses the Lite data file For more info
@@ -113,7 +113,7 @@ int main(int argc, char* argv[]) {
 	* <a href="https://51degrees.com/compare-data-options">compare data options
 	* </a>
 	*/
-	if (argc > 1) {
+	if (fileName != NULL && inputFile != NULL) {
 		switch (fiftyoneDegreesInitWithPropertyArray(fileName, &dataSet, properties, propertiesCount)) {
 		case DATA_SET_INIT_STATUS_INSUFFICIENT_MEMORY:
 			printf("Insufficient memory to load '%s'.", fileName);
