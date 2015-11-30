@@ -8,17 +8,17 @@ namespace Examples_Tests
     public class MatchMetrics
     {
         [TestMethod]
-        public void Examples_Match_Metrics_Lite()
+        public void LiteExamples_Match_Metrics()
         {
             Program.Run(Constants.LITE_PATTERN_V32);
         }
         [TestMethod]
-        public void Examples_Match_Metrics_Premium()
+        public void PremiumExamples_Match_Metrics()
         {
             Program.Run(Constants.PREMIUM_PATTERN_V32);
         }
         [TestMethod]
-        public void Examples_Match_Metrics_Enterprise()
+        public void EnterpriseExamples_Match_Metrics()
         {
             Program.Run(Constants.ENTERPRISE_PATTERN_V32);
         }

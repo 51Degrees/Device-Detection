@@ -8,17 +8,17 @@ namespace Examples_Tests
     public class MatchForDeviceId
     {
         [TestMethod]
-        public void Examples_Match_For_Device_Id_Lite()
+        public void LiteExamples_Match_For_Device_Id()
         {
             Program.Run(Constants.LITE_PATTERN_V32);
         }
         [TestMethod]
-        public void Examples_Match_For_Device_Id_Premium()
+        public void PremiumExamples_Match_For_Device_Id()
         {
             Program.Run(Constants.PREMIUM_PATTERN_V32);
         }
         [TestMethod]
-        public void Examples_Match_For_Device_Id_Enterprise()
+        public void EnterpriseExamples_Match_For_Device_Id()
         {
             Program.Run(Constants.ENTERPRISE_PATTERN_V32);
         }

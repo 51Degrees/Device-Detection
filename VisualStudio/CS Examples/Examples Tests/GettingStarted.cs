@@ -8,17 +8,17 @@ namespace Examples_Tests
     public class GettingStarted
     {
         [TestMethod]
-        public void Examples_Getting_Started_Lite()
+        public void LiteExamples_Getting_Started()
         {
             Program.Run(Constants.LITE_PATTERN_V32);
         }
         [TestMethod]
-        public void Examples_Getting_Started_Premium()
+        public void PremiumExamples_Getting_Started()
         {
             Program.Run(Constants.PREMIUM_PATTERN_V32);
         }
         [TestMethod]
-        public void Examples_Getting_Started_Enterprise()
+        public void EnterpriseExamples_Getting_Started()
         {
             Program.Run(Constants.ENTERPRISE_PATTERN_V32);
         }

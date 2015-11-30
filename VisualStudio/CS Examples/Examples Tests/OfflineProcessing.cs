@@ -8,17 +8,17 @@ namespace Examples_Tests
     public class OfflineProcessing
     {
         [TestMethod]
-        public void Examples_Offline_Processing_Lite()
+        public void LiteExamples_Offline_Processing()
         {
             Program.Run(Constants.LITE_PATTERN_V32, Constants.GOOD_USERAGENTS_FILE);
         }
         [TestMethod]
-        public void Examples_Offline_Processing_Premium()
+        public void PremiumExamples_Offline_Processing()
         {
             Program.Run(Constants.PREMIUM_PATTERN_V32, Constants.GOOD_USERAGENTS_FILE);
         }
         [TestMethod]
-        public void Examples_Offline_Processing_Enterprise()
+        public void EnterpriseExamples_Offline_Processing()
         {
             Program.Run(Constants.ENTERPRISE_PATTERN_V32, Constants.GOOD_USERAGENTS_FILE);
         }
