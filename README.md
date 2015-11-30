@@ -75,7 +75,8 @@ This package includes the following examples:
 9. PHP extension.
 
 Examples 3-8 are available in C, and in C# using the C++ Provider.
-They are also available in Python, Perl and PHP within their subdirectories.
+They are also available in Python, Perl and PHP using the same
+C++ Provider within their subdirectories.
 
 Use the following instructions to compile different versions for different
 target platforms.
