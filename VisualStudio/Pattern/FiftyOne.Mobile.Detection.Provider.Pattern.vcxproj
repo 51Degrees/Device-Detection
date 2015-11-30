@@ -23,6 +23,9 @@
     <ClCompile Include="..\..\src\pattern\Match.cpp" />
     <ClCompile Include="..\..\src\pattern\Provider.cpp" />
   </ItemGroup>
+  <ItemGroup>
+    <None Include="..\..\src\pattern\51Degrees.i" />
+  </ItemGroup>
   <PropertyGroup Label="Globals">
     <ProjectGuid>{D39A2535-C67B-41FE-AC49-8CB41286E7D0}</ProjectGuid>
     <Keyword>Win32Proj</Keyword>

@@ -138,6 +138,13 @@ public partial class Provider : global::System.IDisposable {
     return ret;
   }
 
+  public Match getMatchForDeviceId(string deviceId) {
+    global::System.IntPtr cPtr = FiftyOneDegreesPatternV3PINVOKE.Provider_getMatchForDeviceId(swigCPtr, deviceId);
+    Match ret = (cPtr == global::System.IntPtr.Zero) ? null : new Match(cPtr, true);
+    if (FiftyOneDegreesPatternV3PINVOKE.SWIGPendingException.Pending) throw FiftyOneDegreesPatternV3PINVOKE.SWIGPendingException.Retrieve();
+    return ret;
+  }
+
 }
 
 }

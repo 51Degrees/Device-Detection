@@ -28,6 +28,16 @@
 %{
 	#include "Provider.hpp"
 	#include "Match.hpp"
+
+	#ifdef SWIGPHP
+	Provider *provider;
+
+	PHP_INI_BEGIN()
+	PHP_INI_ENTRY("FiftyOneDegreesTrieV3.data_file", "/usr/lib/php5/51Degrees.trie", PHP_INI_ALL, NULL)
+	PHP_INI_ENTRY("FiftyOneDegreesTrieV3.property_list", NULL, PHP_INI_ALL, NULL)
+	PHP_INI_END()
+	#endif
+
 %}
 
 %include exception.i
@@ -66,6 +76,23 @@
  * Allow partial C# classes
  */
 %typemap(csclassmodifiers) SWIGTYPE "public partial class"
+
+#ifdef SWIGPHP
+/*
+ * PHP global variable for the Provider
+ */
+%immutable provider;
+Provider *provider;
+
+%minit {
+
+	REGISTER_INI_ENTRIES();
+	char *filePath = INI_STR("FiftyOneDegreesTrieV3.data_file");
+	char *propertyList = INI_STR("FiftyOneDegreesTrieV3.property_list");
+
+	provider = new Provider(filePath, propertyList);
+}
+#endif
 
 class Match {
 

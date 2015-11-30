@@ -28,6 +28,17 @@
 %{
 	#include "Provider.hpp"
 	#include "Match.hpp"
+
+	#ifdef SWIGPHP
+	Provider *provider;
+
+	PHP_INI_BEGIN()
+	PHP_INI_ENTRY("FiftyOneDegreesPatternV3.data_file", "/usr/lib/php5/51Degrees.dat", PHP_INI_ALL, NULL)
+	PHP_INI_ENTRY("FiftyOneDegreesPatternV3.pool_size", "10", PHP_INI_ALL, NULL)
+	PHP_INI_ENTRY("FiftyOneDegreesPatternV3.cache_size", "10000", PHP_INI_ALL, NULL)
+	PHP_INI_ENTRY("FiftyOneDegreesPatternV3.property_list", NULL, PHP_INI_ALL, NULL)
+	PHP_INI_END()
+	#endif
 %}
 
 %include exception.i
@@ -61,30 +72,50 @@
  */
 %nodefaultctor Match;
 %newobject Provider::getMatch;
+%newobject Provider::getMatchForDeviceId;
 
 /*
  * Allow partial C# classes
  */
 %typemap(csclassmodifiers) SWIGTYPE "public partial class"
 
+#ifdef SWIGPHP
+/*
+ * PHP global variable for the Provider
+ */
+%immutable provider;
+Provider *provider;
+
+%minit {
+
+	REGISTER_INI_ENTRIES();
+	char *filePath = INI_STR("FiftyOneDegreesPatternV3.data_file");
+	int poolSize = INI_INT("FiftyOneDegreesPatternV3.pool_size");
+	int cacheSize = INI_INT("FiftyOneDegreesPatternV3.cache_size");
+	char *propertyList = INI_STR("FiftyOneDegreesPatternV3.property_list");
+
+	provider = new Provider(filePath, propertyList, cacheSize, poolSize);
+}
+#endif
+
 class Match {
 
-    public:
+	public:
 
 	virtual ~Match();
 
-    std::vector<std::string> getValues(const char *propertyName);
-    std::vector<std::string> getValues(std::string &propertyName);
-    std::vector<std::string> getValues(int propertyIndex);
+	std::vector<std::string> getValues(const char *propertyName);
+	std::vector<std::string> getValues(std::string &propertyName);
+	std::vector<std::string> getValues(int propertyIndex);
 
-    std::string getValue(const char *propertyName);
-    std::string getValue(std::string &propertyName);
-    std::string getValue(int propertyIndex);
+	std::string getValue(const char *propertyName);
+	std::string getValue(std::string &propertyName);
+	std::string getValue(int propertyIndex);
 
-    std::string getDeviceId();
-    int getRank();
-    int getDifference();
-    int getMethod();
+	std::string getDeviceId();
+	int getRank();
+	int getDifference();
+	int getMethod();
 	std::string getUserAgent();
 };
 
@@ -95,23 +126,25 @@ class Provider {
 	Provider(const std::string &fileName);
 	Provider(const std::string &fileName, const std::string &propertyString);
 	Provider(const std::string &fileName, const std::string &propertyString, int cacheSize, int poolSize);
-    Provider(const std::string &fileName, std::vector<std::string> &propertiesArray);
-    Provider(const std::string &fileName, std::vector<std::string> &propertiesArray, int cacheSize, int poolSize);
-    Provider(const std::string &fileName, int cacheSize, int poolSize);
+	Provider(const std::string &fileName, std::vector<std::string> &propertiesArray);
+	Provider(const std::string &fileName, std::vector<std::string> &propertiesArray, int cacheSize, int poolSize);
+	Provider(const std::string &fileName, int cacheSize, int poolSize);
 	virtual ~Provider();
 
-    std::vector<std::string> getHttpHeaders();
-    std::vector<std::string> getAvailableProperties();
-    std::string getDataSetName();
-    std::string getDataSetFormat();
-    std::string getDataSetPublishedDate();
-    std::string getDataSetNextUpdateDate();
-    int getDataSetSignatureCount();
-    int getDataSetDeviceCombinations();
+	std::vector<std::string> getHttpHeaders();
+	std::vector<std::string> getAvailableProperties();
+	std::string getDataSetName();
+	std::string getDataSetFormat();
+	std::string getDataSetPublishedDate();
+	std::string getDataSetNextUpdateDate();
+	int getDataSetSignatureCount();
+	int getDataSetDeviceCombinations();
 
-    Match* getMatch(const std::string &userAgent);
-    Match* getMatch(const std::map<std::string, std::string> &headers);
+	Match* getMatch(const std::string &userAgent);
+	Match* getMatch(const std::map<std::string, std::string> &headers);
 
-    std::string getMatchJson(const std::string &userAgent);
-    std::string getMatchJson(const std::map<std::string, std::string> &headers);
+	std::string getMatchJson(const std::string &userAgent);
+	std::string getMatchJson(const std::map<std::string, std::string> &headers);
+
+	Match* getMatchForDeviceId(const std::string &deviceId);
 };

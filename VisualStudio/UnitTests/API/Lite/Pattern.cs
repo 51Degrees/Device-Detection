@@ -86,6 +86,22 @@ namespace UnitTests.API.Lite
             }
         }
 
+        [TestMethod]
+        public void LitePatternAPI_DeviceId()
+        {
+            using (var userAgentMatch = _wrapper.Match(UserAgentGenerator.GetRandomUserAgent(0)))
+            {
+                using (var deviceIdMatch = _wrapper.MatchForDeviceId(userAgentMatch.DeviceId))
+                {
+                    Assert.IsTrue(userAgentMatch.DeviceId.Equals(deviceIdMatch.DeviceId));
+                    foreach(var propertyName in _wrapper.AvailableProperties)
+                    {
+                        Assert.IsTrue(userAgentMatch[propertyName].Equals(deviceIdMatch[propertyName]));
+                    }
+                }
+            }
+        }
+
         protected override string DataFile
         {
             get { return Constants.LITE_PATTERN_V32; }
