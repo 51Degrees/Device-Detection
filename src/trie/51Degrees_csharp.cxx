@@ -313,6 +313,16 @@ SWIGEXPORT void SWIGSTDCALL SWIGRegisterStringCallback_FiftyOneDegreesTrieV3(SWI
 	#include "Provider.hpp"
 	#include "Match.hpp"
 
+	#ifdef SWIGPHP
+	Provider *provider;
+
+	PHP_INI_BEGIN()
+	PHP_INI_ENTRY("FiftyOneDegreesTrieV3.data_file", "/usr/lib/php5/51Degrees.trie", PHP_INI_ALL, NULL)
+	PHP_INI_ENTRY("FiftyOneDegreesTrieV3.property_list", NULL, PHP_INI_ALL, NULL)
+	PHP_INI_END()
+	#endif
+
+
 
 SWIGINTERN void SWIG_CSharpException(int code, const char *msg) {
   if (code == SWIG_ValueError) {

@@ -21,3 +21,4 @@ Release/
 bin/
 obj/
 *.nupkg
+!NuGet.exe

@@ -1,0 +1,13 @@
+#!/bin/bash
+mkdir src/pattern
+mkdir src/cityhash
+cp ../../src/threading.h src/
+cp ../../src/pattern/* src/pattern/
+cp ../../src/cityhash/* src/cityhash/
+swig -php -c++ src/pattern/51Degrees.i
+g++ `php-config --includes` -fpic -Wno-write-strings -c src/pattern/51Degrees_wrap.cpp src/pattern/Match.cpp src/pattern/Provider.cpp src/pattern/51Degrees.c src/cityhash/city.c
+g++ -shared *.o -o FiftyOneDegreesPatternV3.so
+rm *.o
+mkdir module
+mv FiftyOneDegreesPatternV3.so module/
+mv src/pattern/FiftyOneDegreesPatternV3.php module/

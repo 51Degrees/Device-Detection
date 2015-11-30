@@ -52,5 +52,14 @@ namespace FiftyOne.Mobile.Detection.Provider.Interop
         /// <param name="headers"></param>
         /// <returns></returns>
         IMatchResult Match(NameValueCollection headers);
+
+        /// <summary>
+        /// Returns a match result for the device id provided. The device id
+        /// would have been returned from a previous matches DeviceId 
+        /// property.
+        /// </summary>
+        /// <param name="deviceId"></param>
+        /// <returns></returns>
+        IMatchResult MatchForDeviceId(string userAgent);
     }
 }
