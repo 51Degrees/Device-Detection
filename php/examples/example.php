@@ -1,23 +1,49 @@
 <?php
+if (extension_loaded(FiftyOneDegreesPatternV3)) {
+	require("/home/ben/Device-Detection/php/pattern/module/FiftyOneDegreesPatternV3.php");
+	$provider = FiftyOneDegreesPatternV3::provider_get();
+}
+elseif (extension_loaded(FiftyOneDegreesTrieV3)) {
+	require("/home/ben/Device-Detection/php/trie/module/FiftyOneDegreesTrieV3.php");
+	$provider = FiftyOneDegreesTrieV3::provider_get();
+}
+else {
+	echo "No 51Degrees PHP detector module found!<br>\n Please install and add entry to your php.ini file<br>\n";
+}
 // List of all relevant HTTP headers
-$allHttpHeaders = fiftyone_get_http_headers();
+$allHttpHeaders_in = $provider->getHttpHeaders();
+for($i=0;$i<$allHttpHeaders_in->size();$i++) {
+	$allHttpHeaders[$i] = $allHttpHeaders_in->get($i);
+}
 // Information about data set.
-$info = fiftyone_info();
+
 // Determine if Pattern or Trie detector is used.
-$isPattern = TRUE;
+$isPattern = True;
 $algorithmUsed = "Pattern";
-if (strpos($info['datasetName'], 'Trie') !== false) {
+if (strpos($provider->getDataSetName(), 'Trie') !== false) {
 	$isPattern = FALSE;
 	$algorithmUsed = "Trie";
 }
+
 // List of properties as declared in PHP.ini file.
 // List may be different to properties contained in the initialised data set.
 // Some properties may not be in the data set you are trying to use.
 // I.e. Lite data set does not contain properties like IsTablet or DeviceType.
-$iniProperties = ini_get('fiftyone_degrees.property_list');
+if ($isPattern) {
+$iniProperties = ini_get('FiftyOneDegreesPatternV3.property_list');
 $properties = explode(",", $iniProperties);
-if (count($properties) == 0) {
-	$properties = NULL;
+}
+elseif ($algorithmUsed == "Trie") {
+$iniProperties = ini_get('FiftyOneDegreesTrieV3.property_list');
+$properties = explode(",", $iniProperties);
+}
+
+
+if ($properties[1] == null) {
+	$properties_in = $provider->getAvailableProperties();
+	for ($i=0;$i<$properties_in->size();$i++) {
+		$properties[$i] = $properties_in->get($i);
+	}
 }
 
 // 51Degrees Logo image link.
@@ -37,15 +63,11 @@ alt="51Degrees logo image for PHP C Extension."/>
 </p>
 <h1>PHP <?=$algorithmUsed; ?> - Device Detection Example</h1>
 <?php
-printInfoTable($info, $isPattern);
+printInfoTable($provider, $isPattern);
 
 printHttpHeaders($allHttpHeaders, "User-Agent", array("HTTP_USER_AGENT"));
-$match_ua = fiftyone_match_with_useragent($_SERVER['HTTP_USER_AGENT']);
+$match_ua = $provider->getMatch($_SERVER['HTTP_USER_AGENT']);
 printArrayToTable($match_ua, $properties, $isPattern, "ua");
-
-printHttpHeaders($allHttpHeaders, "HTTP Headers");
-$match = fiftyone_match();
-printArrayToTable($match, $properties, $isPattern, 2);
 
 printHttpHeaders($allHttpHeaders, "HTTP Headers");
 $httpHeaders = "";
@@ -55,7 +77,7 @@ foreach ($_SERVER as $key => $value) {
     $httpHeaders = $httpHeaders.$key." ".$value."\n";
   }
 }
-$result_1 = fiftyone_match_with_headers($httpHeaders);
+$result_1 = $provider->getMatch($httpHeaders);
 printArrayToTable($result_1, $properties, $isPattern, 2);
 
 
@@ -65,10 +87,7 @@ printArrayToTable($result_1, $properties, $isPattern, 2);
  * @param $colNames a one dimensional array that containes names of columns. Optional.
  *	  Default values will be used if parameter not provided.
  */
-function printArrayToTable($array, $properties, $isPattern, $occurance, $colNames=array("Property","Value","Data Type")) {
-	if (empty($array)) {
-		return;
-	}
+function printArrayToTable($match, $properties, $isPattern, $occurance, $colNames=array("Property","Value","Data Type")) {
 	// Columns in the array.
 	$columnsInTable = count($colNames);
 	// Extra column for the button.
@@ -77,19 +96,11 @@ function printArrayToTable($array, $properties, $isPattern, $occurance, $colName
 	// Id, Rank, Method and Difference are not displayed in the properties
 	// section, so we need less rows.
 	// Default is for Trie and Trie only provides Id.
-	$propertiesRows = count($array) + 2;
+	$propertiesRows = count($properties) + 2;
 	// Number of Match Metrics rows. Pattern provides more metrcs stats.
 	$metricsRowspan = 2;
 	if ($isPattern) {
-		// $properties are derived from PHP.ini and are used to illustrate the differece
-		// between requested properties and initialised properties.
-		if ($properties != NULL) {
-			$propertiesRows = count($properties) + 1;
-		} else {
-			// $properties set to NULL, so use the results $array instead.
-			$propertiesRows = count($array) - 3;
-		}
-		// Pattern provides moe metrics than Trie, hence more rows.
+		// Pattern provides more metrics than Trie, hence more rows.
 		$metricsRowspan = 5;
 	}
 
@@ -108,10 +119,10 @@ function printArrayToTable($array, $properties, $isPattern, $occurance, $colName
 	//Print device Id.
 	echo "<tr>";
 	echo "<td>Id</td>";
-	if (isset($array['Id'])) {
+	if (NULL !== $match->getDeviceId()) {
 		//For Trie Id is an optional property. May not necessarily be set.
-		echo "<td>".$array['Id']."</td>";
-		echo "<td>".gettype($array['Id'])."</td>";
+		echo "<td>".$match->getDeviceId()."</td>";
+		echo "<td>".gettype($match->getDeviceId())."</td>";
 	} else {
 		echo "<td>N/A</td>";
 		echo "<td>N/A</td>";
@@ -121,20 +132,20 @@ function printArrayToTable($array, $properties, $isPattern, $occurance, $colName
 		//Print detection method.
 		echo "<tr>";
 		echo "<td>Method</td>";
-		echo "<td>".$array['Method']."</td>";
-		echo "<td>".gettype($array['Method'])."</td>";
+		echo "<td>".$match->getMethod()."</td>";
+		echo "<td>".gettype($match->getMethod())."</td>";
 		echo "</tr>";
 		//Difference.
 		echo "<tr>";
 		echo "<td>Difference</td>";
-		echo "<td>".$array['Difference']."</td>";
-		echo "<td>".gettype($array['Difference'])."</td>";
+		echo "<td>".$match->getDifference()."</td>";
+		echo "<td>".gettype($match->getDifference())."</td>";
 		echo "</tr>";
 		//Rank.
 		echo "<tr>";
 		echo "<td>Rank</td>";
-		echo "<td>".$array['Rank']."</td>";
-		echo "<td>".gettype($array['Rank'])."</td>";
+		echo "<td>".$match->getRank()."</td>";
+		echo "<td>".gettype($match->getRank())."</td>";
 		echo "</tr>";
 	}
 
@@ -164,18 +175,18 @@ function printArrayToTable($array, $properties, $isPattern, $occurance, $colName
 			}
 			echo "<tr>";
 			echo "<td><a href='https://51degrees.com/resources/property-dictionary#$value'>$value</a></td>";
-			if ($array[$value] != NULL) {
+			if ($match->getValue($value) != NULL) {
 
-				echo "<td>".$array[$value]."</td>";
+				echo "<td>".$match->getValue($value)."</td>";
 			} else {
 				echo "<td><a href='https://51degrees.com/compare-data-options'>Switch Data Set</a></td>";
 			}
-			echo "<td>".gettype($array[$value])."</td>";
+			echo "<td>".gettype($match->getValue($value))."</td>";
 			echo "</tr>";
 		}
 	} else {
 		//NULL was provided, meaning all properties selected.
-		foreach($array as $key => $value) {
+		foreach($match->getAvailableProperties() as $key => $value) {
 			//Ignore Rank, Id, Method and Difference as they are printed elsewhere.
 			if ($key === "SignatureRank" || $key === "Rank" ||
 				$key === "Difference" || $key === "Method" || $key ==="Id") {
@@ -195,10 +206,7 @@ function printArrayToTable($array, $properties, $isPattern, $occurance, $colName
 /**
  * Function prints information related to the data file currently in use.
  */
-function printInfoTable($array, $isPattern) {
-	if (empty($array)) {
-		return null;
-	}
+function printInfoTable($provider, $isPattern) {
 	//How many columns will be required.
 	$columns = 3;
 
@@ -210,9 +218,6 @@ function printInfoTable($array, $isPattern) {
 	echo "</tr>";
 
 	//Print dataset initialisation message.
-	echo "<tr>";
-	echo "<td>Dataset initialisation status:</td>";
-	echo "<td>".$array['dataSetInitStatus'].": ".$array['dataSetInitMessage']."</td>";
 
 	//Third column spans all rows and is used to print 'Compare Data Options' button.
 	if ($columns == 3) {
@@ -227,7 +232,7 @@ function printInfoTable($array, $isPattern) {
 	echo "<tr>";
 	echo "<td>Dataset published:</td>";
 	if ($isPattern) {
-		echo "<td>".$array['publishedDay']."/".$array['publishedMonth']."/".$array['publishedYear']."</td>";
+		echo "<td>".$provider->getDataSetPublishedDate()."</td>";
 	} else {
 		echo "<td>Not available for Trie.</td>";
 	}
@@ -236,7 +241,7 @@ function printInfoTable($array, $isPattern) {
 	echo "<tr>";
 	echo "<td>Dataset next update:</td>";
 	if ($isPattern) {
-		echo "<td>".$array['nextUpdateDay']."/".$array['nextUpdateMonth']."/".$array['nextUpdateYear']."</td>";
+		echo "<td>".$provider->getDataSetNextUpdateDate()."</td>";
 	} else {
 		echo "<td>Not available for Trie.</td>";
 	}
@@ -245,7 +250,7 @@ function printInfoTable($array, $isPattern) {
 	echo "<tr>";
 	echo "<td>Dataset version:</td>";
 	if ($isPattern) {
-		echo "<td>".$array['dataSetVersionMajor'].".".$array['dataSetVersionMinor'].".".$array['dataSetVersionBuild'].".".$array['dataSetRevision']."</td>";
+		echo "<td>".$provider->getDataSetFormat()."</td>";
 	} else {
 		echo "<td>Not available for Trie.</td>";
 	}
@@ -253,13 +258,13 @@ function printInfoTable($array, $isPattern) {
 	//Print dataset name. Exists for both Pattern and Trie. Both Pattern and Trie.
 	echo "<tr>";
 	echo "<td>Dataset name:</td>";
-	echo "<td>".$array['datasetName']."</td>";
+	echo "<td>".$provider->getDataSetName()."</td>";
 	echo "</tr>";
 	//Print device combinations. Pattern only.
 	echo "<tr>";
 	echo "<td>Dataset device combinations:</td>";
 	if ($isPattern) {
-		echo "<td>".$array['dataSetDeviceCombinations']."</td>";
+		echo "<td>".$provider->getDataSetDeviceCombinations()."</td>";
 	} else {
 		echo "<td>Not available for Trie.</td>";
 	}
@@ -293,7 +298,7 @@ function printHttpHeaders($array, $name, $headers=array()) {
 		if ($selective) {
 			//Only some headers are required.
 			//If current header not in the array of required headers skip.
-			if (!in_array($value, $headers)) {
+			if (!in_array("HTTP_".strtoupper(str_replace("-","_",$value)), $headers)) {
 				continue;
 			}
 		}
@@ -302,8 +307,8 @@ function printHttpHeaders($array, $name, $headers=array()) {
 		echo $value;
 		echo "</td>";
 		echo "<td>";
-		if ($_SERVER[$value] != NULL) {
-		    echo $_SERVER[$value];
+		if ($_SERVER["HTTP_".strtoupper(str_replace("-","_",$value))] != NULL) {
+		    echo $_SERVER["HTTP_".strtoupper(str_replace("-","_",$value))];
 		} else {
 		    echo "<i>header not set</i>";
 		}
