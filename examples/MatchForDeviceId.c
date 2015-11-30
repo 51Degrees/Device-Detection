@@ -118,44 +118,64 @@ fgetc(stdin);
 void run(fiftyoneDegreesDataSet* dataSet) {
 	const char* isMobile;
 
-// Device id string of an iPhone mobile device.
-const char* mobileDeviceId = "12280-48866-24305-18092";
+	// User-Agent string of an iPhone mobile device.
+	const char* mobileUserAgent = ("Mozilla/5.0 (iPhone; CPU iPhone OS 7_1 like Mac OS X) "
+		"AppleWebKit/537.51.2 (KHTML, like Gecko) 'Version/7.0 Mobile/11D167 "
+		"Safari/9537.53");
 
-// Device id string of Firefox Web browser version 41 on dektop.
-const char* desktopDeviceId = "15364-21460-53251-18092";
+	// User-Agent string of Firefox Web browser version 41 on dektop.
+	const char* desktopUserAgent = ("Mozilla/5.0 (Windows NT 6.3; WOW64; rv:41.0) "
+		"Gecko/20100101 Firefox/41.0");
 
-// Device id string of a MediaHub device.
-const char* mediaHubDeviceId = "41231-46303-24154-18092";
+	// User-Agent string of a MediaHub device.
+	const char* mediaHubUserAgent = ("Mozilla/5.0 (Linux; Android 4.4.2; X7 Quad Core "
+		"Build/KOT49H) AppleWebKit/537.36 (KHTML, like Gecko) Version/4.0 "
+		"Chrome/30.0.0.0 Safari/537.36");
 
 
-printf("Starting Match For Device Id Example.\n");
+	printf("Starting Match For Device Id Example.\n");
 
-// Creates a workset.
-ws = fiftyoneDegreesWorksetCreate(dataSet, NULL);
+	// Creates a workset.
+	ws = fiftyoneDegreesWorksetCreate(dataSet, NULL);
 
-// Carries out a match for a mobile device id.
-printf("\nMobileDeviceId: %s\n", mobileDeviceId);
-fiftyoneDegreesMatchForDeviceId(ws, mobileDeviceId);
-isMobile = getIsMobile(ws);
-printf("   IsMobile: %s\n", isMobile);
+	// Fetch device id for mobile User-Agent.
+	fiftyoneDegreesMatch(ws, mobileUserAgent);
+	char mobileDeviceId[40];
+	fiftyoneDegreesGetDeviceId(ws, mobileDeviceId, 40);
 
-// Carries out a match for a desktop device id.
-printf("\nDesktopDeviceId: %s\n", desktopDeviceId);
-fiftyoneDegreesMatchForDeviceId(ws, desktopDeviceId);
-isMobile = getIsMobile(ws);
-printf("   IsMobile: %s\n", isMobile);
+	// Fetch device id for desktop User-Agent.
+	fiftyoneDegreesMatch(ws, desktopUserAgent);
+	char desktopDeviceId[40];
+	fiftyoneDegreesGetDeviceId(ws, desktopDeviceId, 40);
 
-// Carries out a match for a MediaHub device id.
-printf("\nMediHub Device Id: %s\n", mediaHubDeviceId);
-fiftyoneDegreesMatchForDeviceId(ws, mediaHubDeviceId);
-isMobile = getIsMobile(ws);
-printf("   IsMobile: %s\n", isMobile);
+	// Fetch device id for MediaHub User-Agent.
+	fiftyoneDegreesMatch(ws, mediaHubUserAgent);
+	char mediaHubDeviceId[40];
+	fiftyoneDegreesGetDeviceId(ws, mediaHubDeviceId, 40);
 
-// Frees the workset.
-fiftyoneDegreesWorksetFree(ws);
+	// Carries out a match for a mobile device id.
+	printf("\nMobileDeviceId: %s\n", mobileDeviceId);
+	fiftyoneDegreesMatchForDeviceId(ws, mobileDeviceId);
+	isMobile = getIsMobile(ws);
+	printf("   IsMobile: %s\n", isMobile);
 
-// Frees the dataset.
-fiftyoneDegreesDataSetFree(dataSet);
+	// Carries out a match for a desktop device id.
+	printf("\nDesktopDeviceId: %s\n", desktopDeviceId);
+	fiftyoneDegreesMatchForDeviceId(ws, desktopDeviceId);
+	isMobile = getIsMobile(ws);
+	printf("   IsMobile: %s\n", isMobile);
+
+	// Carries out a match for a MediaHub device id.
+	printf("\nMediHub Device Id: %s\n", mediaHubDeviceId);
+	fiftyoneDegreesMatchForDeviceId(ws, mediaHubDeviceId);
+	isMobile = getIsMobile(ws);
+	printf("   IsMobile: %s\n", isMobile);
+
+	// Frees the workset.
+	fiftyoneDegreesWorksetFree(ws);
+
+	// Frees the dataset.
+	fiftyoneDegreesDataSetFree(dataSet);
 }
 
 /**
