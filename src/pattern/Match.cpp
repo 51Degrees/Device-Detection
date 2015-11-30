@@ -159,7 +159,10 @@ string Match::getDeviceId() {
 
 /**
  * Returns the Rank of the signature found.
- * See https://51degrees.com/support/documentation/pattern for more details.
+ * See 
+ * <a href="https://51degrees.com/support/documentation/pattern"
+ * target="_parent">https://51degrees.com/support/documentation/pattern</a>
+ * for more details.
  * @returns the Rank of the signature found as a string
  */
 int Match::getRank() {
@@ -169,7 +172,9 @@ int Match::getRank() {
 /**
  * Returns the difference between the result returned and the target
  * User-Agent.
- * See https://51degrees.com/support/documentation/pattern for more details.
+ * See <a href="https://51degrees.com/support/documentation/pattern"
+ * target="_parent">https://51degrees.com/support/documentation/pattern</a>
+ * for more details.
  * @returns the difference as an integer
  */
 int Match::getDifference() {
@@ -178,7 +183,10 @@ int Match::getDifference() {
 
 /**
  * Returns the method used to determine the match result.
- * See https://51degrees.com/support/documentation/pattern for more details.
+ * See 
+ * <a href="https://51degrees.com/support/documentation/pattern"
+ * target="_parent">https://51degrees.com/support/documentation/pattern</a>
+ * for more details.
  * @returns the method used as an integer
  */
 int Match::getMethod() {
