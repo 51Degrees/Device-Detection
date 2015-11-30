@@ -17,6 +17,16 @@ fiftyoneDegreesMatch(workset, "[YOUR USERAGENT]");
 
 ... to turn User-Agent HTTP headers into useful information about physical screen size, device price and type of device.
 
+Use C++ code like ...
+
+```cpp
+Provider provider = new Provider("[DATA FILE LOCATION]",
+	"IsMobile,DeviceType,ScreenInchesDiagonal,PriceBand");
+Match match = Provider.getMatch("[YOUR USERAGENT]");
+```
+
+... to turn User-Agent HTTP headers into useful information about physical screen size, device price and type of device.
+
 Extensions available for PHP, Python, Perl and Node.
 
 **[Review All Properties](https://51degrees.com/resources/property-dictionary?utm_source=github&utm_medium=repository&utm_content=home-cta&utm_campaign=c-open-source" View all available properties and values")**
@@ -54,13 +64,16 @@ This package includes the following examples:
 6. Offline Processing, takes an input file with a list of User-Agent,
   processes them and writes results to an output file.
 
-7. Stronly Typed, takes some common User-Agents and returns the value of
+7. Strongly Typed, takes some common User-Agents and returns the value of
   the IsMobile property as a boolean.
 
 8. Match for Device Id, takes some common device ids and returns the value of
   the IsMobile property.
 
 9. PHP extension.
+
+Examples 3-8 are available in C, and in C# using the C++ Provider.
+They are also available in Python, Perl and PHP within their subdirectories.
 
 Use the following instructions to compile different versions for different
 target platforms.
@@ -151,7 +164,7 @@ VisualStudio/ - all files related exclusively to Windows and Visual Studio 2013.
   Examples/Match For Device Id/Match For Device Id.* - Project files for a match for device id example.
   Exampes/Match Metrics/Match Metrics.* - Project files for a match metrics example.
   Examples/Offline Processing/Offline Processing.* - Project files for an offline processing example.
-  Exampels/Stronly Typed/Strongly Typed.* - Project files for a strongly typed example.
+  Exampels/Strongly Typed/Strongly Typed.* - Project files for a strongly typed example.
 
   CS Examples/Getting Started/* - Project files for a getting started example/
   CS Examples/Match For Device Id/* - Project files for a match for device id example.
@@ -177,288 +190,3 @@ VisualStudio/ - all files related exclusively to Windows and Visual Studio 2013.
   x64Build.bat - Uses the Visual Studio compiler to build a x64 library.
   x86Build.bat - Uses the Visual Studio compiler to build a x86 library.
   VisualStudio.sln - Visual Studio 2013 solution including demonstration web site, interop console, performance and general C projects.
-
-## Recent Changes
-
-#### Version 3.1.6.X
-
-1. Pattern now supports multi threading for both GCC and MSVC compilers. Multi threading can be turned off with the use of **FIFTYONEDEGREES___NO___THREADING**
-   directive.
-2. Pattern includes options for a cache of previous detections.
-3. Pattern supports a workset pool for use in a multi threaded environment.
-4. All external method names have been standardised in the form fiftyoneDegrees[TYPE][ACTION]
-5. snprintf is no longer required.
-6. New methods have been added to return the length of a CSV and JSON buffer and
-   also allocate memory for these processing operations.
-
-Version 3.1.5.2
-
-1. Names of external functions and structs have been changed to have the prefix 'fiftyoneDegrees'. This is to prevent name clashes when integrating to existing code. The following Pattern detector names have been changed:
-
-  Structs and enums:
-  fod_bool -> fiftyoneDegreesBool
-  matchMethod -> fiftyoneDegreesMatchMethod;
-  DataSetInitStatus -> fiftyoneDegreesDataSetInitStatus
-  RANGE -> fiftyoneDegreesRANGE
-  AsciiString -> fiftyoneDegreesAsciiString
-  Component -> fiftyoneDegreesComponent
-  Map -> fiftyoneDegreesMap
-  NodeNumericIndex -> fiftyoneDegreesNodeNumericIndex
-  NodeIndexValue -> fiftyoneDegreesNodeIndexValue
-  NodeIndex -> fiftyoneDegreesNodeIndex
-  String -> fiftyoneDegreesString
-  Strings -> fiftyoneDegreesStrings
-  Node -> fiftyoneDegreesNode
-  ProfileOffset -> fiftyoneDegreesProfileOffset
-  Property -> fiftyoneDegreesProperty
-  Value -> fiftyoneDegreesValue
-  Profile -> fiftyoneDegreesProfile
-  Date -> fiftyoneDegreesDate
-  EntityHeader -> fiftyoneDegreesEntityHeader
-  NumericNodeState -> fiftyoneDegreesNumericNodeState
-  DataSetHeader -> fiftyoneDegreesDataSetHeader;
-  DataSet -> fiftyoneDegreesDataSet;
-  LinkedSignatureListItem -> fiftyoneDegreesLinkedSignatureListItem;
-  LinkedSignatureList -> fiftyoneDegreesLinkedSignatureList;
-  WorkSet -> fiftyoneDegreesWorkset;
-
-  Functions:
-  initWithPropertyArray -> fiftyoneDegreesInitWithPropertyArray
-  initWithPropertyString -> fiftyoneDegreesInitWithPropertyString
-  destroy -> fiftyoneDegreesDestroy
-  createWorkset -> fiftyoneDegreesCreateWorkset
-  freeWorkset -> fiftyoneDegreesFreeWorkset
-  match -> fiftyoneDegreesMatch
-  setValues -> fiftyoneDegreesSetValues
-  getString -> fiftyoneDegreesGetString
-  getValueName -> fiftyoneDegreesGetValueName
-  getPropertyName -> fiftyoneDegreesGetPropertyName
-  processDeviceCSV -> fiftyoneDegreesProcessDeviceCSV
-  processDeviceJSON -> fiftyoneDegreesProcessDeviceJSON             
-
-  The following Trie detector names have been changes:
-
-  Structs:
-  DataSetInitStatus -> fiftyoneDegreesDataSetInitStatus;
-
-  Functions:
-  init -> fiftyoneDegreesInit
-  getDeviceOffset -> fiftyoneDegreesGetDeviceOffset
-  getPropertyIndex -> fiftyoneDegreesGetPropertyIndex
-  getValue -> fiftyoneDegreesGetValue
-  destroy -> fiftyoneDegreesDestroy
-  processDeviceCSV -> fiftyoneDegreesProcessDeviceCSV
-  processDeviceJSON -> fiftyoneDegreesProcessDeviceJSON
-
-2. Added two new functions to Trie:
-
-  int fiftyoneDegreesGetRequiredPropertiesCount() - Returns how many properties have been loaded in the dataset.
-  char** fiftyoneDegreesGetRequiredPropertiesNames() - Returns the names of the properties loaded in the dataset.
-
-### Trie Data - Download
-
-Lite Trie data is included in the data folder. Lite data updates are on the 51Degrees Sourceforge page (https://sourceforge.net/projects/fiftyone-c/files/).
-
-For information Premium and Enterprise Trie data and their benefits, see our website.
-
-**[Compare Device Databases](https://51degrees.com/compare-data-options?utm_source=github&utm_medium=repository&utm_content=home-cta&utm_campaign=c-open-source "Compare different data file options for 51Degrees device detection")**
-
-The Trie data file is not required if only the Pattern method is used.
-
-### Trie Data - File Size
-
-The Trie data file is very large as it contains 10s of millions of index strings. If the data file is larger than 2,147,483,647 bytes it cannot be loaded into memory on a 32 bit architecture. This is not a problem for the Lite format data file. However if using the Premium or Enterprise data file this limit may be exceeded. Where possible, only use the 64 bit versions of the following examples.
-
-### Windows .NET - Wrapper & Demo Web Site
-
-All Windows specific files are located in the Windows folder. They rely on Visual Studio 2010 or greater to build.
-
-Execute the x64Build.bat or x86Build.bat files to compiler a 32 or 64 bit version of the DLLs.
-
-3 DLLs are compiled and placed in the following directories.
-
-1. Windows/Demo/bin/FiftyOne.Mobile.Detection.Provider.Pattern.dll
-2. Windows/Demo/bin/FiftyOne.Mobile.Detection.Provider.Trie.dll
-3. Windows/Demo/bin/FiftyOne.Mobile.Detection.Provider.Interop.dll
-
-1. The "Pattern" DLL is a self-contained detection provider using the Pattern matching method. The FuncsPatternDll.c file contains the external interfaces.
-
-2. The "Trie" DLL is a detection provider using the Trie matching method. A data file located in the data folder needs to be used with this DLL. The FuncsTrieDll.c file contain the external interfaces.
-
-3. The "Interop" DLL is a Common Language Runtime inter operation interface to the previous two DLLs. It should be used with .NET code.
-
-Alternatively the FiftyOne.Mobile.Detection.Provider.sln can be opened in Visual Studio 2013 or greater. This also includes an example web site with a single page which displays the values returned for the requesting device from both the Pattern and Trie providers.
-
-Important: Before starting the example web site check the Default.aspx.cs file to ensure the path to the Trie data file is set correctly. Alternatively comment out the Trie provider.
-
-### Windows Command Line
-
-Execute the Win32Build.bat or Win64Build.bat files in the root folder to build a command line executable using the Visual Studio compiler. This will compile ProcPat.exe and PerfPat.exe.
-
-Execute the WinGCCBuild.bat file to compile the same executable using the GCC compiler through CygWin or MinGW if installed. The relevant PATH file should be configured before use.
-
-This will compile ProcPat.exe, PerfPat.exe, ProcTrie.exe and PerfTrie.exe. The Trie text programs rely on features only available in the GCC compiler.
-
-4 or 5 executable are placed in the root folder, depending on compiler.
-
-See Instructions further down this document for more details.
-
-Basic test: [Console.exe](#console)
-Stdin and Stdout process: [ProcPat.exe](#procpat) | [ProcTrie.exe](#proctrie)
-Performance test executables: [PerfPat.exe](#perfpat) | [PerfTrie.exe](#perftrie)
-
-### Windows Multi Threaded Performance Measurement
-
-A slightly modified version of PerfTrie.exe is created from the FiftyOne.Mobile.Detection.Performance.sln Visual Studio project. A command line executable is built which takes a Trie data file and file of user agents as input. 4 threads are started to read and process the user agents input file in parallel. Once complete it returns the average number of detections performed per second.
-
-Performance.exe TrieDataFile UserAgentsFile
-
-**[Data file path]**  A path to a Trie data file
-
-**[UserAgentsFile]** A path to a list of user agents to be used in the performance test.
-
-https://51degrees.com/million.zip contains a test file of one million user agents.
-
-Example:  
-
-```
-Performance.exe 51Degrees-Lite.Trie million.csv
-```
-
-### Linux and Mac OSX Command Line
-
-The makefile provided in the root folder should be used to build the following 4 executables. See Instructions further down this document for more details concerning how to use these executables.
-
-Console   Detection test.
-
-ProcPat   Stdin and Stdout process.
-ProcTrie
-
-PerfPat   Performance test executable.
-PerfTrie
-
-Use the terminal to navigate to the root folder of the project and enter the command "make" to build the executables.
-
-### Instructions
-
-#### Console
-
-Prints out properties and detection information from some precompiled useragent strings.
-
-```
-Console.exe [Data file path]
-```
-
-**[Data file path]**  A path to a Pattern data file
-
-Example:  
-
-```
-Console.exe data/51Degrees-Lite.dat
-```
-
-#### ProcPat
-
-Starts a process which reads user agents from stdIn and returns CSV format properties and values for the matching device via stdOut. Uses the Pattern matching detection routine.
-
-When running type a user agent, or any string for testing, followed by enter to view the matched device properties. Provide an empty string to terminate the process.
-
-```
-ProcPat [Data file path] [Properties]
-```
-
-**[Data file path]** A path to a Pattern data file
-
-**[Properties]** A comma separated list of properties to be returned. If not provided Id will be used.
-
-For example: Id,IsMobile will return the Id of the matched device and True or False to indicate if the device is a mobile.
-
-See https://51degrees.com/resources/property-dictionary for a list of valid properties.
-
-Example:  
-
-```
-ProcPat data/51Degrees-Lite.dat Id,IsMobile
-```
-
-Enter user agent strings to view the returned Id and IsMobile values, or an empty string to quit.
-
-#### PerfPat
-
-Runs a performance test using a single process and thread using a data file of user agent strings as input. Uses the Pattern matching detection routine which is very memory efficient.
-
-```
-PerfPat [Data file path] [Useragents file] [Properties]
-```
-
-**[Data file path]** A path to a Pattern data file
-
-**[Useragents file]** A path to a list of user agents to be used in the performance test.
-
-http://51Degrees.com/Million.zip contains a test file of one million user agents for testing purposes.
-
-**[Properties]** A comma separated list of properties to be returned. If not provided Id will be used.
-
-For example: Id,IsMobile will return the Id of the matched device and True or False to indicate if the device is a mobile.
-
-See https://51degrees.com/resources/property-dictionary for a list of valid properties.
-
-Example: PerfPat data/51Degrees-Lite.dat million.csv Id,IsMobile
-
-This program requires no input. It will test with the given data and output detection times at the end. This will take several minutes.
-
-#### ProcTrie
-
-Starts a process which reads user agents from stdIn and returns CSV format properties and values for the matching device via stdOut. Uses the Pattern matching detection routine.
-
-When running type a user agent, or any string for testing, followed by enter to view the matched device properties. Provide an empty string to terminate the process.
-
-```
-ProcTrie DataFile [Properties]
-```
-
-**[TrieDataFile]** A source data file in Trie format. A data file current at the time the zip file was created is included in data folder.
-
-**[Properties]** A comma separated list of properties to be returned. If not provided Id will be used.
-
-For example: Id,IsMobile will return the Id of the matched device and True or False to indicate if the device is a mobile.
-
-See https://51degrees.com/resources/property-dictionary for a list of valid properties.
-
-Example:  
-
-```
-ProcTrie data/51Degrees-Lite.Trie IsMobile,Id
-```
-
-Enter user agent strings to view the returned Id and IsMobile values, or an empty string to quit.
-
-#### PerfTrie
-
-Runs a performance test using multiple threads and a data file of useragent strings as input. Uses the Trie matching detection routine which is very fast, but uses a lot of memory.
-
-This program is only built when using the GCC compiler.
-
-```
-PerfTrie [Trie data file] [Useragents file] [Properties]
-```
-
-**[Trie data file]** A source data file in Trie format. A data file current at the time the zip file was created is included in data folder.
-
-**[Useragents file]** A path to a list of user agents to be used in the performance test.
-
-http://51Degrees.com/Million.zip contains a test file of one million useragents.
-
-**[Properties]** A comma separated list of properties to be returned. If not provided Id will be used.
-
-For example: Id,IsMobile will return the Id of the matched device and True or False to indicate if the device is a mobile.
-
-See https://51degrees.com/resources/property-dictionary for a list of valid properties.
-
-Example:
-
-```
-PerfTrie data/51Degrees-Lite.Trie million.csv Id,IsMobile
-```
-
-This program requires no input. It will test with the given data and output detection times at the end. This will take several minutes.
