@@ -2694,7 +2694,7 @@ SWIGEXPORT char * SWIGSTDCALL CSharp_Provider_getMatchJson__SWIG_1(void * jarg1,
 SWIGEXPORT void * SWIGSTDCALL CSharp_Provider_getMatchForDeviceId(void * jarg1, char * jarg2) {
   void * jresult ;
   Provider *arg1 = (Provider *) 0 ;
-  std::string arg2 ;
+  std::string *arg2 = 0 ;
   Match *result = 0 ;
   
   arg1 = (Provider *)jarg1; 
@@ -2702,46 +2702,11 @@ SWIGEXPORT void * SWIGSTDCALL CSharp_Provider_getMatchForDeviceId(void * jarg1, 
     SWIG_CSharpSetPendingExceptionArgument(SWIG_CSharpArgumentNullException, "null string", 0);
     return 0;
   }
-  (&arg2)->assign(jarg2); 
+  std::string arg2_str(jarg2);
+  arg2 = &arg2_str; 
   {
     try {
-      result = (Match *)(arg1)->getMatchForDeviceId(arg2);;
-    }
-    catch(runtime_error& e) {
-      {
-        SWIG_CSharpException(SWIG_RuntimeError, e.what()); return 0; 
-      };
-    }
-    catch(invalid_argument& e) {
-      {
-        SWIG_CSharpException(SWIG_ValueError, e.what()); return 0; 
-      };
-    }
-  }
-  jresult = (void *)result; 
-  return jresult;
-}
-
-
-SWIGEXPORT void * SWIGSTDCALL CSharp_Provider_getMatchForDeviceIds(void * jarg1, void * jarg2, int jarg3) {
-  void * jresult ;
-  Provider *arg1 = (Provider *) 0 ;
-  vector< int > arg2 ;
-  int arg3 ;
-  vector< int > *argp2 ;
-  Match *result = 0 ;
-  
-  arg1 = (Provider *)jarg1; 
-  argp2 = (vector< int > *)jarg2; 
-  if (!argp2) {
-    SWIG_CSharpSetPendingExceptionArgument(SWIG_CSharpArgumentNullException, "Attempt to dereference null vector< int >", 0);
-    return 0;
-  }
-  arg2 = *argp2; 
-  arg3 = (int)jarg3; 
-  {
-    try {
-      result = (Match *)(arg1)->getMatchForDeviceIds(arg2,arg3);;
+      result = (Match *)(arg1)->getMatchForDeviceId((std::string const &)*arg2);;
     }
     catch(runtime_error& e) {
       {
