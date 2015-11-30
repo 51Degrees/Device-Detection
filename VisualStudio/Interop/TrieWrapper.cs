@@ -241,6 +241,18 @@ namespace FiftyOne.Mobile.Detection.Provider.Interop
             }
         }
 
+        /// <summary>
+        /// Returns a match result for the device id provided. The device id
+        /// would have been returned from a previous matches DeviceId 
+        /// property.
+        /// </summary>
+        /// <param name="deviceId"></param>
+        /// <returns></returns>
+        public IMatchResult MatchForDeviceId(string deviceId)
+        {
+            throw new NotImplementedException();
+        }
+
         #endregion
     }
 }
