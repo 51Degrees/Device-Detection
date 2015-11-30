@@ -62,14 +62,19 @@ my $propertyList = "";
 my $cacheSize = 10000;
 my $poolSize = 20;
 
-# Device id of an iPhone mobile device.
-my $mobileDeviceId = "12280-48866-24305-18092";
+# User-Agent string of an iPhone mobile device.
+my $mobileUserAgent = "Mozilla/5.0 (iPhone; CPU iPhone OS 7_1 like Mac OS X) ".
+"AppleWebKit/537.51.2 (KHTML, like Gecko) 'Version/7.0 ".
+"Mobile/11D167 Safari/9537.53";
 
-# Device id of of Firefox Web browser version 41 on dektop.
-my $desktopDeviceId = "15364-21460-53251-18092";
+# User-Agent string of Firefox Web browser version 41 on dektop.
+my $desktopUserAgent = "Mozilla/5.0 (Windows NT 6.3; WOW64; rv:41.0) ".
+"Gecko/20100101 Firefox/41.0";
 
-# Device id of a MediaHub device.
-my $mediaHubDeviceId = "41231-46303-24154-18092";
+# User-Agent string of a MediaHub device.
+my $mediaHubUserAgent = "Mozilla/5.0 (Linux; Android 4.4.2; X7 Quad Core ".
+"Build/KOT49H) AppleWebKit/537.36 (KHTML, like Gecko) Version/4.0 ".
+"Chrome/30.0.0.0 Safari/537.36";
 
 
 #Initialises the device detection provider with settings from the settings
@@ -86,6 +91,18 @@ my $provider = new FiftyOneDegrees::PatternV3::Provider(
 
 
 say "Starting Match With Device Id Example.";
+
+# Fetches device id for mobile User-Agent.
+my $match = $provider->getMatch($mobileUserAgent);
+my $mobileDeviceId = $match->getDeviceId();
+
+# Fetches device id for desktop User-Agent.
+my $match = $provider->getMatch($desktopUserAgent);
+my $desktopDeviceId = $match->getDeviceId();
+
+# Fetches device id for MediaHub User-Agent.
+my $match = $provider->getMatch($mediaHubUserAgent);
+my $mediaHubDeviceId = $match->getDeviceId();
 
 # Carries out a match with a mobile device id.
 say "\nMobile Device Id: $mobileDeviceId";

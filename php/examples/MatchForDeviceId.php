@@ -46,14 +46,31 @@ and have FiftyOneDegreesPatternV3.php in this directory.
 require("FiftyOneDegreesPatternV3.php");
 $provider = FiftyOneDegreesPatternV3::provider_get();
 
-// Device id string of an iPhone mobile device.
-$mobileDeviceId = "12280-48866-24305-18092";
+// User-Agent string of an iPhone mobile device.
+$mobileUserAgent = "Mozilla/5.0 (iPhone; CPU iPhone OS 7_1 like Mac OS X) ".
+"AppleWebKit/537.51.2 (KHTML, like Gecko) 'Version/7.0 Mobile/11D167 ".
+"Safari/9537.53";
 
-// Device id string of Firefox Web browser version 41 on dektop.
-$desktopDeviceId = "15364-21460-53251-18092";
+// User-Agent string of Firefox Web browser version 41 on dektop.
+$desktopUserAgent = "Mozilla/5.0 (Windows NT 6.3; WOW64; rv:41.0) ".
+"Gecko/20100101 Firefox/41.0";
 
-// Device id string of a MediaHub device.
-$mediaHubDeviceId = "41231-46303-24154-18092";
+// User-Agent string of a MediaHub device.
+$mediaHubUserAgent = "Mozilla/5.0 (Linux; Android 4.4.2; X7 Quad Core ".
+"Build/KOT49H) AppleWebKit/537.36 (KHTML, like Gecko) Version/4.0 ".
+"Chrome/30.0.0.0 Safari/537.36";
+
+// Fetches the device id for a mobile User-Agent.
+$match = $provider->getMatch($mobileUserAgent);
+$mobileDeviceId = $match->getDeviceId();
+
+// Fetches the device id for a desktop User-Agent.
+$match = $provider->getMatch($desktopUserAgent);
+$desktopDeviceId = $match->getDeviceId();
+
+// Fetches the device id for a MediaHub User-Agent.
+$match = $provider->getMatch($mediaHubUserAgent);
+$mediaHubDeviceId = $match->getDeviceId();
 
 echo "Starting Match With Device Id Example<br>\n";
 
