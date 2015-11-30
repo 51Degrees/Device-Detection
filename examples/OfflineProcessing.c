@@ -24,38 +24,38 @@ Offline processing example of using 51Degrees device detection.
 The example shows how to:
 <ol>
 <li>Set the various settings for 51Degrees detector
-<p><code>
+<p><pre class="prettyprint lang-c">
 const char* fileName = argv[1];<br>
 const char* properties = "IsMobile";
-</code></p>
+</pre></p>
 <li>Instantiate the 51Degrees device detection provider with these
 properties
-<p><code>
+<p><pre class="prettyprint lang-c">
 fiftyoneDegreesInitWithPropertyString(fileName, &dataSet, properties);
-</code></p>
+</pre></p>
 <li>Create a workset with which to find a match
-<p><code>
+<p><pre class="prettyprint lang-c">
 ws = fiftyoneDegreesWorksetCreate(&dataSet, NULL);
-</code></p>
+</pre></p>
 <li>Open an input file with a list of User-Agents, and an output file,
-<p><code>
+<p><pre class="prettyprint lang-c">
 FILE* fin = fopen(inputFile, "r");<br>
 FILE* fout = fopen(outputFile, "w");
-</code></p>
+</pre></p>
 <li>Write a header to the output file with the property names in '|'
 separated CSV format ('|' sepparated because some User-Agents contain
 commas)
-<p><code>
+<p><pre class="prettyprint lang-c">
 fprintf(fout, "User-Agent");<br>
 for (j=0;j<propertiesCount;j++) {<br>
 	fprintf(fout, "|%s", propertiesArray[j]);<br>
 }<br>
 fprintf(fout, "\n");
-</code></p>
+</pre></p>
 <li>For the first 20 User-Agents in the input file, performa match then
 write the User-Agent along with the values for chosen properties to
 the CSV.
-<p><code>
+<p><pre class="prettyprint lang-c">
 for (i=0;i<20;i++) {<br>
 	fgets(userAgent, sizeof(userAgent), fin);<br>
 	userAgent[strlen(userAgent)-1] = '\0';<br>
@@ -67,15 +67,15 @@ for (i=0;i<20;i++) {<br>
 	}<br>
 	fprintf(fout, "\n");<br>
 }
-</code></p>
+</pre></p>
 <li>Release the memory taken by the workset
-<p><code>
+<p><pre class="prettyprint lang-c">
 fiftyoneDegreesWorksetFree(ws);
-</code></p>
+</pre></p>
 <li>Finaly release the memory taken by the dataset
-<p><code>
+<p><pre class="prettyprint lang-c">
 fiftyoneDegreesDataSetFree(&dataSet);
-</code></p>
+</pre></p>
 </ol>
 This example assumes you have compiled with 51Degrees.c
 and city.c. This will happen automaticaly if you are compiling
