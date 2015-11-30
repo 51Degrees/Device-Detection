@@ -23,6 +23,8 @@ Use C++ code like ...
 Provider provider = new Provider("[DATA FILE LOCATION]",
 	"IsMobile,DeviceType,ScreenInchesDiagonal,PriceBand");
 Match match = Provider.getMatch("[YOUR USERAGENT]");
+match.Dispose();
+provider.Dispose();
 ```
 
 ... to turn User-Agent HTTP headers into useful information about physical screen size, device price and type of device.

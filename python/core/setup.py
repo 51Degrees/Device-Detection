@@ -26,7 +26,7 @@ if sys.version_info[0] == 3:
 
 setup(
     name='51degrees-mobile-detector',
-    version='3.2.1.4',
+    version='3.2.3.6',
     author='51Degrees',
     author_email='info@51degrees.com',
     packages=find_packages(),
