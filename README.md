@@ -43,6 +43,8 @@ Pattern:  Searches for device signatures in a User-Agent. Unlike previous versio
 
 Trie: A large binary Trie (pronounced Try) populated with device Patterns. Uses a separate data file. Very fast.
 
+PHP, Python, Perl and C# APIs are built using SWIG, so all use the same C++ Provider and Match classes. This keeps all the APIs consistent and introduces any new features across all APIs simultaneously.
+
 This package includes the following examples:
 
 1. Command line process which takes a user agent via stdin and return a device
