@@ -27,34 +27,34 @@ information. The example shows how to:
 <ol>
 <li>Fetch a pointer to the 51Degrees device detection provider instance.
 This is instantiated on server startup and uses settings from php.ini.
-<p><code>
+<p><pre class="prettyprint lang-php"
 $provider = FiftyOneDegreesPatternV3::provider_get();
-</code></p>
+</pre></p>
 <li>Produce a match for a single HTTP User-Agent header
-<p><code>
+<p><pre class="prettyprint lang-php"
 my $match = $provider->getMatch($userAgent)
-</code></p>
+</pre></p>
 <li>Extract the value of the IsMobile property
-<p><code>
+<p><pre class="prettyprint lang-php"
 $match->getValue('IsMobile')
-</code></p>
+</pre></p>
 <li>Obtain device Id: consists of four components separated by a hyphen 
 symbol: Hardware-Platform-Browser-IsCrawler where each Component 
 represents an ID of the corresponding Profile.
-<p><code>$match->getDeviceId();</code>
+<p><pre class="prettyprint lang-php"$match->getDeviceId();</pre>
 <li>obtain match method: provides information about the 
 algorithm that was used to perform detection for a particular User-Agent. 
 For more information on what each method means please see: 
 <a href="https://51degrees.com/support/documentation/pattern">
 How device detection works</a>
-<p><code>$match->getMethod();</code>
+<p><pre class="prettyprint lang-php"$match->getMethod();</pre>
 <li>obtain difference:  used when detection method is not Exact or None. 
 This is an integer value and the larger the value the less confident the 
 detector is in this result.
-<p><code>$match->getDifference();</code>
+<p><pre class="prettyprint lang-php"$match->getDifference();</pre>
 <li>obtain signature rank: an integer value that indicates how popular 
 the device is. The lower the rank the more popular the signature.
-<p><code>$match->getRank();</code>
+<p><pre class="prettyprint lang-php"$match->getRank();</pre>
 </ol>
 This example assumes you have the 51Degrees PHP API installed correctly,
 and have FiftyOneDegreesPatternV3.php in this directory.

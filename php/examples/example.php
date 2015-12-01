@@ -1,4 +1,5 @@
 <?php
+// Snippet Start
 if (extension_loaded(FiftyOneDegreesPatternV3)) {
 	require("/home/ben/Device-Detection/php/pattern/module/FiftyOneDegreesPatternV3.php");
 	$provider = FiftyOneDegreesPatternV3::provider_get();
@@ -361,7 +362,7 @@ function getWebsiteLink($purpose, $isPattern, $occurance=1) {
 	}
 	return $url."?".$utmSource."&".$utmMedium."&".$utmContent."&".$utmCampaign;
 }
-
+// Snippet End
 ?>
 </div>
 </body>
