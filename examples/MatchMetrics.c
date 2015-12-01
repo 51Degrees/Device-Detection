@@ -24,52 +24,52 @@ Match metrics example of using 51Degrees device detection.
 The example shows how to:
 <ol>
 <li>Set the various settings for 51Degrees detector
-<p><code>
+<p><pre class="prettyprint lang-c">
 const char* fileName = argv[1];<br>
 const char* properties = "IsMobile";
-</code></p>
+</pre></p>
 <li>Instantiate the 51Degrees device detection provider with these
 properties
-<p><code>
+<p><pre class="prettyprint lang-c">
 fiftyoneDegreesInitWithPropertyString(fileName, &dataSet, properties);
-</code></p>
+</pre></p>
 <li>Create a workset with which to find a match
-<p><code>
+<p><pre class="prettyprint lang-c">
 ws = fiftyoneDegreesWorksetCreate(&dataSet, NULL);
-</code></p>
+</pre></p>
 <li>Produce a match for a single HTTP User-Agent
-<p><code>
+<p><pre class="prettyprint lang-c">
 fiftyoneDegreesMatch(ws, userAgent);
-</code></p>
+</pre></p>
 <li>Obtain device Id: consists of four components separated by a hyphen 
 symbol: Hardware-Platform-Browser-IsCrawler where each Component 
 represents an ID of the corresponding Profile.
-<p><code>
+<p><pre class="prettyprint lang-c">
 int deviceIdSize = ws->dataSet->header.components.count * 10;<br>
 char deviceId[deviceIdSize];<br>
 fiftyoneDegreesGetDeviceId(ws, deviceId, deviceIdSize)
-</code></p>
+</pre></p>
 <li>Obtain match method: provides information about the 
 algorithm that was used to perform detection for a particular User-Agent. 
 For more information on what each method means please see: 
 <a href="https://51degrees.com/support/documentation/pattern">
 How device detection works</a>
-<p><code>ws->method</code></p>
+<p><pre class="prettyprint lang-c">ws->method</pre></p>
 <li>Obtain difference:  used when detection method is not Exact or None. 
 This is an integer value and the larger the value the less confident the 
 detector is in this result.
-<p><code>ws->difference</code></p>
+<p><pre class="prettyprint lang-c">ws->difference</pre></p>
 <li>Obtain signature rank: an integer value that indicates how popular 
 the device is. The lower the rank the more popular the signature.
-<p><code>fiftyoneDegreesGetSignatureRank()</code></p>
+<p><pre class="prettyprint lang-c">fiftyoneDegreesGetSignatureRank()</pre></p>
 <li>Release the memory taken by the workset
-<p><code>
+<p><pre class="prettyprint lang-c">
 fiftyoneDegreesWorksetFree(ws);
-</code></p>
+</pre></p>
 <li>Finaly release the memory taken by the dataset
-<p><code>
+<p><pre class="prettyprint lang-c">
 fiftyoneDegreesDataSetFree(&dataSet);
-</code></p>
+</pre></p>
 </ol>
 This example assumes you have compiled with 51Degrees.c
 and city.c. This will happen automaticaly if you are compiling
