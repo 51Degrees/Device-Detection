@@ -54,6 +54,7 @@ i.e. Device-Detection/perl/examples/ and the 51Degrees Perl module
 is installed. 
 </tutorial>
 =cut
+# // Snippet Start
 use FiftyOneDegrees::PatternV3;
 use feature qw/say/;
 
@@ -121,3 +122,4 @@ say "\nMobile Device Id: $mediaHubDeviceId";
 my $match = $provider->getMatchForDeviceId($mediaHubDeviceId);
 my $isMobile =  $match->getValue("IsMobile");
 say "   IsMobile: $isMobile";
+# // Snippet End
