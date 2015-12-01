@@ -28,40 +28,40 @@ Offline processing example of using 51Degrees device detection. The example
 shows how to:
 <ol>
 <li>Set the various settings for 51Degrees detector
-<p><code>
+<p><pre class="prettyprint lang-pl">
 my $filename = "51Degrees-LiteV3.2.dat";<br>
 my $propertyList = "IsMobile"<br>
 my $cacheSize = 10000;<br>
 my $poolSize = 20;
-</code></p>
+</pre></p>
 <li>Instantiate the 51Degrees device detection provider with these
 properties
-<p><code>
+<p><pre class="prettyprint lang-pl">
 my $provider = new FiftyOneDegrees::PatternV3::Provider(
 	$dataFile,
 	$properties,
 	$cacheSize,
 	$poolSize);
-</code></p>
+</pre></p>
 <li>Open an input file with a list of User-Agents, and an output file,
-<p><code>
+<p><pre class="prettyprint lang-pl">
 open my $file_in, "../../data/20000 User Agents.csv";<br>
 open file_out, ">output.csv";
-</code></p>
+</pre></p>
 <li>Write a header to the output file with the property names in '|'
 separated CSV format ('|' sepparated because some User-Agents contain
 commas)
-<p><code>
+<p><pre class="prettyprint lang-pl">
 print file_out "User-Agent";<br>
 foreach $property (@$properties) {<br>
 	print file_out "|".$property;<br>
 }<br>
 print file_out "\n";<br>
-</code></p>
+</pre></p>
 <li>For the first 20 User-Agents in the input file, performa match then
 write the User-Agent along with the values for chosen properties to
 the CSV.
-<p><code>
+<p><pre class="prettyprint lang-pl">
 while( my $userAgent = <$file_in>) {<br>
 	chomp $userAgent;<br>
 	my $match = $provider->getMatch($userAgent);<br>
@@ -72,7 +72,7 @@ while( my $userAgent = <$file_in>) {<br>
 	print file_out "\n";<br>
 	last if $. == 20;<br>
 }<br>
-</code></p>
+</pre></p>
 </ol>
 This example assumes you are running from the original subdirectory
 i.e. Device-Detection/perl/examples/ and the 51Degrees Perl module
