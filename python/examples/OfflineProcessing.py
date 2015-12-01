@@ -27,45 +27,45 @@ shows how to:
 <ol>
 <li>Import settings from the 51Degrees settings file
 <p><pre class="prettyprint lang-py">
-dataFile = settings.V3_WRAPPER_DATABASE<br>
-properties = settings.PROPERTIES<br>
-cacheSize = settings.CACHE_SIZE<br>
-poolSize = settings.POOL_SIZE<br>
+dataFile = settings.V3_WRAPPER_DATABASE
+properties = settings.PROPERTIES
+cacheSize = settings.CACHE_SIZE
+poolSize = settings.POOL_SIZE
 </pre></p>
 <li>Instantiate the 51Degrees device detection provider with these
 properties
 <p><pre class="prettyprint lang-py">
-provider = fiftyone_degrees_mobile_detector_v3_wrapper.Provider(dataFile,<br>
-	properties,<br>
-	cacheSize,<br>
+provider = fiftyone_degrees_mobile_detector_v3_wrapper.Provider(dataFile,
+	properties,
+	cacheSize,
 	poolSize)
 </pre></p>
 <li>Open an input file with a list of User-Agents, and an output file,
 <p><pre class="prettyprint lang-py">
-fin = open(inputFile, 'r')<br>
+fin = open(inputFile, 'r')
 fout = open(outputFile, 'w')
 </pre></p>
 <li>Write a header to the output file with the property names in '|'
 separated CSV format ('|' sepparated because some User-Agents contain
 commas)
 <p><pre class="prettyprint lang-py">
-fout.write('User-Agent')<br>
-for name in properties.split(','):<br>
-	fout.write('|' + name)<br>
+fout.write('User-Agent')
+for name in properties.split(','):
+	fout.write('|' + name)
 fout.write('\n')
 </pre></p>
 <li>For the first 20 User-Agents in the input file, performa match then
 write the User-Agent along with the values for chosen properties to
 the CSV.
 <p><pre class="prettyprint lang-py">
-while i < 20 :<br>
-	userAgent = fin.readline().rstrip('\n')<br>
-	fout.write(userAgent)<br>
-	device = provider.getMatch(userAgent)<br>
-	for name in properties.split(','):<br>
-		value = device.getValue(name)<br>
-		fout.write('|' + value)<br>
-	fout.write('\n')<br>
+while i < 20 :
+	userAgent = fin.readline().rstrip('\n')
+	fout.write(userAgent)
+	device = provider.getMatch(userAgent)
+	for name in properties.split(','):
+		value = device.getValue(name)
+		fout.write('|' + value)
+	fout.write('\n')
 	i = i + 1
 </pre></p>
 </ol>
