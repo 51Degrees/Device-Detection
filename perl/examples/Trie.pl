@@ -27,14 +27,14 @@ shows how to:
 <ol>
 <li>Set the various settings for 51Degrees detector
 <p><pre class="prettyprint lang-pl">
-my $filename = "51Degrees-LiteV3.2.trie";<br>
-my $propertyList = "IsMobile"<br>
+my $filename = "51Degrees-LiteV3.2.trie";
+my $propertyList = "IsMobile"
 </pre></p>
 <li>Instantiate the 51Degrees device detection provider with these
 properties
 <p><pre class="prettyprint lang-pl">
-my $provider = new FiftyOneDegrees::TrieV3::Provider(<br>
-	$dataFile,<br>
+my $provider = new FiftyOneDegrees::TrieV3::Provider(
+	$dataFile,
 	$properties);
 </pre></p>
 <li>Produce a match for a single HTTP User-Agent header
@@ -55,6 +55,7 @@ data file, and it does not use a cache or pool, so these do not need
 to be set.
 </tutorial>
 =cut
+# // Snippet Start
 use FiftyOneDegrees::TrieV3;
 use feature qw/say/;
 
@@ -104,4 +105,4 @@ say "\nMediaHub User-Agent: $mediaHubUserAgent";
 my $match = $provider->getMatch($mediaHubUserAgent);
 my $isMobile =  $match->getValue("IsMobile");
 say "   IsMobile: $isMobile";
-
+# // Snippet End

@@ -25,7 +25,7 @@ The example shows how to:
 <ol>
 <li>Set the various settings for 51Degrees detector
 <p><pre class="prettyprint lang-c">
-const char* fileName = argv[1];<br>
+const char* fileName = argv[1];
 const char* properties = "IsMobile";
 </pre></p>
 <li>Instantiate the 51Degrees device detection provider with these
@@ -39,33 +39,33 @@ ws = fiftyoneDegreesWorksetCreate(&dataSet, NULL);
 </pre></p>
 <li>Open an input file with a list of User-Agents, and an output file,
 <p><pre class="prettyprint lang-c">
-FILE* fin = fopen(inputFile, "r");<br>
+FILE* fin = fopen(inputFile, "r");
 FILE* fout = fopen(outputFile, "w");
 </pre></p>
 <li>Write a header to the output file with the property names in '|'
 separated CSV format ('|' sepparated because some User-Agents contain
 commas)
 <p><pre class="prettyprint lang-c">
-fprintf(fout, "User-Agent");<br>
-for (j=0;j<propertiesCount;j++) {<br>
-	fprintf(fout, "|%s", propertiesArray[j]);<br>
-}<br>
+fprintf(fout, "User-Agent");
+for (j=0;j<propertiesCount;j++) {
+	fprintf(fout, "|%s", propertiesArray[j]);
+}
 fprintf(fout, "\n");
 </pre></p>
-<li>For the first 20 User-Agents in the input file, performa match then
+<li>For the first 20 User-Agents in the input file, perform a match then
 write the User-Agent along with the values for chosen properties to
 the CSV.
 <p><pre class="prettyprint lang-c">
-for (i=0;i<20;i++) {<br>
-	fgets(userAgent, sizeof(userAgent), fin);<br>
-	userAgent[strlen(userAgent)-1] = '\0';<br>
-	fprintf(fout, "%s", userAgent);<br>
-	fiftyoneDegreesMatch(ws, userAgent);<br>
-	for (j=0;j<propertiesCount;j++) {<br>
-		value = getValue(ws, propertiesArray[j]);<br>
-		fprintf(fout, "|%s", value);<br>
-	}<br>
-	fprintf(fout, "\n");<br>
+for (i=0;i<20;i++) {
+	fgets(userAgent, sizeof(userAgent), fin);
+	userAgent[strlen(userAgent)-1] = '\0';
+	fprintf(fout, "%s", userAgent);
+	fiftyoneDegreesMatch(ws, userAgent);
+	for (j=0;j<propertiesCount;j++) {
+		value = getValue(ws, propertiesArray[j]);
+		fprintf(fout, "|%s", value);
+	}
+	fprintf(fout, "\n");
 }
 </pre></p>
 <li>Release the memory taken by the workset
@@ -78,8 +78,8 @@ fiftyoneDegreesDataSetFree(&dataSet);
 </pre></p>
 </ol>
 This example assumes you have compiled with 51Degrees.c
-and city.c. This will happen automaticaly if you are compiling
-as part of the Visual Studio solution. Additionaly, when running,
+and city.c. This will happen automatically if you are compiling
+as part of the Visual Studio solution. Additionally, when running,
 the location of a 51Degrees data file and an input file
 must be passed as a command line argument if you wish to use 
 premium or enterprise data files.

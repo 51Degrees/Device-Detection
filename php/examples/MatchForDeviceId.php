@@ -42,7 +42,7 @@ This example assumes you have the 51Degrees PHP API installed correctly,
 and have FiftyOneDegreesPatternV3.php in this directory.
 </tutorial>
 */
-
+// Snippet Start
 require("FiftyOneDegreesPatternV3.php");
 $provider = FiftyOneDegreesPatternV3::provider_get();
 
@@ -88,4 +88,5 @@ echo "   IsMobile: ".$match->getValue("IsMobile")."<br>\n";
 echo "<br>\nMediaHub DeviceId: ".$mediaHubDeviceId."<br>\n";
 $match = $provider->getMatchForDeviceId($mediaHubDeviceId);
 echo "   IsMobile: ".$match->getValue("IsMobile")."<br>\n";
+// Snippet End
 ?>
