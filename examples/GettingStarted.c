@@ -25,7 +25,7 @@ The example shows how to:
 <ol>
 <li>Set the various settings for 51Degrees detector
 <p><pre class="prettyprint lang-c">
-const char* fileName = argv[1];<br>
+const char* fileName = argv[1];
 const char* properties = "IsMobile";
 </pre></p>
 <li>Instantiate the 51Degrees device detection provider with these
@@ -44,10 +44,9 @@ fiftyoneDegreesMatch(ws, userAgent);
 <li>Extract the value of the IsMobile property
 <p><pre class="prettyprint lang-c">
 requiredPropertyIndex = fiftyoneDegreesGetRequiredPropertyIndex(ws->dataSet,
- "IsMobile");<br>
-fiftyoneDegreesSetValues(ws, requiredPropertyIndex);<br>
+ "IsMobile");
+fiftyoneDegreesSetValues(ws, requiredPropertyIndex);
 valueName = fiftyoneDegreesGetString(ws->dataSet, ws->values[0]->nameOffset);
-<br>
 isMobile = &(valueName->firstByte);
 </pre></p>
 <li>Release the memory taken by the workset
@@ -60,8 +59,8 @@ fiftyoneDegreesDataSetFree(&dataSet);
 </pre></p>
 </ol>
 This example assumes you have compiled with 51Degrees.c
-and city.c. This will happen automaticaly if you are compiling
-as part of the Visual Studio solution. Additionaly, when running,
+and city.c. This will happen automatically if you are compiling
+as part of the Visual Studio solution. Additionally, when running,
 the location of a 51Degrees data file must be passed as a 
 command line argument if you wish to use premium or enterprise
 data files.
