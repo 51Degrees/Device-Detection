@@ -17,12 +17,29 @@ from FiftyOneDegrees import fiftyone_degrees_mobile_detector_v3_wrapper
 # Set html links globally
 ####################################################
 
-dataOptions = '<a class="button" target="_blank" href="https://51degrees.com/compare-data-options?utm_source=github&utm_medium=repository&utm_content=server_pattern_compare&utm_campaign=python-open-source" title="Compare Premium and Enterprise Data Options">Compare Data Options</a>'
-methodHyperLinkUA = '<a class="button" target="_blank" href="https://51degrees.com/support/documentation/pattern?utm_source=github&utm_medium=repository&utm_content=example_pattern_ua&utm_campaign=python-open-source" title="How Pattern Device Detection Works">About Metrics</a>'
-methodHyperLinkHeaders = '<a class="button" target="_blank" href="https://51degrees.com/support/documentation/pattern?utm_source=github&utm_medium=repository&utm_content=example_pattern_headers&utm_campaign=python-open-source" title="How Pattern Device Detection Works">About Metrics</a>'
-propertiesHyperLinkUA = '<a class="button" target="_blank" href="https://51degrees.com/resources/property-dictionary?utm_source=github&utm_medium=repository&utm_content=server_pattern_properties_ua&utm_campaign=python-open-source" title="Review All Properties">All Properties</a>'
-propertiesHyperLinkHeaders = '<a class="button" target="_blank" href="https://51degrees.com/resources/property-dictionary?utm_source=github&utm_medium=repository&utm_content=server_pattern_properties_headers&utm_campaign=python-open-source" title="Review All Properties">All Properties</a>'
-propertyNotFound = '<a target="_blank" href="https://51degrees.com/compare-data-options?utm_source=github&utm_medium=repository&utm_content=server_pattern_compare&utm_campaign=python-open-source">Switch Data Set</a>'
+dataOptions = ('<a class="button" target="_blank" href="https://51degrees.com/'
+'compare-data-options?utm_source=github&utm_medium=repository&utm_content='
+'server_pattern_compare&utm_campaign=python-open-source" title="Compare '
+'Premium and Enterprise Data Options">Compare Data Options</a>')
+methodHyperLinkUA = ('<a class="button" target="_blank" href="https://'
+'51degrees.com/support/documentation/pattern?utm_source=github&utm_medium='
+'repository&utm_content=example_pattern_ua&utm_campaign=python-open-source" '
+'title="How Pattern Device Detection Works">About Metrics</a>')
+methodHyperLinkHeaders = ('<a class="button" target="_blank" href="https://'
+'51degrees.com/support/documentation/pattern?utm_source=github&utm_medium='
+'repository&utm_content=example_pattern_headers&utm_campaign=python-open-'
+'source" title="How Pattern Device Detection Works">About Metrics</a>')
+propertiesHyperLinkUA = ('<a class="button" target="_blank" href="https://'
+'51degrees.com/resources/property-dictionary?utm_source=github&utm_medium='
+'repository&utm_content=server_pattern_properties_ua&utm_campaign=python-'
+'open-source" title="Review All Properties">All Properties</a>')
+propertiesHyperLinkHeaders = ('<a class="button" target="_blank" href="https:'
+'//51degrees.com/resources/property-dictionary?utm_source=github&utm_medium='
+'repository&utm_content=server_pattern_properties_headers&utm_campaign=python'
+'-open-source" title="Review All Properties">All Properties</a>')
+propertyNotFound = ('<a target="_blank" href="https://51degrees.com/compare-'
+'data-options?utm_source=github&utm_medium=repository&utm_content=server_'
+'pattern_compare&utm_campaign=python-open-source">Switch Data Set</a>')
 
 
 #######################################################
@@ -62,12 +79,17 @@ class GetHandler(CGIHTTPServer.CGIHTTPRequestHandler):
 
         self.wfile.write('<!doctype html>')
         self.wfile.write('<html>')
-        self.wfile.write('<link rel="stylesheet" type="text/css" href="https://51degrees.com/Demos/examples.css" class="inline">')
+        self.wfile.write('<link rel="stylesheet" type="text/css" href="'
+		'https://51degrees.com/Demos/examples.css" class="inline">')
         self.wfile.write('<body>')
         self.wfile.write('<div class="content">')
 
-        self.wfile.write('<p><img src="https://51degrees.com/DesktopModules/FiftyOne/Distributor/Logo.ashx?utm_source=github&utm_medium=repository&utm_content=server_pattern&utm_campaign=python-open-source"></p>')
-        self.wfile.write('<h1>Python Pattern - Device Detection Server Example</h1>')
+        self.wfile.write('<p><img src="https://51degrees.com/DesktopModules/'
+		'FiftyOne/Distributor/Logo.ashx?utm_source=github&utm_medium='
+		'repository&utm_content=server_pattern&utm_campaign=python-'
+		'open-source"></p>')
+        self.wfile.write('<h1>Python Pattern - Device Detection '
+		'Server Example</h1>')
 
 #####################################################
 # Output data set information
@@ -75,12 +97,18 @@ class GetHandler(CGIHTTPServer.CGIHTTPRequestHandler):
 
         self.wfile.write('<table>')
         self.wfile.write('<tr><th colspan="3">Data Set Information</th></tr>')
-        self.wfile.write('<tr><td>Name</td><td>%s</td><td rowspan="6">%s</td></tr>' % (provider.getDataSetName(),  dataOptions))
-        self.wfile.write('<tr><td>Format</td><td>%s</td></tr>' % provider.getDataSetFormat())
-        self.wfile.write('<tr><td>Published Date</td><td>%s</td></tr>' % provider.getDataSetPublishedDate())
-        self.wfile.write('<tr><td>Next Update Date</td><td>%s</td></tr>' % provider.getDataSetNextUpdateDate())
-        self.wfile.write('<tr><td>Signature Count</td><td>%d</td></tr>' % provider.getDataSetSignatureCount())
-        self.wfile.write('<tr><td>Device Combinations</td><td>%d</td></tr>' % provider.getDataSetDeviceCombinations())
+        self.wfile.write('<tr><td>Name</td><td>%s</td><td rowspan="6">%s</td>'
+		'</tr>' % (provider.getDataSetName(),  dataOptions))
+        self.wfile.write('<tr><td>Format</td><td>%s</td></tr>'\
+		% provider.getDataSetFormat())
+        self.wfile.write('<tr><td>Published Date</td><td>%s</td></tr>'\
+		% provider.getDataSetPublishedDate())
+        self.wfile.write('<tr><td>Next Update Date</td><td>%s</td></tr>'\
+		% provider.getDataSetNextUpdateDate())
+        self.wfile.write('<tr><td>Signature Count</td><td>%d</td></tr>'\
+		% provider.getDataSetSignatureCount())
+        self.wfile.write('<tr><td>Device Combinations</td><td>%d</td></tr>'\
+		% provider.getDataSetDeviceCombinations())
 
         self.wfile.write('</table>')
 
@@ -101,18 +129,22 @@ class GetHandler(CGIHTTPServer.CGIHTTPRequestHandler):
 # Set http headers from browser
 ########################################################
 
-        httpHeaders = fiftyone_degrees_mobile_detector_v3_wrapper.MapStringString()
+        httpHeaders = fiftyone_degrees_mobile_detector_v3_wrapper\
+			.MapStringString()
 
         self.wfile.write('<table>')
-        self.wfile.write('<tr><th colspan="2">Match with HTTP Headers</th></tr>')
+        self.wfile.write('<tr><th colspan="2">Match with HTTP Headers'
+		'</th></tr>')
         self.wfile.write('<tr><th colspan="2">Relevant HTTP Headers</th></tr>')
         for header in importantHeaders:
             value = headers.get(header)
 	    if value:
-                self.wfile.write('<tr><td>%s</td><td>%s</td></tr>' % (header, value))
+                self.wfile.write('<tr><td>%s</td><td>%s</td></tr>'\
+				% (header, value))
                 httpHeaders.__setitem__(header, value)
 	    else:
-	        self.wfile.write('<tr><td>%s</td><td>%s</td></tr>' % (header, '<i>header not set</i>'))
+	        self.wfile.write('<tr><td>%s</td><td>%s</td></tr>'\
+			% (header, '<i>header not set</i>'))
         self.wfile.write('</table>')
 
 ########################################################
@@ -125,7 +157,9 @@ class GetHandler(CGIHTTPServer.CGIHTTPRequestHandler):
 # Output properties
 ########################################################
 
-	self.outputProperties(match, propertiesHyperLinkHeaders, methodHyperLinkHeaders)
+	self.outputProperties(match,
+	propertiesHyperLinkHeaders,
+	methodHyperLinkHeaders)
 
 #######################################################
 # End html formatting
@@ -141,19 +175,32 @@ class GetHandler(CGIHTTPServer.CGIHTTPRequestHandler):
 
     def outputProperties(self, match, propertiesHyperLink, methodHyperLink):
         self.wfile.write('<table>')
-        self.wfile.write('<tr><th colspan="2">Match Metrics</th><td rowspan="5">%s</td></tr>' % methodHyperLink)
-        self.wfile.write('<tr><td>Id</td><td>%s</td></tr>' % match.getDeviceId())
-        self.wfile.write('<tr><td>Method</td><td>%d</td></tr>' % match.getMethod())
-        self.wfile.write('<tr><td>Difference</td><td>%d</td></tr>' % match.getDifference())
-        self.wfile.write('<tr><td>Rank</td><td>%d</td></tr>' % match.getRank())
+        self.wfile.write('<tr><th colspan="2">Match Metrics</th><td '
+		'rowspan="5">%s</td></tr>' % methodHyperLink)
+        self.wfile.write('<tr><td>Id</td><td>%s</td></tr>'\
+		% match.getDeviceId())
+        self.wfile.write('<tr><td>Method</td><td>%d</td></tr>'\
+		% match.getMethod())
+        self.wfile.write('<tr><td>Difference</td><td>%d</td></tr>'\
+		% match.getDifference())
+        self.wfile.write('<tr><td>Rank</td><td>%d</td></tr>'\
+		% match.getRank())
 
-        self.wfile.write('<tr><th colspan="2">Device Properties</th><td rowspan="%d">%s</td></tr>' % (len(properties.split(',')) + 1, propertiesHyperLink))
+        self.wfile.write('<tr><th colspan="2">Device Properties</th><td '
+		'rowspan="%d">%s</td></tr>' % (len(properties.split(',')) + 1,
+		propertiesHyperLink))
         for property in properties.split(','):
             value = ' '.join(match.getValues(property))
 	    if value:
-                self.wfile.write('<tr><td><a target="_blank" href="https://51degrees.com/resources/property-dictionary#%s" title="Read About %s">%s</a></td><td>%s</td></tr>' % (property, property, property, value))
+                self.wfile.write('<tr><td><a target="_blank" href="https:'
+				'//51degrees.com/resources/property-dictionary#%s" title="'
+				'Read About %s">%s</a></td><td>%s</td></tr>'\
+				% (property, property, property, value))
 	    else:
-	        self.wfile.write('<tr><td><a target="_blank" href="https://51degrees.com/resources/property-dictionary#%s" title="Read About %s">%s</a></td><td>%s</td></tr>' % (property, property, property, propertyNotFound))
+	        self.wfile.write('<tr><td><a target="_blank" href="'
+			'https://51degrees.com/resources/property-dictionary#%s" '
+			'title="Read About %s">%s</a></td><td>%s</td></tr>'\
+			% (property, property, property, propertyNotFound))
         self.wfile.write('</table>')
 
 #######################################################
@@ -182,7 +229,9 @@ if __name__ == '__main__':
 # Set the match perameters
 #######################################################
 
-	properties = 'BrowserName,BrowserVendor,BrowserVersion,DeviceType,HardwareVendor,IsTablet,IsMobile,IsCrawler,ScreenInchesDiagonal,ScreenPixelsWidth'
+	properties = ('BrowserName,BrowserVendor,BrowserVersion,DeviceType,'
+	'HardwareVendor,IsTablet,IsMobile,IsCrawler,ScreenInchesDiagonal,'
+	'ScreenPixelsWidth')
 	dataFile = os.path.expanduser('~/51Degrees/51Degrees-LiteV3.2.dat')
 	cacheSize = 1000
 	poolSize =  20
@@ -212,7 +261,8 @@ if __name__ == '__main__':
 	server_address = 'localhost'
 	server_port = 8080
 	server = HTTPServer((server_address, server_port), GetHandler)
-	print 'Starting server at %s:%d,  use <Ctrl-C> to stop' % (server_address, server_port)
+	print 'Starting server at %s:%d,  use <Ctrl-C> to stop'\
+	% (server_address, server_port)
 	signal.signal(signal.SIGINT, ctrlc)
 	server.serve_forever()
 
