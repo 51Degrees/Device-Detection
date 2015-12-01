@@ -27,18 +27,18 @@ shows how to:
 <ol>
 <li>Set the various settings for 51Degrees detector
 <p><pre class="prettyprint lang-pl">
-my $filename = "../../data/51Degrees-LiteV3.2.dat";<br>
-my $propertyList = "IsMobile"<br>
-my $cacheSize = 10000;<br>
+my $filename = "../../data/51Degrees-LiteV3.2.dat";
+my $propertyList = "IsMobile"
+my $cacheSize = 10000;
 my $poolSize = 20;
 </pre></p>
 <li>Instantiate the 51Degrees device detection provider with these
 properties
 <p><pre class="prettyprint lang-pl">
-my $provider = new FiftyOneDegrees::PatternV3::Provider(<br>
-	$dataFile,<br>
-	$properties,<br>
-	$cacheSize,<br>
+my $provider = new FiftyOneDegrees::PatternV3::Provider(
+	$dataFile,
+	$properties,
+	$cacheSize,
 	$poolSize);
 </pre></p>
 <li>Produce a match for a single HTTP User-Agent header
@@ -48,14 +48,14 @@ my $match = $provider->getMatch($userAgent)
 <li>Extract the value of the IsMobile property as boolean
 <p><pre class="prettyprint lang-pl">
 sub isMobile {
-	my $match = @_[0];<br>
-	my $isMobileString = $match->getValue("IsMobile");<br>
-	if ($isMobileString eq "True") {<br>
-		return 1;<br>
-	}<br>
-	else {<br>
-		return;<br>
-	}<br>
+	my $match = @_[0];
+	my $isMobileString = $match->getValue("IsMobile");
+	if ($isMobileString eq "True") {
+		return 1;
+	}
+	else {
+		return;
+	}
 }
 </pre></p>
 </ol>
@@ -63,8 +63,8 @@ This example assumes you are running from the original subdirectory
 i.e. Device-Detection/perl/examples/ and the 51Degrees Perl module
 is installed. 
 </tutorial>
-# // Snippet Start
 =cut
+# // Snippet Start
 use FiftyOneDegrees::PatternV3;
 use feature qw/say/;
 

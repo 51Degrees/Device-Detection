@@ -36,11 +36,11 @@ my $match = $provider->getMatch($userAgent)
 </pre></p>
 <li>Extract the value of the IsMobile property as a boolean
 <p><pre class="prettyprint lang-php">
-if ($match->getValue('IsMobile') == "True") {<br>
-	return TRUE;<br>
-}<br>
-else {<br>
-	return FALSE;<br>
+if ($match->getValue('IsMobile') == "True") {
+	return TRUE;
+}
+else {
+	return FALSE;
 }
 </pre></p>
 </ol>
