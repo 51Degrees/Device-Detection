@@ -27,17 +27,17 @@ shows how to:
 <ol>
 <li>Import settings from the 51Degrees settings file
 <p><pre class="prettyprint lang-py">
-dataFile = settings.V3_WRAPPER_DATABASE<br>
-properties = settings.PROPERTIES<br>
-cacheSize = settings.CACHE_SIZE<br>
-poolSize = settings.POOL_SIZE<br>
+dataFile = settings.V3_WRAPPER_DATABASE
+properties = settings.PROPERTIES
+cacheSize = settings.CACHE_SIZE
+poolSize = settings.POOL_SIZE
 </pre></p>
 <li>Instantiate the 51Degrees device detection provider with these
 properties
 <p><pre class="prettyprint lang-py">
-provider = fiftyone_degrees_mobile_detector_v3_wrapper.Provider(dataFile,<br>
-	properties,<br>
-	cacheSize,<br>
+provider = fiftyone_degrees_mobile_detector_v3_wrapper.Provider(dataFile,
+	properties,
+	cacheSize,
 	poolSize)
 </pre></p>
 <li>Produce a match for a single HTTP User-Agent header

@@ -27,14 +27,14 @@ shows how to:
 <ol>
 <li>Import settings from the 51Degrees settings file
 <p><pre class="prettyprint lang-py">
-dataFile = settings.V3_WRAPPER_TRIE_DATABASE<br>
+dataFile = settings.V3_WRAPPER_TRIE_DATABASE
 properties = settings.PROPERTIES
 </pre></p>
 <li>Instantiate the 51Degrees trie device detection provider with these
 properties
 <p><pre class="prettyprint lang-py">
-provider = fiftyone_degrees_mobile_detector_v3_trie_wrapper.Provider(<br>
-	dataFile,<br>
+provider = fiftyone_degrees_mobile_detector_v3_trie_wrapper.Provider(
+	dataFile,
 	properties)
 </pre></p>
 <li>Produce a match for a single HTTP User-Agent header

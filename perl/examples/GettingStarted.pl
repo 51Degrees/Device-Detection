@@ -27,18 +27,18 @@ shows how to:
 <ol>
 <li>Set the various settings for 51Degrees detector
 <p><pre class="prettyprint lang-pl">
-my $filename = "51Degrees-LiteV3.2.dat";<br>
-my $propertyList = "IsMobile"<br>
-my $cacheSize = 10000;<br>
+my $filename = "51Degrees-LiteV3.2.dat";
+my $propertyList = "IsMobile";
+my $cacheSize = 10000;
 my $poolSize = 20;
 </pre></p>
 <li>Instantiate the 51Degrees device detection provider with these
 properties
 <p><pre class="prettyprint lang-pl">
-my $provider = new FiftyOneDegrees::PatternV3::Provider(<br>
-	$dataFile,<br>
-	$properties,<br>
-	$cacheSize,<br>
+my $provider = new FiftyOneDegrees::PatternV3::Provider(
+	$dataFile,
+	$properties,
+	$cacheSize,
 	$poolSize);
 </pre></p>
 <li>Produce a match for a single HTTP User-Agent header

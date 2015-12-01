@@ -25,7 +25,7 @@ The example shows how to:
 <ol>
 <li>Set the various settings for 51Degrees detector
 <p><pre class="prettyprint lang-c">
-const char* fileName = argv[1];<br>
+const char* fileName = argv[1];
 const char* properties = "IsMobile";
 </pre></p>
 <li>Instantiate the 51Degrees device detection provider with these
@@ -45,8 +45,8 @@ fiftyoneDegreesMatch(ws, userAgent);
 symbol: Hardware-Platform-Browser-IsCrawler where each Component 
 represents an ID of the corresponding Profile.
 <p><pre class="prettyprint lang-c">
-int deviceIdSize = ws->dataSet->header.components.count * 10;<br>
-char deviceId[deviceIdSize];<br>
+int deviceIdSize = ws->dataSet->header.components.count * 10;
+char deviceId[deviceIdSize];
 fiftyoneDegreesGetDeviceId(ws, deviceId, deviceIdSize)
 </pre></p>
 <li>Obtain match method: provides information about the 
@@ -72,8 +72,8 @@ fiftyoneDegreesDataSetFree(&dataSet);
 </pre></p>
 </ol>
 This example assumes you have compiled with 51Degrees.c
-and city.c. This will happen automaticaly if you are compiling
-as part of the Visual Studio solution. Additionaly, when running,
+and city.c. This will happen automatically if you are compiling
+as part of the Visual Studio solution. Additionally, when running,
 the location of a 51Degrees data file must be passed as a
 command line argument if you wish to use premium or enterprise
 data files.

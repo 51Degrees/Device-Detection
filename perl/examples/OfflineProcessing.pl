@@ -29,9 +29,9 @@ shows how to:
 <ol>
 <li>Set the various settings for 51Degrees detector
 <p><pre class="prettyprint lang-pl">
-my $filename = "51Degrees-LiteV3.2.dat";<br>
-my $propertyList = "IsMobile"<br>
-my $cacheSize = 10000;<br>
+my $filename = "51Degrees-LiteV3.2.dat";
+my $propertyList = "IsMobile"
+my $cacheSize = 10000;
 my $poolSize = 20;
 </pre></p>
 <li>Instantiate the 51Degrees device detection provider with these
@@ -45,33 +45,33 @@ my $provider = new FiftyOneDegrees::PatternV3::Provider(
 </pre></p>
 <li>Open an input file with a list of User-Agents, and an output file,
 <p><pre class="prettyprint lang-pl">
-open my $file_in, "../../data/20000 User Agents.csv";<br>
+open my $file_in, "../../data/20000 User Agents.csv";
 open file_out, ">output.csv";
 </pre></p>
 <li>Write a header to the output file with the property names in '|'
 separated CSV format ('|' sepparated because some User-Agents contain
 commas)
 <p><pre class="prettyprint lang-pl">
-print file_out "User-Agent";<br>
-foreach $property (@$properties) {<br>
-	print file_out "|".$property;<br>
-}<br>
-print file_out "\n";<br>
+print file_out "User-Agent";
+foreach $property (@$properties) {
+	print file_out "|".$property;
+}
+print file_out "\n";
 </pre></p>
 <li>For the first 20 User-Agents in the input file, performa match then
 write the User-Agent along with the values for chosen properties to
 the CSV.
 <p><pre class="prettyprint lang-pl">
-while( my $userAgent = <$file_in>) {<br>
-	chomp $userAgent;<br>
-	my $match = $provider->getMatch($userAgent);<br>
-	print file_out $userAgent;<br>
-	foreach $property (@$properties) {<br>
-		print file_out "|".$match->getValue($property);<br>
-	}<br>
-	print file_out "\n";<br>
-	last if $. == 20;<br>
-}<br>
+while( my $userAgent = <$file_in>) {
+	chomp $userAgent;
+	my $match = $provider->getMatch($userAgent);
+	print file_out $userAgent;
+	foreach $property (@$properties) {
+		print file_out "|".$match->getValue($property);
+	}
+	print file_out "\n";
+	last if $. == 20;
+}
 </pre></p>
 </ol>
 This example assumes you are running from the original subdirectory

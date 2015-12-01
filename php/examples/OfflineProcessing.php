@@ -34,32 +34,32 @@ $provider = FiftyOneDegreesPatternV3::provider_get();
 output folder must be in the same directory as this page and have write
 permissions.
 <p><pre class="prettyprint lang-php">
-$file_in = fopen("20000 User Agents.csv", "r");<br>
+$file_in = fopen("20000 User Agents.csv", "r");
 $file_out = fopen($outputFolder."/".$outputFile, "w");
 </pre></p>
 <li>Write a header to the output file with the property names in '|'
 separated CSV format ('|' sepparated because some User-Agents contain
 commas)
 <p><pre class="prettyprint lang-php">
-fwrite($file_out, "User-Agent");<br>
-foreach ($properties as $property) {<br>
-	fwrite($file_out, "|".$property);<br>
-}<br>
+fwrite($file_out, "User-Agent");
+foreach ($properties as $property) {
+	fwrite($file_out, "|".$property);
+}
 fwrite($file_out, "\n");
 </pre></p>
 <li>For the first 20 User-Agents in the input file, performa match then
 write the User-Agent along with the values for chosen properties to
 the CSV.
 <p><pre class="prettyprint lang-php">
-while( my $userAgent = <$file_in>) {<br>
-	chomp $userAgent;<br>
-	my $match = $provider->getMatch($userAgent);<br>
-	print file_out $userAgent;<br>
-	foreach $property (@$properties) {<br>
-		print file_out "|".$match->getValue($property);<br>
-	}<br>
-	print file_out "\n";<br>
-	last if $. == 20;<br>
+while( my $userAgent = <$file_in>) {
+	chomp $userAgent;
+	my $match = $provider->getMatch($userAgent);
+	print file_out $userAgent;
+	foreach $property (@$properties) {
+		print file_out "|".$match->getValue($property);
+	}
+	print file_out "\n";
+	last if $. == 20;
 }
 </pre></p>
 </ol>
@@ -118,5 +118,5 @@ fclose($file_in);
 fclose($file_out);
 
 echo "Output Written to ".getcwd()."/".$outputFolder."/".$outputFile;
-
+//Snipped End
 ?>
