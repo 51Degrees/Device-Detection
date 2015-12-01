@@ -27,17 +27,17 @@ shows how to:
 <ol>
 <li>Fetch a pointer to the 51Degrees device detection provider instance.
 This is instantiated on server startup and uses settings from php.ini.
-<p><code>
+<p><pre class="prettyprint lang-php"
 $provider = FiftyOneDegreesPatternV3::provider_get();
-</code></p>
+</pre></p>
 <li>Produce a match for a single HTTP User-Agent header
-<p><code>
+<p><pre class="prettyprint lang-php"
 my $match = $provider->getMatch($userAgent)
-</code></p>
+</pre></p>
 <li>Extract the value of the IsMobile property
-<p><code>
+<p><pre class="prettyprint lang-php"
 $match->getValue('IsMobile')
-</code></p>
+</pre></p>
 </ol>
 This example assumes you have the 51Degrees PHP API installed correctly,
 and have FiftyOneDegreesPatternV3.php in this directory.

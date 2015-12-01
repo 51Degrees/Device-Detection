@@ -28,32 +28,32 @@ Getting started example of using 51Degrees device detection. The example
 shows how to:
 <ol>
 <li>Import settings from the 51Degrees settings file
-<p><code>
+<p><pre class="prettyprint lang-py">
 dataFile = settings.V3_WRAPPER_DATABASE<br>
 properties = settings.PROPERTIES<br>
 cacheSize = settings.CACHE_SIZE<br>
 poolSize = settings.POOL_SIZE<br>
-</code></p>
+</pre></p>
 <li>Instantiate the 51Degrees device detection provider with these
 properties
-<p><code>
+<p><pre class="prettyprint lang-py">
 provider = fiftyone_degrees_mobile_detector_v3_wrapper.Provider(dataFile,<br>
 	properties,<br>
 	cacheSize,<br>
 	poolSize)
-</code></p>
+</pre></p>
 <li>Produce a match for a single HTTP User-Agent header
-<p><code>
+<p><pre class="prettyprint lang-py">
 match = provider.getMatch(userAgent)
-</code><p>
+</pre><p>
 <li>Extract the value of the IsMobile property as boolean
-<p><code>
+<p><pre class="prettyprint lang-py">
 def isMobile(userAgent):<br>
 	match = provider.getMatch(userAgent)<br>
 	if (match.getValue('IsMobile') == 'True'):<br>
 		return True
 
-</code></p>
+</pre></p>
 </ol>
 This example can be run in any directory, but assumes your
 settings file contains a valid dataFile location and has the

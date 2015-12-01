@@ -21,6 +21,7 @@
 
 #!/usr/bin/env perl
 {
+# // Snippet Start
 	package TestServer;
 
 	use HTTP::Server::Simple::CGI;
@@ -218,3 +219,4 @@
 # start the server on port 8080
 my $pid = TestServer->new(8080)->background();
 print "Use 'kill $pid' to stop server.\n";
+# // Snippet End
