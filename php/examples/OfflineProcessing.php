@@ -27,30 +27,30 @@ shows how to:
 <ol>
 <li>Fetch a pointer to the 51Degrees device detection provider instance.
 This is instantiated on server startup and uses settings from php.ini.
-<p><code>
+<p><pre class="prettyprint lang-php"
 $provider = FiftyOneDegreesPatternV3::provider_get();
-</code></p>
+</pre></p>
 <li>Open an input file with a list of User-Agents, and an output file. The
 output folder must be in the same directory as this page and have write
 permissions.
-<p><code>
+<p><pre class="prettyprint lang-php"
 $file_in = fopen("20000 User Agents.csv", "r");<br>
 $file_out = fopen($outputFolder."/".$outputFile, "w");
-</code></p>
+</pre></p>
 <li>Write a header to the output file with the property names in '|'
 separated CSV format ('|' sepparated because some User-Agents contain
 commas)
-<p><code>
+<p><pre class="prettyprint lang-php"
 fwrite($file_out, "User-Agent");<br>
 foreach ($properties as $property) {<br>
 	fwrite($file_out, "|".$property);<br>
 }<br>
 fwrite($file_out, "\n");
-</code></p>
+</pre></p>
 <li>For the first 20 User-Agents in the input file, performa match then
 write the User-Agent along with the values for chosen properties to
 the CSV.
-<p><code>
+<p><pre class="prettyprint lang-php"
 while( my $userAgent = <$file_in>) {<br>
 	chomp $userAgent;<br>
 	my $match = $provider->getMatch($userAgent);<br>
@@ -61,7 +61,7 @@ while( my $userAgent = <$file_in>) {<br>
 	print file_out "\n";<br>
 	last if $. == 20;<br>
 }
-</code></p>
+</pre></p>
 </ol>
 This example assumes you have the 51Degrees PHP API installed correctly,
 and have FiftyOneDegreesPatternV3.php and "20000 User Agents.csv"
