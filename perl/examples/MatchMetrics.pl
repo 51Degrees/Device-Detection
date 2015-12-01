@@ -21,47 +21,47 @@ defined by the Mozilla Public License, v. 2.0.
 =cut
 
 =tutorial
-<turorial>
+<tutorial>
 Getting started example of using 51Degrees device detection match metrics 
 information. The example shows how to:
 <ol>
 <li>Set the various settings for 51Degrees detector
-<p><code>
+<p><pre class="prettyprint lang-pl">
 my $filename = "51Degrees-LiteV3.2.dat";<br>
 my $propertyList = "IsMobile"<br>
 my $cacheSize = 10000;<br>
 my $poolSize = 20;
-</code></p>
+</pre></p>
 <li>Instantiate the 51Degrees device detection provider with these
 properties
-<p><code>
+<p><pre class="prettyprint lang-pl">
 my $provider = new FiftyOneDegrees::PatternV3::Provider(<br>
 	$dataFile,<br>
 	$properties,<br>
 	$cacheSize,<br>
 	$poolSize);
-</code></p>
+</pre></p>
 <li>Produce a match for a single HTTP User-Agent header
-<p><code>
+<p><pre class="prettyprint lang-pl">
 my $match = $provider->getMatch($userAgent)
-</code></p>
+</pre></p>
 <li>Obtain device Id: consists of four components separated by a hyphen 
 symbol: Hardware-Platform-Browser-IsCrawler where each Component 
 represents an ID of the corresponding Profile.
-<p><code>match->getDeviceId();</code>
+<p><pre class="prettyprint lang-pl">match->getDeviceId();</pre>
 <li>obtain match method: provides information about the 
 algorithm that was used to perform detection for a particular User-Agent. 
 For more information on what each method means please see: 
 <a href="https://51degrees.com/support/documentation/pattern">
 How device detection works</a>
-<p><code>match->getMethod();</code>
+<p><pre class="prettyprint lang-pl">match->getMethod();</pre>
 <li>obtain difference:  used when detection method is not Exact or None. 
 This is an integer value and the larger the value the less confident the 
 detector is in this result.
-<p><code>match->getDifference();</code>
+<p><pre class="prettyprint lang-pl">match->getDifference();</pre>
 <li>obtain signature rank: an integer value that indicates how popular 
 the device is. The lower the rank the more popular the signature.
-<p><code>match->getRank();</code>
+<p><pre class="prettyprint lang-pl">match->getRank();</pre>
 </ol>
 This example assumes you are running from the original subdirectory
 i.e. Device-Detection/perl/examples/ and the 51Degrees Perl module

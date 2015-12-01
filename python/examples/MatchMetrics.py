@@ -21,51 +21,51 @@ defined by the Mozilla Public License, v. 2.0.
 '''
 
 '''
-<turorial>
+<tutorial>
 Getting started example of using 51Degrees device detection match metrics 
 information. The example shows how to:
 <ol>
 <li>Import settings from the 51Degrees settings file
-<p><code>
+<p><pre class="prettyprint lang-py">
 dataFile = settings.V3_WRAPPER_DATABASE<br>
 properties = settings.PROPERTIES<br>
 cacheSize = settings.CACHE_SIZE<br>
 poolSize = settings.POOL_SIZE<br>
-</code></p>
+</pre></p>
 <li>Instantiate the 51Degrees device detection provider with these
 properties
-<p><code>
+<p><pre class="prettyprint lang-py">
 provider = fiftyone_degrees_mobile_detector_v3_wrapper.Provider(dataFile,<br>
 	properties,<br>
 	cacheSize,<br>
 	poolSize)
-</code></p>
+</pre></p>
 <li>Produce a match for a single HTTP User-Agent header
-<p><code>
+<p><pre class="prettyprint lang-py">
 match = provider.getMatch(userAgent)
-</code><p>
+</pre><p>
 <li>Obtain device Id: consists of four components separated by a hyphen 
 symbol: Hardware-Platform-Browser-IsCrawler where each Component 
 represents an ID of the corresponding Profile.
-<p><code>match.getDeviceId()</code>
+<p><pre class="prettyprint lang-py">match.getDeviceId()</pre>
 <li>obtain match method: provides information about the 
 algorithm that was used to perform detection for a particular User-Agent. 
 For more information on what each method means please see: 
 <a href="https://51degrees.com/support/documentation/pattern">
 How device detection works</a>
-<p><code>match.getMethod()</code>
+<p><pre class="prettyprint lang-py">match.getMethod()</pre>
 <li>obtain difference:  used when detection method is not Exact or None. 
 This is an integer value and the larger the value the less confident the 
 detector is in this result.
-<p><code>match.getDifference()</code>
+<p><pre class="prettyprint lang-py">match.getDifference()</pre>
 <li>obtain signature rank: an integer value that indicates how popular 
 the device is. The lower the rank the more popular the signature.
-<p><code>match.getRank()</code>
+<p><pre class="prettyprint lang-py">match.getRank()</pre>
 </ol>
 This example can be run in any directory, but assumes your
 settings file contains a valid dataFile location and has the
 IsMobile property selected.
-</turorial>
+</tutorial>
 '''
 # // Snippet Start
 from FiftyOneDegrees import fiftyone_degrees_mobile_detector_v3_wrapper
@@ -75,9 +75,9 @@ import sys
 '''
 Imports settings from the settings file. The Default settings file, and
 details on how to change it can be output by running the command
-<p><code>
+<p><pre class="prettyprint lang-py">
 51degrees-mobile-detector settings
-</p></code>
+</p></pre>
 '''
 dataFile = settings.V3_WRAPPER_DATABASE
 properties = settings.PROPERTIES

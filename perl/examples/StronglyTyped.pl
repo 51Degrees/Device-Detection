@@ -28,27 +28,27 @@ Getting started example of using 51Degrees device detection. The example
 shows how to:
 <ol>
 <li>Set the various settings for 51Degrees detector
-<p><code>
+<p><pre class="prettyprint lang-pl">
 my $filename = "../../data/51Degrees-LiteV3.2.dat";<br>
 my $propertyList = "IsMobile"<br>
 my $cacheSize = 10000;<br>
 my $poolSize = 20;
-</code></p>
+</pre></p>
 <li>Instantiate the 51Degrees device detection provider with these
 properties
-<p><code>
+<p><pre class="prettyprint lang-pl">
 my $provider = new FiftyOneDegrees::PatternV3::Provider(<br>
 	$dataFile,<br>
 	$properties,<br>
 	$cacheSize,<br>
 	$poolSize);
-</code></p>
+</pre></p>
 <li>Produce a match for a single HTTP User-Agent header
-<p><code>
+<p><pre class="prettyprint lang-pl">
 my $match = $provider->getMatch($userAgent)
-</code></p>
+</pre></p>
 <li>Extract the value of the IsMobile property as boolean
-<p><code>
+<p><pre class="prettyprint lang-pl">
 sub isMobile {
 	my $match = @_[0];<br>
 	my $isMobileString = $match->getValue("IsMobile");<br>
@@ -59,7 +59,7 @@ sub isMobile {
 		return;<br>
 	}<br>
 }
-</code></p>
+</pre></p>
 </ol>
 This example assumes you are running from the original subdirectory
 i.e. Device-Detection/perl/examples/ and the 51Degrees Perl module

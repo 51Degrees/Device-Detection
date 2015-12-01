@@ -26,25 +26,25 @@ Getting started example of using 51Degrees trie device detection. The example
 shows how to:
 <ol>
 <li>Import settings from the 51Degrees settings file
-<p><code>
+<p><pre class="prettyprint lang-py">
 dataFile = settings.V3_WRAPPER_TRIE_DATABASE<br>
 properties = settings.PROPERTIES
-</code></p>
+</pre></p>
 <li>Instantiate the 51Degrees trie device detection provider with these
 properties
-<p><code>
+<p><pre class="prettyprint lang-py">
 provider = fiftyone_degrees_mobile_detector_v3_trie_wrapper.Provider(<br>
 	dataFile,<br>
 	properties)
-</code></p>
+</pre></p>
 <li>Produce a match for a single HTTP User-Agent header
-<p><code>
+<p><pre class="prettyprint lang-py">
 match = provider.getMatch(userAgent)
-</code><p>
+</pre><p>
 <li>Extract the value of the IsMobile property
-<p><code>
+<p><pre class="prettyprint lang-py">
 match.getValues('IsMobile')
-</code></p>
+</pre></p>
 </ol>
 This example can be run in any directory, but assumes your
 settings file contains a valid dataFile location and has the
@@ -63,9 +63,9 @@ import sys
 '''
 Imports settings from the settings file. The Default settings file, and
 details on how to change it can be output by running the command
-<p><code>
+<p><pre class="prettyprint lang-py">
 51degrees-mobile-detector settings
-</p></code>
+</p></pre>
 '''
 dataFile = settings.V3_TRIE_WRAPPER_DATABASE
 properties = settings.PROPERTIES
