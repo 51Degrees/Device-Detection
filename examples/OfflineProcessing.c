@@ -43,7 +43,7 @@ FILE* fin = fopen(inputFile, "r");
 FILE* fout = fopen(outputFile, "w");
 </pre></p>
 <li>Write a header to the output file with the property names in '|'
-separated CSV format ('|' sepparated because some User-Agents contain
+separated CSV format ('|' separated because some User-Agents contain
 commas)
 <p><pre class="prettyprint lang-c">
 fprintf(fout, "User-Agent");
@@ -72,7 +72,7 @@ for (i=0;i<20;i++) {
 <p><pre class="prettyprint lang-c">
 fiftyoneDegreesWorksetFree(ws);
 </pre></p>
-<li>Finaly release the memory taken by the dataset
+<li>Finally release the memory taken by the dataset
 <p><pre class="prettyprint lang-c">
 fiftyoneDegreesDataSetFree(&dataSet);
 </pre></p>
@@ -189,7 +189,7 @@ void run(fiftyoneDegreesDataSet* dataSet, char* properties[], int propertiesCoun
  * Returns a string representation of the value associated with the required
  * property name. If the property name is not valid an empty string is
  * returned.If the property relates to a list with more than one value then
- * values are seperated by | characters.
+ * values are separated by | characters.
  * @param propertyName pointer to a string containing the property name
  * @returns a string representation of the value for the property
  */

@@ -49,17 +49,17 @@ my $match = $provider->getMatch($userAgent)
 symbol: Hardware-Platform-Browser-IsCrawler where each Component 
 represents an ID of the corresponding Profile.
 <p><pre class="prettyprint lang-pl">match->getDeviceId();</pre>
-<li>obtain match method: provides information about the 
+<li>Obtain match method: provides information about the 
 algorithm that was used to perform detection for a particular User-Agent. 
 For more information on what each method means please see: 
 <a href="https://51degrees.com/support/documentation/pattern">
 How device detection works</a>
 <p><pre class="prettyprint lang-pl">match->getMethod();</pre>
-<li>obtain difference:  used when detection method is not Exact or None. 
+<li>Obtain difference:  used when detection method is not Exact or None. 
 This is an integer value and the larger the value the less confident the 
 detector is in this result.
 <p><pre class="prettyprint lang-pl">match->getDifference();</pre>
-<li>obtain signature rank: an integer value that indicates how popular 
+<li>Obtain signature rank: an integer value that indicates how popular 
 the device is. The lower the rank the more popular the signature.
 <p><pre class="prettyprint lang-pl">match->getRank();</pre>
 </ol>
@@ -82,7 +82,7 @@ my $mobileUserAgent = "Mozilla/5.0 (iPhone; CPU iPhone OS 7_1 like Mac OS X) ".
 "AppleWebKit/537.51.2 (KHTML, like Gecko) 'Version/7.0 ".
 "Mobile/11D167 Safari/9537.53";
 
-# User-Agent string of Firefox Web browser version 41 on dektop.
+# User-Agent string of Firefox Web browser version 41 on desktop.
 my $desktopUserAgent = "Mozilla/5.0 (Windows NT 6.3; WOW64; rv:41.0) ".
 "Gecko/20100101 Firefox/41.0";
 
