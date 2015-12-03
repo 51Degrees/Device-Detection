@@ -46,7 +46,7 @@ fin = open(inputFile, 'r')
 fout = open(outputFile, 'w')
 </pre></p>
 <li>Write a header to the output file with the property names in '|'
-separated CSV format ('|' sepparated because some User-Agents contain
+separated CSV format ('|' separated because some User-Agents contain
 commas)
 <p><pre class="prettyprint lang-py">
 fout.write('User-Agent')
@@ -54,7 +54,7 @@ for name in properties.split(','):
 	fout.write('|' + name)
 fout.write('\n')
 </pre></p>
-<li>For the first 20 User-Agents in the input file, performa match then
+<li>For the first 20 User-Agents in the input file, perform a match then
 write the User-Agent along with the values for chosen properties to
 the CSV.
 <p><pre class="prettyprint lang-py">

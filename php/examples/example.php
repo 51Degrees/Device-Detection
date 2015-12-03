@@ -85,7 +85,7 @@ printArrayToTable($result_1, $properties, $isPattern, 2);
 /**
  * Function prints the contents of a supplied array as a table.
  * @param $array is the array to print out. Mandatory.
- * @param $colNames a one dimensional array that containes names of columns. Optional.
+ * @param $colNames a one dimensional array that contains names of columns. Optional.
  *	  Default values will be used if parameter not provided.
  */
 function printArrayToTable($match, $properties, $isPattern, $occurance, $colNames=array("Property","Value","Data Type")) {
@@ -98,7 +98,7 @@ function printArrayToTable($match, $properties, $isPattern, $occurance, $colName
 	// section, so we need less rows.
 	// Default is for Trie and Trie only provides Id.
 	$propertiesRows = count($properties) + 2;
-	// Number of Match Metrics rows. Pattern provides more metrcs stats.
+	// Number of Match Metrics rows. Pattern provides more metrics stats.
 	$metricsRowspan = 2;
 	if ($isPattern) {
 		// Pattern provides more metrics than Trie, hence more rows.
@@ -322,10 +322,10 @@ function printHttpHeaders($array, $name, $headers=array()) {
 }
 
 /**
- * Function generates a link to 51Degrees based on the purpose of the link, wheather
+ * Function generates a link to 51Degrees based on the purpose of the link, whether
  * the detector is operating in Pattern or Trie modes and if the link is created for
  * the match with User-Agent function or the Match with Headers function. Guaranteed
- * to return a link, even if the parameter is now known.
+ * to return a link, even if the parameter is not known.
  * @returns a link to 51Degrees.com
  */
 function getWebsiteLink($purpose, $isPattern, $occurance=1) {
