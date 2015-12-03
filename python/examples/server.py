@@ -64,7 +64,7 @@ class GetHandler(CGIHTTPServer.CGIHTTPRequestHandler):
         headers = self.headers
 
 ####################################################
-# If usage shaing is enabled, share with 51Degrees
+# If usage sharing is enabled, share with 51Degrees
 # (core must be installed for this to work).
 ####################################################
 
@@ -226,7 +226,7 @@ if __name__ == '__main__':
 	import signal
 
 #######################################################
-# Set the match perameters
+# Set the match parameters
 #######################################################
 
 	properties = ('BrowserName,BrowserVendor,BrowserVersion,DeviceType,'
