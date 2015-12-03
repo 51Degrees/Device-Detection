@@ -55,7 +55,7 @@
 
     # An array of the important HTTP headers in prefixed uppercase format
     # (i.e. HTTP_USER_AGENT rather than User-Agent) to send to the detection
-    # algorithim.
+    # algorithm.
     my $importantHttpHeaders = $provider->getHttpHeaders();
 
     # Array of all the properties available. May not match $propertyList as
