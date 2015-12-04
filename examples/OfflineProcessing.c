@@ -47,7 +47,7 @@ separated CSV format ('|' separated because some User-Agents contain
 commas)
 <p><pre class="prettyprint lang-c">
 fprintf(fout, "User-Agent");
-for (j=0;j<propertiesCount;j++) {
+for (j=0;j&lt;propertiesCount;j++) {
 	fprintf(fout, "|%s", propertiesArray[j]);
 }
 fprintf(fout, "\n");
@@ -56,7 +56,7 @@ fprintf(fout, "\n");
 write the User-Agent along with the values for chosen properties to
 the CSV.
 <p><pre class="prettyprint lang-c">
-for (i=0;i<20;i++) {
+for (i=0;i&lt;20;i++) {
 	fgets(userAgent, sizeof(userAgent), fin);
 	userAgent[strlen(userAgent)-1] = '\0';
 	fprintf(fout, "%s", userAgent);
