@@ -61,7 +61,7 @@ for (i=0;i&lt;20;i++) {
 	userAgent[strlen(userAgent)-1] = '\0';
 	fprintf(fout, "%s", userAgent);
 	fiftyoneDegreesMatch(ws, userAgent);
-	for (j=0;j<propertiesCount;j++) {
+	for (j=0;j&lt;propertiesCount;j++) {
 		value = getValue(ws, propertiesArray[j]);
 		fprintf(fout, "|%s", value);
 	}
