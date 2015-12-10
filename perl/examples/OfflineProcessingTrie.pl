@@ -29,19 +29,15 @@ shows how to:
 <ol>
 <li>Set the various settings for 51Degrees detector
 <p><pre class="prettyprint lang-pl">
-my $filename = "51Degrees-LiteV3.2.dat";
+my $filename = "51Degrees-LiteV3.2.trie";
 my $propertyList = "IsMobile"
-my $cacheSize = 10000;
-my $poolSize = 20;
 </pre></p>
 <li>Instantiate the 51Degrees device detection provider with these
 properties
 <p><pre class="prettyprint lang-pl">
-my $provider = new FiftyOneDegrees::PatternV3::Provider(
+my $provider = new FiftyOneDegrees::TrieV3::Provider(
 	$dataFile,
-	$properties,
-	$cacheSize,
-	$poolSize);
+	$properties);
 </pre></p>
 <li>Open an input file with a list of User-Agents, and an output file,
 <p><pre class="prettyprint lang-pl">
@@ -80,14 +76,11 @@ is installed.
 </tutorial>
 =cut
 # // Snippet Start
-use FiftyOneDegrees::PatternV3;
+use FiftyOneDegrees::TrieV3;
 use feature qw/say/;
 
-my $filename = "../../data/51Degrees-LiteV3.2.dat";
+my $filename = "../../data/51Degrees-LiteV3.2.trie";
 my $propertyList = "IsMobile,PlatformName,PlatformVersion";
-my $cacheSize = 10000;
-my $poolSize = 20;
-
 my $inputFile = "../../data/20000 User Agents.csv";
 my $outputFile = "offlineProcessingOutput.csv";
 
@@ -97,11 +90,10 @@ my $outputFile = "offlineProcessingOutput.csv";
 # <a href="https://51degrees.com/compare-data-options">compare data options
 # </a>
 
-my $provider = new FiftyOneDegrees::PatternV3::Provider(
+my $provider = new FiftyOneDegrees::TrieV3::Provider(
 	$filename,
-	$propertyList,
-	$cacheSize,
-	$poolSize);
+	$propertyList);
+
 # Fetches an array of available properties from the provider.
 my $properties = $provider->getAvailableProperties();
 
