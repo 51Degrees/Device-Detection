@@ -5,7 +5,7 @@ PHP_ARG_ENABLE(FiftyOneDegreesPatternV3, whether to enable 51Degrees Detector,
 [ --enable-FiftyOneDegreesPatternV3   Enable 51Degrees Device Detection])
 
 if test "$PHP_FIFTYONEDEGREESPATTERNV3" = "yes"; then
-  AC_CONFIG_COMMANDS_PRE(mkdir src/trie)
+  AC_CONFIG_COMMANDS_PRE(mkdir src)
   AC_CONFIG_COMMANDS_PRE(mkdir src/pattern)
   AC_CONFIG_COMMANDS_PRE(mkdir src/cityhash)
   AC_CONFIG_COMMANDS_PRE(cp ../../src/pattern/* src/pattern)
