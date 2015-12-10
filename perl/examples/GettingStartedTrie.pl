@@ -50,7 +50,7 @@ This example assumes you are running from the original subdirectory
 i.e. Device-Detection/perl/examples/ and the 51Degrees Perl module
 is installed.
 By comparing this to the gettingstarted.pl example which uses the 
-pattern method, you can see the differences are the module name, the
+trie method, you can see the differences are the module name, the
 data file, and it does not use a cache or pool, so these do not need
 to be set.
 </tutorial>

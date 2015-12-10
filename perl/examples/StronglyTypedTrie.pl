@@ -33,7 +33,7 @@ my $propertyList = "IsMobile"
 <li>Instantiate the 51Degrees device detection provider with these
 properties
 <p><pre class="prettyprint lang-pl">
-my $provider = new FiftyOneDegrees::PatternV3::Provider(
+my $provider = new FiftyOneDegrees::TrieV3::Provider(
 	$dataFile,
 	$propertiese);
 </pre></p>
