@@ -103,7 +103,7 @@ Apache has read permissions over.
 ```ini
 extension=/usr/lib/php5/FiftyOneDegreesPatternV3.so
 FiftyOneDegreesPatternV3.data_file=path/to/51Degrees/data/file.dat
-FiftyOneDegreesPatternV3.property=BrowserName,BrowserVendor,BrowserVersion,DeviceType,HardwareVendor,IsTablet,IsMobile,IsCrawler,ScreenInchesDiagonal,ScreenPixelsWidth
+FiftyOneDegreesPatternV3.property_list=BrowserName,BrowserVendor,BrowserVersion,DeviceType,HardwareVendor,IsTablet,IsMobile,IsCrawler,ScreenInchesDiagonal,ScreenPixelsWidth
 FiftyOneDegreesPatternV3.cache_size=10000
 FiftyOneDegreesPatternV3.pool_size=20
 ```
