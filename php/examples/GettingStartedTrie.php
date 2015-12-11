@@ -28,7 +28,7 @@ shows how to:
 <li>Fetch a pointer to the 51Degrees device detection provider instance.
 This is instantiated on server startup and uses settings from php.ini.
 <p><pre class="prettyprint lang-php">
-$provider = FiftyOneDegreesPatternV3::provider_get();
+$provider = FiftyOneDegreesTrieV3::provider_get();
 </pre></p>
 <li>Produce a match for a single HTTP User-Agent header
 <p><pre class="prettyprint lang-php">
@@ -40,13 +40,15 @@ $match->getValue('IsMobile')
 </pre></p>
 </ol>
 This example assumes you have the 51Degrees PHP API installed correctly,
-and have FiftyOneDegreesPatternV3.php in this directory.
+and have FiftyOneDegreesTrieV3.php in this directory.
+By comparing this to the gettingstarted.pl example which uses the 
+pattern method, you can see the differences are the module name.
 </tutorial>
 */
 // Snippet Start
-require("FiftyOneDegreesPatternV3.php");
+require("FiftyOneDegreesTrieV3.php");
 
-$provider = FiftyOneDegreesPatternV3::provider_get();
+$provider = FiftyOneDegreesTrieV3::provider_get();
 
 // User-Agent string of an iPhone mobile device.
 $mobileUserAgent = "Mozilla/5.0 (iPhone; CPU iPhone OS 7_1 like Mac OS X) ".
@@ -62,7 +64,7 @@ $mediaHubUserAgent = "Mozilla/5.0 (Linux; Android 4.4.2; X7 Quad Core ".
 "Build/KOT49H) AppleWebKit/537.36 (KHTML, like Gecko) Version/4.0 ".
 "Chrome/30.0.0.0 Safari/537.36";
 
-echo "Starting Getting Started Example.<br>\n";
+echo "Starting Getting Started Trie Example.<br>\n";
 
 // Carries out a match with a mobile User-Agent.
 echo "<br>\nMobile User-Agent: ".$mobileUserAgent."<br>\n";
