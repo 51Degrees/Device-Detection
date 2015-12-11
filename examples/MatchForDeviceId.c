@@ -63,7 +63,7 @@ This example assumes you have compiled with 51Degrees.c
 and city.c. This will happen automatically if you are compiling
 as part of the Visual Studio solution. Additionally, when running,
 the location of a 51Degrees data file must be passed as a
-command line argument if you wish to use premium or enterprise
+command line argument if you wish to use Premium or Enterprise
 data files.
 </tutorial>
 */
