@@ -34,15 +34,18 @@ $provider = FiftyOneDegreesTrieV3::provider_get();
 <p><pre class="prettyprint lang-php">
 my $match = $provider->getMatch($userAgent)
 </pre></p>
-<li>Extract the value of the IsMobile property
+<li>Extract the value of the IsMobile property as a boolean
 <p><pre class="prettyprint lang-php">
-$match->getValue('IsMobile')
+if ($match->getValue('IsMobile') == "True") {
+	return TRUE;
+}
+else {
+	return FALSE;
+}
 </pre></p>
 </ol>
 This example assumes you have the 51Degrees PHP API installed correctly,
 and have FiftyOneDegreesTrieV3.php in this directory.
-By comparing this to the gettingstarted.pl example which uses the 
-pattern method, you can see the differences are the module name.
 </tutorial>
 */
 // Snippet Start
@@ -64,21 +67,53 @@ $mediaHubUserAgent = "Mozilla/5.0 (Linux; Android 4.4.2; X7 Quad Core ".
 "Build/KOT49H) AppleWebKit/537.36 (KHTML, like Gecko) Version/4.0 ".
 "Chrome/30.0.0.0 Safari/537.36";
 
-echo "Starting Getting Started Trie Example.<br>\n";
 
-// Carries out a match with a mobile User-Agent.
+// isMobile function. Takes a match object as an argument, carries out a
+// match and returns a boolean value for the IsMobile property of the
+// matched device.
+
+function isMobile($match) {
+	if ($match->getValue("IsMobile") == "True") {
+		return TRUE;
+	}
+	else {
+		return FALSE;
+	}
+}
+
+echo "Starting Getting Started Strongly Typed Example.<br>\n";
+
+// Determines whether the mobile User-Agent is a mobile device.
 echo "<br>\nMobile User-Agent: ".$mobileUserAgent."<br>\n";
 $match = $provider->getMatch($mobileUserAgent);
-echo "IsMobile: ".$match->getValue("IsMobile")."<br>\n";
+$isMobileBool = isMobile($match);
+if ($isMobileBool) {
+	echo "Mobile<br>\n";
+}
+else {
+	echo "Non-Mobile<br>\n";
+}
 
-// Carries out a match with a desktop User-Agent.
-echo "<br>\nDesktop User-Agent: ".$mobileUserAgent."<br>\n";
+// Determines whether the desktop User-Agent is a mobile device.
+echo "<br>\nDesktop User-Agent: ".$desktopUserAgent."<br>\n";
 $match = $provider->getMatch($desktopUserAgent);
-echo "IsMobile: ".$match->getValue("IsMobile")."<br>\n";
+$isMobileBool = isMobile($match);
+if ($isMobileBool) {
+	echo "Mobile<br>\n";
+}
+else {
+	echo "Non-Mobile<br>\n";
+}
 
-// Carries out a match with a MediaHub User-Agent.
-echo "<br>\nMediaHub User-Agent: ".$mobileUserAgent."<br>\n";
+// Determines whether the MediaHub User-Agent is a mobile device.
+echo "<br>\nMediaHub User-Agent: ".$mediaHubUserAgent."<br>\n";
 $match = $provider->getMatch($mediaHubUserAgent);
-echo "IsMobile: ".$match->getValue("IsMobile")."<br>\n";
+$isMobileBool = isMobile($match);
+if ($isMobileBool) {
+	echo "Mobile<br>\n";
+}
+else {
+	echo "Non-Mobile<br>\n";
+}
 // Snippet End
 ?>

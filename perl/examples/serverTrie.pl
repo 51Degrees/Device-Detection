@@ -155,6 +155,16 @@
         print '<p><img src="https://51degrees.com/DesktopModules/FiftyOne/Distributor/Logo.ashx?utm_source=github&utm_medium=repository&utm_content=server&utm_campaign=perl-open-source"></p>';
         print '<h1>Perl Trie - Device Detection Server Example</h1>';
 
+        print '<table>';
+        print '<tr><th colspan="3">Data Set Information</th></tr>';
+        print '<tr><td>Name</td><td>' . $provider->getDataSetName() . '</td><td rowspan="6">' . $dataOptions . '</td></tr>';
+        print '<tr><td>Format</td><td>' . "Not available for Trie." . '</td></tr>';
+        print '<tr><td>Published Date</td><td>' . "Not available for Trie." . '</td></tr>';
+        print '<tr><td>Next Update Date</td><td>' . "Not available for Trie." . '</td></tr>';
+        print '<tr><td>Signature Count</td><td>' . "Not available for Trie." . '</td></tr>';
+        print '<tr><td>Device Combinations</td><td>' . "Not available for Trie." . '</td></tr>';
+        print '</table>';
+
         # Display the matching device details for the User-Agent.
 		my $userAgent = $matchingHttpHeaders->get("HTTP_USER_AGENT");
         print '<table>';
