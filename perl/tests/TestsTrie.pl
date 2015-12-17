@@ -26,56 +26,39 @@ sub speedtest{
 	return sprintf("%.3f", ( $speedtest_end - $speedtest_start ) / 20);
 	close $file_in;
 }
-my $mu = Memory::Usage->new();
-$mu->record('start');
-my $start = time;
 
-my $provider = new FiftyOneDegrees::TrieV3::Provider(
-	$litefilename,
-	$propertyList);
-my $end = time;
+sub runtests{
+	my $dataFile = @_[0];
+	if(-e $dataFile){
+		my $mu = Memory::Usage->new();
+		$mu->record('start');
+		my $start = time;
 
-$mu->record('end');
+		my $provider = new FiftyOneDegrees::TrieV3::Provider(
+			$dataFile,
+			$propertyList);
+		my $end = time;
 
-my $startmem = @{@{ $mu->state }[0]}[3];
-my $endmem =  @{@{ $mu->state }[1]}[3];
-my $memused = ($endmem - $startmem) / 1000;
+		$mu->record('end');
 
-print "Lite initialization time: " . ( $end - $start)*1000 . " ms\n";
-print "Lite detections speed: " . speedtest($provider, $inputfile) . " ms\n";
-print "Lite memory usage: " . $memused . " Mb\n";
+		my $startmem = @{@{ $mu->state }[0]}[3];
+		my $endmem =  @{@{ $mu->state }[1]}[3];
+		my $memused = ($endmem - $startmem) / 1000;
 
+		print "   Initialization time: " . ( $end - $start)*1000 . " ms\n";
+		print "   Detections speed: " . speedtest($provider, $inputfile) . " ms\n";
+		print "   Memory usage: " . $memused . " Mb\n";
+	}
+	else{
+		print "   ".$dataFile." could not be found.\n";
+	}
+}
 
-my $start = time;
-$mu->record('start');
-my $provider = new FiftyOneDegrees::TrieV3::Provider(
-	$premiumfilename,
-	$propertyList);
-my $end = time;
+print "Lite Tests:\n";
+runtests($litefilename);
 
-$mu->record('end');
+print "Premium Tests:\n";
+runtests($premiumfilename);
 
-$startmem = @{@{ $mu->state }[2]}[3];
-$endmem =  @{@{ $mu->state }[3]}[3];
-$memused = ($endmem - $startmem) / 1000;
-
-print "Premium initialization time: " . ( $end - $start)*1000 . " ms\n";
-print "Premium detections speed: " . speedtest($provider, $inputfile) . " ms\n";
-print "Premium memory usage: " . $memused . " Mb\n";
-
-my $start = time;
-$mu->record('start');
-my $provider = new FiftyOneDegrees::TrieV3::Provider(
-	$enterprisefilename,
-	$propertyList);
-my $end = time;
-
-$mu->record('end');
-
-$startmem = @{@{ $mu->state }[4]}[3];
-$endmem =  @{@{ $mu->state }[5]}[3];
-$memused = ($endmem - $startmem) / 1000;
-
-print "Enterprise initialization time: " . ( $end - $start)*1000 . " ms\n";
-print "Enterprise detections speed: " . speedtest($provider, $inputfile) . " ms\n";
-print "Enterprise memory usage: " . $memused . " Mb\n";
+print "Enterprise Tests:\n";
+runtests($enterprisefilename);

@@ -3,6 +3,7 @@
 from FiftyOneDegrees import fiftyone_degrees_mobile_detector_v3_wrapper
 
 import sys
+import os
 import time
 import resource
 
@@ -24,38 +25,28 @@ def speedtest(provider):
 	fin.close()
 	return (speedtest_end - speedtest_start)/(i/1000)
 
-start = time.time()
-provider = fiftyone_degrees_mobile_detector_v3_wrapper.Provider(
-	liteDataFile,
-	properties)
-end = time.time()
+def runtests(dataFile):
+	if (os.path.isfile(dataFile)):
+		start = time.time()
+		provider = fiftyone_degrees_mobile_detector_v3_wrapper.Provider(
+			dataFile,
+			properties)
+		end = time.time()
 
-print "Lite initialization time: %s ms" % ((end - start)*1000)
-print "Lite time per detection: %s ms" % speedtest(provider)
-print "Lite memory usage: %d Mb" % (resource.getrusage(resource.RUSAGE_SELF).ru_maxrss/1000)
+		print "   Initialization time: %s ms" % ((end - start)*1000)
+		print "   Time per detection: %s ms" % speedtest(provider)
+		print "   Memory usage: %d Mb" % (resource.getrusage(resource.RUSAGE_SELF).ru_maxrss/1000)
 
-del(provider)
+		del(provider)
+	else:
+		print "   %s could not be found." % dataFile
 
-start = time.time()
-provider = fiftyone_degrees_mobile_detector_v3_wrapper.Provider(
-	premiumDataFile,
-	properties)
-end = time.time()
+print "Lite Tests:"
+runtests(liteDataFile)
 
-print "Premium initialization time: %s ms" % ((end - start)*1000)
-print "Premium time per detection: %s ms" % speedtest(provider)
-print "Premium memory usage: %d Mb" % (resource.getrusage(resource.RUSAGE_SELF).ru_maxrss/1000)
+print "Premium Tests:"
+runtests(liteDataFile)
 
-del(provider)
+print "Enterprise Tests:"
+runtests(enterpriseDataFile)
 
-start = time.time()
-provider = fiftyone_degrees_mobile_detector_v3_wrapper.Provider(
-	enterpriseDataFile,
-	properties)
-end = time.time()
-
-print "Enterprise initialization time: %s ms" % ((end - start)*1000)
-print "Enterprise time per detection: %s ms" % speedtest(provider)
-print "Enterprise memory usage: %d Mb" % (resource.getrusage(resource.RUSAGE_SELF).ru_maxrss/1000)
-
-del(provider)

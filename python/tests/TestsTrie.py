@@ -3,6 +3,7 @@
 from FiftyOneDegrees import fiftyone_degrees_mobile_detector_v3_trie_wrapper
 from fiftyone_degrees.mobile_detector.conf import settings
 import sys
+import os
 import time
 import resource
 
@@ -24,38 +25,27 @@ def speedtest(provider):
 	fin.close()
 	return (speedtest_end - speedtest_start)/(i/1000)
 
-start = time.time()
-provider = fiftyone_degrees_mobile_detector_v3_trie_wrapper.Provider(
-	liteDataFile,
-	properties)
+def runtests(dataFile):
+	if (os.path.isfile(dataFile)):
+		start = time.time()
+		provider = fiftyone_degrees_mobile_detector_v3_trie_wrapper.Provider(
+			dataFile,
+			properties)
 
-end = time.time()
+		end = time.time()
 
-print "Lite initialization time: %s ms" % ((end - start)*1000)
-print "Lite time per detection: %s ms" % speedtest(provider)
-print "Lite memory usage: %d Mb" % (resource.getrusage(resource.RUSAGE_SELF).ru_maxrss/1000)
-del(provider)
+		print "   Initialization time: %s ms" % ((end - start)*1000)
+		print "   Time per detection: %s ms" % speedtest(provider)
+		print "   Memory usage: %d Mb" % (resource.getrusage(resource.RUSAGE_SELF).ru_maxrss/1000)
+		del(provider)
+	else:
+		print "   %s could not be found." % dataFile
 
-start = time.time()
-provider = fiftyone_degrees_mobile_detector_v3_trie_wrapper.Provider(
-	premiumDataFile,
-	properties)
+print "Lite Tests:"
+runtests(liteDataFile)
 
-end = time.time()
+print "Premium Tests:"
+runtests(liteDataFile)
 
-print "Premium initialization time: %s ms" % ((end - start)*1000)
-print "Premium time per detection: %s ms" % speedtest(provider)
-print "Premium memory usage: %d Mb" % (resource.getrusage(resource.RUSAGE_SELF).ru_maxrss/1000)
-del(provider)
-
-start = time.time()
-provider = fiftyone_degrees_mobile_detector_v3_trie_wrapper.Provider(
-	enterpriseDataFile,
-	properties)
-
-end = time.time()
-
-print "Enterprise initialization time: %s ms" % ((end - start)*1000)
-print "Enterprise time per detection: %s ms" % speedtest(provider)
-print "Enterprise memory usage: %d Mb" % (resource.getrusage(resource.RUSAGE_SELF).ru_maxrss/1000)
-del(provider)
+print "Enterprise Tests:"
+runtests(enterpriseDataFile)
