@@ -35,11 +35,12 @@ All methods use an external data file which can easilly be updated.
 - make
 - perl
 - g++
+- SWIG
 
 For Ubuntu based distributions these can be found on apt, use
 ```
-$ sudo apt-get updated
-$ sudo apt-get install make perl g++
+$ sudo apt-get update
+$ sudo apt-get install make perl g++ swig
 ```
 
 To use the examples the JSON and a simple web server need to be available. Use

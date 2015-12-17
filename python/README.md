@@ -43,7 +43,7 @@ $ sudo apt-get install python python-setuptools python-dev python-pip g++
 
 If building from this git repository you will also need
 - make
-- swig
+- SWIG
 
 For Ubuntu based distributions these can be found on apt, use
 ```
