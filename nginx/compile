@@ -3,8 +3,8 @@
 mkdir src
 mkdir src/pattern
 mkdir src/cityhash
-cp -r ../src/pattern/ 51Degrees_module/src/pattern
-cp -r ../src/cityhash/ 51Degrees_module/src/cityhash
+cp -r ../src/pattern/ 51Degrees_module/src
+cp -r ../src/cityhash/ 51Degrees_module/src
 cp ../src/threading.h 51Degrees_module/src/
 pushd "vendor"
 pushd "nginx-1.4.7"
