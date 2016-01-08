@@ -28,6 +28,8 @@ static ngx_int_t ngx_http_51D_handler(ngx_http_request_t *r);
 //Simple string join function declaration
 static char *join(ngx_pool_t* ngx_pool, const char* s1, const char* s2);
 
+void fod_log(char *msg);
+
 //51Degrees declarations
 static	fiftyoneDegreesDataSet dataSet;
 static	fiftyoneDegreesWorkset *ws = NULL;
@@ -42,7 +44,7 @@ static int number_of_properties;
 static char* dataFile;
 static int cacheSize;
 static int poolSize;
-FILE *log;
+FILE *FODlog;
 
 //Input variables
 typedef struct {
@@ -51,25 +53,27 @@ typedef struct {
 //TODO: Pass in cache and pool size as integers so they don't need to be converted.
 	ngx_str_t cache_in;
 	ngx_str_t pool_in;
+	int detect;
 } ngx_http_51D_loc_conf_t;
 
 //Post handler, outputs headers after match
 static ngx_int_t
 ngx_http_51D_post_match(ngx_conf_t *cf)
 {
-  ngx_http_handler_pt *h;
-  ngx_http_core_main_conf_t *cmcf;
+	fod_log("in post_match\n");
+	ngx_http_handler_pt *h;
+	ngx_http_core_main_conf_t *cmcf;
 
-  cmcf = ngx_http_conf_get_module_main_conf(cf, ngx_http_core_module);
+	cmcf = ngx_http_conf_get_module_main_conf(cf, ngx_http_core_module);
 
-  h = ngx_array_push(&cmcf->phases[NGX_HTTP_ACCESS_PHASE].handlers);
-  if (h == NULL) {
-    return NGX_ERROR;
-  }
+	h = ngx_array_push(&cmcf->phases[NGX_HTTP_ACCESS_PHASE].handlers);
+	if (h == NULL) {
+		return NGX_ERROR;
+	}
 
-  *h = ngx_http_51D_handler;
+	*h = ngx_http_51D_handler;
 
-  return NGX_OK;
+	return NGX_OK;
 }
 
 //Server configuration
@@ -82,6 +86,7 @@ ngx_http_51D_create_loc_conf(ngx_conf_t *cf)
     if (conf == NULL) {
         return NULL;
     }
+
     return conf;
 }
 
@@ -150,7 +155,7 @@ static ngx_http_module_t ngx_http_51D_module_ctx = {
 	NULL,                          /* merge server configuration */
 
 	ngx_http_51D_create_loc_conf,  /* create location configuration */
-	NULL			       /* merge location configuration */
+	NULL    /* merge location configuration */
 };
 
 
@@ -179,6 +184,17 @@ ngx_module_t ngx_http_51D_module = {
 static ngx_int_t
 ngx_http_51D_handler(ngx_http_request_t *r)
 {
+	fod_log("In handler\n");
+
+	ngx_http_51D_loc_conf_t *conf;
+	fod_log("creating conf\n");
+	conf = ngx_http_conf_get_module_loc_conf(r, ngx_http_51D_module);
+	fod_log("created conf\n");
+	char msg[100];
+	sprintf(msg, "detect = %d\n", conf->detect);
+	fod_log("got conf detect\n");
+	fod_log(msg);
+
 	if (r->main->internal) {
 		return NGX_DECLINED;
 	}
@@ -188,15 +204,13 @@ ngx_http_51D_handler(ngx_http_request_t *r)
 	int i;
 	char* prefix_name;
 	if (r->headers_in.user_agent) {
-		log = fopen("log.dat", "a");
-		fprintf(log, "ua = %s\n", r->headers_in.user_agent[0].value.data);
-		fclose(log);
+		fod_log("ua = ");
+		fod_log(r->headers_in.user_agent[0].value.data);
+		fod_log("\n");
 		get_match(r->pool, r->headers_in.user_agent[0].value.data);
 	}
 	else {
-		log = fopen("log.dat", "a");
-		fprintf(log, "no ua\n");
-		fclose(log);
+		fod_log("no ua\n");
 		get_match(r->pool, "");
 	}
 	for (i=0; i<number_of_properties; i++) {
@@ -217,10 +231,19 @@ ngx_http_51D_handler(ngx_http_request_t *r)
 static char *
 ngx_http_51D_match(ngx_conf_t *cf, void *post, void *data)
 {
-	//ngx_http_core_loc_conf_t *clcf;
+	fod_log("In ngx_http_51D_match\n");
+	ngx_http_core_loc_conf_t *clcf;
 
-	//clcf = ngx_http_conf_get_module_loc_conf(cf, ngx_http_core_module);
-	//clcf->handler = ngx_http_match_handler;
+	clcf = ngx_http_conf_get_module_loc_conf(cf, ngx_http_core_module);
+	clcf->handler = ngx_http_51D_handler;
+
+	ngx_http_51D_loc_conf_t *conf;
+	conf = ngx_http_conf_get_module_loc_conf(cf, ngx_http_51D_module);
+
+	char msg[100];
+	sprintf(msg, "detect = %d\n", conf->detect);
+	fod_log(msg);
+	conf->detect = 1;
 
 	return NGX_CONF_OK;
 }
@@ -232,13 +255,14 @@ ngx_http_51D_match(ngx_conf_t *cf, void *post, void *data)
 static void *
 get_match(ngx_pool_t *ngx_pool, char *userAgent)
 {
+	fod_log("In get_match\n");
+
 	ws = fiftyoneDegreesWorksetPoolGet(pool);
-	//ws = fiftyoneDegreesWorksetCreate(&dataSet, NULL);
+
 	fiftyoneDegreesMatch(ws, userAgent);
 	char *methodName;
 	char* property_name;
 	int j, i=0, found;
-	char* intbuff[50];
 
 	while (properties_array[i]) {
 		found = 0;
@@ -333,7 +357,6 @@ ngx_http_51D_properties(ngx_conf_t *cf, void *post, void *data)
 static char *
 ngx_http_51D_init(ngx_conf_t *cf, void *post, void *data)
 {
-	log = fopen("log.dat", "a");
 //TODO: Trap and report on initialisation errors returned by fiftyoneDegreesInitWithPropertyArray.
 	switch(fiftyoneDegreesInitWithPropertyArray(dataFile, &dataSet, properties_array, number_of_properties)) {
 		default:
@@ -342,8 +365,9 @@ ngx_http_51D_init(ngx_conf_t *cf, void *post, void *data)
 			break;
 	}
 	printf("51Degrees mobile detector initialized\n");
-	fprintf(log, "initialized, dataFile=%s cacheSize=%d poolSize=%d\n", dataFile, cacheSize, poolSize);
-    fclose(log);
+	char msg[100];
+	sprintf(msg, "initialized, dataFile=%s cacheSize=%d poolSize=%d\n", dataFile, cacheSize, poolSize);
+    fod_log(msg);
 	return NGX_CONF_OK;
 }
 
@@ -403,4 +427,11 @@ char *join(ngx_pool_t* ngx_pool, const char* s1, const char* s2)
         strcat(result, s2);
     }
     return result;
+}
+
+void fod_log(char *msg)
+{
+	FODlog = fopen("FOD.log", "a");
+	fprintf(FODlog, msg);
+	fclose(FODlog);
 }
