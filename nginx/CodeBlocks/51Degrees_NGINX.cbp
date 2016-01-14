@@ -3,32 +3,36 @@
 	<FileVersion major="1" minor="6" />
 	<Project>
 		<Option title="51Degrees_NGINX" />
-		<Option makefile="compile" />
 		<Option makefile_is_custom="1" />
-		<Option execution_dir="../../nginx" />
+		<Option execution_dir="../vendor/nginx-1.4.7" />
 		<Option pch_mode="2" />
 		<Option compiler="gcc" />
 		<Build>
 			<Target title="Debug">
-				<Option output="../start" prefix_auto="1" extension_auto="1" />
-				<Option working_dir="../" />
+				<Option output="../build/sbin/nginx" prefix_auto="0" extension_auto="0" />
+				<Option working_dir="../vendor/nginx-1.4.7" />
 				<Option object_output="obj/Debug/" />
 				<Option type="1" />
 				<Option compiler="gcc" />
 				<Compiler>
 					<Add option="-g" />
 				</Compiler>
+				<ExtraCommands>
+					<Add before='CFLAGS=&quot;-g -O0&quot; ./configure --with-debug --with-ld-opt=&quot;-lm&quot; --add-module=../../51Degrees_module --prefix=$(PROJECTDIR)../build' />
+					<Add after="cp $(PROJECTDIR)../nginx.conf $(PROJECTDIR)../build/conf/" />
+				</ExtraCommands>
 				<MakeCommands>
-					<Build command="./compile" />
+					<Build command="make install" />
 					<CompileFile command="" />
 					<Clean command="" />
 					<DistClean command="$make -f $makefile distclean$target" />
 					<AskRebuildNeeded command="" />
-					<SilentBuild command="./compile &gt; $(CMD_NULL)" />
+					<SilentBuild command="make install &gt; $(CMD_NULL)" />
 				</MakeCommands>
 			</Target>
 			<Target title="Release">
-				<Option output="bin/Release/51Degrees_NGINX" prefix_auto="1" extension_auto="1" />
+				<Option output="../build/sbin/nginx" prefix_auto="1" extension_auto="1" />
+				<Option working_dir="../vendor/nginx-1.4.7" />
 				<Option object_output="obj/Release/" />
 				<Option type="1" />
 				<Option compiler="gcc" />
@@ -38,6 +42,18 @@
 				<Linker>
 					<Add option="-s" />
 				</Linker>
+				<ExtraCommands>
+					<Add before='CFLAGS=&quot;-O3&quot; ./configure --with-ld-opt=&quot;-lm&quot; --add-module=../../51Degrees_module --prefix=$(PROJECTDIR)/bin/Release' />
+					<Add after="cp $(PROJECTDIR)../nginx.conf $(PROJECTDIR)/bin/Release/conf/" />
+				</ExtraCommands>
+				<MakeCommands>
+					<Build command="make install" />
+					<CompileFile command="" />
+					<Clean command="" />
+					<DistClean command="$make -f $makefile distclean$target" />
+					<AskRebuildNeeded command="" />
+					<SilentBuild command="make install &gt; $(CMD_NULL)" />
+				</MakeCommands>
 			</Target>
 		</Build>
 		<Compiler>
