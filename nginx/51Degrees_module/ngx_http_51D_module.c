@@ -2,7 +2,6 @@
 #include <ngx_config.h>
 #include <ngx_core.h>
 #include <ngx_http.h>
-#include <string.h>
 #include "src/pattern/51Degrees.h"
 
 #define MAX_51D_PROPERTIES 10
@@ -20,12 +19,12 @@ static ngx_int_t ngx_http_51D_handler(ngx_http_request_t *r);
 
 //Simple string join function declaration
 static char *join(ngx_pool_t* ngx_pool, const char* s1, const char* s2);
+
 void lower_string(char s[]);
 
 //51Degrees declarations
 const char* prefix = "51D-";
 
-//Input variables
 typedef struct {
 	ngx_uint_t enable;
 	ngx_str_t properties_string;
@@ -65,7 +64,7 @@ ngx_http_51D_post_conf(ngx_conf_t *cf)
 
 	*h = ngx_http_51D_handler;
 
-	switch(fiftyoneDegreesInitWithPropertyArray(fdmcf->dataFile.data, &fdmcf->dataSet, (const char**)fdmcf->properties, fdmcf->properties_n)) {
+	switch(fiftyoneDegreesInitWithPropertyArray((const char*)fdmcf->dataFile.data, &fdmcf->dataSet, (const char**)fdmcf->properties, fdmcf->properties_n)) {
         case DATA_SET_INIT_STATUS_INSUFFICIENT_MEMORY:
 			ngx_log_stderr(0, "Insufficient memory to load '%s'.", fdmcf->dataFile.data);
 			return NGX_ERROR;
@@ -100,7 +99,6 @@ ngx_http_51D_post_conf(ngx_conf_t *cf)
 	return NGX_OK;
 }
 
-//Server configuration
 static void *
 ngx_http_51D_create_main_conf(ngx_conf_t *cf)
 {
@@ -147,8 +145,6 @@ return NGX_CONF_OK;
 //--51D_properties takes one string argument, a comma separated
 //list of properties to be returned. Is called within server
 //block.
-//--51D_match takes no arguments, sets requested properties as
-//headers. Is called within location block.
 //--51D_filePath takes one string argument, the path to a
 //51Degrees data file. Is called within server block.
 static ngx_command_t  ngx_http_51D_commands[] = {
@@ -186,12 +182,12 @@ static ngx_command_t  ngx_http_51D_commands[] = {
 
 static ngx_http_module_t ngx_http_51D_module_ctx = {
 	NULL,                          /* preconfiguration */
-	ngx_http_51D_post_conf,       /* postconfiguration */
+	ngx_http_51D_post_conf,        /* postconfiguration */
 
-	ngx_http_51D_create_main_conf,                          /* create main configuration */
+	ngx_http_51D_create_main_conf, /* create main configuration */
 	NULL,                          /* init main configuration */
 
-	NULL,  /* create server configuration */
+	NULL,                          /* create server configuration */
 	NULL,                          /* merge server configuration */
 
 	ngx_http_51D_create_loc_conf,  /* create location configuration */
@@ -215,12 +211,7 @@ ngx_module_t ngx_http_51D_module = {
 };
 
 //Module handler, gets match for User-Agent
-//by calling get_match and sets all property
-//headers.
-//NOTE: this should ideally be in ngx_http_match so as not
-//to run at Nginx start-up. This is minor and does not
-//affect matching speed.
-//TODO: Move setting of headers to ngx_http_51D_match.
+//and sets all property headers.
 static ngx_int_t
 ngx_http_51D_handler(ngx_http_request_t *r)
 {
@@ -243,7 +234,7 @@ ngx_http_51D_handler(ngx_http_request_t *r)
         ws = fiftyoneDegreesWorksetPoolGet(fdmcf->pool);
 
         if (r->headers_in.user_agent)
-			fiftyoneDegreesMatch(ws, r->headers_in.user_agent[0].value.data);
+			fiftyoneDegreesMatch(ws, (const char*)r->headers_in.user_agent[0].value.data);
         else
 			fiftyoneDegreesMatch(ws, "");
 
@@ -280,9 +271,10 @@ ngx_http_51D_handler(ngx_http_request_t *r)
             }
             else if (strcmp("DeviceId", conf->properties[i]) == 0) {
                 char buffer[24];
-                if (fiftyoneDegreesGetDeviceId(ws, buffer, 24));
-                property_values_array[i] = join(r->pool, "", buffer);
-                found = 1;
+					fiftyoneDegreesGetDeviceId(ws, buffer, 24);
+					property_values_array[i] = join(r->pool, "", buffer);
+					found = 1;
+
             }
             else {
                 for (j = 0; j < ws->dataSet->requiredPropertyCount; j++) {
@@ -305,15 +297,14 @@ ngx_http_51D_handler(ngx_http_request_t *r)
 
         ngx_table_elt_t *h[conf->properties_n];
 
-        char *prefix_name;
-		for (i=0; i<conf->properties_n; i++) {
+		for (i=0; i<(int)conf->properties_n; i++) {
 			h[i] = ngx_list_push(&r->headers_in.headers);
 			h[i]->hash = i;
-			h[i]->key.data = conf->prefixed_properties[i];
+			h[i]->key.data = (u_char*)conf->prefixed_properties[i];
 			h[i]->key.len = ngx_strlen(h[i]->key.data);
-			h[i]->value.data = property_values_array[i];
+			h[i]->value.data = (u_char*)property_values_array[i];
 			h[i]->value.len = ngx_strlen(h[i]->value.data);
-			h[i]->lowcase_key = conf->lower_prefixed_properties[i];
+			h[i]->lowcase_key = (u_char*)conf->lower_prefixed_properties[i];
 		}
 	}
 
@@ -325,8 +316,6 @@ ngx_http_51D_handler(ngx_http_request_t *r)
 //list of properties from nginx.conf and assigns
 //each to an element in properties.
 //It then initialises the detector.
-//TODO: Set prefixed_properties elements here so it only happenes once.
-
 static char *
 ngx_http_51D_set_properties(ngx_conf_t *cf, void *post, void *data)
 {
@@ -342,7 +331,7 @@ ngx_http_51D_set_properties(ngx_conf_t *cf, void *post, void *data)
 		fdmcf->properties_n =0;
 
 	int i = 0, j, found;
-	char *tok = strtok(properties->data, ",");
+	char *tok = strtok((char*)properties->data, (const char*)",");
 	while (tok != NULL) {
 		found = 0;
 		fdlcf->properties[i++] = tok;
@@ -350,9 +339,9 @@ ngx_http_51D_set_properties(ngx_conf_t *cf, void *post, void *data)
 	}
 	fdlcf->properties_n = i;
 
-	for (i=0;i<fdlcf->properties_n;i++) {
+	for (i=0;i<(int)fdlcf->properties_n;i++) {
 		found = 0;
-		for (j=0; j<fdmcf->properties_n; j++) {
+		for (j=0; j<(int)fdmcf->properties_n; j++) {
 			if (strcmp(fdlcf->properties[i], fdmcf->properties[j]) == 0)
 				found = 1;
 		}
@@ -372,8 +361,6 @@ ngx_http_51D_set_properties(ngx_conf_t *cf, void *post, void *data)
 //prefixed headers.
 char *join(ngx_pool_t* ngx_pool, const char* s1, const char* s2)
 {
-//TODO: Change to not use malloc.
-    //char* result = ngx_palloc(strlen(s1) + strlen(s2) + 1);
     char* result = ngx_pcalloc(ngx_pool, ngx_strlen(s1) + ngx_strlen(s2) + 1);
     if (result)
     {
