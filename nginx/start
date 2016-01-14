@@ -1,4 +1,0 @@
-#!/bin/bash
-
-killall nginx
-build/nginx/sbin/nginx

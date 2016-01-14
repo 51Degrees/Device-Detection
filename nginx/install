@@ -1,0 +1,45 @@
+#!/bin/bash
+
+set -o nounset
+set -o errexit
+
+DIR=$(pwd)
+BUILDDIR=$DIR/build
+NGINX_DIR=nginx
+NGINX_VERSION=1.4.7
+
+rm -rf build vendor
+if [ ! -d $BUILDDIR ]; then
+	mkdir $BUILDDIR > /dev/null 2>&1
+	mkdir $BUILDDIR/$NGINX_DIR > /dev/null 2>&1
+fi
+
+if [ ! -d "vendor" ]; then
+	mkdir vendor > /dev/null 2>&1
+fi
+if [ ! -d "vendor/nginx-$NGINX_VERSION" ]; then
+	pushd vendor > /dev/null 2>&1
+	curl -s -L -O "http://nginx.org/download/nginx-$NGINX_VERSION.tar.gz"
+	tar xzf "nginx-$NGINX_VERSION.tar.gz"
+	popd > /dev/null 2>&1
+else
+	printf "NGINX already installed\n"
+fi
+
+./exportmodule
+
+cd "vendor/nginx-$NGINX_VERSION"
+CFLAGS="-O3" ./configure           \
+    --prefix=$BUILDDIR \
+    --with-ld-opt="-lm"  \
+    --add-module=../../51Degrees_module
+make install
+cd ../../
+cp nginx.conf build/conf/
+
+echo "nginx with 51Degrees installed to build"
+
+echo "#!/bin/bash
+killall nginx
+./build/sbin/nginx" > run
+chmod +x run
