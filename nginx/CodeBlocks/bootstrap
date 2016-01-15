@@ -1,5 +1,23 @@
 #!/bin/bash
 cd ..
+if [ ! -d 51Degrees_module ] ; then
+	mkdir 51Degrees_module
+fi
+cp src/* 51Degrees_module/
+if [ ! -d 51Degrees_module/src ] ; then
+	mkdir 51Degrees_module/src
+fi
+if [ ! -d 51Degrees_module/src/pattern ] ; then
+	mkdir 51Degrees_module/src/pattern
+fi
+if [ ! -d 51Degrees_module/src/cityhash ] ; then
+	mkdir 51Degrees_module/src/cityhash
+fi
+cp ../src/pattern/51Degrees.c 51Degrees_module/src/pattern/
+cp ../src/pattern/51Degrees.h 51Degrees_module/src/pattern/
+cp -r ../src/cityhash/ 51Degrees_module/src/
+cp ../src/threading.h 51Degrees_module/src/
+
 set -o nounset
 set -o errexit
 
