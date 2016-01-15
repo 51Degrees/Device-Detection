@@ -1,5 +1,5 @@
 #!/bin/bash
-
+cd ..
 set -o nounset
 set -o errexit
 
@@ -25,21 +25,4 @@ if [ ! -d "vendor/nginx-$NGINX_VERSION" ]; then
 else
 	printf "NGINX already downloaded\n"
 fi
-
-./exportmodule
-
-cd "vendor/nginx-$NGINX_VERSION"
-CFLAGS="-O3" ./configure           \
-    --prefix=$BUILDDIR \
-    --with-ld-opt="-lm"  \
-    --add-module=../../51Degrees_module
-make install
-cd ../../
-cp nginx.conf build/conf/
-
-echo "nginx with 51Degrees installed to build"
-
-echo "#!/bin/bash
-killall nginx
-./build/sbin/nginx" > run
-chmod +x run
+cd CodeBlocks
