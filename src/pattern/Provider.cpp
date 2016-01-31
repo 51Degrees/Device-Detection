@@ -134,6 +134,7 @@ Provider::~Provider() {
 	// Free the dataset if one was created.
 	if (dataSet != NULL) {
 		fiftyoneDegreesDataSetFree(dataSet);
+		delete[] dataSet;
 		dataSet = NULL;
 	}
 }
