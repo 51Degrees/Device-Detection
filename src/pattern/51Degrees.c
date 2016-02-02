@@ -1164,6 +1164,9 @@ fiftyoneDegreesDataSetInitStatus fiftyoneDegreesInitWithPropertyArray(const char
 		return status;
 	}
 
+	// Close the file
+	fclose(inputFilePtr);
+
 	// Set the prefixed upper headers to NULL as they may not be
 	// needed. If they are initialised later then the memory can
 	// be freed when the data set is destroyed.

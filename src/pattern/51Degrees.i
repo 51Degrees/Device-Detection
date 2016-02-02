@@ -96,6 +96,12 @@ Provider *provider;
 
 	provider = new Provider(filePath, propertyList, cacheSize, poolSize);
 }
+
+
+%mshutdown {
+
+	delete provider;
+}
 #endif
 
 class Match {
