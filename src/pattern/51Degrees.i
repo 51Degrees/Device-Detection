@@ -28,6 +28,7 @@
 %{
 	#include "Provider.hpp"
 	#include "Match.hpp"
+	#include "Profiles.hpp"
 
 	#ifdef SWIGPHP
 	Provider *provider;
@@ -73,6 +74,8 @@
 %nodefaultctor Match;
 %newobject Provider::getMatch;
 %newobject Provider::getMatchForDeviceId;
+%nodefaultctor Profiles;
+%newobject Provider::findProfiles;
 
 /*
  * Allow partial C# classes
@@ -96,6 +99,11 @@ Provider *provider;
 
 	provider = new Provider(filePath, propertyList, cacheSize, poolSize);
 }
+
+%mshutdown {
+
+	delete provider;
+}
 #endif
 
 class Match {
@@ -117,6 +125,18 @@ class Match {
 	int getDifference();
 	int getMethod();
 	std::string getUserAgent();
+};
+
+class Profiles {
+
+public:
+	virtual ~Profiles();
+
+	Profiles();
+	int getCount();
+	int getProfileIndex(int index);
+	int getProfileId(int index);
+
 };
 
 class Provider {
@@ -147,4 +167,6 @@ class Provider {
 	std::string getMatchJson(const std::map<std::string, std::string> &headers);
 
 	Match* getMatchForDeviceId(const std::string &deviceId);
+	Profiles* findProfiles(const std::string propertyName, const std::string valueName);
+	Profiles* findProfiles(const std::string propertyName, const std::string valueName, Profiles *profiles);
 };

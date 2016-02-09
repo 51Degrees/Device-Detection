@@ -134,7 +134,7 @@ Provider::~Provider() {
 	// Free the dataset if one was created.
 	if (dataSet != NULL) {
 		fiftyoneDegreesDataSetFree(dataSet);
-		dataSet = NULL;
+		delete dataSet;
 	}
 }
 
@@ -588,4 +588,55 @@ Match* Provider::getMatchForDeviceId(const char *deviceId) {
 */
 Match* Provider::getMatchForDeviceId(const string& deviceId) {
 	return getMatchForDeviceId(deviceId.c_str());
+}
+
+/**
+ * Finds all profiles in the data set which contain the property
+ * value pair provided.
+ * @param propertyName used to search the profiles.
+ * @param valueName used to search the profiles.
+ * @returns new Profiles instance configured to provide access to the results.
+ */
+Profiles* Provider::findProfiles(const char *propertyName, const char *valueName) {
+	Profiles *profiles = new Profiles();
+	profiles->profiles = fiftyoneDegreesFindProfiles(dataSet, propertyName, valueName);
+	return profiles;
+}
+
+/**
+* Finds all profiles in the data set which contain the property
+* value pair provided.
+* @param propertyName used to search the profiles.
+* @param valueName used to search the profiles.
+* @returns new Profiles instance configured to provide access to the results.
+*/
+Profiles* Provider::findProfiles(const string &propertyName, const string &valueName) {
+	return findProfiles(propertyName.c_str(), valueName.c_str());
+}
+
+/**
+* Finds all profiles within the provided Profiles object which contain
+* the property value pair provided.
+* @param propertyName used to search the profiles.
+* @param valueName used to search the profiles.
+* @param profiles object to perform the search in.
+* @returns new Profiles instance configured to provide access to the results.
+*/
+Profiles* Provider::findProfiles(const char *propertyName, const char *valueName, Profiles *profiles) {
+	Profiles *returnprofiles = new Profiles();
+	returnprofiles->profiles = fiftyoneDegreesFindProfilesInProfiles(dataSet, propertyName, valueName, profiles->profiles);
+	return returnprofiles;
+
+}
+
+/**
+* Finds all profiles within the provided Profiles object which contain
+* the property value pair provided.
+* @param propertyName used to search the profiles.
+* @param valueName used to search the profiles.
+* @param profiles object to perform the search in.
+* @returns new Profiles instance configured to provide access to the results.
+*/
+Profiles* Provider::findProfiles(const string &propertyName, const string &valueName, Profiles *profiles) {
+	return findProfiles(propertyName.c_str(), valueName.c_str(), profiles);
 }

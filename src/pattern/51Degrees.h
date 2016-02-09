@@ -288,6 +288,23 @@ typedef struct fiftyoneDegrees_http_header_t {
 } fiftyoneDegreesHttpHeader;
 #pragma pack(pop)
 
+typedef struct fiftyoneDegrees_profile_struct_t {
+	int32_t count;
+	fiftyoneDegreesProfile **profiles;
+	int32_t *indexes;
+} fiftyoneDegreesProfilesStruct;
+
+typedef struct fiftyoneDegrees_profile_index_struct_t {
+	int32_t count;
+	int32_t *indexes;
+} fiftyoneDegreesProfileIndexesStruct;
+
+typedef struct fiftyoneDegrees_profile_struct_array_t{
+	int32_t initialised;
+	fiftyoneDegreesProfileIndexesStruct *profilesStructs;
+	FIFTYONEDEGREES_MUTEX lock;
+} fiftyoneDegreesProfilesStructArray;
+
 #pragma pack(push, 1)
 typedef struct fiftyoneDegrees_dataset_t {
 	const fiftyoneDegreesDataSetHeader header;
@@ -312,6 +329,7 @@ typedef struct fiftyoneDegrees_dataset_t {
 	int32_t httpHeadersCount; /* Number of unique HTTP headers in the array */
 	fiftyoneDegreesHttpHeader *httpHeaders; /* Array of HTTP headers the data set can process */
 	const char **prefixedUpperHttpHeaders; /* Array of HTTP header strings in upper case form prefixed with HTTP_ */
+	fiftyoneDegreesProfilesStructArray *valuePointersArray;
 } fiftyoneDegreesDataSet;
 #pragma pack(pop)
 
@@ -801,6 +819,39 @@ EXTERNAL int32_t fiftyoneDegreesGetDeviceId(fiftyoneDegreesWorkset *ws, char *de
 EXTERNAL void fiftyoneDegreesMatchForDeviceId(fiftyoneDegreesWorkset *ws, const char *deviceId);
 
 /**
+* \ingroup FiftyOneDegreesFunctions
+* Gets all the profiles within the data set
+* that relate to the supplied property value pair.
+* @param dataSet pointer to a 51Degrees data set.
+* @param propertyName the name of the property to match as a string.
+* @param valueName the name of the property's value to match as a string.
+* @param profilesList a pointer to the profiles structure to filter.
+* @returns fiftyoneDegreesProfilesStruct* pointer to a profiles structure.
+*/
+EXTERNAL fiftyoneDegreesProfilesStruct *fiftyoneDegreesFindProfiles(fiftyoneDegreesDataSet *dataSet, const char *propertyName, const char *valueName);
+
+/**
+ * \ingroup FiftyOneDegreesFunctions
+ * Gets all the profiles within the supplied profiles list
+ * that relate to the supplied property value pair.
+ * @param dataSet pointer to a 51Degrees data set.
+ * @param propertyName the name of the property to match as a string.
+ * @param valueName the name of the property's value to match as a string.
+ * @param profilesList a pointer to the profiles structure to filter.
+ * @returns fiftyoneDegreesProfilesStruct* pointer to a profiles structure.
+ */
+EXTERNAL fiftyoneDegreesProfilesStruct *fiftyoneDegreesFindProfilesInProfiles(fiftyoneDegreesDataSet *dataSet, const char *propertyName, const char *valueName, fiftyoneDegreesProfilesStruct *profilesList);
+
+/**
+ * \ingroup FiftyOneDegreesFunctions
+ * Frees a profiles structure returned from either the
+ * fiftyoneDegreesFindProfiles or fiftyoneDegreesFindProfilesInProfiles
+ * function
+ * @param profiles the profiles list to be freed.
+ */
+EXTERNAL void fiftyoneDegreesFreeProfilesStruct(fiftyoneDegreesProfilesStruct *profiles);
+
+/**
  * OBSOLETE METHODS - RETAINED FOR BACKWARDS COMPAITABILITY
  */
 
@@ -811,3 +862,4 @@ EXTERNAL void fiftyoneDegreesFreeWorkset(const fiftyoneDegreesWorkset *ws);
 EXTERNAL void fiftyoneDegreesDestroy(const fiftyoneDegreesDataSet *dataSet);
 
 #endif // 51DEGREES_H_INCLUDED
+

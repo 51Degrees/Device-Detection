@@ -253,6 +253,16 @@ namespace FiftyOne.Mobile.Detection.Provider.Interop
             throw new NotImplementedException();
         }
 
+        public Pattern.Profiles FindProfiles(string propertyName, string valueName)
+        {
+            throw new NotImplementedException();
+        }
+
+        public Pattern.Profiles FindProfiles(string propertyName, string valueName, Pattern.Profiles profilesList)
+        {
+            throw new NotImplementedException();
+        }
+
         #endregion
     }
 }

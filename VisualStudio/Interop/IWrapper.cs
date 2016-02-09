@@ -61,5 +61,23 @@ namespace FiftyOne.Mobile.Detection.Provider.Interop
         /// <param name="deviceId"></param>
         /// <returns></returns>
         IMatchResult MatchForDeviceId(string userAgent);
+     
+        /// <summary>
+        /// Returns a list of profiles for the property value pair provided.
+        /// </summary>
+        /// <param name="propertyName"></param>
+        /// <param name="valueName"></param>
+        /// <returns>Profiles object</returns>
+        Pattern.Profiles FindProfiles(string propertyName, string valueName);
+
+        /// <summary>
+        /// Returns a list of profiles for the property value pair provided.
+        /// </summary>
+        /// <param name="propertyName"></param>
+        /// <param name="valueName"></param>
+        /// <param name="profilesList"></param>
+        /// <returns>Profiles object</returns>
+        Pattern.Profiles FindProfiles(string propertyName, string valueName, Pattern.Profiles profilesList);
+
     }
 }
