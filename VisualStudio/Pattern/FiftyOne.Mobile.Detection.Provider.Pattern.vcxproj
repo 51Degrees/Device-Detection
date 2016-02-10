@@ -14,6 +14,7 @@
     <ClInclude Include="..\..\src\cityhash\city.h" />
     <ClInclude Include="..\..\src\pattern\51Degrees.h" />
     <ClInclude Include="..\..\src\pattern\Match.hpp" />
+    <ClInclude Include="..\..\src\pattern\Profiles.hpp" />
     <ClInclude Include="..\..\src\pattern\Provider.hpp" />
   </ItemGroup>
   <ItemGroup>
@@ -21,6 +22,7 @@
     <ClCompile Include="..\..\src\pattern\51Degrees.c" />
     <ClCompile Include="..\..\src\pattern\51Degrees_csharp.cxx" />
     <ClCompile Include="..\..\src\pattern\Match.cpp" />
+    <ClCompile Include="..\..\src\pattern\Profiles.cpp" />
     <ClCompile Include="..\..\src\pattern\Provider.cpp" />
   </ItemGroup>
   <ItemGroup>

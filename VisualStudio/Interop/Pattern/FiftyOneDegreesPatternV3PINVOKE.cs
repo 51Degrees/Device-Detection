@@ -344,6 +344,21 @@ class FiftyOneDegreesPatternV3PINVOKE {
   [global::System.Runtime.InteropServices.DllImport("FiftyOne.Mobile.Detection.Provider.Pattern.dll", EntryPoint="CSharp_Match_getUserAgent")]
   public static extern string Match_getUserAgent(global::System.Runtime.InteropServices.HandleRef jarg1);
 
+  [global::System.Runtime.InteropServices.DllImport("FiftyOne.Mobile.Detection.Provider.Pattern.dll", EntryPoint="CSharp_delete_Profiles")]
+  public static extern void delete_Profiles(global::System.Runtime.InteropServices.HandleRef jarg1);
+
+  [global::System.Runtime.InteropServices.DllImport("FiftyOne.Mobile.Detection.Provider.Pattern.dll", EntryPoint="CSharp_new_Profiles")]
+  public static extern global::System.IntPtr new_Profiles();
+
+  [global::System.Runtime.InteropServices.DllImport("FiftyOne.Mobile.Detection.Provider.Pattern.dll", EntryPoint="CSharp_Profiles_getCount")]
+  public static extern int Profiles_getCount(global::System.Runtime.InteropServices.HandleRef jarg1);
+
+  [global::System.Runtime.InteropServices.DllImport("FiftyOne.Mobile.Detection.Provider.Pattern.dll", EntryPoint="CSharp_Profiles_getProfileIndex")]
+  public static extern int Profiles_getProfileIndex(global::System.Runtime.InteropServices.HandleRef jarg1, int jarg2);
+
+  [global::System.Runtime.InteropServices.DllImport("FiftyOne.Mobile.Detection.Provider.Pattern.dll", EntryPoint="CSharp_Profiles_getProfileId")]
+  public static extern int Profiles_getProfileId(global::System.Runtime.InteropServices.HandleRef jarg1, int jarg2);
+
   [global::System.Runtime.InteropServices.DllImport("FiftyOne.Mobile.Detection.Provider.Pattern.dll", EntryPoint="CSharp_new_Provider__SWIG_0")]
   public static extern global::System.IntPtr new_Provider__SWIG_0(string jarg1);
 
@@ -403,6 +418,12 @@ class FiftyOneDegreesPatternV3PINVOKE {
 
   [global::System.Runtime.InteropServices.DllImport("FiftyOne.Mobile.Detection.Provider.Pattern.dll", EntryPoint="CSharp_Provider_getMatchForDeviceId")]
   public static extern global::System.IntPtr Provider_getMatchForDeviceId(global::System.Runtime.InteropServices.HandleRef jarg1, string jarg2);
+
+  [global::System.Runtime.InteropServices.DllImport("FiftyOne.Mobile.Detection.Provider.Pattern.dll", EntryPoint="CSharp_Provider_findProfiles__SWIG_0")]
+  public static extern global::System.IntPtr Provider_findProfiles__SWIG_0(global::System.Runtime.InteropServices.HandleRef jarg1, string jarg2, string jarg3);
+
+  [global::System.Runtime.InteropServices.DllImport("FiftyOne.Mobile.Detection.Provider.Pattern.dll", EntryPoint="CSharp_Provider_findProfiles__SWIG_1")]
+  public static extern global::System.IntPtr Provider_findProfiles__SWIG_1(global::System.Runtime.InteropServices.HandleRef jarg1, string jarg2, string jarg3, global::System.Runtime.InteropServices.HandleRef jarg4);
 }
 
 }

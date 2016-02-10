@@ -92,6 +92,11 @@ Provider *provider;
 
 	provider = new Provider(filePath, propertyList);
 }
+
+%mshutdown {
+
+	delete provider;
+}
 #endif
 
 class Match {

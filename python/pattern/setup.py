@@ -64,6 +64,7 @@ setup(
                 'src/pattern/51Degrees_python.cxx',
 		'src/pattern/Provider.cpp',
 		'src/pattern/Match.cpp',
+		'src/pattern/Profiles.cpp',
             ],
             define_macros=define_macros,
             extra_compile_args=[

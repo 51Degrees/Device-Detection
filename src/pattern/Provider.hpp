@@ -25,6 +25,7 @@
 #include <stdexcept>
 #include <sstream>
 #include "Match.hpp"
+#include "Profiles.hpp"
 
 #ifndef FIFTYONEDEGREESPROVIDER_HPP
 #define FIFTYONEDEGREESPROVIDER_HPP
@@ -79,6 +80,11 @@ class Provider {
 
 		Match* getMatchForDeviceId(const char *deviceId);
 		Match* getMatchForDeviceId(const string &deviceId);
+
+		Profiles* findProfiles(const string &propertyName, const string &valueName);
+		Profiles* findProfiles(const char *propertyName, const char *valueName);
+		Profiles* findProfiles(const string &propertyName, const string &valueName, Profiles* profiles);
+		Profiles* findProfiles(const char *propertyName, const char *valueName, Profiles* profiles);
 
 	protected:
 
