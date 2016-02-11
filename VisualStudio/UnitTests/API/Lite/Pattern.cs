@@ -102,6 +102,63 @@ namespace UnitTests.API.Lite
             }
         }
 
+        [TestMethod]
+        public void LitePatternAPI_FindProfiles()
+        {
+            string[] properties = new string[3] {"IsMobile", "BrowserName", "PlatformName"};
+            string[,] values = new string [3,2] { { "True", "False" }, { "Firefox", "Chrome" }, { "Android", "Windows" } };
+            for (int i = 0; i < 3; i++)
+            {
+                for (int j = 0; j < 2; j++)
+                {
+                    Console.WriteLine("Testing " + properties[i] + " " + values[i, j]);
+                    var profiles = _wrapper.FindProfiles(properties[i], values[i, j]);
+                    for (int k = 0; k < profiles.getCount(); k++)
+                    {
+                        Assert.IsNotNull(profiles.getProfileId(k));
+                        Assert.IsTrue(profiles.getProfileIndex(k) >= 0);
+                        Assert.IsTrue(profiles.getProfileId(k) >= 0);
+                    }
+                }
+            }
+        }
+
+        [TestMethod]
+        public void LitePatternAPI_FindProfilesInvalidProperty() {
+            var profiles = _wrapper.FindProfiles("NOTAPROPERTY", "True");
+            Assert.AreEqual(profiles.getCount(), 0);
+        }
+
+        [TestMethod]
+        public void LitePatternAPI_FindProfilesInvalidValue()
+        {
+            foreach (var propertyName in _wrapper.AvailableProperties)
+            {
+                var profiles = _wrapper.FindProfiles(propertyName, "NOTAVALUE");
+                Assert.AreEqual(profiles.getCount(), 0);
+            }
+        }
+
+        [TestMethod]
+        public void LitePatternAPI_FindProfilesOverload()
+        {
+            var profilesBase = _wrapper.FindProfiles("PlatformName", "Android");
+            string[] androidVersions = {"4.4.4", "5.1"};
+            foreach (string valueName in androidVersions) {
+                Console.WriteLine("Testing Android " + valueName);
+                var profiles = _wrapper.FindProfiles("PlatformVersion", valueName, profilesBase);
+                Assert.IsTrue(profiles.getCount() > 0);
+            }
+            profilesBase = _wrapper.FindProfiles("PlatformName", "Windows");
+            string[] windowsVersions = { "8", "7" };
+            foreach (string valueName in windowsVersions)
+            {
+                Console.WriteLine("Testing Windows " + valueName);
+                var profiles = _wrapper.FindProfiles("PlatformVersion", valueName, profilesBase);
+                Assert.IsTrue(profiles.getCount() > 0);
+            }
+        }
+
         protected override string DataFile
         {
             get { return Constants.LITE_PATTERN_V32; }

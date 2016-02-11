@@ -196,6 +196,7 @@ In the examples folder, you can find examples of various functionalities that th
 - Evaluating match metrics
 - Offline processing
 - Strongly typed variables
+- Finding profiles
 
 A full explanation of these can be found within the files or at [Python Tutorials](https://51Degrees/support/documentation/python/tutorials).
 

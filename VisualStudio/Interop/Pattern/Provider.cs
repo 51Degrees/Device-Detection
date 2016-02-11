@@ -145,6 +145,20 @@ public partial class Provider : global::System.IDisposable {
     return ret;
   }
 
+  public Profiles findProfiles(string propertyName, string valueName) {
+    global::System.IntPtr cPtr = FiftyOneDegreesPatternV3PINVOKE.Provider_findProfiles__SWIG_0(swigCPtr, propertyName, valueName);
+    Profiles ret = (cPtr == global::System.IntPtr.Zero) ? null : new Profiles(cPtr, true);
+    if (FiftyOneDegreesPatternV3PINVOKE.SWIGPendingException.Pending) throw FiftyOneDegreesPatternV3PINVOKE.SWIGPendingException.Retrieve();
+    return ret;
+  }
+
+  public Profiles findProfiles(string propertyName, string valueName, Profiles profiles) {
+    global::System.IntPtr cPtr = FiftyOneDegreesPatternV3PINVOKE.Provider_findProfiles__SWIG_1(swigCPtr, propertyName, valueName, Profiles.getCPtr(profiles));
+    Profiles ret = (cPtr == global::System.IntPtr.Zero) ? null : new Profiles(cPtr, true);
+    if (FiftyOneDegreesPatternV3PINVOKE.SWIGPendingException.Pending) throw FiftyOneDegreesPatternV3PINVOKE.SWIGPendingException.Retrieve();
+    return ret;
+  }
+
 }
 
 }
