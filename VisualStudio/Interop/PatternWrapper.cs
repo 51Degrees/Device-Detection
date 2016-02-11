@@ -150,6 +150,30 @@ namespace FiftyOne.Mobile.Detection.Provider.Interop
         }
 
         /// <summary>
+        /// Returns a list of profiles for the property value pair provided.
+        /// </summary>
+        /// <param name="propertyName"></param>
+        /// <param name="valueName"></param>
+        /// <returns>Profiles object</returns>
+        public Pattern.Profiles FindProfiles(string propertyName, string valueName)
+        {
+            return (Pattern.Profiles)_provider.findProfiles(propertyName, valueName);
+        }
+
+        /// <summary>
+        /// Returns a list of profiles for the property value pair provided.
+        /// Searching only the profiles provided.
+        /// </summary>
+        /// <param name="propertyName"></param>
+        /// <param name="valueName"></param>
+        /// <param name="profilesList"></param>
+        /// <returns>Profiles object</returns>
+        public Pattern.Profiles FindProfiles(string propertyName, string valueName, Pattern.Profiles profilesList)
+        {
+            return (Pattern.Profiles)_provider.findProfiles(propertyName, valueName, profilesList);
+        }
+
+        /// <summary>
         /// Finalize to ensure that all resources have been freed.
         /// </summary>
         ~PatternWrapper()
