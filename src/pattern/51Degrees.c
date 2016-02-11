@@ -412,7 +412,7 @@ const fiftyoneDegreesAsciiString* fiftyoneDegreesGetString(const fiftyoneDegrees
  * \endcond
  */
 fiftyoneDegreesProfile* getProfileByIndex(fiftyoneDegreesDataSet *dataSet, int32_t index) {
-	return (fiftyoneDegreesProfile*)dataSet->profiles + (dataSet->profileOffsets + index)->offset;
+	return (fiftyoneDegreesProfile*)(dataSet->profiles + (dataSet->profileOffsets + index)->offset);
 }
 
  /**
@@ -952,6 +952,22 @@ void linkedListRemove(fiftyoneDegreesLinkedSignatureList *linkedList, fiftyoneDe
  * \endcond
  */
 
+void freeProfilesStructs(const fiftyoneDegreesDataSet *dataSet) {
+	int propertyIndex, valueIndex, propertyValueCount;
+	fiftyoneDegreesProperty *property;
+	for (propertyIndex = 0; propertyIndex < dataSet->header.properties.count; propertyIndex++) {
+		if (dataSet->valuePointersArray[propertyIndex].initialised == 1) {
+			property = (fiftyoneDegreesProperty*)(dataSet->properties + (int32_t)propertyIndex);
+			propertyValueCount = property->lastValueIndex - property->firstValueIndex + 1;
+			for (valueIndex = 0; valueIndex < propertyValueCount; valueIndex++) {
+				free((void*)dataSet->valuePointersArray[propertyIndex].profilesStructs[valueIndex].indexes);
+			}
+		}
+		free((void*)dataSet->valuePointersArray[propertyIndex].profilesStructs);
+	}
+	free((void*)dataSet->valuePointersArray);
+}
+
 /**
 * \cond
 * Destroys the data set releasing all memory available. Ensure all worksets
@@ -961,6 +977,7 @@ void linkedListRemove(fiftyoneDegreesLinkedSignatureList *linkedList, fiftyoneDe
 */
 void fiftyoneDegreesDataSetFree(const fiftyoneDegreesDataSet *dataSet) {
 	int index;
+	freeProfilesStructs(dataSet);
 	if (dataSet->prefixedUpperHttpHeaders != NULL) {
 		for (index = 0; index < dataSet->httpHeadersCount; index++) {
 			if (dataSet->prefixedUpperHttpHeaders[index] != NULL) {
@@ -1022,7 +1039,6 @@ void setProperties(fiftyoneDegreesDataSet *dataSet, const char** properties, int
 	// Allocate memory for this number of properties.
 	dataSet->requiredPropertyCount = 0;
 	dataSet->requiredProperties = (const fiftyoneDegreesProperty**)malloc(count * sizeof(const fiftyoneDegreesProperty*));
-
 	// Add the properties to the list of required properties.
 	if (dataSet->requiredProperties != NULL) {
 		for (propertyIndex = 0; propertyIndex < count; propertyIndex++) {
@@ -1039,6 +1055,276 @@ void setProperties(fiftyoneDegreesDataSet *dataSet, const char** properties, int
 			}
 		}
 	}
+}
+
+/**
+ * \cond
+ * Sets the profile indexes relating to all values of the given property
+ * allocating space for them first.
+ * @param dataSet a pointer to the data set.
+ * @param property the property to set the profiles for.
+ * @param valuesProfileCount and array where each entry indicates the number of
+ * profiles that relate to the value of corresponding index.
+ * \endcond
+ */
+void setProfileStructs(fiftyoneDegreesDataSet *dataSet, const fiftyoneDegreesProperty *property, int32_t *valuesProfileCount) {
+	int profileIndex, profileValueIndex, propertyValueIndex;
+	int propertyIndex = getPropertyIndex(dataSet, property);
+	fiftyoneDegreesProfile *profile;
+	int32_t *profileValueIndexes;
+	int profileIndexElement;
+	int propertyValuesCount = property->lastValueIndex - property->firstValueIndex + 1;
+
+	// Allocate memory for the profile indexes.
+	for (propertyValueIndex = 0; propertyValueIndex < propertyValuesCount; propertyValueIndex++) {
+		dataSet->valuePointersArray[propertyIndex].profilesStructs[propertyValueIndex].count = valuesProfileCount[propertyValueIndex];
+		dataSet->valuePointersArray[propertyIndex].profilesStructs[propertyValueIndex].indexes = (int32_t*)malloc(valuesProfileCount[propertyValueIndex] * sizeof(int32_t));
+	}
+
+	// Add the profile indexes to the values that they relate to.
+	for (profileIndex = 0; profileIndex < dataSet->header.profiles.count; profileIndex++) {
+		profile = getProfileByIndex(dataSet, profileIndex);
+		// If the profile has a different component, then skip it as
+		// nothing will be found.
+		if (profile->componentIndex == property->componentIndex) {
+			profileValueIndexes = (int32_t*)((byte*)profile + sizeof(fiftyoneDegreesProfile));
+			// Loop through the value indexes for the current profile.
+			for (profileValueIndex = 0; profileValueIndex < profile->valueCount; profileValueIndex++) {
+				// If the value is one that relates to the property, add the profile.
+				if (property->firstValueIndex <= profileValueIndexes[profileValueIndex]
+					&& profileValueIndexes[profileValueIndex] <= property->lastValueIndex) {
+					profileIndexElement = dataSet->valuePointersArray[propertyIndex].profilesStructs[profileValueIndexes[profileValueIndex] - property->firstValueIndex].count - valuesProfileCount[profileValueIndexes[profileValueIndex] - property->firstValueIndex];
+					dataSet->valuePointersArray[propertyIndex].profilesStructs[profileValueIndexes[profileValueIndex] - property->firstValueIndex].indexes[profileIndexElement] = profileIndex;
+					valuesProfileCount[profileValueIndexes[profileValueIndex] - property->firstValueIndex]--;
+				}
+			}
+		}
+	}
+}
+
+/**
+ * \cond
+ * Initialise the values for the given property with the indexes and count
+ * of the profiles relating to each value.
+ * @param dataSet pointer to a 51Degrees data set.
+ * @param property pointer to the 51Degrees property to be initialised.
+ * \endcond
+ */
+void initFindProfiles(fiftyoneDegreesDataSet *dataSet, const fiftyoneDegreesProperty *property) {
+	int profileIndex;
+	int valueIndex;
+	int propertyIndex = getPropertyIndex(dataSet, property);
+	fiftyoneDegreesProfile *profile;
+	int32_t *profileValueIndexes;
+
+	// Lock the structure being set, and check again if it has been
+	// set by another process.
+#ifndef FIFTYONEDEGREES_NO_THREADING
+	FIFTYONEDEGREES_MUTEX_LOCK(dataSet->valuePointersArray[propertyIndex].lock);
+	if (dataSet->valuePointersArray[propertyIndex].initialised == 0) {
+#endif */
+		// Get the amount of values for the property.
+		int propertyValuesCount = property->lastValueIndex - property->firstValueIndex + 1;
+		// Initialise the array with the profiles count for each of the property's values.
+		int *valuesProfileCount = (int32_t*)calloc(propertyValuesCount, sizeof(int32_t));
+
+		// Loop through all profiles incrementing the profile count for the
+		// for the values they relate to.
+		profileIndex = 0;
+		while (profileIndex < dataSet->header.profiles.count) {
+			profile = getProfileByIndex(dataSet, profileIndex);
+			// If the profile has a different component, then skip it as
+			// nothing will be found.
+			if (profile->componentIndex == property->componentIndex) {
+				profileValueIndexes = (int32_t*)((byte*)profile + sizeof(fiftyoneDegreesProfile));
+				// Loop through the value indexes for the current profile.
+				for (valueIndex = 0; valueIndex < profile->valueCount; valueIndex++) {
+					// If the value relates to this property then increment the
+					// profile count for the value.
+					if (property->firstValueIndex <= profileValueIndexes[valueIndex]
+						&& profileValueIndexes[valueIndex] <= property->lastValueIndex) {
+						valuesProfileCount[profileValueIndexes[valueIndex] - property->firstValueIndex]++;
+					}
+				}
+			}
+			profileIndex++;
+		}
+
+		// Now allocate the memory and do a second pass adding the profiles.
+		setProfileStructs(dataSet, property, valuesProfileCount);
+		// Indicate this property has been initialised.
+		dataSet->valuePointersArray[propertyIndex].initialised = 1;
+		// Free the array of profile counts.
+		free(valuesProfileCount);
+
+#ifndef FIFYONEDEGREES_NO_THREADING
+	}
+	FIFTYONEDEGREES_MUTEX_UNLOCK(dataSet->valuePointersArray[propertyIndex].lock);
+#endif 
+}
+
+/**
+ * \cond
+ * fiftyoneDegreesFindProfiles function initialises all the profiles for
+ * the property if it has not been, then returns a profiles structure relating
+ * to the given property and value pair containing the count, an array of profile
+ * pointers, and an array of profile indexes.
+ * @param dataSet pointer to a 51Degrees data set.
+ * @param propertyName the name of the property to match as a string.
+ * @param valueName the name of the property's value to match as a string.
+ * @returns fiftyoneDegreesProfilesStruct* pointer to a profiles structure.
+ * \endcond
+ */
+fiftyoneDegreesProfilesStruct *fiftyoneDegreesFindProfiles(fiftyoneDegreesDataSet *dataSet, const char *propertyName, const char* valueName) {
+	int32_t valueIndex;
+	const char *currentValueName;
+	const fiftyoneDegreesValue *value;
+	const fiftyoneDegreesProperty *property;
+	property = fiftyoneDegreesGetPropertyByName(dataSet, (char*)propertyName);
+	int i;
+
+	// Only proceed if the property exists.
+	if (property != NULL) {
+		int32_t propertyIndex = getPropertyIndex(dataSet, property);
+
+		// Find the value from the value name.
+		for (valueIndex = property->firstValueIndex; valueIndex <= property->lastValueIndex; valueIndex++) {
+			value = dataSet->values + valueIndex;
+			currentValueName = fiftyoneDegreesGetValueName(dataSet, value);
+			if (strcmp(valueName, currentValueName) == 0) {
+				// Found the value. Now check if the property is initialised.
+				if (dataSet->valuePointersArray[propertyIndex].initialised == 0) {
+					initFindProfiles(dataSet, property);
+				}
+				// Set the profiles list to be returned, copying the profile
+				// indexes and getting pointers to the profiles.
+				fiftyoneDegreesProfilesStruct *profilesList = (fiftyoneDegreesProfilesStruct*)malloc(sizeof(fiftyoneDegreesProfilesStruct));
+				profilesList->count = dataSet->valuePointersArray[propertyIndex].profilesStructs[valueIndex - property->firstValueIndex].count;
+				if (profilesList->count > 0) {
+					profilesList->profiles = (fiftyoneDegreesProfile**)malloc(sizeof(fiftyoneDegreesProfile*) * profilesList->count);
+					profilesList->indexes = (int32_t*)malloc(sizeof(int32_t) * profilesList->count);
+					memcpy(profilesList->indexes, dataSet->valuePointersArray[propertyIndex].profilesStructs[valueIndex - property->firstValueIndex].indexes,
+						sizeof(int32_t) * dataSet->valuePointersArray[propertyIndex].profilesStructs[valueIndex - property->firstValueIndex].count);
+
+					for (i = 0; i < profilesList->count; i++) {
+						profilesList->profiles[i] = getProfileByIndex(dataSet, profilesList->indexes[i]);
+					}
+				}
+				return profilesList;
+			}
+		}
+	}
+	// The property or the value could not be found, return an empty list.
+	fiftyoneDegreesProfilesStruct *profilesList = (fiftyoneDegreesProfilesStruct*)malloc(sizeof(int));
+	profilesList->count = 0;
+	return profilesList;
+}
+
+/**
+ * \cond
+ * Frees a 51Degrees profiles structure returned from the
+ * fiftyoneDegreesFindProfiles function.
+ * @param profiles pointer to a 51Degrees profiles structure.
+ * \endcond
+ */
+void fiftyoneDegreesFreeProfilesStruct(fiftyoneDegreesProfilesStruct *profiles) {
+	if (profiles->count > 0) {
+		free((void*)profiles->indexes);
+		free((void*)profiles->profiles);
+	}
+	free((void*)profiles);
+}
+
+/**
+ * Function to compare two integers, this is used in the bsearch function.
+ * @param a pointer to an integer.
+ * @param b pointer to an integer.
+ */
+static int intcmp(const void *a, const void *b) {
+	return (*(int*)a - *(int*)b);
+}
+
+/**
+* \cond
+* fiftyoneDegreesFindProfilesInProfiles function initialises all the profiles for
+* the property if it has not been, then returns a profiles structure relating
+* to the given property and value pair containing the count, an array of profile
+* pointers, and an array of profile indexes.
+* @param dataSet pointer to a 51Degrees data set.
+* @param propertyName the name of the property to match as a string.
+* @param valueName the name of the property's value to match as a string.
+* @param profilesList a pointer to the profiles structure to filter.
+* @returns fiftyoneDegreesProfilesStruct* pointer to a profiles structure.
+* \endcond
+*/
+fiftyoneDegreesProfilesStruct *fiftyoneDegreesFindProfilesInProfiles(fiftyoneDegreesDataSet *dataSet, const char *propertyName, const char* valueName, fiftyoneDegreesProfilesStruct *profilesList) {
+	int32_t valueIndex;
+	const char *currentValueName;
+	const fiftyoneDegreesValue *value;
+	int i;
+	fiftyoneDegreesProfilesStruct *matchingProfiles = (fiftyoneDegreesProfilesStruct*)malloc(sizeof(fiftyoneDegreesProfilesStruct));
+
+	const fiftyoneDegreesProperty *property = fiftyoneDegreesGetPropertyByName(dataSet, (char*)propertyName);
+	
+	// Only proceed if the property exists in the data set.
+	if (property != NULL) {
+		int32_t propertyIndex = getPropertyIndex(dataSet, property);
+		fiftyoneDegreesProfile *firstProfile = profilesList->profiles[0];
+		// Check that the profiles being filtered have the same component
+		// as the property being matched. If they don't, nothing will be
+		// found.
+		if (firstProfile->componentIndex == property->componentIndex) {
+			for (valueIndex = property->firstValueIndex; valueIndex <= property->lastValueIndex; valueIndex++) {
+				value = dataSet->values + valueIndex;
+				currentValueName = fiftyoneDegreesGetValueName(dataSet, value);
+				if (strcmp(valueName, currentValueName) == 0) {
+					// Found the value, now check the property is initialised.
+					if (dataSet->valuePointersArray[propertyIndex].initialised != 1) {
+						initFindProfiles(dataSet, property);
+					}
+					int *matchingIndex;
+					int matchingProfilesCount = 0;
+
+					// Count the number of profiles that will be returned.
+					for (i = 0; i < profilesList->count; i++) {
+						matchingIndex = (int32_t*)bsearch(&profilesList->indexes[i],
+							dataSet->valuePointersArray[propertyIndex].profilesStructs[valueIndex - property->firstValueIndex].indexes,
+							dataSet->valuePointersArray[propertyIndex].profilesStructs[valueIndex - property->firstValueIndex].count,
+							sizeof(int32_t), intcmp);
+						if (matchingIndex != NULL) {
+							matchingProfilesCount++;
+						}
+					}
+
+					// Set the profiles count and allocate the space for the
+					// indexes and pointers.
+					matchingProfiles->count = matchingProfilesCount;
+					matchingProfiles->indexes = (int32_t*)calloc(matchingProfilesCount, sizeof(int32_t));
+					matchingProfiles->profiles = (fiftyoneDegreesProfile**)calloc(matchingProfilesCount, sizeof(fiftyoneDegreesProfile*));
+					int32_t profileStructElement = 0;
+
+					// Do a second pass of the search adding the indexes and
+					// pointers to the structure to be returned.
+					for (i = 0; i < profilesList->count; i++) {
+						matchingIndex = (int32_t*)bsearch(&profilesList->indexes[i],
+							dataSet->valuePointersArray[propertyIndex].profilesStructs[valueIndex - property->firstValueIndex].indexes,
+							dataSet->valuePointersArray[propertyIndex].profilesStructs[valueIndex - property->firstValueIndex].count,
+							sizeof(int32_t), intcmp);
+						if (matchingIndex != NULL) {
+							matchingProfiles->indexes[profileStructElement] = *matchingIndex;
+							matchingProfiles->profiles[profileStructElement] = getProfileByIndex(dataSet, *matchingIndex);
+							profileStructElement++;
+						}
+					}
+					return matchingProfiles;
+				}
+			}
+		}
+	}
+
+	// No profiles found, so return an empty profiles structure.
+	matchingProfiles->count = 0;
+	return matchingProfiles;
 }
 
  /**
@@ -1062,6 +1348,30 @@ int32_t getSeparatorCount(const char* input) {
 		return count + 1;
 	}
 	return 0;
+}
+
+/**
+ * \cond
+ * Initialises an array with the size equal to the number of properties, each
+ * one containing a pointer to an empty array with the size equal to the
+ * number of values for the corresponding property.
+ * @param dataSet pointer to a 51Degrees data set.
+ * \endcond
+ */
+void ensureValueProfilesSet(fiftyoneDegreesDataSet *dataSet) {
+	// Allocate an array element for each property.
+	dataSet->valuePointersArray = (fiftyoneDegreesProfilesStructArray*)calloc(dataSet->header.properties.count, sizeof(fiftyoneDegreesProfilesStructArray));
+	fiftyoneDegreesProperty *property;
+	int propertyIndex;
+	for (propertyIndex = 0; propertyIndex < dataSet->header.properties.count; propertyIndex++) {
+		property = (fiftyoneDegreesProperty*)(dataSet->properties + (int32_t)propertyIndex);
+		int valuesCount = property->lastValueIndex - property->firstValueIndex + 1;
+		// Set the initialised flag to 0;
+		dataSet->valuePointersArray[propertyIndex].initialised = 0;
+		// Allocate an array element for each value of the current property.
+		dataSet->valuePointersArray[propertyIndex].profilesStructs = (fiftyoneDegreesProfileIndexesStruct*)calloc(valuesCount, sizeof(fiftyoneDegreesProfileIndexesStruct));
+		FIFTYONEDEGREES_MUTEX_CREATE(dataSet->valuePointersArray[propertyIndex].lock);
+	}
 }
 
  /**
@@ -1124,6 +1434,8 @@ fiftyoneDegreesDataSetInitStatus fiftyoneDegreesInitWithPropertyString(const cha
 		free(copyRequiredProperties);
 	}
 
+	ensureValueProfilesSet(dataSet);
+
 	return status;
 }
 
@@ -1164,10 +1476,17 @@ fiftyoneDegreesDataSetInitStatus fiftyoneDegreesInitWithPropertyArray(const char
 		return status;
 	}
 
+	// Close the file.
+	fclose(inputFilePtr);
+
 	// Set the prefixed upper headers to NULL as they may not be
 	// needed. If they are initialised later then the memory can
 	// be freed when the data set is destroyed.
 	dataSet->prefixedUpperHttpHeaders = NULL;
+
+	// Initialise the memory for the properties and values structures
+	// which point to profiles structures.
+	ensureValueProfilesSet(dataSet);
 
 	// Set the properties that are returned by the data set.
 	if (requiredProperties == NULL || count == 0) {

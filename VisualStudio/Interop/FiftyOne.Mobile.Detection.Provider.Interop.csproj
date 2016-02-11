@@ -46,6 +46,7 @@
     <Compile Include="Pattern\MapStringString.cs" />
     <Compile Include="Pattern\Match.cs" />
     <Compile Include="Pattern\Partials.cs" />
+    <Compile Include="Pattern\Profiles.cs" />
     <Compile Include="Pattern\Provider.cs" />
     <Compile Include="Pattern\SWIGTYPE_p_std__string.cs" />
     <Compile Include="Pattern\VectorString.cs" />

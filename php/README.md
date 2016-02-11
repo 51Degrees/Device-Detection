@@ -45,11 +45,11 @@ The PHP API is now built from the same source as every other C based API. This m
 - php5
 - php5-dev
 - git
-- SWIG
+- SWIG 2.0
 
 For Ubuntu based distributions these can be found on apt, use
 ```
-$ sudo apt-get install g++ make php5 php5-dev git swig
+$ sudo apt-get install g++ make php5 php5-dev git swig2.0
 ```
 
 ## Install
@@ -157,6 +157,7 @@ In the examples folder, you can find examples of various functionalities that th
 - Evaluating match metrics
 - Offline processing
 - Strongly typed variables
+- Finding profiles
 
 A full explanation of these can be found within the files or at [PHP Tutorials](https://51Degrees/support/documentation/php/tutorials).
 
