@@ -6,11 +6,14 @@
 
 #define MAX_51D_PROPERTIES 10
 //Nginx function declarations
-static char *ngx_http_51D_set_properties(ngx_conf_t *cf, void *post, void *data);
+//static char *ngx_http_51D_set_properties(ngx_conf_t *cf, void *post, void *data);
+static char *ngx_http_51D_single(ngx_conf_t *cf, void *post, void *data);
+static char *ngx_http_51D_multi(ngx_conf_t *cf, void *post, void *data);
 
 //Nginx handler pointers to above functions
-static ngx_conf_post_handler_pt ngx_http_51D_set_properties_p = ngx_http_51D_set_properties;
-
+//static ngx_conf_post_handler_pt ngx_http_51D_set_properties_p = ngx_http_51D_set_properties;
+static ngx_conf_post_handler_pt ngx_http_51D_single_p = ngx_http_51D_single;
+static ngx_conf_post_handler_pt ngx_http_51D_multi_p = ngx_http_51D_multi;
 
 ngx_module_t ngx_http_51D_module;
 
@@ -26,7 +29,8 @@ void lower_string(char s[]);
 const char* prefix = "51D-";
 
 typedef struct {
-	ngx_uint_t enable;
+	ngx_uint_t single;
+	ngx_uint_t multi;
 	ngx_str_t properties_string;
 	char *properties[MAX_51D_PROPERTIES];
 	char *prefixed_properties[MAX_51D_PROPERTIES];
@@ -43,6 +47,7 @@ typedef struct {
     fiftyoneDegreesDataSet dataSet;
     fiftyoneDegreesResultsetCache *cache;
     fiftyoneDegreesWorksetPool *pool;
+    fiftyoneDegreesWorkset *ws;
 } ngx_http_51D_main_conf_t;
 
 static void *ngx_http_51D_create_main_conf(ngx_conf_t *cf);
@@ -64,39 +69,52 @@ ngx_http_51D_post_conf(ngx_conf_t *cf)
 
 	*h = ngx_http_51D_handler;
 
-	switch(fiftyoneDegreesInitWithPropertyArray((const char*)fdmcf->dataFile.data, &fdmcf->dataSet, (const char**)fdmcf->properties, fdmcf->properties_n)) {
-        case DATA_SET_INIT_STATUS_INSUFFICIENT_MEMORY:
-			ngx_log_stderr(0, "Insufficient memory to load '%s'.", fdmcf->dataFile.data);
-			return NGX_ERROR;
-		case DATA_SET_INIT_STATUS_CORRUPT_DATA:
-			ngx_log_stderr(0, "Device data file '%s' is corrupted.", fdmcf->dataFile.data);
-			return NGX_ERROR;
-		case DATA_SET_INIT_STATUS_INCORRECT_VERSION:
-			ngx_log_stderr(0, "Device data file '%s' is not correct version.", fdmcf->dataFile.data);
-			return NGX_ERROR;
-		case DATA_SET_INIT_STATUS_FILE_NOT_FOUND:
-			ngx_log_stderr(0, "Device data file '%s' not found.", fdmcf->dataFile.data);
-			return NGX_ERROR;
-		case DATA_SET_INIT_STATUS_NOT_SET:
-			ngx_log_stderr(0, "Device data file '%s' could not be loaded.", fdmcf->dataFile.data);
-			return NGX_ERROR;
-		case DATA_SET_INIT_STATUS_SUCCESS:
-			break;
-	}
-	if ((int)fdmcf->cacheSize >= 0 && (int)fdmcf->poolSize >= 0) {
-		fdmcf->cache = fiftyoneDegreesResultsetCacheCreate(&fdmcf->dataSet, fdmcf->cacheSize);
-		fdmcf->pool = fiftyoneDegreesWorksetPoolCreate(&fdmcf->dataSet, fdmcf->cache, fdmcf->poolSize);
+	if (fdmcf->dataFile.len > 0) {
+		switch(fiftyoneDegreesInitWithPropertyArray((const char*)fdmcf->dataFile.data, &fdmcf->dataSet, (const char**)fdmcf->properties, fdmcf->properties_n)) {
+			case DATA_SET_INIT_STATUS_INSUFFICIENT_MEMORY:
+				ngx_log_stderr(0, "Insufficient memory to load '%s'.", fdmcf->dataFile.data);
+				return NGX_ERROR;
+			case DATA_SET_INIT_STATUS_CORRUPT_DATA:
+				ngx_log_stderr(0, "Device data file '%s' is corrupted.", fdmcf->dataFile.data);
+				return NGX_ERROR;
+			case DATA_SET_INIT_STATUS_INCORRECT_VERSION:
+				ngx_log_stderr(0, "Device data file '%s' is not correct version.", fdmcf->dataFile.data);
+				return NGX_ERROR;
+			case DATA_SET_INIT_STATUS_FILE_NOT_FOUND:
+				ngx_log_stderr(0, "Device data file '%s' not found.", fdmcf->dataFile.data);
+				return NGX_ERROR;
+			case DATA_SET_INIT_STATUS_NOT_SET:
+				ngx_log_stderr(0, "Device data file '%s' could not be loaded.", fdmcf->dataFile.data);
+				return NGX_ERROR;
+			case DATA_SET_INIT_STATUS_SUCCESS:
+				break;
+		}
+
+		// Create a cache if a cache size is provided.
+		if ((int)fdmcf->cacheSize > 0) {
+			fdmcf->cache = fiftyoneDegreesResultsetCacheCreate(&fdmcf->dataSet, fdmcf->cacheSize);
+		}
+		else {
+			fdmcf->cache = NULL;
+			ngx_log_error(NGX_LOG_NOTICE, cf->log, 0, "51D: cache size not set in config");
+		}
+
+		// Create a workset pool if a pool size is provided, else create a single
+		// workset.
+		if ((int)fdmcf->poolSize > 0) {
+			fdmcf->pool = fiftyoneDegreesWorksetPoolCreate(&fdmcf->dataSet, fdmcf->cache, fdmcf->poolSize);
+		}
+		else {
+			fdmcf->pool = NULL;
+			fdmcf->ws = fiftyoneDegreesWorksetCreate(&fdmcf->dataSet, fdmcf->cache);
+			ngx_log_error(NGX_LOG_NOTICE, cf->log, 0, "51D: pool size not set in config");
+		}
+		return NGX_OK;
 	}
 	else {
-		fdmcf->cache = fiftyoneDegreesResultsetCacheCreate(&fdmcf->dataSet, 1);
-		fdmcf->pool = fiftyoneDegreesWorksetPoolCreate(&fdmcf->dataSet, fdmcf->cache, 1);
-		if ((int)fdmcf->cacheSize <= 0)
-			ngx_log_error(NGX_LOG_NOTICE, cf->log, 0, "51D: cache size not set in config");
-		if ((int)fdmcf->poolSize <= 0)
-			ngx_log_error(NGX_LOG_NOTICE, cf->log, 0, "51D: pool size not set in config");
+		ngx_log_stderr(0, "The 51Degrees data file has not been set in the config");
+		return NGX_ERROR;
 	}
-
-	return NGX_OK;
 }
 
 static void *
@@ -124,7 +142,8 @@ ngx_http_51D_create_loc_conf(ngx_conf_t *cf)
     if (conf == NULL) {
         return NULL;
     }
-    conf->enable = NGX_CONF_UNSET_UINT;
+    conf->single = NGX_CONF_UNSET_UINT;
+    conf->multi = NGX_CONF_UNSET_UINT;
     conf->properties_n = NGX_CONF_UNSET_UINT;
 
     return conf;
@@ -136,7 +155,9 @@ ngx_http_51D_merge_loc_conf(ngx_conf_t *cf, void *parent, void *child)
 	ngx_http_51D_loc_conf_t  *prev = parent;
 	ngx_http_51D_loc_conf_t  *conf = child;
 
-	ngx_conf_merge_uint_value(conf->enable, prev->enable, 0);
+	ngx_conf_merge_uint_value(conf->single, prev->single, 0);
+	ngx_conf_merge_uint_value(conf->multi, prev->multi, 0);
+	ngx_conf_merge_uint_value(conf->properties_n, prev->properties_n, 0);
 
 return NGX_CONF_OK;
 }
@@ -149,12 +170,19 @@ return NGX_CONF_OK;
 //51Degrees data file. Is called within server block.
 static ngx_command_t  ngx_http_51D_commands[] = {
 
-	{ ngx_string("51D_detect"),
+	{ ngx_string("51D_single"),
 	NGX_HTTP_LOC_CONF|NGX_CONF_TAKE1,
 	ngx_conf_set_str_slot,
 	NGX_HTTP_LOC_CONF_OFFSET,
 	offsetof(ngx_http_51D_loc_conf_t, properties_string),
-	&ngx_http_51D_set_properties_p },
+	&ngx_http_51D_single_p },
+
+	{ ngx_string("51D_multi"),
+	NGX_HTTP_LOC_CONF|NGX_CONF_TAKE1,
+	ngx_conf_set_str_slot,
+	NGX_HTTP_LOC_CONF_OFFSET,
+	offsetof(ngx_http_51D_loc_conf_t, properties_string),
+	&ngx_http_51D_multi_p },
 
 	{ ngx_string("51D_filePath"),
 	NGX_HTTP_MAIN_CONF|NGX_CONF_TAKE1,
@@ -210,6 +238,57 @@ ngx_module_t ngx_http_51D_module = {
 	NGX_MODULE_V1_PADDING
 };
 
+
+static ngx_table_elt_t *
+search_headers_in(ngx_http_request_t *r, u_char *name, size_t len) {
+    ngx_list_part_t            *part;
+    ngx_table_elt_t            *h;
+    ngx_uint_t                  i;
+
+    /*
+    Get the first part of the list. There is usual only one part.
+    */
+    part = &r->headers_in.headers.part;
+    h = part->elts;
+
+    /*
+    Headers list array may consist of more than one part,
+    so loop through all of it
+    */
+    for (i = 0; /* void */ ; i++) {
+        if (i >= part->nelts) {
+            if (part->next == NULL) {
+                /* The last part, search is done. */
+                break;
+            }
+
+            part = part->next;
+            h = part->elts;
+            i = 0;
+        }
+
+        /*
+        Just compare the lengths and then the names case insensitively.
+        */
+        if (len != h[i].key.len || ngx_strcasecmp(name, h[i].key.data) != 0) {
+            /* This header doesn't match. */
+            continue;
+        }
+
+        /*
+        Ta-da, we got one!
+        Note, we'v stop the search at the first matched header
+        while more then one header may fit.
+        */
+        return &h[i];
+    }
+
+    /*
+    No headers was found
+    */
+    return NULL;
+}
+
 //Module handler, gets match for User-Agent
 //and sets all property headers.
 static ngx_int_t
@@ -222,7 +301,7 @@ ngx_http_51D_handler(ngx_http_request_t *r)
 		return NGX_DECLINED;
 	}
 
-	if (conf->enable)
+	if (conf->single | conf->multi)
 	{
 		r->main->internal = 1;
 	//TODO: Implement multiple http headers for get_match.
@@ -231,12 +310,35 @@ ngx_http_51D_handler(ngx_http_request_t *r)
         fdmcf = ngx_http_get_module_main_conf(r, ngx_http_51D_module);
 
         fiftyoneDegreesWorkset *ws;
-        ws = fiftyoneDegreesWorksetPoolGet(fdmcf->pool);
-
-        if (r->headers_in.user_agent)
-			fiftyoneDegreesMatch(ws, (const char*)r->headers_in.user_agent[0].value.data);
-        else
-			fiftyoneDegreesMatch(ws, "");
+        if (fdmcf->pool != NULL) {
+			ws = fiftyoneDegreesWorksetPoolGet(fdmcf->pool);
+        }
+        else {
+			ws = fdmcf->ws;
+        }
+		if (conf->single) {
+			if (r->headers_in.user_agent)
+				fiftyoneDegreesMatch(ws, (const char*)r->headers_in.user_agent[0].value.data);
+			else
+				fiftyoneDegreesMatch(ws, "");
+		}
+		else if (conf->multi) {
+			//find headers get match/
+			int headerIndex;
+			ngx_table_elt_t *searchResult;
+			ws->importantHeadersCount = 0;
+			for (headerIndex = 0; headerIndex < fdmcf->dataSet.httpHeadersCount; headerIndex++) {
+				searchResult = search_headers_in(r, (u_char*)fdmcf->dataSet.httpHeaders[headerIndex].headerName, strlen(fdmcf->dataSet.httpHeaders[headerIndex].headerName));
+                if (searchResult) {
+					ws->importantHeaders[ws->importantHeadersCount].header = fdmcf->dataSet.httpHeaders + headerIndex;
+					ws->importantHeaders[ws->importantHeadersCount].headerValue = searchResult->value.data;
+					ws->importantHeaders[ws->importantHeadersCount].headerValueLength = searchResult->value.len;
+					ws->importantHeadersCount++;
+                }
+                fiftyoneDegreesMatchForHttpHeaders(ws);
+			}
+			//fdmcf->dataSet->httpHeaders->headerName
+		}
 
         char *methodName;
         char* property_name;
@@ -292,8 +394,11 @@ ngx_http_51D_handler(ngx_http_request_t *r)
             }
             ++i;
         }
-        fiftyoneDegreesWorksetPoolRelease(fdmcf->pool, ws);
-        ws = NULL;
+
+        if (fdmcf->pool != NULL) {
+			fiftyoneDegreesWorksetPoolRelease(fdmcf->pool, ws);
+			ws = NULL;
+        }
 
         ngx_table_elt_t *h[conf->properties_n];
 
@@ -316,17 +421,9 @@ ngx_http_51D_handler(ngx_http_request_t *r)
 //list of properties from nginx.conf and assigns
 //each to an element in properties.
 //It then initialises the detector.
-static char *
-ngx_http_51D_set_properties(ngx_conf_t *cf, void *post, void *data)
+void
+ngx_http_51D_set_properties(ngx_conf_t *cf, ngx_http_51D_main_conf_t *fdmcf, ngx_http_51D_loc_conf_t *fdlcf, ngx_str_t *properties)
 {
-	ngx_http_51D_main_conf_t *fdmcf;
-	fdmcf = ngx_http_conf_get_module_main_conf(cf, ngx_http_51D_module);
-	ngx_http_51D_loc_conf_t *fdlcf;
-	fdlcf = ngx_http_conf_get_module_loc_conf(cf, ngx_http_51D_module);
-
-	ngx_str_t  *properties = data;
-
-	fdlcf->enable = 1;
 	if ((int)fdmcf->properties_n <0)
 		fdmcf->properties_n =0;
 
@@ -354,6 +451,37 @@ ngx_http_51D_set_properties(ngx_conf_t *cf, void *post, void *data)
 
 		lower_string(fdlcf->lower_prefixed_properties[i]);
 	}
+}
+
+static char *ngx_http_51D_single(ngx_conf_t* cf, void* post, void* data)
+{
+	ngx_http_51D_main_conf_t *fdmcf;
+	fdmcf = ngx_http_conf_get_module_main_conf(cf, ngx_http_51D_module);
+	ngx_http_51D_loc_conf_t *fdlcf;
+	fdlcf = ngx_http_conf_get_module_loc_conf(cf, ngx_http_51D_module);
+
+	ngx_str_t  *properties = data;
+
+	fdlcf->single = 1;
+
+	ngx_http_51D_set_properties(cf, fdmcf, fdlcf, properties);
+
+	return NGX_OK;
+}
+
+static char *ngx_http_51D_multi(ngx_conf_t* cf, void* post, void* data)
+{
+	ngx_http_51D_main_conf_t *fdmcf;
+	fdmcf = ngx_http_conf_get_module_main_conf(cf, ngx_http_51D_module);
+	ngx_http_51D_loc_conf_t *fdlcf;
+	fdlcf = ngx_http_conf_get_module_loc_conf(cf, ngx_http_51D_module);
+
+	ngx_str_t  *properties = data;
+
+	fdlcf->multi = 1;
+
+	ngx_http_51D_set_properties(cf, fdmcf, fdlcf, properties);
+
 	return NGX_OK;
 }
 
