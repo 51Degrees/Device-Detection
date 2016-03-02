@@ -69,26 +69,31 @@ ngx_http_51D_post_conf(ngx_conf_t *cf)
 
 	*h = ngx_http_51D_handler;
 
-	if (fdmcf->dataFile.len > 0) {
-		switch(fiftyoneDegreesInitWithPropertyArray((const char*)fdmcf->dataFile.data, &fdmcf->dataSet, (const char**)fdmcf->properties, fdmcf->properties_n)) {
-			case DATA_SET_INIT_STATUS_INSUFFICIENT_MEMORY:
-				ngx_log_stderr(0, "Insufficient memory to load '%s'.", fdmcf->dataFile.data);
-				return NGX_ERROR;
-			case DATA_SET_INIT_STATUS_CORRUPT_DATA:
-				ngx_log_stderr(0, "Device data file '%s' is corrupted.", fdmcf->dataFile.data);
-				return NGX_ERROR;
-			case DATA_SET_INIT_STATUS_INCORRECT_VERSION:
-				ngx_log_stderr(0, "Device data file '%s' is not correct version.", fdmcf->dataFile.data);
-				return NGX_ERROR;
-			case DATA_SET_INIT_STATUS_FILE_NOT_FOUND:
-				ngx_log_stderr(0, "Device data file '%s' not found.", fdmcf->dataFile.data);
-				return NGX_ERROR;
-			case DATA_SET_INIT_STATUS_NOT_SET:
-				ngx_log_stderr(0, "Device data file '%s' could not be loaded.", fdmcf->dataFile.data);
-				return NGX_ERROR;
-			case DATA_SET_INIT_STATUS_SUCCESS:
-				break;
-		}
+	// If data file has not been set, use the default.
+	if ((int)fdmcf->dataFile.len < 0) {
+		fdmcf->dataFile.data = "51Degrees.dat";
+		fdmcf->dataFile.len = strlen(fdmcf->dataFile.data);
+	}
+
+	// Initialise the data set.
+	switch(fiftyoneDegreesInitWithPropertyArray((const char*)fdmcf->dataFile.data, &fdmcf->dataSet, (const char**)fdmcf->properties, fdmcf->properties_n)) {
+		case DATA_SET_INIT_STATUS_INSUFFICIENT_MEMORY:
+			ngx_log_stderr(0, "Insufficient memory to load '%s'.", fdmcf->dataFile.data);
+			return NGX_ERROR;
+		case DATA_SET_INIT_STATUS_CORRUPT_DATA:
+			ngx_log_stderr(0, "Device data file '%s' is corrupted.", fdmcf->dataFile.data);
+			return NGX_ERROR;
+		case DATA_SET_INIT_STATUS_INCORRECT_VERSION:
+			ngx_log_stderr(0, "Device data file '%s' is not correct version.", fdmcf->dataFile.data);
+			return NGX_ERROR;
+		case DATA_SET_INIT_STATUS_FILE_NOT_FOUND:
+			ngx_log_stderr(0, "Device data file '%s' not found.", fdmcf->dataFile.data);
+			return NGX_ERROR;
+		case DATA_SET_INIT_STATUS_NOT_SET:
+			ngx_log_stderr(0, "Device data file '%s' could not be loaded.", fdmcf->dataFile.data);
+			return NGX_ERROR;
+		case DATA_SET_INIT_STATUS_SUCCESS:
+			ngx_log_error(NGX_LOG_NOTICE, cf->log, 0, "51D: data set \"%s\" initialised successfully", fdmcf->dataFile.data);
 
 		// Create a cache if a cache size is provided.
 		if ((int)fdmcf->cacheSize > 0) {
@@ -111,10 +116,6 @@ ngx_http_51D_post_conf(ngx_conf_t *cf)
 		}
 		return NGX_OK;
 	}
-	else {
-		ngx_log_stderr(0, "The 51Degrees data file has not been set in the config");
-		return NGX_ERROR;
-	}
 }
 
 static void *
@@ -129,6 +130,7 @@ ngx_http_51D_create_main_conf(ngx_conf_t *cf)
     conf->cacheSize = NGX_CONF_UNSET_UINT;
     conf->poolSize = NGX_CONF_UNSET_UINT;
     conf->properties_n = NGX_CONF_UNSET_UINT;
+    conf->dataFile.len = NGX_CONF_UNSET_SIZE;
 
     return conf;
 }
@@ -160,6 +162,33 @@ ngx_http_51D_merge_loc_conf(ngx_conf_t *cf, void *parent, void *child)
 	ngx_conf_merge_uint_value(conf->properties_n, prev->properties_n, 0);
 
 return NGX_CONF_OK;
+}
+
+static char *
+ngx_http_51D_exit(ngx_cycle_t *cycle)
+{
+	ngx_conf_t *cf;
+    //cf = (ngx_conf_t *) ngx_get_conf(cycle->conf_ctx, ngx_http_51D_module);
+
+	//ngx_log_error(NGX_LOG_NOTICE, cycle->log, 0, "in exit");
+	//ngx_http_51D_main_conf_t *fdmcf;
+    //fdmcf = ngx_http_conf_get_module_main_conf(cf, ngx_http_51D_module);
+
+	//ngx_log_error(NGX_LOG_NOTICE, cf->log, 0, "exiting");
+/*
+    if (fdmcf->pool != NULL) {
+		fiftyoneDegreesWorksetPoolFree(fdmcf->pool);
+    }
+    else {
+		fiftyoneDegreesWorksetFree(fdmcf->ws);
+    }
+    if (fdmcf->cache != NULL) {
+		fiftyoneDegreesResultsetCacheFree(fdmcf->cache);
+    }
+    if (&fdmcf->dataSet != NULL) {
+		fiftyoneDegreesDataSetFree(&fdmcf->dataSet);
+    }*/
+	return NGX_OK;
 }
 
 //Definitions of functions which can be called in 'nginx.conf'
@@ -233,8 +262,8 @@ ngx_module_t ngx_http_51D_module = {
 	NULL,                          /* init process */
 	NULL,                          /* init thread */
 	NULL,                          /* exit thread */
-	NULL,                          /* exit process */
-	NULL,                          /* exit master */
+	ngx_http_51D_exit,//NULL,                          /* exit process */
+	NULL,//ngx_http_51D_exit,             /* exit master */
 	NGX_MODULE_V1_PADDING
 };
 
