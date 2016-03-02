@@ -75,6 +75,12 @@
 		<Unit filename="../compile" />
 		<Unit filename="../nginx.conf" />
 		<Unit filename="../start" />
+		<Unit filename="../vendor/nginx-1.4.7/auto/lib/zlib/patch.zlib.h" />
+		<Unit filename="../vendor/nginx-1.4.7/objs/ngx_auto_config.h" />
+		<Unit filename="../vendor/nginx-1.4.7/objs/ngx_auto_headers.h" />
+		<Unit filename="../vendor/nginx-1.4.7/objs/ngx_modules.c">
+			<Option compilerVar="CC" />
+		</Unit>
 		<Unit filename="../vendor/nginx-1.4.7/src/core/nginx.c">
 			<Option compilerVar="CC" />
 		</Unit>
@@ -665,7 +671,11 @@
 		<Unit filename="../vendor/nginx-1.4.7/src/os/unix/rfork_thread.S" />
 		<Extensions>
 			<code_completion />
-			<debugger />
+			<debugger>
+				<remote_debugging target="Debug">
+					<options conn_type="0" serial_baud="115200" additional_cmds_before="set follow-exec-mode new&#x0A;set follow-fork-mode child" />
+				</remote_debugging>
+			</debugger>
 		</Extensions>
 	</Project>
 </CodeBlocks_project_file>
