@@ -1358,7 +1358,7 @@ int32_t getSeparatorCount(const char* input) {
  * @param dataSet pointer to a 51Degrees data set.
  * \endcond
  */
-void initValuePointersArray(fiftyoneDegreesDataSet *dataSet) {
+void ensureValueProfilesSet(fiftyoneDegreesDataSet *dataSet) {
 	// Allocate an array element for each property.
 	dataSet->valuePointersArray = (fiftyoneDegreesProfilesStructArray*)calloc(dataSet->header.properties.count, sizeof(fiftyoneDegreesProfilesStructArray));
 	fiftyoneDegreesProperty *property;
@@ -1434,7 +1434,7 @@ fiftyoneDegreesDataSetInitStatus fiftyoneDegreesInitWithPropertyString(const cha
 		free(copyRequiredProperties);
 	}
 
-	initValuePointersArray(dataSet);
+	ensureValueProfilesSet(dataSet);
 
 	return status;
 }
@@ -1486,7 +1486,7 @@ fiftyoneDegreesDataSetInitStatus fiftyoneDegreesInitWithPropertyArray(const char
 
 	// Initialise the memory for the properties and values structures
 	// which point to profiles structures.
-	initValuePointersArray(dataSet);
+	ensureValueProfilesSet(dataSet);
 
 	// Set the properties that are returned by the data set.
 	if (requiredProperties == NULL || count == 0) {
