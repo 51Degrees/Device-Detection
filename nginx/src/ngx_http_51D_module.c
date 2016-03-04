@@ -1,11 +1,11 @@
-#include <nginx.h>
-#include <ngx_config.h>
-#include <ngx_core.h>
-#include <ngx_http.h>
+
 #include "src/pattern/51Degrees.h"
+#include "ngx_http_51D_module.h"
 
 #define MAX_51D_PROPERTIES 10
 //Nginx function declarations
+
+
 //static char *ngx_http_51D_set_properties(ngx_conf_t *cf, void *post, void *data);
 static char *ngx_http_51D_single(ngx_conf_t *cf, void *post, void *data);
 static char *ngx_http_51D_multi(ngx_conf_t *cf, void *post, void *data);
@@ -53,11 +53,19 @@ typedef struct {
 static void *ngx_http_51D_create_main_conf(ngx_conf_t *cf);
 
 static ngx_int_t
+ngx_http_51D_pre_conf(ngx_conf_t *cf)
+{
+	//fiftyoneDegrees_ngx_pool = ngx_create_pool(cf->pool->max, cf->log);
+	return NGX_OK;
+}
+
+static ngx_int_t
 ngx_http_51D_post_conf(ngx_conf_t *cf)
 {
 	ngx_http_handler_pt *h;
 	ngx_http_core_main_conf_t *cmcf;
 	ngx_http_51D_main_conf_t *fdmcf;
+
 
 	cmcf = ngx_http_conf_get_module_main_conf(cf, ngx_http_core_module);
     fdmcf = ngx_http_conf_get_module_main_conf(cf, ngx_http_51D_module);
@@ -114,7 +122,10 @@ ngx_http_51D_post_conf(ngx_conf_t *cf)
 			fdmcf->ws = fiftyoneDegreesWorksetCreate(&fdmcf->dataSet, fdmcf->cache);
 			ngx_log_error(NGX_LOG_NOTICE, cf->log, 0, "51D: pool size not set in config");
 		}
-		return NGX_OK;
+
+	fiftyoneDegrees_ngx_pool->cleanup = ngx_pool_cleanup_add(fiftyoneDegrees_ngx_pool, fiftyoneDegrees_ngx_pool->max);
+
+	return NGX_OK;
 	}
 }
 
@@ -123,7 +134,9 @@ ngx_http_51D_create_main_conf(ngx_conf_t *cf)
 {
     ngx_http_51D_main_conf_t  *conf;
 
-    conf = ngx_pcalloc(cf->pool, sizeof(ngx_http_51D_main_conf_t));
+	fiftyoneDegrees_ngx_pool = ngx_create_pool(cf->pool->max, cf->log);
+
+    conf = ngx_pcalloc(fiftyoneDegrees_ngx_pool, sizeof(ngx_http_51D_main_conf_t));
     if (conf == NULL) {
         return NULL;
     }
@@ -140,7 +153,7 @@ ngx_http_51D_create_loc_conf(ngx_conf_t *cf)
 {
     ngx_http_51D_loc_conf_t  *conf;
 
-    conf = ngx_pcalloc(cf->pool, sizeof(ngx_http_51D_loc_conf_t));
+    conf = ngx_pcalloc(fiftyoneDegrees_ngx_pool, sizeof(ngx_http_51D_loc_conf_t));
     if (conf == NULL) {
         return NULL;
     }
@@ -167,12 +180,39 @@ return NGX_CONF_OK;
 static char *
 ngx_http_51D_exit(ngx_cycle_t *cycle)
 {
-	ngx_conf_t *cf;
-    //cf = (ngx_conf_t *) ngx_get_conf(cycle->conf_ctx, ngx_http_51D_module);
+/*
+	if (fiftyoneDegreesNginxItemsToClean->pool)
+	fiftyoneDegreesWorksetPoolFree(fiftyoneDegreesNginxItemsToClean->pool);
+	if (fiftyoneDegreesNginxItemsToClean->cache)
+	fiftyoneDegreesResultsetCacheFree(fiftyoneDegreesNginxItemsToClean->cache);
+	if (fiftyoneDegreesNginxItemsToClean->dataSet)
+	fiftyoneDegreesDataSetFree(fiftyoneDegreesNginxItemsToClean->dataSet);
+*/
 
+	ngx_destroy_pool(fiftyoneDegrees_ngx_pool);
+	//ngx_destroy_pool(cycle->pool);
+	//fiftyoneDegrees_ngx_pool = NULL;
+/*
+    cf->ctx = cycle->conf_ctx;
+    cf->cycle = cycle;
+    cf->pool = cycle->pool;
+    cf->log = cycle->log;
+    cf->module_type = NGX_CORE_MODULE;
+    cf->cmd_type = NGX_MAIN_CONF;
+*/
+
+	//cf = cycle->conf_ctx[ngx_http_51D_module.ctx_index];
+//	cf = ngx_get_conf(cycle->conf_ctx[ngx_http_51D_module.ctx_index], ngx_http_51D_module);
+    //cf = (ngx_core_conf_t *) ngx_get_conf(cycle->conf_ctx, ngx_core_module);
+
+    //ngx_http_51D_main_conf_t *fdmcf;
+    //fdmcf = (ngx_http_51D_main_conf_t*)((ngx_http_conf_ctx_t *) cycle->conf_ctx)->main_conf[ngx_http_51D_module.ctx_index];
+
+	//cf = (ngx_conf_t *) ngx_get_conf(&ngx_http_51D_module.ctx, ngx_http_51D_module);
 	//ngx_log_error(NGX_LOG_NOTICE, cycle->log, 0, "in exit");
 	//ngx_http_51D_main_conf_t *fdmcf;
     //fdmcf = ngx_http_conf_get_module_main_conf(cf, ngx_http_51D_module);
+
 
 	//ngx_log_error(NGX_LOG_NOTICE, cf->log, 0, "exiting");
 /*
@@ -187,8 +227,8 @@ ngx_http_51D_exit(ngx_cycle_t *cycle)
     }
     if (&fdmcf->dataSet != NULL) {
 		fiftyoneDegreesDataSetFree(&fdmcf->dataSet);
-    }*/
-	return NGX_OK;
+    }
+	*/return NGX_OK;
 }
 
 //Definitions of functions which can be called in 'nginx.conf'
@@ -238,7 +278,7 @@ static ngx_command_t  ngx_http_51D_commands[] = {
 };
 
 static ngx_http_module_t ngx_http_51D_module_ctx = {
-	NULL,                          /* preconfiguration */
+	NULL,         /* preconfiguration */
 	ngx_http_51D_post_conf,        /* postconfiguration */
 
 	ngx_http_51D_create_main_conf, /* create main configuration */
@@ -257,7 +297,7 @@ ngx_module_t ngx_http_51D_module = {
 	&ngx_http_51D_module_ctx,      /* module context */
 	ngx_http_51D_commands,         /* module directives */
 	NGX_HTTP_MODULE,               /* module type */
-	NULL,                          /* init master */
+	ngx_http_51D_pre_conf,                          /* init master */
 	NULL,                          /* init module */
 	NULL,                          /* init process */
 	NULL,                          /* init thread */
@@ -270,7 +310,7 @@ ngx_module_t ngx_http_51D_module = {
 
 static ngx_table_elt_t *
 search_headers_in(ngx_http_request_t *r, u_char *name, size_t len) {
-    ngx_list_part_t            *part;
+    ngx_list_part_t            *part;;
     ngx_table_elt_t            *h;
     ngx_uint_t                  i;
 
@@ -441,7 +481,6 @@ ngx_http_51D_handler(ngx_http_request_t *r)
 			h[i]->lowcase_key = (u_char*)conf->lower_prefixed_properties[i];
 		}
 	}
-
 	return NGX_DECLINED;
 
 }
@@ -475,8 +514,8 @@ ngx_http_51D_set_properties(ngx_conf_t *cf, ngx_http_51D_main_conf_t *fdmcf, ngx
 			fdmcf->properties[fdmcf->properties_n] = fdlcf->properties[i];
 			fdmcf->properties_n = fdmcf->properties_n + 1;
 		}
-		fdlcf->prefixed_properties[i] = join(cf->pool, prefix, fdlcf->properties[i]);
-		fdlcf->lower_prefixed_properties[i] = join(cf->pool, prefix, fdlcf->properties[i]);
+		fdlcf->prefixed_properties[i] = join(fiftyoneDegrees_ngx_pool, prefix, fdlcf->properties[i]);
+		fdlcf->lower_prefixed_properties[i] = join(fiftyoneDegrees_ngx_pool, prefix, fdlcf->properties[i]);
 
 		lower_string(fdlcf->lower_prefixed_properties[i]);
 	}
@@ -518,7 +557,7 @@ static char *ngx_http_51D_multi(ngx_conf_t* cf, void* post, void* data)
 //prefixed headers.
 char *join(ngx_pool_t* ngx_pool, const char* s1, const char* s2)
 {
-    char* result = ngx_pcalloc(ngx_pool, ngx_strlen(s1) + ngx_strlen(s2) + 1);
+    char* result = ngx_pcalloc(fiftyoneDegrees_ngx_pool, ngx_strlen(s1) + ngx_strlen(s2) + 1);
     if (result)
     {
         strcpy(result, s1);

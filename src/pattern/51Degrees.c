@@ -77,6 +77,35 @@ const int16_t POWERS[] = { 1, 10, 100, 1000, 10000 };
 
 #define HTTP_PREFIX_UPPER "HTTP_"
 
+#define FIFTYONEDEGREES_NGINX
+
+#ifdef FIFTYONEDEGREES_NGINX
+#include "/home/ben/NGINX/Device-Detection/nginx/51Degrees_module/ngx_http_51D_module.h"
+#endif
+void *fiftyoneDegreesMalloc(size_t __size)
+{
+#ifdef FIFTYONEDEGREES_NGINX
+	//if (fiftyoneDegrees_ngx_conf->ctx)
+		return ngx_palloc(fiftyoneDegrees_ngx_pool, __size);
+	//else
+	//	return ngx_alloc(__size, fiftyoneDegrees_ngx_conf->log);
+#else
+	return malloc(__size);
+#endif
+}
+
+void fiftyoneDegreesFree(void *__ptr)
+{
+#ifdef FIFTYONEDEGREES_NGINX
+	//if (fiftyoneDegrees_ngx_conf->ctx)
+		return ngx_pfree(fiftyoneDegrees_ngx_pool, __ptr);
+	//else
+	//	return ngx_free(__ptr);
+#else
+	return free(__ptr);
+#endif
+}
+
  /**
  * \cond
  * DATA FILE READ METHODS
@@ -84,7 +113,7 @@ const int16_t POWERS[] = { 1, 10, 100, 1000, 10000 };
  */
 
 fiftyoneDegreesDataSetInitStatus readStrings(FILE *inputFilePtr, fiftyoneDegreesDataSet *dataSet) {
-	dataSet->strings = (const byte*)malloc(dataSet->header.strings.length + 1);
+	dataSet->strings = (const byte*)fiftyoneDegreesMalloc(dataSet->header.strings.length + 1);
 	if (dataSet->strings == NULL) {
 		return DATA_SET_INIT_STATUS_INSUFFICIENT_MEMORY;
 	}
@@ -130,14 +159,14 @@ fiftyoneDegreesDataSetInitStatus readComponents(FILE *inputFilePtr, fiftyoneDegr
 	int32_t httpHeaderOffset;
 	byte *current;
 
-	dataSet->componentsData = (const byte*)malloc(dataSet->header.components.length);
+	dataSet->componentsData = (const byte*)fiftyoneDegreesMalloc(dataSet->header.components.length);
 	if (dataSet->componentsData == NULL) {
 		return DATA_SET_INIT_STATUS_INSUFFICIENT_MEMORY;
 	}
 	if (fread((void*)(dataSet->componentsData), dataSet->header.components.length, 1, inputFilePtr) != 1) {
 		return DATA_SET_INIT_STATUS_CORRUPT_DATA;
 	}
-	dataSet->components = (const fiftyoneDegreesComponent**)malloc(
+	dataSet->components = (const fiftyoneDegreesComponent**)fiftyoneDegreesMalloc(
 		dataSet->header.components.count * sizeof(fiftyoneDegreesComponent*));
 	if (dataSet->components == NULL) {
 		return DATA_SET_INIT_STATUS_INSUFFICIENT_MEMORY;
@@ -158,7 +187,7 @@ fiftyoneDegreesDataSetInitStatus readComponents(FILE *inputFilePtr, fiftyoneDegr
 	// Now create a list of unique HTTP headers which will be used to identify
 	// which headers should be checked when an array of multiple headers is
 	// passed for detection.
-	dataSet->httpHeaders = (fiftyoneDegreesHttpHeader*)malloc(httpHeadersCount * sizeof(fiftyoneDegreesHttpHeader));
+	dataSet->httpHeaders = (fiftyoneDegreesHttpHeader*)fiftyoneDegreesMalloc(httpHeadersCount * sizeof(fiftyoneDegreesHttpHeader));
 	if (dataSet->httpHeaders == NULL) {
 		return DATA_SET_INIT_STATUS_INSUFFICIENT_MEMORY;
 	}
@@ -178,7 +207,7 @@ fiftyoneDegreesDataSetInitStatus readComponents(FILE *inputFilePtr, fiftyoneDegr
 }
 
 fiftyoneDegreesDataSetInitStatus readMaps(FILE *inputFilePtr, fiftyoneDegreesDataSet *dataSet) {
-	dataSet->maps = (const fiftyoneDegreesMap*)malloc(dataSet->header.maps.length);
+	dataSet->maps = (const fiftyoneDegreesMap*)fiftyoneDegreesMalloc(dataSet->header.maps.length);
 	if (dataSet->maps == NULL) {
 		return DATA_SET_INIT_STATUS_INSUFFICIENT_MEMORY;
 	}
@@ -190,7 +219,7 @@ fiftyoneDegreesDataSetInitStatus readMaps(FILE *inputFilePtr, fiftyoneDegreesDat
 }
 
 fiftyoneDegreesDataSetInitStatus readProperties(FILE *inputFilePtr, fiftyoneDegreesDataSet *dataSet) {
-	dataSet->properties = (const fiftyoneDegreesProperty*)malloc(dataSet->header.properties.length);
+	dataSet->properties = (const fiftyoneDegreesProperty*)fiftyoneDegreesMalloc(dataSet->header.properties.length);
 	if (dataSet->properties == NULL) {
 		return DATA_SET_INIT_STATUS_INSUFFICIENT_MEMORY;
 	}
@@ -202,7 +231,7 @@ fiftyoneDegreesDataSetInitStatus readProperties(FILE *inputFilePtr, fiftyoneDegr
 }
 
 fiftyoneDegreesDataSetInitStatus readValues(FILE *inputFilePtr, fiftyoneDegreesDataSet *dataSet) {
-	dataSet->values = (const fiftyoneDegreesValue*)malloc(dataSet->header.values.length);
+	dataSet->values = (const fiftyoneDegreesValue*)fiftyoneDegreesMalloc(dataSet->header.values.length);
 	if (dataSet->values == NULL) {
 		return DATA_SET_INIT_STATUS_INSUFFICIENT_MEMORY;
 	}
@@ -214,7 +243,7 @@ fiftyoneDegreesDataSetInitStatus readValues(FILE *inputFilePtr, fiftyoneDegreesD
 }
 
 fiftyoneDegreesDataSetInitStatus readProfiles(FILE *inputFilePtr, fiftyoneDegreesDataSet *dataSet) {
-	dataSet->profiles = (const byte*)malloc(dataSet->header.profiles.length);
+	dataSet->profiles = (const byte*)fiftyoneDegreesMalloc(dataSet->header.profiles.length);
 	if (dataSet->profiles == NULL) {
 		return DATA_SET_INIT_STATUS_INSUFFICIENT_MEMORY;
 	}
@@ -226,7 +255,7 @@ fiftyoneDegreesDataSetInitStatus readProfiles(FILE *inputFilePtr, fiftyoneDegree
 }
 
 fiftyoneDegreesDataSetInitStatus readSignatures(FILE *inputFilePtr, fiftyoneDegreesDataSet *dataSet) {
-	dataSet->signatures = (const byte*)malloc(dataSet->header.signatures.length);
+	dataSet->signatures = (const byte*)fiftyoneDegreesMalloc(dataSet->header.signatures.length);
 	if (dataSet->signatures == NULL) {
 		return DATA_SET_INIT_STATUS_INSUFFICIENT_MEMORY;
 	}
@@ -238,7 +267,7 @@ fiftyoneDegreesDataSetInitStatus readSignatures(FILE *inputFilePtr, fiftyoneDegr
 }
 
 fiftyoneDegreesDataSetInitStatus readSignatureNodeOffsets(FILE *inputFilePtr, fiftyoneDegreesDataSet *dataSet) {
-	dataSet->signatureNodeOffsets = (const int32_t*)malloc(dataSet->header.signatureNodeOffsets.length);
+	dataSet->signatureNodeOffsets = (const int32_t*)fiftyoneDegreesMalloc(dataSet->header.signatureNodeOffsets.length);
 	if (dataSet->signatureNodeOffsets == NULL) {
 		return DATA_SET_INIT_STATUS_INSUFFICIENT_MEMORY;
 	}
@@ -250,7 +279,7 @@ fiftyoneDegreesDataSetInitStatus readSignatureNodeOffsets(FILE *inputFilePtr, fi
 }
 
 fiftyoneDegreesDataSetInitStatus readNodeRankedSignatureIndexes(FILE *inputFilePtr, fiftyoneDegreesDataSet *dataSet) {
-	dataSet->nodeRankedSignatureIndexes = (const int32_t*)malloc(dataSet->header.nodeRankedSignatureIndexes.length);
+	dataSet->nodeRankedSignatureIndexes = (const int32_t*)fiftyoneDegreesMalloc(dataSet->header.nodeRankedSignatureIndexes.length);
 	if (dataSet->nodeRankedSignatureIndexes == NULL) {
 		return DATA_SET_INIT_STATUS_INSUFFICIENT_MEMORY;
 	}
@@ -262,7 +291,7 @@ fiftyoneDegreesDataSetInitStatus readNodeRankedSignatureIndexes(FILE *inputFileP
 }
 
 fiftyoneDegreesDataSetInitStatus readRankedSignatureIndexes(FILE *inputFilePtr, fiftyoneDegreesDataSet *dataSet) {
-	dataSet->rankedSignatureIndexes = (const int32_t*)malloc(dataSet->header.rankedSignatureIndexes.length);
+	dataSet->rankedSignatureIndexes = (const int32_t*)fiftyoneDegreesMalloc(dataSet->header.rankedSignatureIndexes.length);
 	if (dataSet->rankedSignatureIndexes == NULL) {
 		return DATA_SET_INIT_STATUS_INSUFFICIENT_MEMORY;
 	}
@@ -274,7 +303,7 @@ fiftyoneDegreesDataSetInitStatus readRankedSignatureIndexes(FILE *inputFilePtr, 
 }
 
 fiftyoneDegreesDataSetInitStatus readNodes(FILE *inputFilePtr, fiftyoneDegreesDataSet *dataSet) {
-	dataSet->nodes = (const byte*)malloc(dataSet->header.nodes.length);
+	dataSet->nodes = (const byte*)fiftyoneDegreesMalloc(dataSet->header.nodes.length);
 	if (dataSet->nodes == NULL) {
 		return DATA_SET_INIT_STATUS_INSUFFICIENT_MEMORY;
 	}
@@ -288,11 +317,11 @@ fiftyoneDegreesDataSetInitStatus readNodes(FILE *inputFilePtr, fiftyoneDegreesDa
 fiftyoneDegreesDataSetInitStatus readRootNodes(FILE *inputFilePtr, fiftyoneDegreesDataSet *dataSet) {
 	int32_t index;
 	int32_t* rootNodeOffsets;
-	rootNodeOffsets = (int32_t*)malloc(dataSet->header.rootNodes.length);
+	rootNodeOffsets = (int32_t*)fiftyoneDegreesMalloc(dataSet->header.rootNodes.length);
 	if (rootNodeOffsets == NULL) {
 		return DATA_SET_INIT_STATUS_INSUFFICIENT_MEMORY;
 	}
-	dataSet->rootNodes = (const fiftyoneDegreesNode**)malloc(dataSet->header.rootNodes.count * sizeof(fiftyoneDegreesNode*));
+	dataSet->rootNodes = (const fiftyoneDegreesNode**)fiftyoneDegreesMalloc(dataSet->header.rootNodes.count * sizeof(fiftyoneDegreesNode*));
 	if (dataSet->rootNodes == NULL) {
 		return DATA_SET_INIT_STATUS_INSUFFICIENT_MEMORY;
 	}
@@ -302,13 +331,13 @@ fiftyoneDegreesDataSetInitStatus readRootNodes(FILE *inputFilePtr, fiftyoneDegre
 	for (index = 0; index < dataSet->header.rootNodes.count; index++) {
 		*(dataSet->rootNodes + index) = (fiftyoneDegreesNode*)(dataSet->nodes + *(rootNodeOffsets + index));
 	}
-	free(rootNodeOffsets);
+	fiftyoneDegreesFree(rootNodeOffsets);
 
 	return DATA_SET_INIT_STATUS_SUCCESS;
 }
 
 fiftyoneDegreesDataSetInitStatus readProfileOffsets(FILE *inputFilePtr, fiftyoneDegreesDataSet *dataSet) {
-	dataSet->profileOffsets = (const fiftyoneDegreesProfileOffset*)malloc(dataSet->header.profileOffsets.length);
+	dataSet->profileOffsets = (const fiftyoneDegreesProfileOffset*)fiftyoneDegreesMalloc(dataSet->header.profileOffsets.length);
 	if (dataSet->profileOffsets == NULL) {
 		return DATA_SET_INIT_STATUS_INSUFFICIENT_MEMORY;
 	}
@@ -964,27 +993,27 @@ void fiftyoneDegreesDataSetFree(const fiftyoneDegreesDataSet *dataSet) {
 	if (dataSet->prefixedUpperHttpHeaders != NULL) {
 		for (index = 0; index < dataSet->httpHeadersCount; index++) {
 			if (dataSet->prefixedUpperHttpHeaders[index] != NULL) {
-				free((void*)dataSet->prefixedUpperHttpHeaders[index]);
+				fiftyoneDegreesFree((void*)dataSet->prefixedUpperHttpHeaders[index]);
 			}
 		}
-		free((void*)dataSet->prefixedUpperHttpHeaders);
+		fiftyoneDegreesFree((void*)dataSet->prefixedUpperHttpHeaders);
 	}
-	free((void*)(dataSet->requiredProperties));
-	free((void*)(dataSet->strings));
-	free((void*)(dataSet->components));
-	free((void*)(dataSet->componentsData));
-	free((void*)(dataSet->maps));
-	free((void*)(dataSet->properties));
-	free((void*)(dataSet->values));
-	free((void*)(dataSet->profiles));
-	free((void*)(dataSet->signatures));
-	free((void*)(dataSet->signatureNodeOffsets));
-	free((void*)(dataSet->nodeRankedSignatureIndexes));
-	free((void*)(dataSet->rankedSignatureIndexes));
-	free((void*)(dataSet->nodes));
-	free((void*)(dataSet->rootNodes));
-	free((void*)(dataSet->profileOffsets));
-	free((void*)(dataSet->httpHeaders));
+	fiftyoneDegreesFree((void*)(dataSet->requiredProperties));
+	fiftyoneDegreesFree((void*)(dataSet->strings));
+	fiftyoneDegreesFree((void*)(dataSet->components));
+	fiftyoneDegreesFree((void*)(dataSet->componentsData));
+	fiftyoneDegreesFree((void*)(dataSet->maps));
+	fiftyoneDegreesFree((void*)(dataSet->properties));
+	fiftyoneDegreesFree((void*)(dataSet->values));
+	fiftyoneDegreesFree((void*)(dataSet->profiles));
+	fiftyoneDegreesFree((void*)(dataSet->signatures));
+	fiftyoneDegreesFree((void*)(dataSet->signatureNodeOffsets));
+	fiftyoneDegreesFree((void*)(dataSet->nodeRankedSignatureIndexes));
+	fiftyoneDegreesFree((void*)(dataSet->rankedSignatureIndexes));
+	fiftyoneDegreesFree((void*)(dataSet->nodes));
+	fiftyoneDegreesFree((void*)(dataSet->rootNodes));
+	fiftyoneDegreesFree((void*)(dataSet->profileOffsets));
+	fiftyoneDegreesFree((void*)(dataSet->httpHeaders));
 }
 
  /**
@@ -996,7 +1025,7 @@ void fiftyoneDegreesDataSetFree(const fiftyoneDegreesDataSet *dataSet) {
 void setAllProperties(fiftyoneDegreesDataSet *dataSet) {
 	int32_t index;
 	dataSet->requiredPropertyCount = dataSet->header.properties.count;
-	dataSet->requiredProperties = (const fiftyoneDegreesProperty**)malloc(dataSet->requiredPropertyCount * sizeof(fiftyoneDegreesProperty*));
+	dataSet->requiredProperties = (const fiftyoneDegreesProperty**)fiftyoneDegreesMalloc(dataSet->requiredPropertyCount * sizeof(fiftyoneDegreesProperty*));
 	if (dataSet->requiredProperties != NULL) {
 		for (index = 0; index < dataSet->requiredPropertyCount; index++) {
 			*(dataSet->requiredProperties + index) = dataSet->properties + index;
@@ -1021,7 +1050,7 @@ void setProperties(fiftyoneDegreesDataSet *dataSet, const char** properties, int
 
 	// Allocate memory for this number of properties.
 	dataSet->requiredPropertyCount = 0;
-	dataSet->requiredProperties = (const fiftyoneDegreesProperty**)malloc(count * sizeof(const fiftyoneDegreesProperty*));
+	dataSet->requiredProperties = (const fiftyoneDegreesProperty**)fiftyoneDegreesMalloc(count * sizeof(const fiftyoneDegreesProperty*));
 
 	// Add the properties to the list of required properties.
 	if (dataSet->requiredProperties != NULL) {
@@ -1090,7 +1119,7 @@ fiftyoneDegreesDataSetInitStatus fiftyoneDegreesInitWithPropertyString(const cha
 		copyRequiredProperties = strdup(requiredProperties);
 		if (copyRequiredProperties != NULL) {
 			// Allocate pointers for each of the properties.
-			requiredPropertiesArray = (const char**)malloc(requiredPropertyCount * sizeof(char*));
+			requiredPropertiesArray = (const char**)fiftyoneDegreesMalloc(requiredPropertyCount * sizeof(char*));
 			currentProperty = copyRequiredProperties;
 			if (requiredPropertiesArray != NULL) {
 				// Change the input string so that the separators are changed to nulls.
@@ -1118,10 +1147,10 @@ fiftyoneDegreesDataSetInitStatus fiftyoneDegreesInitWithPropertyString(const cha
 	status = fiftyoneDegreesInitWithPropertyArray(fileName, dataSet, requiredPropertiesArray, requiredPropertyCount);
 
 	if (requiredPropertiesArray != NULL) {
-		free((void*)requiredPropertiesArray);
+		fiftyoneDegreesFree((void*)requiredPropertiesArray);
 	}
 	if (copyRequiredProperties != NULL) {
-		free(copyRequiredProperties);
+		fiftyoneDegreesFree(copyRequiredProperties);
 	}
 
 	return status;
@@ -1249,7 +1278,7 @@ uint64_t fiftyoneDegreesGetResultsetHashCode(fiftyoneDegreesResultset *rs) {
  * \endcond
  */
 fiftyoneDegreesWorksetPool *fiftyoneDegreesWorksetPoolCreate(fiftyoneDegreesDataSet *dataSet, fiftyoneDegreesResultsetCache *cache, int32_t size) {
-	fiftyoneDegreesWorksetPool *pool = (fiftyoneDegreesWorksetPool*)malloc(sizeof(fiftyoneDegreesWorksetPool));
+	fiftyoneDegreesWorksetPool *pool = (fiftyoneDegreesWorksetPool*)fiftyoneDegreesMalloc(sizeof(fiftyoneDegreesWorksetPool));
 	if (pool != NULL) {
 		pool->dataSet = dataSet;
 		pool->cache = cache;
@@ -1260,7 +1289,7 @@ fiftyoneDegreesWorksetPool *fiftyoneDegreesWorksetPoolCreate(fiftyoneDegreesData
 		FIFTYONEDEGREES_MUTEX_CREATE(pool->lock);
 		FIFTYONEDEGREES_SIGNAL_CREATE(pool->signal);
 #endif
-		pool->worksets = (fiftyoneDegreesWorkset**)malloc(size * sizeof(fiftyoneDegreesWorkset*));
+		pool->worksets = (fiftyoneDegreesWorkset**)fiftyoneDegreesMalloc(size * sizeof(fiftyoneDegreesWorkset*));
 		if (pool->worksets == NULL
 #ifndef FIFTYONEDEGREES_NO_THREADING
 			||
@@ -1268,12 +1297,12 @@ fiftyoneDegreesWorksetPool *fiftyoneDegreesWorksetPoolCreate(fiftyoneDegreesData
 			FIFTYONEDEGREES_SIGNAL_VALID(pool->signal) == 0
 #endif
 			) {
-			if (pool->worksets != NULL) { free((void*)pool->worksets); }
+			if (pool->worksets != NULL) { fiftyoneDegreesFree((void*)pool->worksets); }
 #ifndef FIFTYONEDEGREES_NO_THREADING
 			if (FIFTYONEDEGREES_MUTEX_VALID(pool->lock) == 0) { FIFTYONEDEGREES_MUTEX_CLOSE(pool->lock); }
 			if (FIFTYONEDEGREES_SIGNAL_VALID(pool->signal) == 0) { FIFTYONEDEGREES_SIGNAL_CLOSE(pool->signal); }
 #endif
-			free((void*)pool);
+			fiftyoneDegreesFree((void*)pool);
 			pool = NULL;
 		}
 	}
@@ -1363,12 +1392,12 @@ void fiftyoneDegreesWorksetPoolFree(fiftyoneDegreesWorksetPool *pool) {
 	for (i = 0; i < pool->available; i++) {
 		fiftyoneDegreesWorksetFree(pool->worksets[i]);
 	}
-	free((void*)pool->worksets);
+	fiftyoneDegreesFree((void*)pool->worksets);
 #ifndef FIFTYONEDEGREES_NO_THREADING
 	FIFTYONEDEGREES_SIGNAL_CLOSE(pool->signal);
 	FIFTYONEDEGREES_MUTEX_CLOSE(pool->lock);
 #endif
-	free((void*)pool);
+	fiftyoneDegreesFree((void*)pool);
 }
 
  /**
@@ -1394,8 +1423,8 @@ void fiftyoneDegreesWorksetPoolFree(fiftyoneDegreesWorksetPool *pool) {
  * \endcond
  */
 void fiftyoneDegreesResultsetCacheListFree(const fiftyoneDegreesResultsetCacheList *rscl) {
-	free((void*)rscl->resultSets);
-	free((void*)rscl);
+	fiftyoneDegreesFree((void*)rscl->resultSets);
+	fiftyoneDegreesFree((void*)rscl);
 }
 
  /**
@@ -1411,8 +1440,8 @@ void fiftyoneDegreesResultsetCacheFree(const fiftyoneDegreesResultsetCache *rsc)
 	FIFTYONEDEGREES_MUTEX_CLOSE(rsc->activeLock);
 	FIFTYONEDEGREES_MUTEX_CLOSE(rsc->backgroundLock);
 #endif
-	free((void*)rsc->resultSets);
-	free((void*)rsc);
+	fiftyoneDegreesFree((void*)rsc->resultSets);
+	fiftyoneDegreesFree((void*)rsc);
 }
 
  /**
@@ -1466,11 +1495,11 @@ void fiftyoneDegreesResultsetCacheInit(fiftyoneDegreesResultsetCache *rsc) {
  * \endcond
  */
 fiftyoneDegreesResultsetCacheList *fiftyoneDegreesResultsetCacheListCreate(int32_t size) {
-	fiftyoneDegreesResultsetCacheList* rscl = (fiftyoneDegreesResultsetCacheList*)malloc(sizeof(fiftyoneDegreesResultsetCacheList));
+	fiftyoneDegreesResultsetCacheList* rscl = (fiftyoneDegreesResultsetCacheList*)fiftyoneDegreesMalloc(sizeof(fiftyoneDegreesResultsetCacheList));
 	if (rscl != NULL) {
-		rscl->resultSets = (fiftyoneDegreesResultset **)malloc(size * sizeof(fiftyoneDegreesResultset*));
+		rscl->resultSets = (fiftyoneDegreesResultset **)fiftyoneDegreesMalloc(size * sizeof(fiftyoneDegreesResultset*));
 		if (rscl->resultSets == NULL) {
-			free((void*)rscl);
+			fiftyoneDegreesFree((void*)rscl);
 			rscl = NULL;
 		}
 	}
@@ -1488,7 +1517,7 @@ fiftyoneDegreesResultsetCacheList *fiftyoneDegreesResultsetCacheListCreate(int32
  * \endcond
  */
 fiftyoneDegreesResultsetCache *fiftyoneDegreesResultsetCacheCreate(const fiftyoneDegreesDataSet *dataSet, int32_t size) {
-	fiftyoneDegreesResultsetCache *rsc = size >= MIN_CACHE_SIZE ? (fiftyoneDegreesResultsetCache*)malloc(sizeof(fiftyoneDegreesResultsetCache)) : NULL;
+	fiftyoneDegreesResultsetCache *rsc = size >= MIN_CACHE_SIZE ? (fiftyoneDegreesResultsetCache*)fiftyoneDegreesMalloc(sizeof(fiftyoneDegreesResultsetCache)) : NULL;
 	if (rsc != NULL) {
 		rsc->dataSet = dataSet;
 		rsc->hits = 0;
@@ -1499,7 +1528,7 @@ fiftyoneDegreesResultsetCache *fiftyoneDegreesResultsetCacheCreate(const fiftyon
 
 		// Initialise the memory used for the list of result sets.
 		rsc->sizeOfResultset = CACHED_RESULTSET_LENGTH(dataSet->header);
-		rsc->resultSets = (const fiftyoneDegreesResultset*)malloc(size * rsc->sizeOfResultset);
+		rsc->resultSets = (const fiftyoneDegreesResultset*)fiftyoneDegreesMalloc(size * rsc->sizeOfResultset);
 		rsc->active = fiftyoneDegreesResultsetCacheListCreate(size);
 		rsc->background = fiftyoneDegreesResultsetCacheListCreate(size);
 #ifndef FIFTYONEDEGREES_NO_THREADING
@@ -1512,10 +1541,10 @@ fiftyoneDegreesResultsetCache *fiftyoneDegreesResultsetCacheCreate(const fiftyon
 		if (rsc->resultSets == NULL ||
 			rsc->active == NULL ||
 			rsc->background == NULL) {
-			if (rsc->resultSets != NULL) { free((void*)rsc->resultSets); }
+			if (rsc->resultSets != NULL) { fiftyoneDegreesFree((void*)rsc->resultSets); }
 			if (rsc->active != NULL) { fiftyoneDegreesResultsetCacheListFree(rsc->active); }
 			if (rsc->background != NULL) { fiftyoneDegreesResultsetCacheListFree(rsc->background); }
-			free((void*)rsc);
+			fiftyoneDegreesFree((void*)rsc);
 			rsc = NULL;
 		}
 		else {
@@ -1772,25 +1801,25 @@ void fiftyoneDegreesCacheSwitch(fiftyoneDegreesResultsetCache *rsc) {
  * \endcond
  */
 fiftyoneDegreesWorkset *fiftyoneDegreesWorksetCreate(const fiftyoneDegreesDataSet *dataSet, const fiftyoneDegreesResultsetCache *cache) {
-	fiftyoneDegreesWorkset *ws = (fiftyoneDegreesWorkset*)malloc(sizeof(fiftyoneDegreesWorkset));
+	fiftyoneDegreesWorkset *ws = (fiftyoneDegreesWorkset*)fiftyoneDegreesMalloc(sizeof(fiftyoneDegreesWorkset));
 	if (ws != NULL) {
 		// Initialise all the parameters of the workset.
 		ws->dataSet = dataSet;
 		ws->cache = cache;
 
 		// Allocate all the memory needed to the workset.
-		ws->input = (char*)malloc((ws->dataSet->header.maxUserAgentLength + 1) * sizeof(char));
-		ws->linkedSignatureList.items = (fiftyoneDegreesLinkedSignatureListItem*)malloc(dataSet->header.maxSignaturesClosest * sizeof(fiftyoneDegreesLinkedSignatureListItem));
-		ws->nodes = (const fiftyoneDegreesNode**)malloc(dataSet->header.maxUserAgentLength * sizeof(const fiftyoneDegreesNode*));
-		ws->orderedNodes = (const fiftyoneDegreesNode**)malloc(dataSet->header.maxUserAgentLength * sizeof(const fiftyoneDegreesNode*));
-		ws->relevantNodes = (char*)malloc(dataSet->header.maxUserAgentLength + 1);
-		ws->closestNodes = (char*)malloc(dataSet->header.maxUserAgentLength + 1);
-		ws->signatureAsString = (char*)malloc((dataSet->header.maxUserAgentLength + 1) * sizeof(char));
-		ws->values = (const fiftyoneDegreesValue**)malloc(dataSet->header.maxValues * sizeof(const fiftyoneDegreesValue*));
-		ws->profiles = (const fiftyoneDegreesProfile**)malloc(RESULTSET_PROFILES_SIZE(dataSet->header));
-		ws->tempProfiles = (const fiftyoneDegreesProfile**)malloc(RESULTSET_PROFILES_SIZE(dataSet->header));
-		ws->targetUserAgentArray = (char*)malloc(RESULTSET_TARGET_USERAGENT_ARRAY_SIZE(dataSet->header));
-		ws->importantHeaders = (fiftyoneDegreesHttpHeaderWorkset*)malloc(ws->dataSet->httpHeadersCount * sizeof(fiftyoneDegreesHttpHeaderWorkset));
+		ws->input = (char*)fiftyoneDegreesMalloc((ws->dataSet->header.maxUserAgentLength + 1) * sizeof(char));
+		ws->linkedSignatureList.items = (fiftyoneDegreesLinkedSignatureListItem*)fiftyoneDegreesMalloc(dataSet->header.maxSignaturesClosest * sizeof(fiftyoneDegreesLinkedSignatureListItem));
+		ws->nodes = (const fiftyoneDegreesNode**)fiftyoneDegreesMalloc(dataSet->header.maxUserAgentLength * sizeof(const fiftyoneDegreesNode*));
+		ws->orderedNodes = (const fiftyoneDegreesNode**)fiftyoneDegreesMalloc(dataSet->header.maxUserAgentLength * sizeof(const fiftyoneDegreesNode*));
+		ws->relevantNodes = (char*)fiftyoneDegreesMalloc(dataSet->header.maxUserAgentLength + 1);
+		ws->closestNodes = (char*)fiftyoneDegreesMalloc(dataSet->header.maxUserAgentLength + 1);
+		ws->signatureAsString = (char*)fiftyoneDegreesMalloc((dataSet->header.maxUserAgentLength + 1) * sizeof(char));
+		ws->values = (const fiftyoneDegreesValue**)fiftyoneDegreesMalloc(dataSet->header.maxValues * sizeof(const fiftyoneDegreesValue*));
+		ws->profiles = (const fiftyoneDegreesProfile**)fiftyoneDegreesMalloc(RESULTSET_PROFILES_SIZE(dataSet->header));
+		ws->tempProfiles = (const fiftyoneDegreesProfile**)fiftyoneDegreesMalloc(RESULTSET_PROFILES_SIZE(dataSet->header));
+		ws->targetUserAgentArray = (char*)fiftyoneDegreesMalloc(RESULTSET_TARGET_USERAGENT_ARRAY_SIZE(dataSet->header));
+		ws->importantHeaders = (fiftyoneDegreesHttpHeaderWorkset*)fiftyoneDegreesMalloc(ws->dataSet->httpHeadersCount * sizeof(fiftyoneDegreesHttpHeaderWorkset));
 
 		// Check all the memory was allocated correctly and also
 		// allocate using the result set method.
@@ -1809,21 +1838,21 @@ fiftyoneDegreesWorkset *fiftyoneDegreesWorksetCreate(const fiftyoneDegreesDataSe
 
 			// One or more of the workset memory allocations failed.
 			// Free any that worked and return NULL.
-			if (ws->input != NULL) { free((void*)ws->input); }
-			if (ws->linkedSignatureList.items != NULL) { free((void*)ws->linkedSignatureList.items); }
-			if (ws->nodes != NULL) { free((void*)ws->nodes); }
-			if (ws->orderedNodes != NULL) { free((void*)ws->orderedNodes); }
-			if (ws->relevantNodes != NULL) { free((void*)ws->relevantNodes); }
-			if (ws->closestNodes != NULL) { free((void*)ws->closestNodes); }
-			if (ws->signatureAsString != NULL) { free((void*)ws->signatureAsString); }
-			if (ws->values != NULL) { free((void*)ws->values); }
-			if (ws->profiles != NULL) { free((void*)ws->profiles); }
-			if (ws->tempProfiles != NULL) { free((void*)ws->tempProfiles); }
-			if (ws->targetUserAgentArray != NULL) { free((void*)ws->targetUserAgentArray); }
-			if (ws->importantHeaders != NULL) { free((void*)ws->importantHeaders); }
+			if (ws->input != NULL) { fiftyoneDegreesFree((void*)ws->input); }
+			if (ws->linkedSignatureList.items != NULL) { fiftyoneDegreesFree((void*)ws->linkedSignatureList.items); }
+			if (ws->nodes != NULL) { fiftyoneDegreesFree((void*)ws->nodes); }
+			if (ws->orderedNodes != NULL) { fiftyoneDegreesFree((void*)ws->orderedNodes); }
+			if (ws->relevantNodes != NULL) { fiftyoneDegreesFree((void*)ws->relevantNodes); }
+			if (ws->closestNodes != NULL) { fiftyoneDegreesFree((void*)ws->closestNodes); }
+			if (ws->signatureAsString != NULL) { fiftyoneDegreesFree((void*)ws->signatureAsString); }
+			if (ws->values != NULL) { fiftyoneDegreesFree((void*)ws->values); }
+			if (ws->profiles != NULL) { fiftyoneDegreesFree((void*)ws->profiles); }
+			if (ws->tempProfiles != NULL) { fiftyoneDegreesFree((void*)ws->tempProfiles); }
+			if (ws->targetUserAgentArray != NULL) { fiftyoneDegreesFree((void*)ws->targetUserAgentArray); }
+			if (ws->importantHeaders != NULL) { fiftyoneDegreesFree((void*)ws->importantHeaders); }
 
 			// Free the workset which worked earlier and return NULL.
-			free(ws);
+			fiftyoneDegreesFree(ws);
 			ws = NULL;
 		}
 		else {
@@ -1842,19 +1871,19 @@ fiftyoneDegreesWorkset *fiftyoneDegreesWorksetCreate(const fiftyoneDegreesDataSe
  * \endcond
  */
 void fiftyoneDegreesWorksetFree(const fiftyoneDegreesWorkset *ws) {
-	free((void*)ws->input);
-	free((void*)ws->linkedSignatureList.items);
-	free((void*)ws->nodes);
-	free((void*)ws->orderedNodes);
-	free((void*)ws->relevantNodes);
-	free((void*)ws->closestNodes);
-	free((void*)ws->signatureAsString);
-	free((void*)ws->values);
-	free((void*)ws->profiles);
-	free((void*)ws->tempProfiles);
-	free((void*)ws->targetUserAgentArray);
-	free((void*)ws->importantHeaders);
-	free((void*)ws);
+	fiftyoneDegreesFree((void*)ws->input);
+	fiftyoneDegreesFree((void*)ws->linkedSignatureList.items);
+	fiftyoneDegreesFree((void*)ws->nodes);
+	fiftyoneDegreesFree((void*)ws->orderedNodes);
+	fiftyoneDegreesFree((void*)ws->relevantNodes);
+	fiftyoneDegreesFree((void*)ws->closestNodes);
+	fiftyoneDegreesFree((void*)ws->signatureAsString);
+	fiftyoneDegreesFree((void*)ws->values);
+	fiftyoneDegreesFree((void*)ws->profiles);
+	fiftyoneDegreesFree((void*)ws->tempProfiles);
+	fiftyoneDegreesFree((void*)ws->targetUserAgentArray);
+	fiftyoneDegreesFree((void*)ws->importantHeaders);
+	fiftyoneDegreesFree((void*)ws);
 }
 
  /**
@@ -3592,13 +3621,13 @@ static void initPrefixedUpperHttpHeaderNames(const fiftyoneDegreesDataSet *dataS
 	int httpHeaderIndex;
 	char *prefixedUpperHttpHeader;
 	const fiftyoneDegreesAsciiString *httpHeaderName;
-	((fiftyoneDegreesDataSet*)dataSet)->prefixedUpperHttpHeaders = (const char**)malloc(dataSet->httpHeadersCount * sizeof(const char*));
+	((fiftyoneDegreesDataSet*)dataSet)->prefixedUpperHttpHeaders = (const char**)fiftyoneDegreesMalloc(dataSet->httpHeadersCount * sizeof(const char*));
 	if (dataSet->prefixedUpperHttpHeaders != NULL) {
 		for (httpHeaderIndex = 0; httpHeaderIndex < dataSet->httpHeadersCount; httpHeaderIndex++) {
 			httpHeaderName = fiftyoneDegreesGetString(
 				dataSet,
 				(dataSet->httpHeaders + httpHeaderIndex)->headerNameOffset);
-			dataSet->prefixedUpperHttpHeaders[httpHeaderIndex] = (char*)malloc((httpHeaderName->length + sizeof(HTTP_PREFIX_UPPER) - 1) * sizeof(char));
+			dataSet->prefixedUpperHttpHeaders[httpHeaderIndex] = (char*)fiftyoneDegreesMalloc((httpHeaderName->length + sizeof(HTTP_PREFIX_UPPER) - 1) * sizeof(char));
 			if (dataSet->prefixedUpperHttpHeaders[httpHeaderIndex] != NULL) {
 				prefixedUpperHttpHeader = (char*)dataSet->prefixedUpperHttpHeaders[httpHeaderIndex];
 				memcpy(prefixedUpperHttpHeader, HTTP_PREFIX_UPPER, sizeof(HTTP_PREFIX_UPPER) - 1);
@@ -3871,7 +3900,7 @@ int32_t fiftyoneDegreesGetDeviceId(fiftyoneDegreesWorkset *ws, char *deviceId, i
 
  /**
  * \cond
- * Gets the profile associated with the profileId or NULL if there is no 
+ * Gets the profile associated with the profileId or NULL if there is no
  * corresponding profile.
  * \endcond
  */
@@ -3885,7 +3914,7 @@ static const fiftyoneDegreesProfile* findProfileForProfileId(
 		{
 			middle = lower + (upper - lower) / 2;
 			if (dataSet->profileOffsets[middle].profileId == profileId) {
-				return (fiftyoneDegreesProfile*)(dataSet->profiles + 
+				return (fiftyoneDegreesProfile*)(dataSet->profiles +
 					dataSet->profileOffsets[middle].offset);
 			}
 			else if (profileId < dataSet->profileOffsets[middle].profileId) {
@@ -4021,7 +4050,7 @@ int32_t fiftyoneDegreesSetValues(fiftyoneDegreesWorkset *ws, int32_t requiredPro
  * \endcond
  */
 char* fiftyoneDegreesCSVCreate(fiftyoneDegreesWorkset *ws) {
-	return (char*)malloc(ws->dataSet->header.csvBufferLength * sizeof(char));
+	return (char*)fiftyoneDegreesMalloc(ws->dataSet->header.csvBufferLength * sizeof(char));
 }
 
  /**
@@ -4031,7 +4060,7 @@ char* fiftyoneDegreesCSVCreate(fiftyoneDegreesWorkset *ws) {
  * \endcond
  */
 void fiftyoneDegreesCSVFree(void* csv) {
-	free(csv);
+	fiftyoneDegreesFree(csv);
 }
 
  /**
@@ -4107,7 +4136,7 @@ int32_t fiftyoneDegreesProcessDeviceCSV(fiftyoneDegreesWorkset *ws, char* csv) {
  * \endcond
  */
 char* fiftyoneDegreesJSONCreate(fiftyoneDegreesWorkset *ws) {
-	return (char*)malloc(ws->dataSet->header.jsonBufferLength * sizeof(char));
+	return (char*)fiftyoneDegreesMalloc(ws->dataSet->header.jsonBufferLength * sizeof(char));
 }
 
  /**
@@ -4117,7 +4146,7 @@ char* fiftyoneDegreesJSONCreate(fiftyoneDegreesWorkset *ws) {
  * \endcond
  */
 void fiftyoneDegreesJSONFree(void* json) {
-	free(json);
+	fiftyoneDegreesFree(json);
 }
 
  /**
