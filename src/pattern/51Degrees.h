@@ -302,7 +302,9 @@ typedef struct fiftyoneDegrees_profile_index_struct_t {
 typedef struct fiftyoneDegrees_profile_struct_array_t{
 	int32_t initialised;
 	fiftyoneDegreesProfileIndexesStruct *profilesStructs;
+#ifndef FIFTYONEDEGREES_NO_THREADING
 	FIFTYONEDEGREES_MUTEX lock;
+#endif
 } fiftyoneDegreesProfilesStructArray;
 
 #pragma pack(push, 1)

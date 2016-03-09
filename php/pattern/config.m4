@@ -18,5 +18,5 @@ if test "$PHP_FIFTYONEDEGREESPATTERNV3" = "yes"; then
   AC_DEFINE(HAVE_FIFTYONEDEGREESPATTERNV3, 1, [Whether you have 51Degrees Detector Enabled])
   PHP_SUBST(FIFTYONEDEGREESPATTERNV3_LIBADD)
 
-  PHP_NEW_EXTENSION(FiftyOneDegreesPatternV3, src/cityhash/city.c src/pattern/51Degrees.c src/pattern/51Degrees_PHP.cpp src/pattern/Provider.cpp src/pattern/Match.cpp, $ext_shared, ,,"yes")
+  PHP_NEW_EXTENSION(FiftyOneDegreesPatternV3, src/cityhash/city.c src/pattern/51Degrees.c src/pattern/51Degrees_PHP.cpp src/pattern/Provider.cpp src/pattern/Match.cpp src/pattern/Profiles.cpp, $ext_shared, ,,"yes")
 fi
