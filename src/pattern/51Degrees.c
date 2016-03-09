@@ -1122,7 +1122,7 @@ void initFindProfiles(fiftyoneDegreesDataSet *dataSet, const fiftyoneDegreesProp
 #ifndef FIFTYONEDEGREES_NO_THREADING
 	FIFTYONEDEGREES_MUTEX_LOCK(dataSet->valuePointersArray[propertyIndex].lock);
 	if (dataSet->valuePointersArray[propertyIndex].initialised == 0) {
-#endif */
+#endif
 		// Get the amount of values for the property.
 		int propertyValuesCount = property->lastValueIndex - property->firstValueIndex + 1;
 		// Initialise the array with the profiles count for each of the property's values.
@@ -1157,7 +1157,7 @@ void initFindProfiles(fiftyoneDegreesDataSet *dataSet, const fiftyoneDegreesProp
 		// Free the array of profile counts.
 		free(valuesProfileCount);
 
-#ifndef FIFYONEDEGREES_NO_THREADING
+#ifndef FIFTYONEDEGREES_NO_THREADING
 	}
 	FIFTYONEDEGREES_MUTEX_UNLOCK(dataSet->valuePointersArray[propertyIndex].lock);
 #endif 
@@ -1370,7 +1370,9 @@ void ensureValueProfilesSet(fiftyoneDegreesDataSet *dataSet) {
 		dataSet->valuePointersArray[propertyIndex].initialised = 0;
 		// Allocate an array element for each value of the current property.
 		dataSet->valuePointersArray[propertyIndex].profilesStructs = (fiftyoneDegreesProfileIndexesStruct*)calloc(valuesCount, sizeof(fiftyoneDegreesProfileIndexesStruct));
+#ifndef FIFTYONEDEGREES_NO_THREADING
 		FIFTYONEDEGREES_MUTEX_CREATE(dataSet->valuePointersArray[propertyIndex].lock);
+#endif
 	}
 }
 
