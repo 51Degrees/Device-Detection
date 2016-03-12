@@ -86,13 +86,10 @@ class Provider {
 		Profiles* findProfiles(const string &propertyName, const string &valueName, Profiles* profiles);
 		Profiles* findProfiles(const char *propertyName, const char *valueName, Profiles* profiles);
 
+		void reloadFromFile();
 	protected:
 
 	private:
-		fiftyoneDegreesDataSet *dataSet;
-		fiftyoneDegreesResultsetCache *cache;
-		fiftyoneDegreesWorksetPool *pool;
-
 		vector<string> httpHeaders;
 		vector<string> availableProperties;
 
@@ -107,11 +104,13 @@ class Provider {
 			const string &fileName);
 		void initMatch(Match *match);
 		void initComplete(fiftyoneDegreesDataSetInitStatus initStatus,
-			const string &fileName, int cacheSize, int poolSize);
+			const string &fileName);
 		void buildArray(fiftyoneDegreesWorkset *ws,
 			map<string, vector<string> > *result);
 		void matchForHttpHeaders(fiftyoneDegreesWorkset *ws,
 			const map<string, string> *headers);
+
+		fiftyoneDegreesProvider provider;
 };
 
 #endif // FIFTYONEDEGREESPROVIDER_HPP

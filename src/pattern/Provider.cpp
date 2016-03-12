@@ -20,6 +20,7 @@
  ********************************************************************** */
 
 #include "Provider.hpp"
+#include <iostream>
 
 #ifdef HTTP_HEADERS_PREFIXED
 #define GET_HTTP_HEADER_NAME(d,i) \
@@ -121,36 +122,119 @@ Provider::Provider(const string &fileName, int cacheSize, int poolSize) {
  * Frees the memory used by the Provider including the cache, pool and dataset.
  */
 Provider::~Provider() {
-	// Free the cache if one was created.
-	if (cache != NULL) {
-		fiftyoneDegreesResultsetCacheFree(cache);
-		cache = NULL;
-	}
-	// Free the pool if one was created.
-	if (pool != NULL) {
-		fiftyoneDegreesWorksetPoolFree(pool);
-		pool = NULL;
-	}
-	// Free the dataset if one was created.
-	if (dataSet != NULL) {
-		fiftyoneDegreesDataSetFree(dataSet);
-		delete dataSet;
+	fiftyoneDegreesProviderFree(&provider);
+}
+
+/**
+ * Initialises the Provider.
+ * This method should not be called as it is part of the internal logic.
+ * @param fileName of the data source
+ * @param cacheSize the number of prior User-Agent detections to cache
+ * @param poolSize the maximum number of worksets to create for the pool
+ */
+void Provider::init(const string &fileName, int cacheSize, int poolSize) {
+	fiftyoneDegreesDataSetInitStatus status = 
+		fiftyoneDegreesInitProviderWithPropertyString(
+			fileName.c_str(),
+			&provider,
+			NULL,
+			poolSize,
+			cacheSize);
+	initComplete(status, fileName);
+}
+
+/**
+ * Initialises the Provider.
+ * This method should not be called as it is part of the internal logic.
+ * @param fileName of the data source
+ * @param propertyString contains comma seperated property names to be available
+ * to query from associated match results.
+ * @param cacheSize the number of prior User-Agent detections to cache
+ * @param poolSize the maximum number of worksets to create for the pool
+ */
+void Provider::init(
+		const string &fileName,
+		const string &propertyString,
+		int cacheSize,
+		int poolSize) {
+	fiftyoneDegreesDataSetInitStatus status = 
+		fiftyoneDegreesInitProviderWithPropertyString(
+			fileName.c_str(), 
+			&provider,
+			propertyString.c_str(),
+			poolSize,
+			cacheSize);
+	initComplete(status, fileName);
+}
+
+/**
+ * Initialises the Provider.
+ * This method should not be called as it is part of the internal logic.
+ * @param fileName of the data source
+ * @param propertiesArray array of property names to be available to query from
+ * the associated match results.
+ * @param cacheSize the number of prior User-Agent detections to cache
+ * @param poolSize the maximum number of worksets to create for the pool
+ */
+void Provider::init(
+		const string &fileName,
+		vector<string> &propertiesArray,
+		int cacheSize,
+		int poolSize) {
+	fiftyoneDegreesDataSetInitStatus status;
+	const char **properties = new const char*[propertiesArray.size()];
+	if (properties != NULL) {
+		for (unsigned int index = 0; index < propertiesArray.size(); index++) {
+			properties[index] = propertiesArray[index].c_str();
+		}
+		status = fiftyoneDegreesInitProviderWithPropertyArray(
+			fileName.c_str(),
+			&provider,
+			properties,
+			(int)propertiesArray.size(),
+			poolSize,
+			cacheSize);
+		initComplete(status, fileName);
+		delete properties;
 	}
 }
 
 /**
- * Checks the initialisation status result and throws a C++ exception if the
- * result is anything other than success. The text of the exception can be used
- * by the high level language to provide a message to the user.
- * This method should not be called as it is part of the internal logic.
- * @param initStatus status enum value
- * @param fileName of the data source
- */
+* Completes the process of initialising the provider by either freeing memory
+* if the data set could be create, or initialising dependent data structures.
+* This method should not be called as it is part of the internal logic.
+* @param initStatus the status returned from the call to create the data set
+* @param fileName of the data source
+* @param cacheSize the number of prior User-Agent detections to cache
+* @param poolSize the maximum number of worksets to create for the pool
+*/
+void Provider::initComplete(
+	fiftyoneDegreesDataSetInitStatus initStatus,
+	const string &fileName) {
+	if (initStatus != DATA_SET_INIT_STATUS_SUCCESS)	{
+		initExecption(initStatus, fileName);
+	}
+	else {
+		initAvailableProperites();
+		initHttpHeaders();
+	}
+}
+
+/**
+* Checks the initialisation status result and throws a C++ exception if the
+* result is anything other than success. The text of the exception can be used
+* by the high level language to provide a message to the user.
+* This method should not be called as it is part of the internal logic.
+* @param initStatus status enum value
+* @param fileName of the data source
+*/
 void Provider::initExecption(
-		fiftyoneDegreesDataSetInitStatus initStatus,
-		const string &fileName) {
+	fiftyoneDegreesDataSetInitStatus initStatus,
+	const string &fileName) {
 	stringstream message;
-	switch(initStatus) {
+	switch (initStatus) {
+	case DATA_SET_INIT_STATUS_SUCCESS:
+		break;
 	case DATA_SET_INIT_STATUS_INSUFFICIENT_MEMORY:
 		throw runtime_error("Insufficient memory allocated.");
 		break;
@@ -168,104 +252,14 @@ void Provider::initExecption(
 			"permissions.";
 		throw invalid_argument(message.str());
 		break;
+	case DATA_SET_INIT_STATUS_POINTER_OUT_OF_BOUNDS:
+		break;
+	case DATA_SET_INIT_STATUS_NULL_POINTER:
+		break;
 	default:
 	case DATA_SET_INIT_STATUS_NOT_SET:
 		throw runtime_error("Could not create data set from file.");
 		break;
-	}
-}
-
-/**
- * Initialises the Provider.
- * This method should not be called as it is part of the internal logic.
- * @param fileName of the data source
- * @param cacheSize the number of prior User-Agent detections to cache
- * @param poolSize the maximum number of worksets to create for the pool
- */
-void Provider::init(const string &fileName, int cacheSize, int poolSize) {
-	dataSet = (fiftyoneDegreesDataSet*)new char[sizeof(fiftyoneDegreesDataSet)];
-	initComplete(fiftyoneDegreesInitWithPropertyString(
-					 fileName.c_str(),
-					 dataSet,
-					 NULL),
-				 fileName, cacheSize, poolSize);
-}
-
-/**
- * Initialises the Provider.
- * This method should not be called as it is part of the internal logic.
- * @param fileName of the data source
- * @param propertyString contains comma seperated property names to be available
- * to query from associated match results.
- * @param cacheSize the number of prior User-Agent detections to cache
- * @param poolSize the maximum number of worksets to create for the pool
- */
-void Provider::init(
-		const string &fileName,
-		const string &propertyString,
-		int cacheSize,
-		int poolSize) {
-	dataSet = (fiftyoneDegreesDataSet*)new char[sizeof(fiftyoneDegreesDataSet)];
-	initComplete(fiftyoneDegreesInitWithPropertyString(
-					 fileName.c_str(),
-					 dataSet,
-					 propertyString.c_str()),
-				 fileName, cacheSize, poolSize);
-}
-
-/**
- * Initialises the Provider.
- * This method should not be called as it is part of the internal logic.
- * @param fileName of the data source
- * @param propertiesArray array of property names to be available to query from
- * the associated match results.
- * @param cacheSize the number of prior User-Agent detections to cache
- * @param poolSize the maximum number of worksets to create for the pool
- */
-void Provider::init(
-		const string &fileName,
-		vector<string> &propertiesArray,
-		int cacheSize,
-		int poolSize) {
-	fiftyoneDegreesDataSetInitStatus initStatus = DATA_SET_INIT_STATUS_NOT_SET;
-	dataSet = (fiftyoneDegreesDataSet*)new char[sizeof(fiftyoneDegreesDataSet)];
-	const char **properties = new const char*[propertiesArray.size()];
-	if (properties != NULL) {
-		for (unsigned int index = 0; index < propertiesArray.size(); index++) {
-			properties[index] = propertiesArray[index].c_str();
-		}
-		initStatus = fiftyoneDegreesInitWithPropertyArray(
-						 fileName.c_str(),
-						 dataSet,
-						 properties,
-						 (int)propertiesArray.size());
-		delete properties;
-	}
-	initComplete(initStatus, fileName, cacheSize, poolSize);
-}
-
-/**
- * Completes the process of initialising the provider by either freeing memory
- * if the data set could be create, or initialising dependent data structures.
- * This method should not be called as it is part of the internal logic.
- * @param initStatus the status returned from the call to create the data set
- * @param fileName of the data source
- * @param cacheSize the number of prior User-Agent detections to cache
- * @param poolSize the maximum number of worksets to create for the pool
- */
-void Provider::initComplete(
-		fiftyoneDegreesDataSetInitStatus initStatus,
-		const string &fileName,
-		int cacheSize,
-		int poolSize) {
-	if (initStatus != DATA_SET_INIT_STATUS_SUCCESS)	{
-		delete dataSet;
-		initExecption(initStatus, fileName);
-	} else {
-		cache = fiftyoneDegreesResultsetCacheCreate(dataSet, cacheSize);
-		pool = fiftyoneDegreesWorksetPoolCreate(dataSet, cache, poolSize);
-		initAvailableProperites();
-		initHttpHeaders();
 	}
 }
 
@@ -278,11 +272,11 @@ void Provider::initComplete(
  */
 void Provider::initHttpHeaders() {
 	for (int httpHeaderIndex = 0;
-		httpHeaderIndex < dataSet->httpHeadersCount;
+		httpHeaderIndex < provider.activePool->dataSet->httpHeadersCount;
 		httpHeaderIndex++) {
 		httpHeaders.insert(
 			httpHeaders.end(),
-			string(GET_HTTP_HEADER_NAME(dataSet, httpHeaderIndex)));
+			string(GET_HTTP_HEADER_NAME(provider.activePool->dataSet, httpHeaderIndex)));
 	}
 }
 
@@ -296,11 +290,11 @@ void Provider::initHttpHeaders() {
 void Provider::initAvailableProperites() {
 	const fiftyoneDegreesAsciiString *propertyName;
 	for (int requiredPropetyIndex = 0;
-			requiredPropetyIndex < dataSet->requiredPropertyCount;
+		requiredPropetyIndex < provider.activePool->dataSet->requiredPropertyCount;
 			requiredPropetyIndex++) {
 		propertyName = fiftyoneDegreesGetString(
-			dataSet,
-			dataSet->requiredProperties[requiredPropetyIndex]->nameOffset);
+			provider.activePool->dataSet,
+			provider.activePool->dataSet->requiredProperties[requiredPropetyIndex]->nameOffset);
 		availableProperties.insert(
 			availableProperties.end(),
 			string(&propertyName->firstByte));
@@ -313,8 +307,7 @@ void Provider::initAvailableProperites() {
  * This method should not be called as it is part of the internal logic.
  */
 void Provider::initMatch(Match *match) {
-	match->pool = this->pool;
-	match->ws = fiftyoneDegreesWorksetPoolGet(this->pool);
+	match->ws = fiftyoneDegreesProviderWorksetGet(&this->provider);
 }
 
 /**
@@ -338,8 +331,8 @@ vector<string> Provider::getAvailableProperties() {
 string Provider::getDataSetName() {
 	string result;
 	result.assign(&fiftyoneDegreesGetString(
-		dataSet,
-		dataSet->header.nameOffset)->firstByte);
+		provider.activePool->dataSet,
+		provider.activePool->dataSet->header.nameOffset)->firstByte);
 	return result;
 }
 
@@ -349,8 +342,8 @@ string Provider::getDataSetName() {
 string Provider::getDataSetFormat() {
 	string result;
 	result.assign(&fiftyoneDegreesGetString(
-		dataSet,
-		dataSet->header.formatOffset)->firstByte);
+		provider.activePool->dataSet,
+		provider.activePool->dataSet->header.formatOffset)->firstByte);
 	return result;
 }
 
@@ -359,9 +352,9 @@ string Provider::getDataSetFormat() {
  */
 string Provider::getDataSetPublishedDate() {
 	stringstream stream;
-	stream << dataSet->header.published.year << "-"
-		   << (int)dataSet->header.published.month << "-"
-		   << (int)dataSet->header.published.day;
+	stream << provider.activePool->dataSet->header.published.year << "-"
+		   << (int)provider.activePool->dataSet->header.published.month << "-"
+		   << (int)provider.activePool->dataSet->header.published.day;
 	return stream.str();
 }
 
@@ -370,9 +363,9 @@ string Provider::getDataSetPublishedDate() {
  */
 string Provider::getDataSetNextUpdateDate() {
 	stringstream stream;
-	stream << dataSet->header.nextUpdate.year << "-"
-		   << (int)dataSet->header.nextUpdate.month << "-"
-		   << (int)dataSet->header.nextUpdate.day;
+	stream << provider.activePool->dataSet->header.nextUpdate.year << "-"
+		   << (int)provider.activePool->dataSet->header.nextUpdate.month << "-"
+		   << (int)provider.activePool->dataSet->header.nextUpdate.day;
 	return stream.str();
 }
 
@@ -380,14 +373,14 @@ string Provider::getDataSetNextUpdateDate() {
  * @returns the number of Signatures the data set contains.
  */
 int Provider::getDataSetSignatureCount() {
-	return dataSet->header.signatures.count;
+	return provider.activePool->dataSet->header.signatures.count;
 }
 
 /**
  * @returns the number of device combinations the data set contains.
  */
 int Provider::getDataSetDeviceCombinations() {
-	return dataSet->header.deviceCombinations;
+	return provider.activePool->dataSet->header.deviceCombinations;
 }
 
 /**
@@ -401,7 +394,7 @@ void Provider::matchForHttpHeaders(
 		const map<string, string> *headers) {
 	int dataSetHeaderIndex = 0;
 	const char *httpHeaderName = GET_HTTP_HEADER_NAME(
-		dataSet,
+		provider.activePool->dataSet,
 		dataSetHeaderIndex);
 	ws->importantHeadersCount = 0;
 	while (httpHeaderName != NULL) {
@@ -417,7 +410,7 @@ void Provider::matchForHttpHeaders(
 			ws->importantHeadersCount++;
 		}
 		dataSetHeaderIndex++;
-		httpHeaderName = GET_HTTP_HEADER_NAME(dataSet, dataSetHeaderIndex);
+		httpHeaderName = GET_HTTP_HEADER_NAME(provider.activePool->dataSet, dataSetHeaderIndex);
 	}
 	fiftyoneDegreesMatchForHttpHeaders(ws);
 }
@@ -494,10 +487,10 @@ Match* Provider::getMatch(const map<string, string>& headers) {
  */
 map<string, vector<string> >& Provider::getMatchMap(const char *userAgent) {
 	map<string, vector<string> > *result = new map<string, vector<string> >();
-	fiftyoneDegreesWorkset *ws = fiftyoneDegreesWorksetPoolGet(pool);
+	fiftyoneDegreesWorkset *ws = fiftyoneDegreesProviderWorksetGet(&provider);
 	fiftyoneDegreesMatch(ws, userAgent);
 	buildArray(ws, result);
-	fiftyoneDegreesWorksetPoolRelease(pool, ws);
+	fiftyoneDegreesWorksetRelease(ws);
 	return *result;
 }
 
@@ -518,10 +511,10 @@ map<string, vector<string> >& Provider::getMatchMap(const string &userAgent) {
 map<string, vector<string> >& Provider::getMatchMap(
 		const map<string, string> &headers) {
 	map<string, vector<string> > *result = new map<string, vector<string> >();
-	fiftyoneDegreesWorkset *ws = fiftyoneDegreesWorksetPoolGet(pool);
+	fiftyoneDegreesWorkset *ws = fiftyoneDegreesProviderWorksetGet(&provider);
 	matchForHttpHeaders(ws, &headers);
 	buildArray(ws, result);
-	fiftyoneDegreesWorksetPoolRelease(pool, ws);
+	fiftyoneDegreesWorksetRelease(ws);
 	return *result;
 }
 
@@ -532,13 +525,13 @@ map<string, vector<string> >& Provider::getMatchMap(
  */
 string Provider::getMatchJson(const char* userAgent) {
 	string result;
-	fiftyoneDegreesWorkset *ws = fiftyoneDegreesWorksetPoolGet(pool);
+	fiftyoneDegreesWorkset *ws = fiftyoneDegreesProviderWorksetGet(&provider);
 	fiftyoneDegreesMatch(ws, userAgent);
 	char *json = fiftyoneDegreesJSONCreate(ws);
 	fiftyoneDegreesProcessDeviceJSON(ws, json);
 	result.assign(json);
 	fiftyoneDegreesJSONFree(json);
-	fiftyoneDegreesWorksetPoolRelease(pool, ws);
+	fiftyoneDegreesWorksetRelease(ws);
 	return result;
 }
 
@@ -559,21 +552,21 @@ string Provider::getMatchJson(const string& userAgent) {
  */
 string Provider::getMatchJson(const map<string, string>& headers) {
 	string result;
-	fiftyoneDegreesWorkset *ws = fiftyoneDegreesWorksetPoolGet(pool);
+	fiftyoneDegreesWorkset *ws = fiftyoneDegreesProviderWorksetGet(&provider);
 	char *json = fiftyoneDegreesJSONCreate(ws);
 	matchForHttpHeaders(ws, &headers);
 	fiftyoneDegreesProcessDeviceJSON(ws, json);
 	result.assign(json);
 	fiftyoneDegreesJSONFree(json);
-	fiftyoneDegreesWorksetPoolRelease(pool, ws);
+	fiftyoneDegreesWorksetRelease(ws);
 	return result;
 }
 
 /**
-* Completes device detection for the device id provided.
-* @param device id used for the match
-* @returns new Match instance configured to provide access to the results
-*/
+ * Completes device detection for the device id provided.
+ * @param device id used for the match
+ * @returns new Match instance configured to provide access to the results
+ */
 Match* Provider::getMatchForDeviceId(const char *deviceId) {
 	Match *result = new Match();
 	initMatch(result);
@@ -582,10 +575,10 @@ Match* Provider::getMatchForDeviceId(const char *deviceId) {
 }
 
 /**
-* Completes device detection for the device id provided.
-* @param device id used for the match
-* @returns new Match instance configured to provide access to the results
-*/
+ * Completes device detection for the device id provided.
+ * @param device id used for the match
+ * @returns new Match instance configured to provide access to the results
+ */
 Match* Provider::getMatchForDeviceId(const string& deviceId) {
 	return getMatchForDeviceId(deviceId.c_str());
 }
@@ -599,44 +592,56 @@ Match* Provider::getMatchForDeviceId(const string& deviceId) {
  */
 Profiles* Provider::findProfiles(const char *propertyName, const char *valueName) {
 	Profiles *profiles = new Profiles();
-	profiles->profiles = fiftyoneDegreesFindProfiles(dataSet, propertyName, valueName);
+	profiles->profiles = fiftyoneDegreesFindProfiles(provider.activePool->dataSet, propertyName, valueName);
 	return profiles;
 }
 
 /**
-* Finds all profiles in the data set which contain the property
-* value pair provided.
-* @param propertyName used to search the profiles.
-* @param valueName used to search the profiles.
-* @returns new Profiles instance configured to provide access to the results.
-*/
+ * Finds all profiles in the data set which contain the property
+ * value pair provided.
+ * @param propertyName used to search the profiles.
+ * @param valueName used to search the profiles.
+ * @returns new Profiles instance configured to provide access to the results.
+ */
 Profiles* Provider::findProfiles(const string &propertyName, const string &valueName) {
 	return findProfiles(propertyName.c_str(), valueName.c_str());
 }
 
 /**
-* Finds all profiles within the provided Profiles object which contain
-* the property value pair provided.
-* @param propertyName used to search the profiles.
-* @param valueName used to search the profiles.
-* @param profiles object to perform the search in.
-* @returns new Profiles instance configured to provide access to the results.
-*/
+ * Finds all profiles within the provided Profiles object which contain
+ * the property value pair provided.
+ * @param propertyName used to search the profiles.
+ * @param valueName used to search the profiles.
+ * @param profiles object to perform the search in.
+ * @returns new Profiles instance configured to provide access to the results.
+ */
 Profiles* Provider::findProfiles(const char *propertyName, const char *valueName, Profiles *profiles) {
 	Profiles *returnprofiles = new Profiles();
-	returnprofiles->profiles = fiftyoneDegreesFindProfilesInProfiles(dataSet, propertyName, valueName, profiles->profiles);
+	returnprofiles->profiles = fiftyoneDegreesFindProfilesInProfiles(provider.activePool->dataSet, propertyName, valueName, profiles->profiles);
 	return returnprofiles;
 
 }
 
 /**
-* Finds all profiles within the provided Profiles object which contain
-* the property value pair provided.
-* @param propertyName used to search the profiles.
-* @param valueName used to search the profiles.
-* @param profiles object to perform the search in.
-* @returns new Profiles instance configured to provide access to the results.
-*/
+ * Finds all profiles within the provided Profiles object which contain
+ * the property value pair provided.
+ * @param propertyName used to search the profiles.
+ * @param valueName used to search the profiles.
+ * @param profiles object to perform the search in.
+ * @returns new Profiles instance configured to provide access to the results.
+ */
 Profiles* Provider::findProfiles(const string &propertyName, const string &valueName, Profiles *profiles) {
 	return findProfiles(propertyName.c_str(), valueName.c_str(), profiles);
+}
+
+/**
+ * Initiates the data set reload process from the same file location that was 
+ * used to create the current dataset. New dataset will be initialised with 
+ * exactly the same set of properties, cache size and number of worksets in 
+ * the workset pool.
+ *
+ * Function is not thread safe.
+ */
+void Provider::reloadFromFile() {
+	fiftyoneDegreesProviderReloadFromFile(&provider);
 }

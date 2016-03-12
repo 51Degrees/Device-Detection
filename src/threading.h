@@ -24,6 +24,9 @@
  * threaded operation.
  */
 
+#ifndef FIFTYONEDEGREES_THREADING_INCLUDED
+#define FIFTYONEDEGREES_THREADING_INCLUDED
+
 #ifndef FIFTYONEDEGREES_NO_THREADING
 
 /**
@@ -36,6 +39,8 @@
 #include <pthread.h>
 #endif
 
+#define FIFTYONEDEGREES_SIGNAL_TIMEOUT_MS 1
+
 /**
 * Mutex used to synchronise access to data structures that could be used
 * in parallel in a multi threaded environment.
@@ -47,6 +52,11 @@ typedef struct fiftyoneDegrees_mutex_t {
     int initValue;
     pthread_mutex_t mutex;
 } fiftyoneDegreesMutex;
+void fiftyoneDegreesMutexCreate(const fiftyoneDegreesMutex *mutex);
+void fiftyoneDegreesMutexClose(const fiftyoneDegreesMutex *mutex);
+void fiftyoneDegreesMutexLock(const fiftyoneDegreesMutex *mutex);
+void fiftyoneDegreesMutexUnlock(const fiftyoneDegreesMutex *mutex);
+int fiftyoneDegreesMutexValid(const fiftyoneDegreesMutex *mutex);
 #define FIFTYONEDEGREES_MUTEX fiftyoneDegreesMutex
 #endif
 
@@ -61,7 +71,13 @@ typedef struct fiftyoneDegrees_signal_t {
     int initValue;
     pthread_cond_t cond;
     fiftyoneDegreesMutex mutex;
+    int destroyed; // Indicates if the signal has been destroyed
 } fiftyoneDegreesSignal;
+void fiftyoneDegreesSignalCreate(fiftyoneDegreesSignal *signal);
+void fiftyoneDegreesSignalClose(fiftyoneDegreesSignal *signal);
+void fiftyoneDegreesSignalSet(fiftyoneDegreesSignal *signal);
+void fiftyoneDegreesSignalWait(fiftyoneDegreesSignal *signal);
+int fiftyoneDegreesSignalValid(fiftyoneDegreesSignal *signal);
 #define FIFTYONEDEGREES_SIGNAL fiftyoneDegreesSignal
 #endif
 
@@ -81,7 +97,7 @@ typedef struct fiftyoneDegrees_signal_t {
 #ifdef _MSC_VER
 #define FIFTYONEDEGREES_SIGNAL_CREATE(s) s = (FIFTYONEDEGREES_SIGNAL)CreateEvent(NULL, FALSE, TRUE, NULL)
 #else
-#define FIFTYONEDEGREES_SIGNAL_CREATE(s) s.initValue = pthread_cond_init((pthread_cond_t*)&s.cond, 0); FIFTYONEDEGREES_MUTEX_CREATE(s.mutex)
+#define FIFTYONEDEGREES_SIGNAL_CREATE(s) fiftyoneDegreesSignalCreate((fiftyoneDegreesSignal*)&s)
 #endif
 
 /**
@@ -90,7 +106,7 @@ typedef struct fiftyoneDegrees_signal_t {
 #ifdef _MSC_VER
 #define FIFTYONEDEGREES_SIGNAL_CLOSE(s) if (s != NULL) { CloseHandle(s); }
 #else
-#define FIFTYONEDEGREES_SIGNAL_CLOSE(s) pthread_cond_destroy(&s.cond); FIFTYONEDEGREES_MUTEX_CLOSE(s.mutex);
+#define FIFTYONEDEGREES_SIGNAL_CLOSE(s) fiftyoneDegreesSignalClose((fiftyoneDegreesSignal*)&s)
 #endif
 
 /**
@@ -99,25 +115,25 @@ typedef struct fiftyoneDegrees_signal_t {
 #ifdef _MSC_VER
 #define FIFTYONEDEGREES_SIGNAL_SET(s) SetEvent(s)
 #else
-#define FIFTYONEDEGREES_SIGNAL_SET(s) pthread_cond_signal(&s.cond)
+#define FIFTYONEDEGREES_SIGNAL_SET(s) fiftyoneDegreesSignalSet((fiftyoneDegreesSignal*)s)
 #endif
 
 /**
 * Waits for the signal to become set by another thread.
 */
 #ifdef _MSC_VER
-#define FIFTYONEDEGREES_SIGNAL_WAIT(s) WaitForSingleObject(s, INFINITE)
+#define FIFTYONEDEGREES_SIGNAL_WAIT(s) WaitForSingleObject(*s, FIFTYONEDEGREES_SIGNAL_TIMEOUT_MS)
 #else
-#define FIFTYONEDEGREES_SIGNAL_WAIT(s) pthread_cond_wait(&s.cond, &s.mutex.mutex)
+#define FIFTYONEDEGREES_SIGNAL_WAIT(s) fiftyoneDegreesSignalWait((fiftyoneDegreesSignal*)s)
 #endif
 
 /**
  * Returns true if the signal is valid.
  */
 #ifdef _MSC_VER
-#define FIFTYONEDEGREES_SIGNAL_VALID(s) (s != NULL)
+#define FIFTYONEDEGREES_SIGNAL_VALID(s) (*s != NULL)
 #else
-#define FIFTYONEDEGREES_SIGNAL_VALID(s) ((s.initValue == 0) && FIFTYONEDEGREES_MUTEX_VALID(s.mutex))
+#define FIFTYONEDEGREES_SIGNAL_VALID(s) fiftyoneDegreesSignalValid((fiftyoneDegreesSignal*)s)
 #endif
 
 /**
@@ -126,7 +142,7 @@ typedef struct fiftyoneDegrees_signal_t {
 #ifdef _MSC_VER
 #define FIFTYONEDEGREES_MUTEX_CREATE(m) m = (FIFTYONEDEGREES_MUTEX)CreateMutex(NULL,FALSE,NULL)
 #else
-#define FIFTYONEDEGREES_MUTEX_CREATE(m) m.initValue = pthread_mutex_init((pthread_mutex_t*)&m.mutex, NULL)
+#define FIFTYONEDEGREES_MUTEX_CREATE(m) fiftyoneDegreesMutexCreate(&m)
 #endif
 
 /**
@@ -135,34 +151,34 @@ typedef struct fiftyoneDegrees_signal_t {
 #ifdef _MSC_VER
 #define FIFTYONEDEGREES_MUTEX_CLOSE(m) if (m != NULL) { CloseHandle(m); }
 #else
-#define FIFTYONEDEGREES_MUTEX_CLOSE(m) pthread_mutex_destroy((pthread_mutex_t*)&m.mutex);
+#define FIFTYONEDEGREES_MUTEX_CLOSE(m) fiftyoneDegreesMutexClose(&m)
 #endif
 
 /**
 * Locks the mutex at the pointer provided.
 */
 #ifdef _MSC_VER
-#define FIFTYONEDEGREES_MUTEX_LOCK(m) WaitForSingleObject(m, INFINITE)
+#define FIFTYONEDEGREES_MUTEX_LOCK(m) WaitForSingleObject(*m, INFINITE)
 #else
-#define FIFTYONEDEGREES_MUTEX_LOCK(m) pthread_mutex_lock((pthread_mutex_t*)&m.mutex)
+#define FIFTYONEDEGREES_MUTEX_LOCK(m) fiftyoneDegreesMutexLock(m)
 #endif
 
 /**
 * Unlocks the mutex at the pointer provided.
 */
 #ifdef _MSC_VER
-#define FIFTYONEDEGREES_MUTEX_UNLOCK(m) ReleaseMutex(m)
+#define FIFTYONEDEGREES_MUTEX_UNLOCK(m) ReleaseMutex(*m)
 #else
-#define FIFTYONEDEGREES_MUTEX_UNLOCK(m) pthread_mutex_unlock((pthread_mutex_t*)&m.mutex)
+#define FIFTYONEDEGREES_MUTEX_UNLOCK(m) fiftyoneDegreesMutexUnlock(m)
 #endif
 
 /**
  * Returns true if the signal is valid.
  */
 #ifdef _MSC_VER
-#define FIFTYONEDEGREES_MUTEX_VALID(m) (m != NULL)
+#define FIFTYONEDEGREES_MUTEX_VALID(m) (*m != NULL)
 #else
-#define FIFTYONEDEGREES_MUTEX_VALID(m) (m.initValue == 0)
+#define FIFTYONEDEGREES_MUTEX_VALID(m) fiftyoneDegreesMutexValid(m)
 #endif
 
 /**
@@ -203,4 +219,5 @@ typedef struct fiftyoneDegrees_signal_t {
 #define FIFTYONEDEGREES_THREAD_EXIT pthread_exit(NULL)
 #endif
 
+#endif
 #endif

@@ -169,4 +169,6 @@ class Provider {
 	Match* getMatchForDeviceId(const std::string &deviceId);
 	Profiles* findProfiles(const std::string propertyName, const std::string valueName);
 	Profiles* findProfiles(const std::string propertyName, const std::string valueName, Profiles *profiles);
+
+	void reloadFromFile();
 };
