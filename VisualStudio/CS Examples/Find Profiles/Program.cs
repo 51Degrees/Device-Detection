@@ -39,14 +39,9 @@ a specified property value pair
 <p><code>
 Profiles profiles = provider.findProfiles("IsMobile", "True");
 </code></p>
-<li>Search within a list of profiles for another property value pair.
-<p><code>
-Profiles profiles = provider.findProfiles("ScreenPixelsWidth",
-"1080", profiles);
-</code></p>
 </ol>
 This tutorial assumes you are building this from within the
-51Degrees Visual Studio solution. Additionally, when running,
+51Degrees Visual Studio solution. Additionaly, when running,
 the location of a 51Degrees data file must be passed as a 
 command line argument if you wish to use premium or enterprise
 </tutorial>
@@ -77,29 +72,15 @@ namespace FiftyOne.Example.Illustration.CSharp.FindProfiles
             Provider provider = new Provider(fileName, properties);
 
             Console.WriteLine("Starting Find Profiles Example.\n");
-
-            // Retrieve all the mobile device profiles from the data set.
+            
             Profiles profiles = provider.findProfiles("IsMobile", "True");
-            Console.WriteLine("There are " + profiles.getCount()
-                + "  mobile profiles in the "
-                + provider.getDataSetName()
-                + " data set.");
-            // Find how many have a screen width of 1080 pixels.
-            profiles = provider.findProfiles("ScreenPixelsWidth", "1080", profiles);
-            Console.WriteLine(profiles.getCount()
-                + "  of them have a screen width of 1080 pixels.");
-
-            // Retrieve all the non-mobile device profiles from the data set.
+            Console.WriteLine("There are '{0}' mobile profiles in the '{1}' data set.",
+                profiles.getCount(),
+                provider.getDataSetName());
             profiles = provider.findProfiles("IsMobile", "False");
-            Console.WriteLine("There are " + profiles.getCount()
-                + "  non-mobile profiles in the "
-                + provider.getDataSetName()
-                + " data set.");
-            // Find how many have a screen width of 1080 pixels.
-            profiles = provider.findProfiles("ScreenPixelsWidth", "1080", profiles);
-            Console.WriteLine(profiles.getCount()
-                + "  of them have a screen width of 1080 pixels.");
-
+            Console.WriteLine("There are '{0}' non-mobile profiles in the '{1}' data set.",
+                profiles.getCount(),
+                provider.getDataSetName());
         }
         // Snippet End
 

@@ -2,19 +2,19 @@
  * This Source Code Form is copyright of 51Degrees Mobile Experts Limited.
  * Copyright (c) 2015 51Degrees Mobile Experts Limited, 5 Charlotte Close,
  * Caversham, Reading, Berkshire, United Kingdom RG4 7BY
- * 
+ *
  * This Source Code Form is the subject of the following patent
  * applications, owned by 51Degrees Mobile Experts Limited of 5 Charlotte
  * Close, Caversham, Reading, Berkshire, United Kingdom RG4 7BY:
  * European Patent Application No. 13192291.6; and
  * United States Patent Application Nos. 14/085,223 and 14/085,301.
- * 
+ *
  * This Source Code Form is subject to the terms of the Mozilla Public
  * License, v. 2.0.
- * 
+ *
  * If a copy of the MPL was not distributed with this file, You can obtain
  * one at http://mozilla.org/MPL/2.0/.
- * 
+ *
  * This Source Code Form is "Incompatible With Secondary Licenses", as
  * defined by the Mozilla Public License, v. 2.0.
  */
@@ -80,41 +80,42 @@ const char* getIsMobile(fiftyoneDegreesWorkset* ws);
 void run(fiftyoneDegreesDataSet* dataSet);
 
 int main(int argc, char* argv[]) {
-const char* properties = "IsMobile";
-const char* fileName = argc > 1 ? argv[1] : "../../../data/51Degrees-LiteV3.2.dat";
+    const char* properties = "IsMobile";
+    const char* fileName = argc > 1 ? argv[1] : "../../../data/51Degrees-LiteV3.2.dat";
 
-/**
-* Initialises the device detection dataset with the above settings.
-* This uses the Lite data file For more info
-* see:
-* <a href="https://51degrees.com/compare-data-options">compare data options
-* </a>
-*/
-if (fileName != NULL) {
-	switch (fiftyoneDegreesInitWithPropertyString(fileName, &dataSet, properties)) {
-	case DATA_SET_INIT_STATUS_INSUFFICIENT_MEMORY:
-		printf("Insufficient memory to load '%s'.", fileName);
-		break;
-	case DATA_SET_INIT_STATUS_CORRUPT_DATA:
-		printf("Device data file '%s' is corrupted.", fileName);
-		break;
-	case DATA_SET_INIT_STATUS_INCORRECT_VERSION:
-		printf("Device data file '%s' is not correct version.", fileName);
-		break;
-	case DATA_SET_INIT_STATUS_FILE_NOT_FOUND:
-		printf("Device data file '%s' not found.", fileName);
-		break;
-	case DATA_SET_INIT_STATUS_NOT_SET:
-		printf("Device data file '%s' could not be loaded.", fileName);
-		break;
-	default:
-		run(&dataSet);
-		break;
-	}
-}
+    /**
+    * Initialises the device detection dataset with the above settings.
+    * This uses the Lite data file For more info
+    * see:
+    * <a href="https://51degrees.com/compare-data-options">compare data options
+    * </a>
+    */
+    if (fileName != NULL) {
+        switch (fiftyoneDegreesInitWithPropertyString(fileName, &dataSet, properties)) {
+        case DATA_SET_INIT_STATUS_INSUFFICIENT_MEMORY:
+            printf("Insufficient memory to load '%s'.", fileName);
+            break;
+        case DATA_SET_INIT_STATUS_CORRUPT_DATA:
+            printf("Device data file '%s' is corrupted.", fileName);
+            break;
+        case DATA_SET_INIT_STATUS_INCORRECT_VERSION:
+            printf("Device data file '%s' is not correct version.", fileName);
+            break;
+        case DATA_SET_INIT_STATUS_FILE_NOT_FOUND:
+            printf("Device data file '%s' not found.", fileName);
+            break;
+        case DATA_SET_INIT_STATUS_NOT_SET:
+            printf("Device data file '%s' could not be loaded.", fileName);
+            break;
+        default:
+            run(&dataSet);
+            break;
+        }
+    }
 
-// Wait for a character to be pressed.
-fgetc(stdin);
+    // Wait for a character to be pressed.
+    fgetc(stdin);
+    return 0;
 }
 
 void run(fiftyoneDegreesDataSet* dataSet) {

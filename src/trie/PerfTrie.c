@@ -80,7 +80,7 @@ void reportProgress(PERFORMANCE_STATE *perfState, int count, int device, int pro
 
 #ifndef FIFTYONEDEGREES_NO_THREADING
 	// Lock the state whilst the counters are updated.
-	FIFTYONEDEGREES_MUTEX_LOCK(perfState->lock);
+	FIFTYONEDEGREES_MUTEX_LOCK(&perfState->lock);
 #endif
 
 	// Increase the count.
@@ -97,7 +97,7 @@ void reportProgress(PERFORMANCE_STATE *perfState, int count, int device, int pro
 
 #ifndef FIFTYONEDEGREES_NO_THREADING
 	// Unlock the signal now that the count has been updated.
-	FIFTYONEDEGREES_MUTEX_UNLOCK(perfState->lock);
+	FIFTYONEDEGREES_MUTEX_UNLOCK(&perfState->lock);
 #endif
 }
 

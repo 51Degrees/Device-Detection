@@ -37,13 +37,7 @@ fiftyoneDegreesInitWithPropertyString(fileName, &dataSet, properties);
 a specified property value pair
 <p><pre class="prettyprint lang-c">
 fiftyoneDegreesProfilesStruct *profiles
-= fiftyoneDegreesFindProfiles(dataSet, "IsMobile", "True");
-</pre></p>
-<li>Search within a list of profiles for another property value pair.
-<p><pre class="prettyprint lang-c">
-fiftyoneDegreesProfilesStruct *profiles1080
-= fiftyoneDegreesFindProfilesInProfiles(dataSet, "ScreenPixelsWidth",
-"1080", profiles);
+= provider.findProfiles("IsMobile", "True");
 </pre></p>
 <li>Free the memory taken by the profiles structure
 <p><pre class="prettyprint lang-c">
@@ -108,6 +102,7 @@ int main(int argc, char* argv[]) {
 
 	// Wait for a character to be pressed.
 	fgetc(stdin);
+	return 0;
 }
 
 void run(fiftyoneDegreesDataSet* dataSet) {
@@ -115,23 +110,19 @@ void run(fiftyoneDegreesDataSet* dataSet) {
 
 	// Retieve all the mobile profiles in the data set.
 	fiftyoneDegreesProfilesStruct *mobileProfiles = fiftyoneDegreesFindProfiles(dataSet, "IsMobile", "True");
-	printf("There are %d mobile profiles in the Lite data set.\n", mobileProfiles->count);
-	// Find how many have a screen width of 1080 pixels.
-	fiftyoneDegreesProfilesStruct *mobile1080Profiles = fiftyoneDegreesFindProfilesInProfiles(dataSet, "ScreenPixelsWidth", "1080", mobileProfiles);
-	printf("%d of them have a screen width of 1080 pixels.\n", mobile1080Profiles->count);
+	printf("There are '%d' mobile profiles in the '%s' data set.\n", 
+		mobileProfiles->count, 
+		&fiftyoneDegreesGetString(dataSet, dataSet->header.nameOffset)->firstByte);
 
 	// Retrieve all the non-mobile profiles in the data set.
 	fiftyoneDegreesProfilesStruct *nonMobileProfiles = fiftyoneDegreesFindProfiles(dataSet, "IsMobile", "False");
-	printf("There are %d non-mobile profiles in the Lite data set.\n", nonMobileProfiles->count);
-	// Find how many have a screen width of 1080 pixels.
-	fiftyoneDegreesProfilesStruct *nonMobile1080Profiles = fiftyoneDegreesFindProfilesInProfiles(dataSet, "ScreenPixelsWidth", "1080", nonMobileProfiles);
-	printf("%d of them have a screen width of 1080 pixels.\n", nonMobile1080Profiles->count);
+	printf("There are '%d' non-mobile profiles in the '%s' data set.\n", 
+		nonMobileProfiles->count,
+		&fiftyoneDegreesGetString(dataSet, dataSet->header.nameOffset)->firstByte);
 
 	// Free the profiles structures.
 	fiftyoneDegreesFreeProfilesStruct(mobileProfiles);
 	fiftyoneDegreesFreeProfilesStruct(nonMobileProfiles);
-	fiftyoneDegreesFreeProfilesStruct(mobile1080Profiles);
-	fiftyoneDegreesFreeProfilesStruct(nonMobile1080Profiles);
 
 	// Free the data set.
 	fiftyoneDegreesDataSetFree(dataSet);

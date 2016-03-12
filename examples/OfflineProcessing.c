@@ -2,25 +2,25 @@
  * This Source Code Form is copyright of 51Degrees Mobile Experts Limited.
  * Copyright (c) 2015 51Degrees Mobile Experts Limited, 5 Charlotte Close,
  * Caversham, Reading, Berkshire, United Kingdom RG4 7BY
- * 
+ *
  * This Source Code Form is the subject of the following patent
  * applications, owned by 51Degrees Mobile Experts Limited of 5 Charlotte
  * Close, Caversham, Reading, Berkshire, United Kingdom RG4 7BY:
  * European Patent Application No. 13192291.6; and
  * United States Patent Application Nos. 14/085,223 and 14/085,301.
- * 
+ *
  * This Source Code Form is subject to the terms of the Mozilla Public
  * License, v. 2.0.
- * 
+ *
  * If a copy of the MPL was not distributed with this file, You can obtain
  * one at http://mozilla.org/MPL/2.0/.
- * 
+ *
  * This Source Code Form is "Incompatible With Secondary Licenses", as
  * defined by the Mozilla Public License, v. 2.0.
  */
 /*
 <tutorial>
-Offline processing example of using 51Degrees device detection. 
+Offline processing example of using 51Degrees device detection.
 The example shows how to:
 <ol>
 <li>Set the various settings for 51Degrees detector
@@ -81,7 +81,7 @@ This example assumes you have compiled with 51Degrees.c
 and city.c. This will happen automatically if you are compiling
 as part of the Visual Studio solution. Additionally, when running,
 the location of a 51Degrees data file and an input file
-must be passed as a command line argument if you wish to use 
+must be passed as a command line argument if you wish to use
 Premium or Enterprise data files.
 </tutorial>
 */
@@ -96,7 +96,8 @@ fiftyoneDegreesDataSet dataSet;
 char *properties[3];
 
 const char* getValue(fiftyoneDegreesWorkset* ws, char* propertyName);
-void run(fiftyoneDegreesDataSet* dataSet, char* properties[], int propertiesCount, char *inputFile);
+void run(fiftyoneDegreesDataSet* dataSet, char* properties[],
+	int propertiesCount, const char *inputFile);
 
 int main(int argc, char* argv[]) {
 	properties[0] = "IsMobile";
@@ -138,51 +139,53 @@ int main(int argc, char* argv[]) {
 
 	// Wait for a character to be pressed.
 	fgetc(stdin);
+	return 0;
 }
 
-void run(fiftyoneDegreesDataSet* dataSet, char* properties[], int propertiesCount, char *inputFile) {
-    char userAgent[1000];
-    const char* value;
-    int i, j;
+void run(fiftyoneDegreesDataSet* dataSet, char* properties[],
+         int propertiesCount, const char *inputFile) {
+	char userAgent[1000];
+	const char* value;
+	int i, j;
 
-// Creates workset.
-    ws = fiftyoneDegreesWorksetCreate(dataSet, NULL);
+	// Creates workset.
+	ws = fiftyoneDegreesWorksetCreate(dataSet, NULL);
 
-    printf("Starting Offline Processing Example.\n");
+	printf("Starting Offline Processing Example.\n");
 
-// Opens input and output files.
-    char* outputFile = "offlineProcessingOutput.csv";
-    FILE* fin = fopen(inputFile, "r");
-    FILE* fout = fopen(outputFile, "w");
+	// Opens input and output files.
+	char* outputFile = "offlineProcessingOutput.csv";
+	FILE* fin = fopen(inputFile, "r");
+	FILE* fout = fopen(outputFile, "w");
 
-// Print CSV headers to output file.
-    fprintf(fout, "User-Agent");
-    for (j=0;j<propertiesCount;j++) {
-        fprintf(fout, "|%s", properties[j]);
-    }
-    fprintf(fout, "\n");
+	// Print CSV headers to output file.
+	fprintf(fout, "User-Agent");
+	for (j=0;j<propertiesCount;j++) {
+		fprintf(fout, "|%s", properties[j]);
+	}
+	fprintf(fout, "\n");
 
-// Carries out match for first 20 User-Agents and prints results to
-// output file.
-    for (i=0;i<20;i++) {
-        fgets(userAgent, sizeof(userAgent), fin);
-        userAgent[strlen(userAgent)-1] = '\0';
-        fprintf(fout, "%s", userAgent);
-        fiftyoneDegreesMatch(ws, userAgent);
-        for (j=0;j<propertiesCount;j++) {
-            value = getValue(ws, properties[j]);
-            fprintf(fout, "|%s", value);
-        }
-        fprintf(fout, "\n");
-    }
+	// Carries out match for first 20 User-Agents and prints results to
+	// output file.
+	for (i=0;i<20;i++) {
+		fgets(userAgent, sizeof(userAgent), fin);
+		userAgent[strlen(userAgent)-1] = '\0';
+		fprintf(fout, "%s", userAgent);
+		fiftyoneDegreesMatch(ws, userAgent);
+		for (j=0;j<propertiesCount;j++) {
+			value = getValue(ws, properties[j]);
+			fprintf(fout, "|%s", value);
+		}
+		fprintf(fout, "\n");
+	}
 
-    printf("Output Written to %s\n", outputFile);
+	printf("Output Written to %s\n", outputFile);
 
-// Frees workset.
-    fiftyoneDegreesWorksetFree(ws);
+	// Frees workset.
+	fiftyoneDegreesWorksetFree(ws);
 
-// Frees dataset.
-    fiftyoneDegreesDataSetFree(dataSet);
+	// Frees dataset.
+	fiftyoneDegreesDataSetFree(dataSet);
 }
 
 /**
@@ -194,19 +197,19 @@ void run(fiftyoneDegreesDataSet* dataSet, char* properties[], int propertiesCoun
  * @returns a string representation of the value for the property
  */
 const char* getValue(fiftyoneDegreesWorkset* ws, char* propertyName) {
-    int requiredPropertyIndex;
-    const char* result;
-    const fiftyoneDegreesAsciiString* valueName;
+	int requiredPropertyIndex;
+	const char* result;
+	const fiftyoneDegreesAsciiString* valueName;
 
-    requiredPropertyIndex = fiftyoneDegreesGetRequiredPropertyIndex(ws->dataSet, propertyName);
+	requiredPropertyIndex = fiftyoneDegreesGetRequiredPropertyIndex(ws->dataSet, propertyName);
 	if (requiredPropertyIndex != -1) {
 		fiftyoneDegreesSetValues(ws, requiredPropertyIndex);
 		valueName = fiftyoneDegreesGetString(ws->dataSet, ws->values[0]->nameOffset);
 		result = &(valueName->firstByte);
 		return result;
 	}
-	else
+	else {
 		return "";
-
+	}
 }
 // Snippet End

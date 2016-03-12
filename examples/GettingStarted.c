@@ -2,25 +2,25 @@
  * This Source Code Form is copyright of 51Degrees Mobile Experts Limited.
  * Copyright (c) 2015 51Degrees Mobile Experts Limited, 5 Charlotte Close,
  * Caversham, Reading, Berkshire, United Kingdom RG4 7BY
- * 
+ *
  * This Source Code Form is the subject of the following patent
  * applications, owned by 51Degrees Mobile Experts Limited of 5 Charlotte
  * Close, Caversham, Reading, Berkshire, United Kingdom RG4 7BY:
  * European Patent Application No. 13192291.6; and
  * United States Patent Application Nos. 14/085,223 and 14/085,301.
- * 
+ *
  * This Source Code Form is subject to the terms of the Mozilla Public
  * License, v. 2.0.
- * 
+ *
  * If a copy of the MPL was not distributed with this file, You can obtain
  * one at http://mozilla.org/MPL/2.0/.
- * 
+ *
  * This Source Code Form is "Incompatible With Secondary Licenses", as
  * defined by the Mozilla Public License, v. 2.0.
  */
 /*
 <tutorial>
-Getting started example of using 51Degrees device detection. 
+Getting started example of using 51Degrees device detection.
 The example shows how to:
 <ol>
 <li>Set the various settings for 51Degrees detector
@@ -61,7 +61,7 @@ fiftyoneDegreesDataSetFree(&dataSet);
 This example assumes you have compiled with 51Degrees.c
 and city.c. This will happen automatically if you are compiling
 as part of the Visual Studio solution. Additionally, when running,
-the location of a 51Degrees data file must be passed as a 
+the location of a 51Degrees data file must be passed as a
 command line argument if you wish to use Premium or Enterprise
 data files.
 </tutorial>
@@ -114,6 +114,7 @@ int main(int argc, char* argv[]) {
 
 	// Wait for a character to be pressed.
 	fgetc(stdin);
+	return 0;
 }
 
 void run(fiftyoneDegreesDataSet* dataSet) {
@@ -160,7 +161,6 @@ void run(fiftyoneDegreesDataSet* dataSet) {
 	// Frees workset.
 	fiftyoneDegreesWorksetFree(ws);
 
-	// Frees dataset.
 	fiftyoneDegreesDataSetFree(dataSet);
 }
 

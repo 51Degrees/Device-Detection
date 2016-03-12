@@ -110,6 +110,14 @@ namespace FiftyOne.Example.Illustration.CSharp.GettingStarted
             Console.WriteLine("\nMediaHub User-Agent: " + mediaHubUserAgent);
             IsMobile = match.getValue("IsMobile");
             Console.WriteLine("   IsMobile: " + IsMobile);
+
+            // Profiles the number of profiles where IsMobile == "False".
+            Profiles profiles = provider.findProfiles("IsMobile", "False");
+            Console.WriteLine(profiles.getCount() + "  " + profiles.getProfileId(0));
+
+            // Uses the device ID method to return details.
+            match = provider.getMatchForDeviceId(profiles.getProfileId(0).ToString());
+            Console.WriteLine(match.getValue("IsMobile"));
         }
         // Snippet End
 
