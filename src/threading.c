@@ -24,6 +24,9 @@
 
 #include <pthread.h>
 #include "threading.h"
+#ifdef __APPLE__
+#include <sys/time.h>
+#endif
 
 /**
  * GCC / PTHREAD SIGNAL IMPLEMENTATION - NOT USED BY WINDOWS
@@ -133,7 +136,14 @@ void fiftyoneDegreesSignalWait(fiftyoneDegreesSignal *signal) {
 	struct timespec timeout;
 	if (signal->destroyed == 0) {
 		if (pthread_mutex_lock((pthread_mutex_t *__restrict)&signal->mutex.mutex) == 0) {
+#ifdef __APPLE__
+			struct timeval tv;
+			gettimeofday(&tv, NULL);
+			timeout.tv_sec = tv.tv_sec;
+			timeout.tv_nsec = tv.tv_usec * 1000;
+#else
 			clock_gettime(CLOCK_REALTIME, &timeout);
+#endif
 			timeout.tv_nsec += (FIFTYONEDEGREES_SIGNAL_TIMEOUT_MS * 1000000);
 			pthread_cond_timedwait((pthread_cond_t *__restrict)&signal->cond,
 							   (pthread_mutex_t *__restrict)&signal->mutex.mutex,
