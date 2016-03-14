@@ -18,6 +18,101 @@
 * This Source Code Form is "Incompatible With Secondary Licenses", as
 * defined by the Mozilla Public License, v. 2.0.
 */
+/*
+<tutorial>
+Reload from memory example that shows how to:
+<ol>
+	<li>Use the provider structure to access the pool, dataset and cache as 
+	well as device detection functionality.
+	<li>Use the fiftyoneDegreesProviderReloadFromMemory function to reload the
+	dataset, cache and workset pool from the data file that has been read into 
+	a continuous memory space.
+	<li>Retrieve a workset from the pool and return it back into the pool when
+	done with detecting current User-Agent.
+	<li>Use the reload functionality in a single threaded environment.
+	<li>Use the reload functionality in a multi threaded environment.
+</ol>
+<p>
+	This example demonstrates how to use the 51Degrees provider structure to 
+	access the workset pool, cache and dataset as well as to invoke the reload 
+	functionality.
+	<p><pre class="prettyprint lang-c">
+	static fiftyoneDegreesProvider *provider;
+	</pre></p>
+</p>
+<p>
+	Example assumes that the initial pool, dataset and cache were created using
+	either the fiftyoneDegreesInitProviderWithPropertyString function,
+	or the fiftyoneDegreesInitProviderWithPropertyArray function.
+</p>
+<p>
+	The fiftyoneDegreesProviderReloadFromMemory function requires an existing 
+	provider structure with initialized dataset, pool and cache. Function 
+	reloads the dataset from the provided pointer to the continuous memory 
+	space containing the data file. New dataset is created with the same 
+	parameters as the original dataset. New cache and pool are created.
+</p>
+<p>
+	<b>Important</b>: unlike the reload from file example you need to decide if 
+	the 51Degrees API should dispose of the allocated file when the resources 
+	are deallocated or if you wish to retain the allocated memory for later 
+	use. To instruct the API to free the continuous memory space set the 
+	memoryToFree pointer equal to the pointer of the file in memory.
+	<p><pre class="prettyprint lang-c">
+	fiftyoneDegreesDataSet *ds = (fiftyoneDegreesDataSet*)provider->activePool->dataSet;
+	ds->memoryToFree = (void*)fileInMemory;
+	</pre></p>
+</p>
+<p>
+	Please keep in mind that even if the current dataset was constructed with
+	all available properties this does not guarantee that the new dataset will
+	be initialized with the same set of properties. If the new data file
+	contains properties that were not part of the original data file, the new
+	extra property(ies) will not be initialized. If the new data file does not
+	contain one or more property that were previously available, then these
+	property(ies) will not be initialized.
+</p>
+<p>
+	Each successful data file reload should be accompanied by the integrity
+	check to verify that the properties you want have indeed been loaded. This
+	can be achieved by simply comparing the number of properties before and
+	after the reload as the number can not go up but it can go down.
+</p>
+<p>
+	Example also demonstrates the concept of a workset pool. A workset pool is
+	a thread safe collection of workset structures. To retrieve a workset use:
+	<p><pre class="prettyprint lang-c">
+	fiftyoneDegreesWorkset *ws = NULL;
+	ws = fiftyoneDegreesProviderWorksetGet(provider);
+	</pre></p>
+	And to return a workset to the pool use:
+	<p><pre class="prettyprint lang-c">
+	fiftyoneDegreesWorksetRelease(ws);
+	</pre></p>
+</p>
+<p>
+	The benefit of the workset pool is that it eliminates the overheads of
+	creating a new workset structure for every new request, instead an existing
+	workset is used. Be sure to initialize the workset of the appropriate size
+	as an insufficiently small workset could cause delay with processing the
+	device detection requests as the thread is waiting for a the next available
+	workset in the pool.
+</p>
+<p>
+	The reload functionality works both with the single threaded as well as the
+	multi threaded modes. To try the reload functionality in single threaded
+	mode build with FIFTYONEDEGREES_NO_THREADING defined. Or build without
+	FIFTYONEDEGREES_NO_THREADING for multi threaded example.
+</p>
+<p>
+	In a single threaded environment the reload function is executed as part of
+	the normal flow of the program execution and will prevent any other actions
+	until the reload is complete. The reload itself takes less than half a
+	second even for Enterprise dataset. For more information see:
+	https://51degrees.com/Support/Documentation/APIs/C-V32/Benchmarks
+</p>
+</tutorial>
+*/
 
 #ifdef _MSC_VER
 #ifdef _DEBUG
@@ -74,9 +169,9 @@ int main(int argc, char* argv[]) {
 	// Path to file containing HTTP User-Agent strings.
 	const char* inputFile = argc > 2 ? argv[2] :
 		"D:\\Workspace\\Device-Detection\\data\\20000 User Agents.csv";
-
+	// How many times the dataset was reloaded.
 	int numberOfReloads = 0;
-
+	// Allocate space for provider.
 	provider = (fiftyoneDegreesProvider*)malloc(sizeof(fiftyoneDegreesProvider));
 
 #ifndef FIFTYONEDEGREES_NO_THREADING
@@ -229,7 +324,6 @@ static int runRequest(const char *inputFile) {
 	memcpy(pathToFileInMemory, 
 		provider->activePool->dataSet->fileName, 
 		strlen(provider->activePool->dataSet->fileName) + 1);
-	printf("File: %s\n", pathToFileInMemory);
 
 	while (fgets(userAgent, sizeof(userAgent), fin) != NULL) {
 		ws = fiftyoneDegreesProviderWorksetGet(provider);
