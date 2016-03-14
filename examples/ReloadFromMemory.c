@@ -204,7 +204,7 @@ int main(int argc, char* argv[]) {
 			// Refresh the current dataset.
 			fiftyoneDegreesProviderReloadFromMemory(provider, (void*)fileInMemory, currentFileSize);
 			fiftyoneDegreesDataSet *ds = (fiftyoneDegreesDataSet*)provider->activePool->dataSet;
-			// Tell the API to free the memory occupied by the data file.
+			// Tell the API to free the memory occupied by the data file when the dataset is freed.
 			ds->memoryToFree = (void*)fileInMemory;
 
 			numberOfReloads++;
