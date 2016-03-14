@@ -33,24 +33,24 @@ Reload from file example that shows how to:
 	<li>Use the reload functionality in a multi threaded environment.
 </ol>
 <p>
-	This example illustrates how to use a single reference to the workset pool
-	to use device detection and invoke the reload functionality instead of
-	maintaining a reference to the dataset, pool and cache structures
-	separately.
+	This example illustrates how to use a single reference to the provider 
+	structure to use device detection and invoke the reload functionality 
+	instead of maintaining a reference to the dataset, pool and cache 
+	structures separately.
 	<p><pre class="prettyprint lang-c">
-	fiftyoneDegreesWorksetPool *pool;
+	fiftyoneDegreesProvider provider;
 	</pre></p>
 </p>
 <p>
 	Example assumes that the initial pool, dataset and cache were created using
-	either the fiftyoneDegreesInitPoolWithPropertyString function,
-	or the fiftyoneDegreesInitPoolWithPropertyArray function.
+	either the fiftyoneDegreesInitProviderWithPropertyString function,
+	or the fiftyoneDegreesInitProviderWithPropertyArray function.
 </p>
 <p>
-	The fiftyoneDegreesDatasetReloadFromFile function requires an existing pool
-	with the initialized dataset and cache. Function reloads the dataset from
-	the same location and with the same parameters as the original dataset. A
-	new cache and pool is created.
+	The fiftyoneDegreesProviderReloadFromFile function requires an existing 
+	pool with the initialized dataset and cache. Function reloads the dataset 
+	from the same location and with the same parameters as the original dataset. 
+	New cache and pool is created.
 </p>
 <p>
 	Please keep in mind that even if the current dataset was constructed with
@@ -72,7 +72,7 @@ Reload from file example that shows how to:
 	a thread safe collection of workset structures. To retrieve a workset use:
 	<p><pre class="prettyprint lang-c">
 	fiftyoneDegreesWorkset *ws = NULL;
-	fiftyoneDegreesWorksetPoolGet(pool);
+	fiftyoneDegreesProviderWorksetGet(&provider);
 	</pre></p>
 	And to return a workset to the pool use:
 	<p><pre class="prettyprint lang-c">

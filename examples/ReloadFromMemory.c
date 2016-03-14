@@ -165,10 +165,10 @@ int main(int argc, char* argv[]) {
 
 	// Path to 51Degrees data files. Or use default paths.
 	const char* fileName = argc > 1 ? argv[1] :
-		"D:\\Workspace\\Device-Detection\\data\\51Degrees-LiteV3.2.dat";
+		"../../../data/51Degrees-LiteV3.2.dat";
 	// Path to file containing HTTP User-Agent strings.
 	const char* inputFile = argc > 2 ? argv[2] :
-		"D:\\Workspace\\Device-Detection\\data\\20000 User Agents.csv";
+		"../../../data/20000 User Agents.csv";
 	// How many times the dataset was reloaded.
 	int numberOfReloads = 0;
 	// Allocate space for provider.
