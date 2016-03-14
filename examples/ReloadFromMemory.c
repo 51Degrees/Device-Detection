@@ -104,8 +104,6 @@ int main(int argc, char* argv[]) {
 		long currentFileSize;
 
 		while (threadsFinished < numberOfThreads) {
-
-			//status = fiftyoneDegreesProviderReloadFromFile(&provider);
 			// Load file into memory.
 			currentFileSize = loadFile(fileName, &fileInMemory);
 			// Refresh the current dataset.
