@@ -22,10 +22,10 @@
 <tutorial>
 Reload from memory example that shows how to:
 <ol>
-	<li>Use the provider structure to access the pool, dataset and cache as 
+	<li>Use the provider structure to access the pool, dataset and cache as
 	well as device detection functionality.
 	<li>Use the fiftyoneDegreesProviderReloadFromMemory function to reload the
-	dataset, cache and workset pool from the data file that has been read into 
+	dataset, cache and workset pool from the data file that has been read into
 	a continuous memory space.
 	<li>Retrieve a workset from the pool and return it back into the pool when
 	done with detecting current User-Agent.
@@ -33,8 +33,8 @@ Reload from memory example that shows how to:
 	<li>Use the reload functionality in a multi threaded environment.
 </ol>
 <p>
-	This example demonstrates how to use the 51Degrees provider structure to 
-	access the workset pool, cache and dataset as well as to invoke the reload 
+	This example demonstrates how to use the 51Degrees provider structure to
+	access the workset pool, cache and dataset as well as to invoke the reload
 	functionality.
 	<p><pre class="prettyprint lang-c">
 	static fiftyoneDegreesProvider *provider;
@@ -46,17 +46,17 @@ Reload from memory example that shows how to:
 	or the fiftyoneDegreesInitProviderWithPropertyArray function.
 </p>
 <p>
-	The fiftyoneDegreesProviderReloadFromMemory function requires an existing 
-	provider structure with initialized dataset, pool and cache. Function 
-	reloads the dataset from the provided pointer to the continuous memory 
-	space containing the data file. New dataset is created with the same 
+	The fiftyoneDegreesProviderReloadFromMemory function requires an existing
+	provider structure with initialized dataset, pool and cache. Function
+	reloads the dataset from the provided pointer to the continuous memory
+	space containing the data file. New dataset is created with the same
 	parameters as the original dataset. New cache and pool are created.
 </p>
 <p>
-	<b>Important</b>: unlike the reload from file example you need to decide if 
-	the 51Degrees API should dispose of the allocated file when the resources 
-	are deallocated or if you wish to retain the allocated memory for later 
-	use. To instruct the API to free the continuous memory space set the 
+	<b>Important</b>: unlike the reload from file example you need to decide if
+	the 51Degrees API should dispose of the allocated file when the resources
+	are deallocated or if you wish to retain the allocated memory for later
+	use. To instruct the API to free the continuous memory space set the
 	memoryToFree pointer equal to the pointer of the file in memory.
 	<p><pre class="prettyprint lang-c">
 	fiftyoneDegreesDataSet *ds = (fiftyoneDegreesDataSet*)provider->activePool->dataSet;
@@ -319,10 +319,10 @@ static int runRequest(const char *inputFile) {
 	FILE* fin = fopen((const char*)inputFile, "r");
 	// In this example the same data file is reloaded from.
 	// Store path for use with reloads.
-	pathToFileInMemory = (char*)malloc(sizeof(char) * 
+	pathToFileInMemory = (char*)malloc(sizeof(char) *
 						(strlen(provider->activePool->dataSet->fileName) + 1));
-	memcpy(pathToFileInMemory, 
-		provider->activePool->dataSet->fileName, 
+	memcpy(pathToFileInMemory,
+		provider->activePool->dataSet->fileName,
 		strlen(provider->activePool->dataSet->fileName) + 1);
 
 	while (fgets(userAgent, sizeof(userAgent), fin) != NULL) {
@@ -331,7 +331,7 @@ static int runRequest(const char *inputFile) {
 		hashCode ^= getHashCode(ws);
 		fiftyoneDegreesWorksetRelease(ws);
 		count++;
-		
+
 		if (count % 1000 == 0) {
 			// Load file into memory.
 			currentFileSize = loadFile(pathToFileInMemory, &fileInMemory);
