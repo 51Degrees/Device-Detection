@@ -74,6 +74,14 @@ data files.
 </tutorial>
 */
 
+#ifdef _MSC_VER
+#ifdef _DEBUG
+#define _CRTDBG_MAP_ALLOC
+#include <stdlib.h>
+#include <crtdbg.h>
+#endif
+#endif
+
 // Snippet Start
 #include <stdio.h>
 #include <string.h>
@@ -122,6 +130,13 @@ int main(int argc, char* argv[]) {
 
 	// Wait for a character to be pressed.
 	fgetc(stdin);
+
+#ifdef _MSC_VER
+#ifdef _DEBUG
+	_CrtDumpMemoryLeaks();
+#endif
+#endif
+
 	return 0;
 }
 
