@@ -96,14 +96,11 @@ const int16_t POWERS[] = { 1, 10, 100, 1000, 10000 };
  * Prior to calling this function for the first time make sure the pointer is
  * set to the first byte of the allocated continuous memory space.
  *
- * @param current is the pointer to the current byte, typically also
- *		  pointed to by the pointer. Gets incremented by the number of
-		  bytes provided in advanceBy.
- * @param max is the last byte in the continuous memory space the pointer
- *		  is advanced in. Providing -1 as the value forces function to
- *		  ignore the out of bounds check.
+ * @param pointer is the pointer to the current byte. Gets incremented by the
+		  number of bytes provided in advanceBy.
+ * @param lastByte pointer to the last valid byte in the memory space. A 
+		  corrupt memory response is return if this is exceeded.
  * @param advanceBy number of bytes to advance the pointer by.
- * @param pointer modifiable pointer to the continuous memory space.
  * @return fiftyoneDegreesDataSetInitStatus stating the result of the
  *		   current advance operation. Codes other than
  *		   DATA_SET_INIT_STATUS_SUCCESS indicate there is a problem.
