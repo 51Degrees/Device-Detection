@@ -11,7 +11,7 @@ if test "$PHP_FIFTYONEDEGREESTRIEV3" = "yes"; then
   AC_CONFIG_COMMANDS_PRE(cp ../../src/trie/* src/trie)
   AC_CONFIG_COMMANDS_PRE(cp ../../src/threading.h src)
   AC_CONFIG_COMMANDS_PRE(cp ../../src/cityhash/city.* src/cityhash)
-  AC_CONFIG_COMMANDS_PRE(swig -php -c++ -o src/trie/51Degrees_PHP.cpp src/trie/51Degrees.i)
+  AC_CONFIG_COMMANDS_PRE(swig2.0 -php -c++ -o src/trie/51Degrees_PHP.cpp src/trie/51Degrees.i)
   AC_CONFIG_COMMANDS_PRE(mkdir includes)
   AC_CONFIG_COMMANDS_PRE(cp src/trie/FiftyOneDegreesTrieV3.php includes/)
 
