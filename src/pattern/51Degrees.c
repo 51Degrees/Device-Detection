@@ -346,13 +346,18 @@ fiftyoneDegreesDataSetInitStatus initProvider(
 	int poolSize,
 	int cacheSize) {
 	fiftyoneDegreesWorksetPool *newPool;
+	fiftyoneDegreesResultsetCache *cache;
 
-	// Create a new cache for the pool to use.
-	fiftyoneDegreesResultsetCache *cache =
-		fiftyoneDegreesResultsetCacheCreate(dataSet, cacheSize);
-	if (cache == NULL) {
-		fiftyoneDegreesDataSetFree(dataSet);
-		return DATA_SET_INIT_STATUS_INSUFFICIENT_MEMORY;
+	// Create a new cache for the pool to use if a value was provided.
+	if (cacheSize > 0) {
+		cache = fiftyoneDegreesResultsetCacheCreate(dataSet, cacheSize);
+		if (cache == NULL) {
+			fiftyoneDegreesDataSetFree(dataSet);
+			return DATA_SET_INIT_STATUS_INSUFFICIENT_MEMORY;
+		}
+	}
+	else {
+		cache = NULL;
 	}
 
 	// Create a new active pool for the provider.
@@ -402,7 +407,7 @@ static fiftyoneDegreesDataSetInitStatus reloadCommon(
 
 	// Initialise the new provider with a pool and cache.
 	status = initProvider(provider, newDataSet,
-		oldPool->size, oldPool->cache->total);
+		oldPool->size, oldPool->cache != NULL ? oldPool->cache->total : 0);
 	if (status != DATA_SET_INIT_STATUS_SUCCESS) {
 		fiftyoneDegreesDataSetFree(newDataSet);
 	} 
@@ -2305,14 +2310,16 @@ static void resultsetCacheListFree(const fiftyoneDegreesResultsetCacheList *rscl
  * \endcond
  */
 void fiftyoneDegreesResultsetCacheFree(const fiftyoneDegreesResultsetCache *rsc) {
-	resultsetCacheListFree(rsc->active);
-	resultsetCacheListFree(rsc->background);
+	if (rsc != NULL) {
+		resultsetCacheListFree(rsc->active);
+		resultsetCacheListFree(rsc->background);
 #ifndef FIFTYONEDEGREES_NO_THREADING
-	FIFTYONEDEGREES_MUTEX_CLOSE(rsc->activeLock);
-	FIFTYONEDEGREES_MUTEX_CLOSE(rsc->backgroundLock);
+		FIFTYONEDEGREES_MUTEX_CLOSE(rsc->activeLock);
+		FIFTYONEDEGREES_MUTEX_CLOSE(rsc->backgroundLock);
 #endif
-	free((void*)rsc->resultSets);
-	free((void*)rsc);
+		free((void*)rsc->resultSets);
+		free((void*)rsc);
+	}
 }
 
  /**
