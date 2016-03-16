@@ -312,6 +312,7 @@ SWIGEXPORT void SWIGSTDCALL SWIGRegisterStringCallback_FiftyOneDegreesPatternV3(
 
 	#include "Provider.hpp"
 	#include "Match.hpp"
+	#include "Profiles.hpp"
 
 	#ifdef SWIGPHP
 	Provider *provider;
@@ -2107,6 +2108,134 @@ SWIGEXPORT char * SWIGSTDCALL CSharp_Match_getUserAgent(void * jarg1) {
 }
 
 
+SWIGEXPORT void SWIGSTDCALL CSharp_delete_Profiles(void * jarg1) {
+  Profiles *arg1 = (Profiles *) 0 ;
+  
+  arg1 = (Profiles *)jarg1; 
+  {
+    try {
+      delete arg1;;
+    }
+    catch(runtime_error& e) {
+      {
+        SWIG_CSharpException(SWIG_RuntimeError, e.what()); return ; 
+      };
+    }
+    catch(invalid_argument& e) {
+      {
+        SWIG_CSharpException(SWIG_ValueError, e.what()); return ; 
+      };
+    }
+  }
+}
+
+
+SWIGEXPORT void * SWIGSTDCALL CSharp_new_Profiles() {
+  void * jresult ;
+  Profiles *result = 0 ;
+  
+  {
+    try {
+      result = (Profiles *)new Profiles();;
+    }
+    catch(runtime_error& e) {
+      {
+        SWIG_CSharpException(SWIG_RuntimeError, e.what()); return 0; 
+      };
+    }
+    catch(invalid_argument& e) {
+      {
+        SWIG_CSharpException(SWIG_ValueError, e.what()); return 0; 
+      };
+    }
+  }
+  jresult = (void *)result; 
+  return jresult;
+}
+
+
+SWIGEXPORT int SWIGSTDCALL CSharp_Profiles_getCount(void * jarg1) {
+  int jresult ;
+  Profiles *arg1 = (Profiles *) 0 ;
+  int result;
+  
+  arg1 = (Profiles *)jarg1; 
+  {
+    try {
+      result = (int)(arg1)->getCount();;
+    }
+    catch(runtime_error& e) {
+      {
+        SWIG_CSharpException(SWIG_RuntimeError, e.what()); return 0; 
+      };
+    }
+    catch(invalid_argument& e) {
+      {
+        SWIG_CSharpException(SWIG_ValueError, e.what()); return 0; 
+      };
+    }
+  }
+  jresult = result; 
+  return jresult;
+}
+
+
+SWIGEXPORT int SWIGSTDCALL CSharp_Profiles_getProfileIndex(void * jarg1, int jarg2) {
+  int jresult ;
+  Profiles *arg1 = (Profiles *) 0 ;
+  int arg2 ;
+  int result;
+  
+  arg1 = (Profiles *)jarg1; 
+  arg2 = (int)jarg2; 
+  {
+    try {
+      result = (int)(arg1)->getProfileIndex(arg2);;
+    }
+    catch(runtime_error& e) {
+      {
+        SWIG_CSharpException(SWIG_RuntimeError, e.what()); return 0; 
+      };
+    }
+    catch(invalid_argument& e) {
+      {
+        SWIG_CSharpException(SWIG_ValueError, e.what()); return 0; 
+      };
+    }
+  }
+  jresult = result; 
+  return jresult;
+}
+
+
+SWIGEXPORT int SWIGSTDCALL CSharp_Profiles_getProfileId(void * jarg1, int jarg2) {
+  int jresult ;
+  Profiles *arg1 = (Profiles *) 0 ;
+  int arg2 ;
+  int result;
+  
+  arg1 = (Profiles *)jarg1; 
+  arg2 = (int)jarg2; 
+  {
+    try {
+      result = (int)(arg1)->getProfileId(arg2);;
+    }
+    catch(runtime_error& e) {
+      {
+        SWIG_CSharpException(SWIG_RuntimeError, e.what()); return 0; 
+      };
+    }
+    catch(invalid_argument& e) {
+      {
+        SWIG_CSharpException(SWIG_ValueError, e.what()); return 0; 
+      };
+    }
+  }
+  jresult = result; 
+  return jresult;
+}
+
+
 SWIGEXPORT void * SWIGSTDCALL CSharp_new_Provider__SWIG_0(char * jarg1) {
   void * jresult ;
   std::string *arg1 = 0 ;
@@ -2721,6 +2850,106 @@ SWIGEXPORT void * SWIGSTDCALL CSharp_Provider_getMatchForDeviceId(void * jarg1, 
   }
   jresult = (void *)result; 
   return jresult;
+}
+
+
+SWIGEXPORT void * SWIGSTDCALL CSharp_Provider_findProfiles__SWIG_0(void * jarg1, char * jarg2, char * jarg3) {
+  void * jresult ;
+  Provider *arg1 = (Provider *) 0 ;
+  std::string arg2 ;
+  std::string arg3 ;
+  Profiles *result = 0 ;
+  
+  arg1 = (Provider *)jarg1; 
+  if (!jarg2) {
+    SWIG_CSharpSetPendingExceptionArgument(SWIG_CSharpArgumentNullException, "null string", 0);
+    return 0;
+  }
+  (&arg2)->assign(jarg2); 
+  if (!jarg3) {
+    SWIG_CSharpSetPendingExceptionArgument(SWIG_CSharpArgumentNullException, "null string", 0);
+    return 0;
+  }
+  (&arg3)->assign(jarg3); 
+  {
+    try {
+      result = (Profiles *)(arg1)->findProfiles(arg2,arg3);;
+    }
+    catch(runtime_error& e) {
+      {
+        SWIG_CSharpException(SWIG_RuntimeError, e.what()); return 0; 
+      };
+    }
+    catch(invalid_argument& e) {
+      {
+        SWIG_CSharpException(SWIG_ValueError, e.what()); return 0; 
+      };
+    }
+  }
+  jresult = (void *)result; 
+  return jresult;
+}
+
+
+SWIGEXPORT void * SWIGSTDCALL CSharp_Provider_findProfiles__SWIG_1(void * jarg1, char * jarg2, char * jarg3, void * jarg4) {
+  void * jresult ;
+  Provider *arg1 = (Provider *) 0 ;
+  std::string arg2 ;
+  std::string arg3 ;
+  Profiles *arg4 = (Profiles *) 0 ;
+  Profiles *result = 0 ;
+  
+  arg1 = (Provider *)jarg1; 
+  if (!jarg2) {
+    SWIG_CSharpSetPendingExceptionArgument(SWIG_CSharpArgumentNullException, "null string", 0);
+    return 0;
+  }
+  (&arg2)->assign(jarg2); 
+  if (!jarg3) {
+    SWIG_CSharpSetPendingExceptionArgument(SWIG_CSharpArgumentNullException, "null string", 0);
+    return 0;
+  }
+  (&arg3)->assign(jarg3); 
+  arg4 = (Profiles *)jarg4; 
+  {
+    try {
+      result = (Profiles *)(arg1)->findProfiles(arg2,arg3,arg4);;
+    }
+    catch(runtime_error& e) {
+      {
+        SWIG_CSharpException(SWIG_RuntimeError, e.what()); return 0; 
+      };
+    }
+    catch(invalid_argument& e) {
+      {
+        SWIG_CSharpException(SWIG_ValueError, e.what()); return 0; 
+      };
+    }
+  }
+  jresult = (void *)result; 
+  return jresult;
+}
+
+
+SWIGEXPORT void SWIGSTDCALL CSharp_Provider_reloadFromFile(void * jarg1) {
+  Provider *arg1 = (Provider *) 0 ;
+  
+  arg1 = (Provider *)jarg1; 
+  {
+    try {
+      (arg1)->reloadFromFile();;
+    }
+    catch(runtime_error& e) {
+      {
+        SWIG_CSharpException(SWIG_RuntimeError, e.what()); return ; 
+      };
+    }
+    catch(invalid_argument& e) {
+      {
+        SWIG_CSharpException(SWIG_ValueError, e.what()); return ; 
+      };
+    }
+  }
 }
 
 

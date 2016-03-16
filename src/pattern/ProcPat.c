@@ -39,6 +39,7 @@ int main(int argc, char* argv[]) {
 	case DATA_SET_INIT_STATUS_INSUFFICIENT_MEMORY:
 		printf("Insufficient memory to load '%s'.", argv[1]);
 		break;
+	case DATA_SET_INIT_STATUS_POINTER_OUT_OF_BOUNDS:
 	case DATA_SET_INIT_STATUS_CORRUPT_DATA:
 		printf("Device data file '%s' is corrupted.", argv[1]);
 		break;
@@ -47,6 +48,9 @@ int main(int argc, char* argv[]) {
 		break;
 	case DATA_SET_INIT_STATUS_FILE_NOT_FOUND:
 		printf("Device data file '%s' not found.", argv[1]);
+		break;
+	case DATA_SET_INIT_STATUS_NULL_POINTER:
+		printf("Null pointer prevented loading of '%s'.", argv[1]);
 		break;
 	default: {
 
