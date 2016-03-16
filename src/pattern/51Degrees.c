@@ -267,7 +267,7 @@ static fiftyoneDegreesDataSetInitStatus readComponents(
  * will not be initialised in the new dataset. Properties that are present in
  * the new data file but are not in the old data file will not be initialised.
  *
- * It is up to the caller to to verify that all of the required properties have
+ * It is up to the caller to verify that all of the required properties have
  * been initialised.
  *
  * @param oldDataSet the dataset to retrieve required property names. Not NULL.
@@ -381,7 +381,7 @@ fiftyoneDegreesDataSetInitStatus initProvider(
 /**
  * \cond
  * Once a new data set has been created this method assigns it to the provider
- * switching over active device detection to use the new data set. Resouces
+ * switching over active device detection to use the new data set. Resources
  * already being used for device detection are freed if not being used, or
  * marked to be freed when other threads have finished with them.
  * @param provider pointer to the provider to be reloaded
@@ -667,7 +667,7 @@ static fiftyoneDegreesDataSetInitStatus initFromFile(
 		return DATA_SET_INIT_STATUS_CORRUPT_DATA;
 	}
 
-	// Read the file into memory in a single continous memory space.
+	// Read the file into memory in a single continuous memory space.
 	if (fseek(inputFilePtr, 0, SEEK_SET) != 0) {
 		return DATA_SET_INIT_STATUS_CORRUPT_DATA;
 	}
@@ -696,7 +696,7 @@ static fiftyoneDegreesDataSetInitStatus initFromFile(
  * Creates a new dataset, pool and cache using the same configuration options
  * as the current data set, pool and cache associated with the provider. The
  * original file location is used to create the new data set.
- * The exisitng data set, pool and cache are marked to be freed if worksets are
+ * The existing data set, pool and cache are marked to be freed if worksets are
  * being used by other threads, or if no work sets are in use they are freed
  * immediately.
  * @param provider pointer to the provider whose data set should be reloaded
@@ -736,7 +736,7 @@ fiftyoneDegreesDataSetInitStatus fiftyoneDegreesProviderReloadFromFile(
  * Creates a new dataset, pool and cache using the same configuration options
  * as the current data set, pool and cache associated with the provider. The
  * memory located at the source pointer is used to create the new data set.
- * The exisitng data set, pool and cache are marked to be freed if worksets are
+ * The existing data set, pool and cache are marked to be freed if worksets are
  * being used by other threads, or if no work sets are in use they are freed
  * immediately.
  * Important: The memory pointed to by source will NOT be freed by 51Degrees
@@ -794,9 +794,9 @@ fiftyoneDegreesDataSetInitStatus fiftyoneDegreesProviderReloadFromMemory(
 
  /**
  * \cond
- * Returns a pointer to the ascii string at the byte offset provided
+ * Returns a pointer to the ASCII string at the byte offset provided
  * @param dataSet pointer to the data set
- * @param offset to the ascii string required from the strings pointer
+ * @param offset to the ASCII string required from the strings pointer
  * @return a pointer to the AsciiString at the offset
  * \endcond
  */
@@ -837,12 +837,12 @@ static int32_t getPropertyIndex(
 
 /**
  * \cond
- * Gets the http header name at the index provided.
+ * Gets the HTTP header name at the index provided.
  * @param dataset pointer to an initialised dataset
- * @param httpHeaderIndex index of the http header required
- * @param httpHeader pointer to memory to place the http header name
+ * @param httpHeaderIndex index of the HTTP header required
+ * @param httpHeader pointer to memory to place the HTTP header name
  * @param size of the memory allocated for the name
- * @return the number of bytes written for the http header
+ * @return the number of bytes written for the HTTP header
  * \endcond
  */
 int32_t fiftyoneDegreesGetHttpHeaderName(
@@ -953,13 +953,13 @@ int32_t fiftyoneDegreesGetValues(
 		value = fiftyoneDegreesGetString(ws->dataSet, ws->values[valueIndex]->nameOffset);
 		sizeNeeded += value->length;
 		if (sizeNeeded <= size) {
-			// Add a value seperator if this isn't the first value in the list.
+			// Add a value separator if this isn't the first value in the list.
 			if (valueIndex > 0) {
 				*currentPosition = '|';
 				currentPosition++;
 			}
 			// Copy the value string to the values memory at the current position
-			// appending a seperator or a end of string byte depending on the
+			// appending a separator or a end of string byte depending on the
 			// remaining characters. Take one from the length because we don't
 			// need the 0 string terminator.
 			memcpy(currentPosition, (char*)&(value->firstByte), value->length - 1);
@@ -1142,7 +1142,7 @@ static int32_t getSignatureLengthFromNodeOffsets(
  * strings array.
  * @param dataSet pointer to the data set
  * @param node pointer for the node whose characters are required
- * @return pointer to the ascii string associated with the node
+ * @return pointer to the ASCII string associated with the node
  * \endcond
  */
 static const fiftyoneDegreesAsciiString* getNodeCharacters(
@@ -1331,8 +1331,11 @@ static const int32_t* getFirstRankedSignatureIndexForNode(
  * @param signatureIndex to be added to the end of the list
  * \endcond
  */
-static void linkedListAdd(fiftyoneDegreesLinkedSignatureList *linkedList, int32_t rankedSignatureIndex) {
-	fiftyoneDegreesLinkedSignatureListItem *newSignature = (fiftyoneDegreesLinkedSignatureListItem*)(linkedList->items) + linkedList->count;
+static void linkedListAdd(fiftyoneDegreesLinkedSignatureList *linkedList, 
+				int32_t rankedSignatureIndex) {
+	fiftyoneDegreesLinkedSignatureListItem *newSignature = 
+		(fiftyoneDegreesLinkedSignatureListItem*)(linkedList->items) + 
+		linkedList->count;
 	newSignature->rankedSignatureIndex = rankedSignatureIndex;
 	newSignature->frequency = 1;
 	newSignature->next = NULL;
@@ -1353,9 +1356,11 @@ static void linkedListAdd(fiftyoneDegreesLinkedSignatureList *linkedList, int32_
  *        build the initial linked list.
  * \endcond
  */
-static void buildInitialList(fiftyoneDegreesWorkset *ws, const fiftyoneDegreesNode *node) {
+static void buildInitialList(fiftyoneDegreesWorkset *ws, 
+				const fiftyoneDegreesNode *node) {
 	int32_t index;
-	const int32_t *rankedSignatureIndex = getFirstRankedSignatureIndexForNode(node);
+	const int32_t *rankedSignatureIndex = 
+		getFirstRankedSignatureIndexForNode(node);
 	if (node->signatureCount == 1) {
 		// Only one signature so the first ranked signature index
 		// is the value for the ranked signature index.
@@ -1364,9 +1369,11 @@ static void buildInitialList(fiftyoneDegreesWorkset *ws, const fiftyoneDegreesNo
 	else {
 		// Multiple signatures so the first ranked signature index
 		// is the index of the first value in the list.
-		rankedSignatureIndex = ws->dataSet->nodeRankedSignatureIndexes + *rankedSignatureIndex;
+		rankedSignatureIndex = 
+			ws->dataSet->nodeRankedSignatureIndexes + *rankedSignatureIndex;
 		for (index = 0; index < node->signatureCount; index++) {
-			linkedListAdd(&(ws->linkedSignatureList), *(rankedSignatureIndex + index));
+			linkedListAdd(&(ws->linkedSignatureList), 
+				*(rankedSignatureIndex + index));
 		}
 	}
 }
@@ -1376,10 +1383,15 @@ static void buildInitialList(fiftyoneDegreesWorkset *ws, const fiftyoneDegreesNo
  * Adds the signature index before the item provided.
  * @param linkedList pointer to the linked list to be altered
  * @param item that the signature index should be added before
+ * @param rankedSignatureIndex ranked index of the signature passed.
  * \endcond
  */
-static void linkedListAddBefore(fiftyoneDegreesLinkedSignatureList *linkedList, fiftyoneDegreesLinkedSignatureListItem *item, int32_t rankedSignatureIndex) {
-	fiftyoneDegreesLinkedSignatureListItem *newSignature = (fiftyoneDegreesLinkedSignatureListItem*)(linkedList->items + linkedList->count);
+static void linkedListAddBefore(fiftyoneDegreesLinkedSignatureList *linkedList, 
+				fiftyoneDegreesLinkedSignatureListItem *item, 
+				int32_t rankedSignatureIndex) {
+	fiftyoneDegreesLinkedSignatureListItem *newSignature = 
+		(fiftyoneDegreesLinkedSignatureListItem*)
+		(linkedList->items + linkedList->count);
 	newSignature->rankedSignatureIndex = rankedSignatureIndex;
 	newSignature->frequency = 1;
 	newSignature->next = item;
@@ -1400,7 +1412,8 @@ static void linkedListAddBefore(fiftyoneDegreesLinkedSignatureList *linkedList, 
  * @param item to be removed from the list
  * \endcond
  */
-static void linkedListRemove(fiftyoneDegreesLinkedSignatureList *linkedList, fiftyoneDegreesLinkedSignatureListItem *item) {
+static void linkedListRemove(fiftyoneDegreesLinkedSignatureList *linkedList, 
+				fiftyoneDegreesLinkedSignatureListItem *item) {
 	if (item->previous != NULL)
 		item->previous->next = item->next;
 	if (item->next != NULL)
@@ -1418,13 +1431,21 @@ static void linkedListRemove(fiftyoneDegreesLinkedSignatureList *linkedList, fif
  * \endcond
  */
 
+/**
+ * Frees memory associated with properties and pointers to property values.
+ * @param dataSet pointer to the data set
+ */
 static void freeProfilesStructs(const fiftyoneDegreesDataSet *dataSet) {
 	int propertyIndex, valueIndex, propertyValueCount;
 	fiftyoneDegreesProperty *property;
-	for (propertyIndex = 0; propertyIndex < dataSet->header.properties.count; propertyIndex++) {
+	for (propertyIndex = 0; 
+		propertyIndex < dataSet->header.properties.count; 
+		propertyIndex++) {
 		if (dataSet->valuePointersArray[propertyIndex].initialised == 1) {
-			property = (fiftyoneDegreesProperty*)(dataSet->properties + (int32_t)propertyIndex);
-			propertyValueCount = property->lastValueIndex - property->firstValueIndex + 1;
+			property = (fiftyoneDegreesProperty*)(dataSet->properties + 
+						(int32_t)propertyIndex);
+			propertyValueCount = 
+				property->lastValueIndex - property->firstValueIndex + 1;
 			for (valueIndex = 0; valueIndex < propertyValueCount; valueIndex++) {
 				free((void*)dataSet->valuePointersArray[propertyIndex].profilesStructs[valueIndex].indexes);
 			}
@@ -1437,7 +1458,7 @@ static void freeProfilesStructs(const fiftyoneDegreesDataSet *dataSet) {
 /**
  * \cond
  * Destroys the data set releasing all memory available. Ensure all worksets
- * cache and pool structs are freed prior to calling this method.
+ * cache and pool structures are freed prior to calling this method.
  * @param dataSet pointer to the data set being destroyed
  * \endcond
  */
@@ -1490,7 +1511,8 @@ static void setAllProperties(fiftyoneDegreesDataSet *dataSet) {
 	int32_t index;
 	dataSet->requiredPropertyCount = dataSet->header.properties.count;
 	dataSet->requiredProperties =
-		(const fiftyoneDegreesProperty**)malloc(dataSet->requiredPropertyCount * sizeof(fiftyoneDegreesProperty*));
+		(const fiftyoneDegreesProperty**)malloc(
+		dataSet->requiredPropertyCount * sizeof(fiftyoneDegreesProperty*));
 	if (dataSet->requiredProperties != NULL) {
 		for (index = 0; index < dataSet->requiredPropertyCount; index++) {
 			*(dataSet->requiredProperties + index) = dataSet->properties + index;
@@ -1500,14 +1522,16 @@ static void setAllProperties(fiftyoneDegreesDataSet *dataSet) {
 
  /**
  * \cond
- * Adds the properties in the array of properties to the list
- * of required properties from a match.
+ * Adds the properties in the array of properties to the list of required 
+ * properties from a match.
  * @param dataSet pointer to the data set
  * @param properties array of properties to be returned
  * @param count number of elements in the properties array
  * \endcond
  */
-static void setProperties(fiftyoneDegreesDataSet *dataSet, const char** properties, int32_t count) {
+static void setProperties(fiftyoneDegreesDataSet *dataSet, 
+				const char** properties, 
+				int32_t count) {
 	int32_t index, propertyIndex;
 	int16_t requiredPropertyLength;
 	const char *requiredPropertyName;
@@ -1515,7 +1539,8 @@ static void setProperties(fiftyoneDegreesDataSet *dataSet, const char** properti
 
 	// Allocate memory for this number of properties.
 	dataSet->requiredPropertyCount = 0;
-	dataSet->requiredProperties = (const fiftyoneDegreesProperty**)malloc(count * sizeof(const fiftyoneDegreesProperty*));
+	dataSet->requiredProperties = (const fiftyoneDegreesProperty**)malloc(
+		count * sizeof(const fiftyoneDegreesProperty*));
 	// Add the properties to the list of required properties.
 	if (dataSet->requiredProperties != NULL) {
 		for (propertyIndex = 0; propertyIndex < count; propertyIndex++) {
@@ -1524,14 +1549,19 @@ static void setProperties(fiftyoneDegreesDataSet *dataSet, const char** properti
 			requiredPropertyLength = (int16_t)strlen(requiredPropertyName);
 
 			for (index = 0; index < dataSet->header.properties.count; index++) {
-				// Go through each property in the properties dataset was initialised with.
-				// Get name of current property of the dataset's properties
-				propertyName = fiftyoneDegreesGetString(dataSet, (dataSet->properties + index)->nameOffset);
+				// Go through each property in the properties dataset was 
+				// initialized with. Get name of current property of the 
+				// dataset's properties
+				propertyName = fiftyoneDegreesGetString(
+					dataSet, (dataSet->properties + index)->nameOffset);
 				// Compare the two properties byte values.
 				if (requiredPropertyLength == propertyName->length - 1 &&
-					memcmp(requiredPropertyName, &propertyName->firstByte, requiredPropertyLength) == 0) {
+					memcmp(requiredPropertyName, 
+						&propertyName->firstByte, 
+						requiredPropertyLength) == 0) {
 
-					*(dataSet->requiredProperties + dataSet->requiredPropertyCount) = (dataSet->properties + index);
+					*(dataSet->requiredProperties + dataSet->requiredPropertyCount) = 
+						(dataSet->properties + index);
 					dataSet->requiredPropertyCount++;
 					break;
 				}
@@ -1566,11 +1596,10 @@ static int32_t getSeparatorCount(const char* input) {
 
  /**
  * \cond
- * Initialises the data set passed to the method with the data from
- * the file provided. If required properties is provided the data set
- * will only return those listed and separated by comma, pipe, space
- * or tab.
- * @param fileName of the data source to use for initialisation
+ * Initialises the data set passed to the method with the data from the file 
+ * provided. If required properties is provided the data set will only return 
+ * those listed and separated by comma, pipe, space or tab.
+ * @param fileName of the data source to use for initialization
  * @param dataSet pointer to the data set
  * @param requiredProperties char array to the separated list of properties
  *        the dataSet can return
@@ -1593,14 +1622,16 @@ fiftyoneDegreesDataSetInitStatus fiftyoneDegreesInitWithPropertyString(
 
 	// Determine if properties were provided.
 	if (requiredPropertyCount > 0) {
-		// Copy the properties as we'll be null terminating at the seperators.
+		// Copy the properties as we'll be null terminating at the separators.
 		copyRequiredProperties = strdup(requiredProperties);
 		if (copyRequiredProperties != NULL) {
 			// Allocate pointers for each of the properties.
-			requiredPropertiesArray = (const char**)malloc(requiredPropertyCount * sizeof(char*));
+			requiredPropertiesArray = 
+				(const char**)malloc(requiredPropertyCount * sizeof(char*));
 			currentProperty = copyRequiredProperties;
 			if (requiredPropertiesArray != NULL) {
-				// Change the input string so that the separators are changed to nulls.
+				// Change the input string so that the separators are 
+				// changed to nulls.
 				for (index = 0; count < requiredPropertyCount; index++) {
 					if (*(copyRequiredProperties + index) == ',' ||
 						*(copyRequiredProperties + index) == '|' ||
@@ -1622,7 +1653,7 @@ fiftyoneDegreesDataSetInitStatus fiftyoneDegreesInitWithPropertyString(
 		}
 	}
 
-	// Initialise the data set with the properties extracted.
+	// Initialize the data set with the properties extracted.
 	status = fiftyoneDegreesInitWithPropertyArray(
 		fileName,
 		dataSet,
@@ -1642,18 +1673,18 @@ fiftyoneDegreesDataSetInitStatus fiftyoneDegreesInitWithPropertyString(
 
 /**
  * \cond
- * Initialises the provider passed to the method with a data set initialised
+ * Initialises the provider passed to the method with a data set initialized
  * from the file provided. If required properties is provided the associated
  * data set will only return properties contained between separators.
- * @param fileName of the data source to use for initialisation
- * @param provider pointer to the pool to be initialised
+ * @param fileName of the data source to use for initialization
+ * @param provider pointer to the pool to be initialized
  * @param properties char array to the separated list of properties
  *        the dataSet can return
  * @param poolSize number of work sets to hold in the pool
  * @param cacheSize maximum number of items that the cache should store
  * @return fiftyoneDegreesDataSetInitStatus indicating the result of creating
- * 	   the new dataset, pool and cache. If status is anything other than
- * 	   DATA_SET_INIT_STATUS_SUCCESS, then the initialization has failed.
+ *		   the new dataset, pool and cache. If status is anything other than
+ *		   DATA_SET_INIT_STATUS_SUCCESS, then the initialization has failed.
  * \endcond
  */
 fiftyoneDegreesDataSetInitStatus fiftyoneDegreesInitProviderWithPropertyString(
@@ -1682,11 +1713,11 @@ fiftyoneDegreesDataSetInitStatus fiftyoneDegreesInitProviderWithPropertyString(
 
  /**
  * \cond
- * Initialises the data set passed to the method with the data from
+ * Initializes the data set passed to the method with the data from
  * the file provided. If required properties is provided the data set
  * will only return those contained in the array.
  * or tab.
- * @param fileName of the data source to use for initialisation
+ * @param fileName of the data source to use for initialization
  * @param dataSet pointer to the data set
  * @param requiredProperties array of strings containing the property names
  * @param count the number of elements in the requiredProperties array
@@ -1716,18 +1747,18 @@ fiftyoneDegreesDataSetInitStatus fiftyoneDegreesInitWithPropertyArray(
 
 /**
  * \cond
- * Initialises the provider passed to the method with a data set initialised
+ * Initialises the provider passed to the method with a data set initialized
  * from the file provided. If required properties is provided the associated
  * data set will only return properties contained in the array.
- * @param fileName of the data source to use for initialisation
- * @param provider pointer to the pool to be initialised
+ * @param fileName of the data source to use for initialization
+ * @param provider pointer to the pool to be initialized
  * @param properties array of strings containing the property names
  * @param count the number of elements in the requiredProperties array
  * @param poolSize number of work sets to hold in the pool
  * @param cacheSize maximum number of items that the cache should store
  * @return fiftyoneDegreesDataSetInitStatus indicating the result of creating
- * 	   the new dataset, pool and cache. If status is anything other than
- * 	   DATA_SET_INIT_STATUS_SUCCESS, then the initialization has failed.
+ *		   the new dataset, pool and cache. If status is anything other than
+ * 		   DATA_SET_INIT_STATUS_SUCCESS, then the initialization has failed.
  * \endcond
  */
 fiftyoneDegreesDataSetInitStatus fiftyoneDegreesInitProviderWithPropertyArray(
@@ -1766,7 +1797,7 @@ fiftyoneDegreesDataSetInitStatus fiftyoneDegreesInitProviderWithPropertyArray(
  * @param dataSet a pointer to the data set.
  * @param property the property to set the profiles for.
  * @param valuesProfileCount and array where each entry indicates the number of
- * profiles that relate to the value of corresponding index.
+ *		  profiles that relate to the value of corresponding index.
  * \endcond
  */
 static void setProfileStructs(const fiftyoneDegreesDataSet *dataSet,
@@ -1777,25 +1808,34 @@ static void setProfileStructs(const fiftyoneDegreesDataSet *dataSet,
 	fiftyoneDegreesProfile *profile;
 	int32_t *profileValueIndexes;
 	int profileIndexElement;
-	int propertyValuesCount = property->lastValueIndex - property->firstValueIndex + 1;
+	int propertyValuesCount = 
+		property->lastValueIndex - property->firstValueIndex + 1;
 
 	// Allocate memory for the profile indexes.
-	for (propertyValueIndex = 0; propertyValueIndex < propertyValuesCount; propertyValueIndex++) {
+	for (propertyValueIndex = 0; 
+		 propertyValueIndex < propertyValuesCount; 
+		 propertyValueIndex++) {
 		dataSet->valuePointersArray[propertyIndex].profilesStructs[propertyValueIndex].count =
 			valuesProfileCount[propertyValueIndex];
 		dataSet->valuePointersArray[propertyIndex].profilesStructs[propertyValueIndex].indexes =
-			(int32_t*)malloc(valuesProfileCount[propertyValueIndex] * sizeof(int32_t));
+			(int32_t*)malloc(
+			valuesProfileCount[propertyValueIndex] * sizeof(int32_t));
 	}
 
 	// Add the profile indexes to the values that they relate to.
-	for (profileIndex = 0; profileIndex < dataSet->header.profiles.count; profileIndex++) {
+	for (profileIndex = 0; 
+		 profileIndex < dataSet->header.profiles.count; 
+		 profileIndex++) {
 		profile = getProfileByIndex(dataSet, profileIndex);
 		// If the profile has a different component, then skip it as
 		// nothing will be found.
 		if (profile->componentIndex == property->componentIndex) {
-			profileValueIndexes = (int32_t*)((byte*)profile + sizeof(fiftyoneDegreesProfile));
+			profileValueIndexes = 
+				(int32_t*)((byte*)profile + sizeof(fiftyoneDegreesProfile));
 			// Loop through the value indexes for the current profile.
-			for (profileValueIndex = 0; profileValueIndex < profile->valueCount; profileValueIndex++) {
+			for (profileValueIndex = 0; 
+				 profileValueIndex < profile->valueCount; 
+				 profileValueIndex++) {
 				// If the value is one that relates to the property, add the profile.
 				if (property->firstValueIndex <= profileValueIndexes[profileValueIndex]
 					&& profileValueIndexes[profileValueIndex] <= property->lastValueIndex) {
@@ -1814,10 +1854,10 @@ static void setProfileStructs(const fiftyoneDegreesDataSet *dataSet,
 
 /**
  * \cond
- * Initialise the values for the given property with the indexes and count
+ * Initialize the values for the given property with the indexes and count
  * of the profiles relating to each value.
  * @param dataSet pointer to a 51Degrees data set.
- * @param property pointer to the 51Degrees property to be initialised.
+ * @param property pointer to the 51Degrees property to be initialized.
  * \endcond
  */
 static void initFindProfiles(const fiftyoneDegreesDataSet *dataSet,
@@ -1835,9 +1875,12 @@ static void initFindProfiles(const fiftyoneDegreesDataSet *dataSet,
 	if (dataSet->valuePointersArray[propertyIndex].initialised == 0) {
 #endif
 		// Get the amount of values for the property.
-		int propertyValuesCount = property->lastValueIndex - property->firstValueIndex + 1;
-		// Initialise the array with the profiles count for each of the property's values.
-		int *valuesProfileCount = (int32_t*)calloc(propertyValuesCount, sizeof(int32_t));
+		int propertyValuesCount = 
+			property->lastValueIndex - property->firstValueIndex + 1;
+		// Initialize the array with the profiles count for each of the 
+		// property's values.
+		int *valuesProfileCount = 
+			(int32_t*)calloc(propertyValuesCount, sizeof(int32_t));
 
 		// Loop through all profiles incrementing the profile count for the
 		// for the values they relate to.
@@ -1847,14 +1890,18 @@ static void initFindProfiles(const fiftyoneDegreesDataSet *dataSet,
 			// If the profile has a different component, then skip it as
 			// nothing will be found.
 			if (profile->componentIndex == property->componentIndex) {
-				profileValueIndexes = (int32_t*)((byte*)profile + sizeof(fiftyoneDegreesProfile));
+				profileValueIndexes = 
+					(int32_t*)((byte*)profile + sizeof(fiftyoneDegreesProfile));
 				// Loop through the value indexes for the current profile.
-				for (valueIndex = 0; valueIndex < profile->valueCount; valueIndex++) {
+				for (valueIndex = 0; 
+					 valueIndex < profile->valueCount; 
+					 valueIndex++) {
 					// If the value relates to this property then increment the
 					// profile count for the value.
 					if (property->firstValueIndex <= profileValueIndexes[valueIndex]
 						&& profileValueIndexes[valueIndex] <= property->lastValueIndex) {
-						valuesProfileCount[profileValueIndexes[valueIndex] - property->firstValueIndex]++;
+						valuesProfileCount[profileValueIndexes[valueIndex] - 
+							property->firstValueIndex]++;
 					}
 				}
 			}
@@ -1887,9 +1934,9 @@ static void initFindProfiles(const fiftyoneDegreesDataSet *dataSet,
  * \endcond
  */
 fiftyoneDegreesProfilesStruct *fiftyoneDegreesFindProfiles(
-	const fiftyoneDegreesDataSet *dataSet,
-	const char *propertyName,
-	const char* valueName) {
+								const fiftyoneDegreesDataSet *dataSet,
+								const char *propertyName,
+								const char* valueName) {
 	int32_t valueIndex;
 	const char *currentValueName;
 	const fiftyoneDegreesValue *value;
@@ -1903,7 +1950,9 @@ fiftyoneDegreesProfilesStruct *fiftyoneDegreesFindProfiles(
 		int32_t propertyIndex = getPropertyIndex(dataSet, property);
 
 		// Find the value from the value name.
-		for (valueIndex = property->firstValueIndex; valueIndex <= property->lastValueIndex; valueIndex++) {
+		for (valueIndex = property->firstValueIndex; 
+			 valueIndex <= property->lastValueIndex; 
+			 valueIndex++) {
 			value = dataSet->values + valueIndex;
 			currentValueName = fiftyoneDegreesGetValueName(dataSet, value);
 			if (strcmp(valueName, currentValueName) == 0) {
@@ -1913,15 +1962,24 @@ fiftyoneDegreesProfilesStruct *fiftyoneDegreesFindProfiles(
 				}
 				// Set the profiles list to be returned, copying the profile
 				// indexes and getting pointers to the profiles.
-				profilesList = (fiftyoneDegreesProfilesStruct*)malloc(sizeof(fiftyoneDegreesProfilesStruct));
-				profilesList->count = dataSet->valuePointersArray[propertyIndex].profilesStructs[valueIndex - property->firstValueIndex].count;
-				profilesList->profiles = (fiftyoneDegreesProfile**)malloc(sizeof(fiftyoneDegreesProfile*) * profilesList->count);
-				profilesList->indexes = (int32_t*)malloc(sizeof(int32_t) * profilesList->count);
-				memcpy(profilesList->indexes, dataSet->valuePointersArray[propertyIndex].profilesStructs[valueIndex - property->firstValueIndex].indexes,
-					sizeof(int32_t) * dataSet->valuePointersArray[propertyIndex].profilesStructs[valueIndex - property->firstValueIndex].count);
+				profilesList = (fiftyoneDegreesProfilesStruct*)malloc(
+					sizeof(fiftyoneDegreesProfilesStruct));
+				profilesList->count = 
+					dataSet->valuePointersArray[propertyIndex].profilesStructs[valueIndex - 
+					property->firstValueIndex].count;
+				profilesList->profiles = (fiftyoneDegreesProfile**)malloc(
+					sizeof(fiftyoneDegreesProfile*) * profilesList->count);
+				profilesList->indexes = (int32_t*)malloc(
+					sizeof(int32_t) * profilesList->count);
+				memcpy(profilesList->indexes, 
+					dataSet->valuePointersArray[propertyIndex].
+					profilesStructs[valueIndex - property->firstValueIndex].indexes,
+					sizeof(int32_t) * dataSet->valuePointersArray[propertyIndex].
+					profilesStructs[valueIndex - property->firstValueIndex].count);
 
 				for (i = 0; i < profilesList->count; i++) {
-					profilesList->profiles[i] = getProfileByIndex(dataSet, profilesList->indexes[i]);
+					profilesList->profiles[i] = 
+						getProfileByIndex(dataSet, profilesList->indexes[i]);
 				}
 				return profilesList;
 			}
@@ -1948,7 +2006,7 @@ void fiftyoneDegreesFreeProfilesStruct(fiftyoneDegreesProfilesStruct *profiles) 
 
 /**
  * \cond
- * Function to compare two integers, this is used in the bsearch function.
+ * Function to compare two integers, this is used in the "bsearch" function.
  * @param a pointer to an integer.
  * @param b pointer to an integer.
  * \endcond
@@ -1971,10 +2029,10 @@ static int QSORT_COMPARER intcmp(const void *a, const void *b) {
  * \endcond
  */
 fiftyoneDegreesProfilesStruct *fiftyoneDegreesFindProfilesInProfiles(
-	const fiftyoneDegreesDataSet *dataSet,
-	const char *propertyName,
-	const char* valueName,
-	fiftyoneDegreesProfilesStruct *profilesList) {
+								const fiftyoneDegreesDataSet *dataSet,
+								const char *propertyName,
+								const char* valueName,
+								fiftyoneDegreesProfilesStruct *profilesList) {
 	int32_t valueIndex;
 	const char *currentValueName;
 	const fiftyoneDegreesValue *value;
@@ -1983,9 +2041,12 @@ fiftyoneDegreesProfilesStruct *fiftyoneDegreesFindProfilesInProfiles(
 	int matchingProfilesCount = 0;
 	int32_t profileStructElement = 0;
 
-	fiftyoneDegreesProfilesStruct *matchingProfiles = (fiftyoneDegreesProfilesStruct*)malloc(sizeof(fiftyoneDegreesProfilesStruct));
+	fiftyoneDegreesProfilesStruct *matchingProfiles = 
+		(fiftyoneDegreesProfilesStruct*)malloc(
+		sizeof(fiftyoneDegreesProfilesStruct));
 
-	const fiftyoneDegreesProperty *property = getPropertyByName(dataSet, (char*)propertyName);
+	const fiftyoneDegreesProperty *property = 
+		getPropertyByName(dataSet, (char*)propertyName);
 
 	// Only proceed if the property exists in the data set.
 	if (property != NULL) {
@@ -1995,7 +2056,9 @@ fiftyoneDegreesProfilesStruct *fiftyoneDegreesFindProfilesInProfiles(
 		// as the property being matched. If they don't, nothing will be
 		// found.
 		if (firstProfile->componentIndex == property->componentIndex) {
-			for (valueIndex = property->firstValueIndex; valueIndex <= property->lastValueIndex; valueIndex++) {
+			for (valueIndex = property->firstValueIndex; 
+				 valueIndex <= property->lastValueIndex; 
+				 valueIndex++) {
 				value = dataSet->values + valueIndex;
 				currentValueName = fiftyoneDegreesGetValueName(dataSet, value);
 				if (strcmp(valueName, currentValueName) == 0) {
@@ -2007,8 +2070,10 @@ fiftyoneDegreesProfilesStruct *fiftyoneDegreesFindProfilesInProfiles(
 					// Count the number of profiles that will be returned.
 					for (i = 0; i < profilesList->count; i++) {
 						matchingIndex = (int32_t*)bsearch(&profilesList->indexes[i],
-							dataSet->valuePointersArray[propertyIndex].profilesStructs[valueIndex - property->firstValueIndex].indexes,
-							dataSet->valuePointersArray[propertyIndex].profilesStructs[valueIndex - property->firstValueIndex].count,
+							dataSet->valuePointersArray[propertyIndex].
+							profilesStructs[valueIndex - property->firstValueIndex].indexes,
+							dataSet->valuePointersArray[propertyIndex].
+							profilesStructs[valueIndex - property->firstValueIndex].count,
 							sizeof(int32_t), intcmp);
 						if (matchingIndex != NULL) {
 							matchingProfilesCount++;
@@ -2018,19 +2083,26 @@ fiftyoneDegreesProfilesStruct *fiftyoneDegreesFindProfilesInProfiles(
 					// Set the profiles count and allocate the space for the
 					// indexes and pointers.
 					matchingProfiles->count = matchingProfilesCount;
-					matchingProfiles->indexes = (int32_t*)calloc(matchingProfilesCount, sizeof(int32_t));
-					matchingProfiles->profiles = (fiftyoneDegreesProfile**)calloc(matchingProfilesCount, sizeof(fiftyoneDegreesProfile*));
+					matchingProfiles->indexes = 
+						(int32_t*)calloc(matchingProfilesCount, sizeof(int32_t));
+					matchingProfiles->profiles = 
+						(fiftyoneDegreesProfile**)calloc(
+						matchingProfilesCount, sizeof(fiftyoneDegreesProfile*));
 
-					// Do a second pass of the seach adding the indexes and
+					// Do a second pass of the search adding the indexes and
 					// pointers to the structure to be returned.
 					for (i = 0; i < profilesList->count; i++) {
 						matchingIndex = (int32_t*)bsearch(&profilesList->indexes[i],
-							dataSet->valuePointersArray[propertyIndex].profilesStructs[valueIndex - property->firstValueIndex].indexes,
-							dataSet->valuePointersArray[propertyIndex].profilesStructs[valueIndex - property->firstValueIndex].count,
+							dataSet->valuePointersArray[propertyIndex].
+							profilesStructs[valueIndex - property->firstValueIndex].indexes,
+							dataSet->valuePointersArray[propertyIndex].
+							profilesStructs[valueIndex - property->firstValueIndex].count,
 							sizeof(int32_t), intcmp);
 						if (matchingIndex != NULL) {
-							matchingProfiles->indexes[profileStructElement] = *matchingIndex;
-							matchingProfiles->profiles[profileStructElement] = getProfileByIndex(dataSet, *matchingIndex);
+							matchingProfiles->indexes[profileStructElement] = 
+								*matchingIndex;
+							matchingProfiles->profiles[profileStructElement] = 
+								getProfileByIndex(dataSet, *matchingIndex);
 							profileStructElement++;
 						}
 					}
@@ -2056,12 +2128,13 @@ fiftyoneDegreesProfilesStruct *fiftyoneDegreesFindProfilesInProfiles(
 
  /**
  * \cond
- * Copies the data associated with the source resultset to the destination.
+ * Copies the data associated with the source result set to the destination.
  * @param src source result set
  * @param dst destination result set
  * \endcond
  */
-static void resultsetCopy(fiftyoneDegreesResultset *dst, const fiftyoneDegreesResultset *src) {
+static void resultsetCopy(fiftyoneDegreesResultset *dst,
+				const fiftyoneDegreesResultset *src) {
 	dst->dataSet = src->dataSet;
 	dst->closestSignatures = src->closestSignatures;
 	dst->difference = src->difference;
@@ -2069,12 +2142,16 @@ static void resultsetCopy(fiftyoneDegreesResultset *dst, const fiftyoneDegreesRe
 	dst->method = src->method;
 	dst->nodesEvaluated = src->nodesEvaluated;
 	dst->profileCount = src->profileCount;
-	memcpy((void*)dst->profiles, (void*)src->profiles, RESULTSET_PROFILES_SIZE(src->dataSet->header));
+	memcpy((void*)dst->profiles, 
+			(void*)src->profiles, 
+			RESULTSET_PROFILES_SIZE(src->dataSet->header));
 	dst->rootNodesEvaluated = src->rootNodesEvaluated;
 	dst->signaturesCompared = src->signaturesCompared;
 	dst->signaturesRead = src->signaturesRead;
 	dst->stringsRead = src->stringsRead;
-	memcpy((void*)dst->targetUserAgentArray, (void*)src->targetUserAgentArray, RESULTSET_TARGET_USERAGENT_ARRAY_SIZE(src->dataSet->header));
+	memcpy((void*)dst->targetUserAgentArray, 
+			(void*)src->targetUserAgentArray, 
+			RESULTSET_TARGET_USERAGENT_ARRAY_SIZE(src->dataSet->header));
 	dst->targetUserAgentArrayLength = src->targetUserAgentArrayLength;
 	dst->targetUserAgentHashCode = src->targetUserAgentHashCode;
 	dst->signature = src->signature;
@@ -2086,7 +2163,7 @@ static void resultsetCopy(fiftyoneDegreesResultset *dst, const fiftyoneDegreesRe
  * has already been calculated then this value is used. Otherwise as new
  * value is calculated and set for the result set. This only works because
  * we know that the target user agent never changes once set.
- * @param rs resultset whose target user agent hash code is needed.
+ * @param rs result set whose target user agent hash code is needed.
  * @returns the hash code associated with the target user agent.
  * \endcond
  */
@@ -2130,7 +2207,8 @@ fiftyoneDegreesWorksetPool *fiftyoneDegreesWorksetPoolCreate(
 		FIFTYONEDEGREES_MUTEX_CREATE(pool->lock);
 		FIFTYONEDEGREES_SIGNAL_CREATE(pool->signal);
 #endif
-		pool->worksets = (fiftyoneDegreesWorkset**)malloc(size * sizeof(fiftyoneDegreesWorkset*));
+		pool->worksets = (fiftyoneDegreesWorkset**)malloc(
+			size * sizeof(fiftyoneDegreesWorkset*));
 		if (pool->worksets == NULL
 #ifndef FIFTYONEDEGREES_NO_THREADING
 			||
@@ -2141,8 +2219,10 @@ fiftyoneDegreesWorksetPool *fiftyoneDegreesWorksetPoolCreate(
 			) {
 			if (pool->worksets != NULL) { free((void*)pool->worksets); }
 #ifndef FIFTYONEDEGREES_NO_THREADING
-			if (FIFTYONEDEGREES_MUTEX_VALID(&pool->lock) == 0) { FIFTYONEDEGREES_MUTEX_CLOSE(pool->lock); }
-			if (FIFTYONEDEGREES_SIGNAL_VALID(&pool->signal) == 0) { FIFTYONEDEGREES_SIGNAL_CLOSE(pool->signal); }
+			if (FIFTYONEDEGREES_MUTEX_VALID(&pool->lock) == 0) { 
+				FIFTYONEDEGREES_MUTEX_CLOSE(pool->lock); }
+			if (FIFTYONEDEGREES_SIGNAL_VALID(&pool->signal) == 0) { 
+				FIFTYONEDEGREES_SIGNAL_CLOSE(pool->signal); }
 #endif
 			free((void*)pool);
 			pool = NULL;
@@ -2153,7 +2233,8 @@ fiftyoneDegreesWorksetPool *fiftyoneDegreesWorksetPoolCreate(
 			// number that can be created.
 			worksetIndex = 0;
 			while (worksetIndex < pool->size) {
-				pool->worksets[worksetIndex] = fiftyoneDegreesWorksetCreate(pool->dataSet, pool->cache);
+				pool->worksets[worksetIndex] = 
+					fiftyoneDegreesWorksetCreate(pool->dataSet, pool->cache);
 				if (pool->worksets[worksetIndex] != NULL) {
 					pool->worksets[worksetIndex]->associatedPool = pool;
 				}
@@ -2165,7 +2246,8 @@ fiftyoneDegreesWorksetPool *fiftyoneDegreesWorksetPoolCreate(
 			pool->available = pool->size;
 
 #ifndef FIFTYONEDEGREES_NO_THREADING
-			// Set the lock and signal pointers to the ones held in the pool structure.
+			// Set the lock and signal pointers to the ones held in the 
+			// pool structure.
 			pool->lockPtr = &pool->lock;
 			pool->signalPtr = &pool->signal;
 #endif
@@ -2176,14 +2258,15 @@ fiftyoneDegreesWorksetPool *fiftyoneDegreesWorksetPoolCreate(
 
 /**
  * \cond
- * Returns the workset back to the pool it was created from.
- * Worksets created without a pool should be freed using the method
+ * Returns the workset back to the pool it was created from. Worksets created 
+ * without a pool should be freed using the method
  * fiftyoneDegreesWorksetFree.
  * @param ws a workset that was created from a pool or provider.
  * \endcond
  */
 void fiftyoneDegreesWorksetRelease(fiftyoneDegreesWorkset *ws) {
-	fiftyoneDegreesWorksetPool *pool = (fiftyoneDegreesWorksetPool*)ws->associatedPool;
+	fiftyoneDegreesWorksetPool *pool = 
+		(fiftyoneDegreesWorksetPool*)ws->associatedPool;
 #ifndef FIFTYONEDEGREES_NO_THREADING
 	FIFTYONEDEGREES_MUTEX *lockPtr = pool->lockPtr;
 	FIFTYONEDEGREES_MUTEX_LOCK(lockPtr);
@@ -2224,7 +2307,8 @@ void fiftyoneDegreesWorksetRelease(fiftyoneDegreesWorkset *ws) {
  * \endcond
  */
 void fiftyoneDegreesProviderFree(fiftyoneDegreesProvider *provider) {
-	fiftyoneDegreesWorksetPoolCacheDataSetFree((fiftyoneDegreesWorksetPool*)provider->activePool);
+	fiftyoneDegreesWorksetPoolCacheDataSetFree((fiftyoneDegreesWorksetPool*)
+		provider->activePool);
 #ifndef FIFTYONEDEGREES_NO_THREADING
 	FIFTYONEDEGREES_MUTEX_CLOSE(provider->lock);
 	FIFTYONEDEGREES_SIGNAL_CLOSE(provider->signal);
@@ -2337,7 +2421,8 @@ void fiftyoneDegreesWorksetPoolFree(const fiftyoneDegreesWorksetPool *pool) {
  * @param pool pointer to the pool created by fiftyoneDegreesWorksetPoolCreate
  * \endcond
  */
-void fiftyoneDegreesWorksetPoolCacheDataSetFree(const fiftyoneDegreesWorksetPool *pool) {
+void fiftyoneDegreesWorksetPoolCacheDataSetFree(
+		const fiftyoneDegreesWorksetPool *pool) {
 	if (pool->cache != NULL) {
 		fiftyoneDegreesResultsetCacheFree(pool->cache);
 	}
@@ -2366,11 +2451,13 @@ void fiftyoneDegreesWorksetPoolCacheDataSetFree(const fiftyoneDegreesWorksetPool
 
  /**
  * \cond
- * Releases the memory used by the cache list for itself and pointers to resultsets.
+ * Releases the memory used by the cache list for itself and pointers to 
+ * result sets.
  * @param rscl pointer to the cache list created previously
  * \endcond
  */
-static void resultsetCacheListFree(const fiftyoneDegreesResultsetCacheList *rscl) {
+static void resultsetCacheListFree(
+				const fiftyoneDegreesResultsetCacheList *rscl) {
 	free((void*)rscl->resultSets);
 	free((void*)rscl);
 }
@@ -2381,7 +2468,8 @@ static void resultsetCacheListFree(const fiftyoneDegreesResultsetCacheList *rscl
  * @param pointer to the cache created previously
  * \endcond
  */
-void fiftyoneDegreesResultsetCacheFree(const fiftyoneDegreesResultsetCache *rsc) {
+void fiftyoneDegreesResultsetCacheFree(
+		const fiftyoneDegreesResultsetCache *rsc) {
 	if (rsc != NULL) {
 		resultsetCacheListFree(rsc->active);
 		resultsetCacheListFree(rsc->background);
@@ -2408,22 +2496,27 @@ static void resultsetCacheInit(fiftyoneDegreesResultsetCache *rsc) {
 	rsc->active->cache = rsc;
 	rsc->background->cache = rsc;
 
-	// Set the number of resultsets allocated.
+	// Set the number of result sets allocated.
 	rsc->active->allocated = 0;
 	rsc->background->allocated = 0;
 
 	// Set the pointers for the result sets to form a complete linked list
 	// with locations for profiles and target user agent data.
 	profileOffset = CACHED_RESULTSET_PROFILES_OFFSET(rsc->dataSet->header);
-	targetUserAgentOffset = CACHED_RESULTSET_TARGET_USERAGENT_ARRAY_OFFSET(rsc->dataSet->header);
+	targetUserAgentOffset = 
+		CACHED_RESULTSET_TARGET_USERAGENT_ARRAY_OFFSET(rsc->dataSet->header);
 	next = (fiftyoneDegreesResultset*)rsc->resultSets;
 	for (i = 0; i < rsc->total && next != NULL; i++) {
 		current = next;
-		next = i < rsc->total - 1 ? (fiftyoneDegreesResultset*)((char*)current + rsc->sizeOfResultset) : NULL;
+		next = i < rsc->total - 1 ? 
+			(fiftyoneDegreesResultset*)((char*)current + rsc->sizeOfResultset) : 
+			NULL;
 		current->next = next;
 		current->previous = previous;
-		current->profiles = (fiftyoneDegreesProfile*)((char*)current + profileOffset);
-		current->targetUserAgentArray = (byte*)((char*)current + targetUserAgentOffset);
+		current->profiles = (fiftyoneDegreesProfile*)
+			((char*)current + profileOffset);
+		current->targetUserAgentArray = (byte*)
+			((char*)current + targetUserAgentOffset);
 		previous = current;
 	}
 
@@ -2441,13 +2534,17 @@ static void resultsetCacheInit(fiftyoneDegreesResultsetCache *rsc) {
  * Creates a new cache list of the size provided.
  * @param size the number of items in the cache
  * @returns a new uninitialised cache list for use as an active or background
- cache
+ *			cache
  * \endcond
  */
-static fiftyoneDegreesResultsetCacheList* resultsetCacheListCreate(int32_t size) {
-	fiftyoneDegreesResultsetCacheList* rscl = (fiftyoneDegreesResultsetCacheList*)malloc(sizeof(fiftyoneDegreesResultsetCacheList));
+static fiftyoneDegreesResultsetCacheList* resultsetCacheListCreate(
+											int32_t size) {
+	fiftyoneDegreesResultsetCacheList* rscl = 
+		(fiftyoneDegreesResultsetCacheList*)malloc(
+		sizeof(fiftyoneDegreesResultsetCacheList));
 	if (rscl != NULL) {
-		rscl->resultSets = (fiftyoneDegreesResultset **)malloc(size * sizeof(fiftyoneDegreesResultset*));
+		rscl->resultSets = (fiftyoneDegreesResultset **)malloc(
+			size * sizeof(fiftyoneDegreesResultset*));
 		if (rscl->resultSets == NULL) {
 			free((void*)rscl);
 			rscl = NULL;
@@ -2463,7 +2560,7 @@ static fiftyoneDegreesResultsetCacheList* resultsetCacheListCreate(int32_t size)
  * If the cache size is lower then 2 then no cache is created.
  * @param dataSet pointer to the data set
  * @param size maximum number of items that the cache should store
- * @returns a pointer to the resultset cache created, or NULL
+ * @returns a pointer to the result set cache created, or NULL
  * \endcond
  */
 fiftyoneDegreesResultsetCache *fiftyoneDegreesResultsetCacheCreate(
@@ -2482,7 +2579,8 @@ fiftyoneDegreesResultsetCache *fiftyoneDegreesResultsetCacheCreate(
 
 		// Initialise the memory used for the list of result sets.
 		rsc->sizeOfResultset = CACHED_RESULTSET_LENGTH(dataSet->header);
-		rsc->resultSets = (const fiftyoneDegreesResultset*)malloc(size * rsc->sizeOfResultset);
+		rsc->resultSets = (const fiftyoneDegreesResultset*)malloc(
+			size * rsc->sizeOfResultset);
 		rsc->active = resultsetCacheListCreate(size);
 		rsc->background = resultsetCacheListCreate(size);
 #ifndef FIFTYONEDEGREES_NO_THREADING
@@ -2490,8 +2588,8 @@ fiftyoneDegreesResultsetCache *fiftyoneDegreesResultsetCacheCreate(
 		FIFTYONEDEGREES_MUTEX_CREATE(rsc->backgroundLock);
 #endif
 
-		// Check memory was allocated and if there was a problem free that which
-		// was allocated.
+		// Check memory was allocated and if there was a problem free that 
+		// which was allocated.
 		if (rsc->resultSets == NULL ||
 			rsc->active == NULL ||
 			rsc->background == NULL) {
@@ -2511,18 +2609,20 @@ fiftyoneDegreesResultsetCache *fiftyoneDegreesResultsetCacheCreate(
 
  /**
  * \cond
- * Takes an empty resultset from the free linked list and adds it to the
- * allocated linked list copying the resultset provided to the empty
+ * Takes an empty result set from the free linked list and adds it to the
+ * allocated linked list copying the result set provided to the empty
  * location.
- * @param rsc pointer to the resultset cache
+ * @param rsc pointer to the result set cache
  * @param rs pointer to the resultSet to be added
  * @returns pointer to the new result set added to the list
  * \endcond
  */
-static fiftyoneDegreesResultset *resultsetCacheAdd(fiftyoneDegreesResultsetCache *rsc, const fiftyoneDegreesResultset *rs) {
+static fiftyoneDegreesResultset *resultsetCacheAdd(
+									fiftyoneDegreesResultsetCache *rsc, 
+									const fiftyoneDegreesResultset *rs) {
 	fiftyoneDegreesResultset *empty;
 
-	// Get the next empty resultset from the free list.
+	// Get the next empty result set from the free list.
 	empty = rsc->free.first;
 	rsc->free.first = empty->next;
 	if (rsc->free.first != NULL) {
@@ -2534,14 +2634,14 @@ static fiftyoneDegreesResultset *resultsetCacheAdd(fiftyoneDegreesResultsetCache
 	rsc->free.count--;
 
 	if (rsc->allocated.count == 0) {
-		// Make this resultset the only item in the linked list.
+		// Make this result set the only item in the linked list.
 		rsc->allocated.first = empty;
 		rsc->allocated.last = empty;
 		empty->previous = NULL;
 		empty->next = NULL;
 	}
 	else {
-		// Add this resultset to the end of the linked list.
+		// Add this result set to the end of the linked list.
 		rsc->allocated.last->next = empty;
 		empty->previous = rsc->allocated.last;
 		empty->next = NULL;
@@ -2549,7 +2649,7 @@ static fiftyoneDegreesResultset *resultsetCacheAdd(fiftyoneDegreesResultsetCache
 	}
 	rsc->allocated.count++;
 
-	// Copy the provided resultset to the empty location.
+	// Copy the provided result set to the empty location.
 	resultsetCopy(empty, rs);
 
 	return empty;
@@ -2557,25 +2657,26 @@ static fiftyoneDegreesResultset *resultsetCacheAdd(fiftyoneDegreesResultsetCache
 
  /**
  * \cond
- * Removes the resultset from the allocated linked list and returns it to the
+ * Removes the result set from the allocated linked list and returns it to the
  * free linked list.
- * @param rsc pointer to the resultset cache
+ * @param rsc pointer to the result set cache
  * @param rs pointer to the resultSet to be removed
  * \endcond
  */
-static void resultsetCacheRemove(fiftyoneDegreesResultsetCache *rsc, fiftyoneDegreesResultset *rs) {
+static void resultsetCacheRemove(fiftyoneDegreesResultsetCache *rsc, 
+				fiftyoneDegreesResultset *rs) {
 
 	rsc->allocated.count--;
 
 	if (rsc->free.count == 0) {
-		// Make this resultset the only item in the linked list.
+		// Make this result set the only item in the linked list.
 		rsc->free.first = rs;
 		rsc->free.last = rs;
 		rs->previous = NULL;
 		rs->next = NULL;
 	}
 	else {
-		// Add this resultset to the end of the linked list.
+		// Add this result set to the end of the linked list.
 		rsc->free.last->next = rs;
 		rs->previous = rsc->free.last;
 		rs->next = NULL;
@@ -2588,12 +2689,14 @@ static void resultsetCacheRemove(fiftyoneDegreesResultsetCache *rsc, fiftyoneDeg
  * \cond
  * If the target hash code is in the cache returns the index of the item.
  * @param cache pointer to a cache data structure.
- * @param hashcode the hash code of the target user agent.
+ * @param hash code the hash code of the target user agent.
  * @returns index of the item if present, otherwise the twos complement
  *          of the index to insert at.
  * \endcond
  */
-static int32_t resultsetCacheFetchIndex(const fiftyoneDegreesResultsetCacheList *rscl, uint64_t hashcode) {
+static int32_t resultsetCacheFetchIndex(
+				const fiftyoneDegreesResultsetCacheList *rscl, 
+				uint64_t hashcode) {
 	int32_t upper = rscl->allocated - 1, lower = 0, middle;
 
 	if (upper >= 0)
@@ -2621,12 +2724,14 @@ static int32_t resultsetCacheFetchIndex(const fiftyoneDegreesResultsetCacheList 
  * Inserts the result set into the cache items list at the index provided
  * shifting all subsequent result sets in the cache down by one item. The
  * number of allocated items is also increased by 1.
- * @param rscl a resultset cache list (either active or background).
- * @param rs the resultset to be inserted.
- * @param index where the resultset should be copied to.
+ * @param rscl a result set cache list (either active or background).
+ * @param rs the result set to be inserted.
+ * @param index where the result set should be copied to.
  * \endcond
  */
-static void cacheItemsInsert(fiftyoneDegreesResultsetCacheList *rscl, fiftyoneDegreesResultset *rs, int32_t index) {
+static void cacheItemsInsert(fiftyoneDegreesResultsetCacheList *rscl, 
+				fiftyoneDegreesResultset *rs, 
+				int32_t index) {
 	int32_t i;
 
 	// Make room for the new item to be added at the index by
@@ -2648,17 +2753,20 @@ static void cacheItemsInsert(fiftyoneDegreesResultsetCacheList *rscl, fiftyoneDe
  * shifting all subsequent result sets in the cache down by one item. A copy
  * of the result set is made which will only be used by the cache. The number
  * of allocated items is also increased by 1.
- * @param rscl a resultset cache list (either active or background).
- * @param rs the resultset to be inserted.
- * @param index where the resultset should be copied to.
+ * @param rscl a result set cache list (either active or background).
+ * @param rs the result set to be inserted.
+ * @param index where the result set should be copied to.
  * @returns a copy of the result set added to the list.
  * \endcond
  */
-static fiftyoneDegreesResultset *cacheItemsInsertWithCopy(fiftyoneDegreesResultsetCacheList *rscl, fiftyoneDegreesResultset *src, int32_t index) {
+static fiftyoneDegreesResultset *cacheItemsInsertWithCopy(
+									fiftyoneDegreesResultsetCacheList *rscl, 
+									fiftyoneDegreesResultset *src, 
+									int32_t index) {
 	fiftyoneDegreesResultset *rs;
 
-	// Get the pointer to the next item in the list of resultsets
-	// copy the source resultset into the linked list.
+	// Get the pointer to the next item in the list of result sets
+	// copy the source result set into the linked list.
 	rs = resultsetCacheAdd(rscl->cache, src);
 
 	// Insert the copy at the index provided.
@@ -2669,20 +2777,23 @@ static fiftyoneDegreesResultset *cacheItemsInsertWithCopy(fiftyoneDegreesResults
 
  /**
  * \cond
- * Sets the result into the cache items by making a copy of it. If the hashcode
- * exists already then it is overwritten. This could happen if there is a hashcode
- * collision, but due to the nature of the data being cached isn't critical.
- * @param rscl a resultset cache list (either active or background).
- * @param rs resultset to be added to the cache.
- * @returns a pointer the resultset in the cache, otherwise NULL.
+ * Sets the result into the cache items by making a copy of it. If the hash 
+ * code exists already then it is overwritten. This could happen if there is 
+ * a hash code collision, but due to the nature of the data being cached isn't 
+ * critical.
+ * @param rscl a result set cache list (either active or background).
+ * @param rs result set to be added to the cache.
+ * @returns a pointer the result set in the cache, otherwise NULL.
  * \endcond
  */
-static void cacheItemsSet(fiftyoneDegreesResultsetCacheList *rscl, fiftyoneDegreesResultset *rs) {
+static void cacheItemsSet(fiftyoneDegreesResultsetCacheList *rscl, 
+				fiftyoneDegreesResultset *rs) {
 	int32_t index;
 
-	// Find the index of the existing hashcode, or where we should insert
-	// the new resultset.
-	index = resultsetCacheFetchIndex(rscl, getResultsetHashCode((fiftyoneDegreesResultset*)rs));
+	// Find the index of the existing hash code, or where we should insert
+	// the new result set.
+	index = resultsetCacheFetchIndex(rscl, 
+		getResultsetHashCode((fiftyoneDegreesResultset*)rs));
 
 	if (index < 0) {
 		// The item doesn't exist so add it at the index
@@ -2693,9 +2804,8 @@ static void cacheItemsSet(fiftyoneDegreesResultsetCacheList *rscl, fiftyoneDegre
 
  /**
  * \cond
- * Switches the active and background caches if the background
- * cache is 1/2 full and ready to take over. The new background
- * cache is reset.
+ * Switches the active and background caches if the background cache is 1/2 
+ * full and ready to take over. The new background cache is reset.
  * @param rsc pointer to the cache
  * @returns non zero if the caches were switched, otherwise 0
  * \endcond
@@ -2714,8 +2824,9 @@ static void cacheSwitch(fiftyoneDegreesResultsetCache *rsc) {
 		rsc->active = rsc->background;
 		rsc->background = temp;
 
-		// Clean out the background list with anything that's still there marked
-		// as active only as it's not been accessed since the last switch.
+		// Clean out the background list with anything that's still there 
+		// marked as active only as it's not been accessed since the last 
+		// switch.
 		for (i = 0; i < rsc->background->allocated; i++) {
 			rs = rsc->background->resultSets[i];
 			if (rs->state == ACTIVE_CACHE_LIST_ONLY) {
@@ -2727,7 +2838,7 @@ static void cacheSwitch(fiftyoneDegreesResultsetCache *rsc) {
 		// now only in the active cache.
 		rsc->background->allocated = 0;
 
-		// Any resultset that is in the active list should only appear
+		// Any result set that is in the active list should only appear
 		// in that list now.
 		for (i = 0; i < rsc->active->allocated; i++) {
 			rsc->active->resultSets[i]->state = ACTIVE_CACHE_LIST_ONLY;
@@ -2766,18 +2877,43 @@ fiftyoneDegreesWorkset *fiftyoneDegreesWorksetCreate(
 		ws->associatedPool = NULL;
 
 		// Allocate all the memory needed to the workset.
-		ws->input = (char*)malloc((ws->dataSet->header.maxUserAgentLength + 1) * sizeof(char));
-		ws->linkedSignatureList.items = (fiftyoneDegreesLinkedSignatureListItem*)malloc(dataSet->header.maxSignaturesClosest * sizeof(fiftyoneDegreesLinkedSignatureListItem));
-		ws->nodes = (const fiftyoneDegreesNode**)malloc(dataSet->header.maxUserAgentLength * sizeof(const fiftyoneDegreesNode*));
-		ws->orderedNodes = (const fiftyoneDegreesNode**)malloc(dataSet->header.maxUserAgentLength * sizeof(const fiftyoneDegreesNode*));
-		ws->relevantNodes = (char*)malloc(dataSet->header.maxUserAgentLength + 1);
-		ws->closestNodes = (char*)malloc(dataSet->header.maxUserAgentLength + 1);
-		ws->signatureAsString = (char*)malloc((dataSet->header.maxUserAgentLength + 1) * sizeof(char));
-		ws->values = (const fiftyoneDegreesValue**)malloc(dataSet->header.maxValues * sizeof(const fiftyoneDegreesValue*));
-		ws->profiles = (const fiftyoneDegreesProfile**)malloc(RESULTSET_PROFILES_SIZE(dataSet->header));
-		ws->tempProfiles = (const fiftyoneDegreesProfile**)malloc(RESULTSET_PROFILES_SIZE(dataSet->header));
-		ws->targetUserAgentArray = (char*)malloc(RESULTSET_TARGET_USERAGENT_ARRAY_SIZE(dataSet->header));
-		ws->importantHeaders = (fiftyoneDegreesHttpHeaderWorkset*)malloc(ws->dataSet->httpHeadersCount * sizeof(fiftyoneDegreesHttpHeaderWorkset));
+		ws->input = (char*)malloc(
+			(ws->dataSet->header.maxUserAgentLength + 1) * sizeof(char));
+		ws->linkedSignatureList.items = 
+			(fiftyoneDegreesLinkedSignatureListItem*)malloc(
+			dataSet->header.maxSignaturesClosest * 
+			sizeof(fiftyoneDegreesLinkedSignatureListItem));
+		ws->nodes = 
+			(const fiftyoneDegreesNode**)malloc(
+			dataSet->header.maxUserAgentLength * 
+			sizeof(const fiftyoneDegreesNode*));
+		ws->orderedNodes = 
+			(const fiftyoneDegreesNode**)malloc(
+			dataSet->header.maxUserAgentLength * 
+			sizeof(const fiftyoneDegreesNode*));
+		ws->relevantNodes = 
+			(char*)malloc(dataSet->header.maxUserAgentLength + 1);
+		ws->closestNodes = 
+			(char*)malloc(dataSet->header.maxUserAgentLength + 1);
+		ws->signatureAsString = 
+			(char*)malloc((dataSet->header.maxUserAgentLength + 1) * 
+			sizeof(char));
+		ws->values = 
+			(const fiftyoneDegreesValue**)malloc(
+			dataSet->header.maxValues * sizeof(const fiftyoneDegreesValue*));
+		ws->profiles = 
+			(const fiftyoneDegreesProfile**)malloc(
+			RESULTSET_PROFILES_SIZE(dataSet->header));
+		ws->tempProfiles = 
+			(const fiftyoneDegreesProfile**)malloc(
+			RESULTSET_PROFILES_SIZE(dataSet->header));
+		ws->targetUserAgentArray = 
+			(char*)malloc(
+			RESULTSET_TARGET_USERAGENT_ARRAY_SIZE(dataSet->header));
+		ws->importantHeaders = 
+			(fiftyoneDegreesHttpHeaderWorkset*)malloc(
+			ws->dataSet->httpHeadersCount * 
+			sizeof(fiftyoneDegreesHttpHeaderWorkset));
 
 		// Check all the memory was allocated correctly and also
 		// allocate using the result set method.
@@ -2797,24 +2933,29 @@ fiftyoneDegreesWorkset *fiftyoneDegreesWorksetCreate(
 			// One or more of the workset memory allocations failed.
 			// Free any that worked and return NULL.
 			if (ws->input != NULL) { free((void*)ws->input); }
-			if (ws->linkedSignatureList.items != NULL) { free((void*)ws->linkedSignatureList.items); }
+			if (ws->linkedSignatureList.items != NULL) { 
+				free((void*)ws->linkedSignatureList.items); }
 			if (ws->nodes != NULL) { free((void*)ws->nodes); }
 			if (ws->orderedNodes != NULL) { free((void*)ws->orderedNodes); }
 			if (ws->relevantNodes != NULL) { free((void*)ws->relevantNodes); }
 			if (ws->closestNodes != NULL) { free((void*)ws->closestNodes); }
-			if (ws->signatureAsString != NULL) { free((void*)ws->signatureAsString); }
+			if (ws->signatureAsString != NULL) { 
+				free((void*)ws->signatureAsString); }
 			if (ws->values != NULL) { free((void*)ws->values); }
 			if (ws->profiles != NULL) { free((void*)ws->profiles); }
 			if (ws->tempProfiles != NULL) { free((void*)ws->tempProfiles); }
-			if (ws->targetUserAgentArray != NULL) { free((void*)ws->targetUserAgentArray); }
-			if (ws->importantHeaders != NULL) { free((void*)ws->importantHeaders); }
+			if (ws->targetUserAgentArray != NULL) { 
+				free((void*)ws->targetUserAgentArray); }
+			if (ws->importantHeaders != NULL) { 
+				free((void*)ws->importantHeaders); }
 
 			// Free the workset which worked earlier and return NULL.
 			free(ws);
 			ws = NULL;
 		}
 		else {
-			// Null terminate the strings used to return the relevant and closest nodes.
+			// Null terminate the strings used to return the relevant and 
+			// closest nodes.
 			ws->relevantNodes[dataSet->header.maxUserAgentLength] = 0;
 			ws->closestNodes[dataSet->header.maxUserAgentLength] = 0;
 		}
@@ -2825,11 +2966,9 @@ fiftyoneDegreesWorkset *fiftyoneDegreesWorksetCreate(
  /**
  * \cond
  * Releases the memory used by the workset.
- *
  * If the workset is associated with a pool then the
  * fiftyOneDegreesWorksetRelease method should be used to return the workset
  * to the pool its associated with.
- *
  * @param pointer to the workset created previously
  * \endcond
  */
@@ -2857,13 +2996,16 @@ void fiftyoneDegreesWorksetFree(const fiftyoneDegreesWorkset *ws) {
  * @return the right most character returned
  * \endcond
  */
-static int addSignatureNodeToString(fiftyoneDegreesWorkset *ws, const fiftyoneDegreesNode *node) {
+static int addSignatureNodeToString(fiftyoneDegreesWorkset *ws, 
+			const fiftyoneDegreesNode *node) {
 	int nodeIndex, signatureIndex;
-	const fiftyoneDegreesAsciiString *characters = fiftyoneDegreesGetString(ws->dataSet, node->characterStringOffset);
+	const fiftyoneDegreesAsciiString *characters = 
+		fiftyoneDegreesGetString(ws->dataSet, node->characterStringOffset);
 	for (nodeIndex = 0, signatureIndex = node->position + 1;
 		nodeIndex < characters->length - 1;
 		nodeIndex++, signatureIndex++) {
-		ws->signatureAsString[signatureIndex] = (&(characters->firstByte))[nodeIndex];
+		ws->signatureAsString[signatureIndex] = 
+			(&(characters->firstByte))[nodeIndex];
 	}
 	return signatureIndex;
 }
@@ -2875,9 +3017,12 @@ static int addSignatureNodeToString(fiftyoneDegreesWorkset *ws, const fiftyoneDe
  * @param signature pointer to be used as the string for the result
  * \endcond
  */
-static void setSignatureAsString(fiftyoneDegreesWorkset *ws, const byte *signature) {
-	const int32_t *nodeOffsets = getNodeOffsetsFromSignature(ws->dataSet, signature);
-	const int32_t nodeOffsetCount = getSignatureNodeOffsetsCount(ws->dataSet, signature);
+static void setSignatureAsString(fiftyoneDegreesWorkset *ws, 
+				const byte *signature) {
+	const int32_t *nodeOffsets = 
+		getNodeOffsetsFromSignature(ws->dataSet, signature);
+	const int32_t nodeOffsetCount = 
+		getSignatureNodeOffsetsCount(ws->dataSet, signature);
 	int index,
 		nullPosition = 0,
 		lastCharacter = 0;
@@ -2885,7 +3030,8 @@ static void setSignatureAsString(fiftyoneDegreesWorkset *ws, const byte *signatu
 		ws->signatureAsString[index] = ' ';
 	}
 	for (index = 0; index < nodeOffsetCount; index++) {
-		lastCharacter = addSignatureNodeToString(ws, getNodeByOffset(ws->dataSet, *(nodeOffsets + index)));
+		lastCharacter = addSignatureNodeToString(ws, 
+			getNodeByOffset(ws->dataSet, *(nodeOffsets + index)));
 		if (lastCharacter > nullPosition) {
 			nullPosition = lastCharacter;
 		}
@@ -2901,7 +3047,9 @@ static void setSignatureAsString(fiftyoneDegreesWorkset *ws, const byte *signatu
  * @param index the should be added at
  * \endcond
  */
-static void addNodeIntoWorkset(fiftyoneDegreesWorkset *ws, const fiftyoneDegreesNode *node, int32_t index) {
+static void addNodeIntoWorkset(fiftyoneDegreesWorkset *ws, 
+				const fiftyoneDegreesNode *node, 
+				int32_t index) {
 	ws->nodes[index] = node;
 	ws->nodeCount++;
 }
@@ -2914,7 +3062,9 @@ static void addNodeIntoWorkset(fiftyoneDegreesWorkset *ws, const fiftyoneDegrees
  * @param insertIndex the index to insert the node at
  * \endcond
  */
-static void insertNodeIntoWorksetAtIndex(fiftyoneDegreesWorkset *ws, const fiftyoneDegreesNode *node, int32_t insertIndex) {
+static void insertNodeIntoWorksetAtIndex(fiftyoneDegreesWorkset *ws, 
+				const fiftyoneDegreesNode *node, 
+				int32_t insertIndex) {
 	int32_t index;
 	for (index = ws->nodeCount - 1; index >= insertIndex; index--) {
 		*(ws->nodes + index + 1) = *(ws->nodes + index);
@@ -2931,7 +3081,8 @@ static void insertNodeIntoWorksetAtIndex(fiftyoneDegreesWorkset *ws, const fifty
  * @return the index the node as added at
  * \endcond
  */
-static int32_t insertNodeIntoWorkSet(fiftyoneDegreesWorkset *ws, const fiftyoneDegreesNode *node) {
+static int32_t insertNodeIntoWorkSet(fiftyoneDegreesWorkset *ws, 
+				const fiftyoneDegreesNode *node) {
 	int32_t index;
 	for (index = 0; index < ws->nodeCount; index++) {
 		if (node > *(ws->nodes + index)) {
@@ -2975,7 +3126,9 @@ static void resetCounters(fiftyoneDegreesWorkset *ws) {
  *        the maximum allowed for matching
  * \endcond
  */
-static void setTargetUserAgentArray(fiftyoneDegreesWorkset *ws, const char* userAgent, int userAgentLength) {
+static void setTargetUserAgentArray(fiftyoneDegreesWorkset *ws, 
+				const char* userAgent, 
+				int userAgentLength) {
 	uint16_t index = 0;
 	ws->hashCodeSet = 0;
 
@@ -3011,7 +3164,7 @@ static void setTargetUserAgentArray(fiftyoneDegreesWorkset *ws, const char* user
 	// and the length is provided.
 	ws->targetUserAgent = (char*)ws->targetUserAgentArray;
 
-	// Set the last index position to null incase the target user agent
+	// Set the last index position to null in case the target user agent
 	// is longer than the maximum user agent length. The routine to
 	// allocate the targetUserAgentArray adds an extra byte for this
 	// purpose.
@@ -3019,12 +3172,15 @@ static void setTargetUserAgentArray(fiftyoneDegreesWorkset *ws, const char* user
 	ws->targetUserAgentArrayLength = index;
 
 	/* Work out the starting character position */
-	ws->nextCharacterPositionIndex = (int16_t)(ws->targetUserAgentArrayLength - 1);
+	ws->nextCharacterPositionIndex = 
+		(int16_t)(ws->targetUserAgentArrayLength - 1);
 
 	/* Check to ensure the length of the user agent does not exceed
 	   the number of root nodes. */
-	if (ws->nextCharacterPositionIndex >= ws->dataSet->header.rootNodes.count) {
-		ws->nextCharacterPositionIndex = (int16_t)(ws->dataSet->header.rootNodes.count - 1);
+	if (ws->nextCharacterPositionIndex >= 
+		ws->dataSet->header.rootNodes.count) {
+		ws->nextCharacterPositionIndex = 
+			(int16_t)(ws->dataSet->header.rootNodes.count - 1);
 	}
 
 	/* Reset the nodes to zero ready for the new match */
@@ -3068,9 +3224,13 @@ static void setTargetUserAgentArray(fiftyoneDegreesWorkset *ws, const char* user
  * @return the difference between the characters, or 0 if equal
  * \endcond
  */
-static int32_t compareTo(const char* targetUserAgentArray, int32_t startIndex, fiftyoneDegreesString *string) {
+static int32_t compareTo(const char* targetUserAgentArray, 
+				int32_t startIndex, 
+				fiftyoneDegreesString *string) {
 	int32_t i, o, difference;
-	for (i = string->length - 1, o = startIndex + string->length - 1; i >= 0; i--, o--)
+	for (i = string->length - 1, 
+		 o = startIndex + string->length - 1; 
+		 i >= 0; i--, o--)
 	{
 		difference = *(string->value + i) - *(targetUserAgentArray + o);
 		if (difference != 0)
@@ -3088,8 +3248,10 @@ static int32_t compareTo(const char* targetUserAgentArray, int32_t startIndex, f
  *         target user agent
  * \endcond
  */
-static const fiftyoneDegreesNode* getNextNode(fiftyoneDegreesWorkset *ws, const fiftyoneDegreesNode *node) {
-	int32_t upper = node->childrenCount - 1, lower, middle, length, startIndex, comparisonResult;
+static const fiftyoneDegreesNode* getNextNode(fiftyoneDegreesWorkset *ws, 
+									const fiftyoneDegreesNode *node) {
+	int32_t upper = node->childrenCount - 1, 
+		lower, middle, length, startIndex, comparisonResult;
 	const fiftyoneDegreesNodeIndex *children;
 	fiftyoneDegreesString string;
 
@@ -3138,8 +3300,10 @@ static const fiftyoneDegreesNode* getNextNode(fiftyoneDegreesWorkset *ws, const 
  * @return a pointer the complete leaf node if one is available
  * \endcond
  */
-static const fiftyoneDegreesNode* getCompleteNode(fiftyoneDegreesWorkset *ws, const fiftyoneDegreesNode *node) {
-	const fiftyoneDegreesNode *nextNode = getNextNode(ws, node), *foundNode = NULL;
+static const fiftyoneDegreesNode* getCompleteNode(fiftyoneDegreesWorkset *ws, 
+									const fiftyoneDegreesNode *node) {
+	const fiftyoneDegreesNode *nextNode = 
+		getNextNode(ws, node), *foundNode = NULL;
 	if (nextNode != NULL) {
 		foundNode = getCompleteNode(ws, nextNode);
 
@@ -3161,11 +3325,18 @@ static const fiftyoneDegreesNode* getCompleteNode(fiftyoneDegreesWorkset *ws, co
  */
 static int32_t compareExact(const byte *signature, fiftyoneDegreesWorkset *ws) {
 	int32_t index, nodeIndex, difference;
-	const int32_t *nodeOffsets = getNodeOffsetsFromSignature(ws->dataSet, signature);
-	const int32_t signatureNodeOffsetsCount = getSignatureNodeOffsetsCount(ws->dataSet, signature);
-	int32_t length = signatureNodeOffsetsCount > ws->nodeCount ? ws->nodeCount : signatureNodeOffsetsCount;
+	const int32_t *nodeOffsets = 
+		getNodeOffsetsFromSignature(ws->dataSet, signature);
+	const int32_t signatureNodeOffsetsCount = 
+		getSignatureNodeOffsetsCount(ws->dataSet, signature);
+	int32_t length = 
+		signatureNodeOffsetsCount > ws->nodeCount ? 
+		ws->nodeCount : 
+		signatureNodeOffsetsCount;
 
-	for (index = 0, nodeIndex = ws->nodeCount - 1; index < length; index++, nodeIndex--) {
+	for (index = 0, nodeIndex = ws->nodeCount - 1; 
+		 index < length; 
+		 index++, nodeIndex--) {
 		difference = *(nodeOffsets + index) -
 			getNodeOffsetFromNode(ws->dataSet, *(ws->nodes + nodeIndex));
 		if (difference != 0)
@@ -3189,7 +3360,8 @@ static int32_t compareExact(const byte *signature, fiftyoneDegreesWorkset *ws) {
  * \endcond
  */
 static int32_t getExactSignatureIndex(fiftyoneDegreesWorkset *ws) {
-	int32_t comparisonResult, middle, lower = 0, upper = ws->dataSet->header.signatures.count - 1;
+	int32_t comparisonResult, middle, lower = 0, 
+		upper = ws->dataSet->header.signatures.count - 1;
 	const byte *signature;
 
 	while (lower <= upper)
@@ -3218,9 +3390,12 @@ static int32_t getExactSignatureIndex(fiftyoneDegreesWorkset *ws) {
  * @return the position of the right most character set
  * \endcond
  */
-static int32_t setNodeString(const fiftyoneDegreesDataSet *dataSet, const fiftyoneDegreesNode *node, char* output) {
+static int32_t setNodeString(const fiftyoneDegreesDataSet *dataSet, 
+				const fiftyoneDegreesNode *node, 
+				char* output) {
 	int32_t n, c, last = 0;
-	const fiftyoneDegreesAsciiString *string = fiftyoneDegreesGetString(dataSet, node->characterStringOffset);
+	const fiftyoneDegreesAsciiString *string = 
+		fiftyoneDegreesGetString(dataSet, node->characterStringOffset);
 	for (n = 0, c = node->position + 1; n < string->length - 1; c++, n++) {
 		*(output + c) = *(&string->firstByte + n);
 		if (c > last)
@@ -3255,26 +3430,32 @@ static void setRelevantNodes(fiftyoneDegreesWorkset *ws) {
  * @param signature pointer to the signature being set for the match
  * \endcond
  */
-static void setMatchSignature(fiftyoneDegreesWorkset *ws, const byte *signature) {
+static void setMatchSignature(fiftyoneDegreesWorkset *ws, 
+				const byte *signature) {
 	int32_t index, lastPosition, last = 0, profileIndex;
-	const int32_t *signatureNodeOffsets = getNodeOffsetsFromSignature(ws->dataSet, signature);
-	const int32_t signatureNodeCount = getSignatureNodeOffsetsCount(ws->dataSet, signature);
+	const int32_t *signatureNodeOffsets = 
+		getNodeOffsetsFromSignature(ws->dataSet, signature);
+	const int32_t signatureNodeCount = 
+		getSignatureNodeOffsetsCount(ws->dataSet, signature);
 	int32_t *signatureProfiles = getProfileOffsetsFromSignature(signature);
 
 	ws->signature = (byte*)signature;
 	ws->profileCount = 0;
-	for (index = 0; index < ws->dataSet->header.signatureProfilesCount; index++) {
+	for (index = 0; 
+		 index < ws->dataSet->header.signatureProfilesCount; 
+		 index++) {
 		profileIndex = *(signatureProfiles + index);
 		if (profileIndex >= 0) {
-			*(ws->profiles + index) = (fiftyoneDegreesProfile*)(ws->dataSet->profiles + profileIndex);
+			*(ws->profiles + index) = 
+				(fiftyoneDegreesProfile*)(ws->dataSet->profiles + profileIndex);
 			ws->profileCount++;
 		}
 	}
 
 	/* Set the closest nodes string from the signature found */
 	for (index = 0; index < signatureNodeCount; index++) {
-		lastPosition = setNodeString(ws->dataSet,
-			(fiftyoneDegreesNode*)(ws->dataSet->nodes + *(signatureNodeOffsets + index)),
+		lastPosition = setNodeString(ws->dataSet,(fiftyoneDegreesNode*)
+			(ws->dataSet->nodes + *(signatureNodeOffsets + index)),
 			ws->closestNodes);
 		if (lastPosition > last)
 			last = lastPosition;
@@ -3289,7 +3470,8 @@ static void setMatchSignature(fiftyoneDegreesWorkset *ws, const byte *signature)
  * @param signatureIndex of the signature being set for the match result
  * \endcond
  */
-static void setMatchSignatureIndex(fiftyoneDegreesWorkset *ws, int32_t signatureIndex) {
+static void setMatchSignatureIndex(fiftyoneDegreesWorkset *ws, 
+				int32_t signatureIndex) {
 	setMatchSignature(ws, getSignatureByIndex(ws->dataSet, signatureIndex));
 }
 
@@ -3307,7 +3489,8 @@ static void setMatchDefault(fiftyoneDegreesWorkset *ws) {
 	ws->profileCount = 0;
 	for (index = 0; index < ws->dataSet->header.components.count; index++) {
 		profileOffset = ws->dataSet->components[index]->defaultProfileOffset;
-		*(ws->profiles + index) = (fiftyoneDegreesProfile*)(ws->dataSet->profiles + profileOffset);
+		*(ws->profiles + index) = 
+			(fiftyoneDegreesProfile*)(ws->dataSet->profiles + profileOffset);
 		ws->profileCount++;
 	}
 
@@ -3338,7 +3521,7 @@ static void resetNextCharacterPositionIndex(fiftyoneDegreesWorkset *ws) {
  * they're numeric.
  * @param array pointer to the start of a byte array of characters
  * @param start index of the first character to convert to a number
- * @param length of the characters from start to conver to a number
+ * @param length of the characters from start to convert to a number
  * @return the numeric integer of the characters specified
  * \endcond
  */
@@ -3360,10 +3543,13 @@ static int32_t getNumber(const char *array, int32_t start, int32_t length) {
  * @param ws pointer to the work set used for the match
  * @param node pointer to the node being evaluated
  * @param state of the numeric node evaluation
- * @return the number of bytes from the target user agent needed to form a number
+ * @return the number of bytes from the target user agent needed to form a 
+ *		   number
  * \endcond
  */
-static int32_t getCurrentPositionAsNumeric(fiftyoneDegreesWorkset *ws, const fiftyoneDegreesNode *node, fiftyoneDegreesNumericNodeState *state) {
+static int32_t getCurrentPositionAsNumeric(fiftyoneDegreesWorkset *ws, 
+				const fiftyoneDegreesNode *node, 
+				fiftyoneDegreesNumericNodeState *state) {
 	// Find the left most numeric character from the current position.
 	int32_t index = node->position;
 	while (index >= 0 &&
@@ -3412,13 +3598,16 @@ static const fiftyoneDegreesRange* getRange(int target) {
  * @return the index of the target or twos compliment of insertion point
  * \endcond
  */
-static int32_t binarySearchNumericChildren(const fiftyoneDegreesNode *node, fiftyoneDegreesNumericNodeState *state) {
-	int16_t lower = 0, upper = node->numericChildrenCount - 1, middle, comparisonResult;
+static int32_t binarySearchNumericChildren(const fiftyoneDegreesNode *node, 
+				fiftyoneDegreesNumericNodeState *state) {
+	int16_t lower = 0, upper = node->numericChildrenCount - 1, 
+		middle, comparisonResult;
 
 	while (lower <= upper)
 	{
 		middle = lower + (upper - lower) / 2;
-		comparisonResult = (int16_t)((state->firstNodeNumericIndex + middle)->value - state->target);
+		comparisonResult = (int16_t)
+			((state->firstNodeNumericIndex + middle)->value - state->target);
 		if (comparisonResult == 0)
 			return middle;
 		else if (comparisonResult > 0)
@@ -3438,7 +3627,8 @@ static int32_t binarySearchNumericChildren(const fiftyoneDegreesNode *node, fift
  * @param data pointer to the state settings used for the evaluation
  * \endcond
  */
-static void setNumericNodeState(const fiftyoneDegreesNode *node, fiftyoneDegreesNumericNodeState *state) {
+static void setNumericNodeState(const fiftyoneDegreesNode *node, 
+				fiftyoneDegreesNumericNodeState *state) {
 	if (state->target >= 0 && state->target <= SHRT_MAX) {
 		state->range = getRange(state->target);
 		state->node = node;
@@ -3452,10 +3642,12 @@ static void setNumericNodeState(const fiftyoneDegreesNode *node, fiftyoneDegrees
 		state->highIndex = state->startIndex + 1;
 
 		// Determine if the low and high indexes are in range.
-		state->lowInRange = state->lowIndex >= 0 && state->lowIndex < node->numericChildrenCount &&
+		state->lowInRange = 
+			state->lowIndex >= 0 && state->lowIndex < node->numericChildrenCount &&
 			(state->firstNodeNumericIndex + state->lowIndex)->value >= state->range->lower &&
 			(state->firstNodeNumericIndex + state->lowIndex)->value < state->range->upper;
-		state->highInRange = state->highIndex < node->numericChildrenCount && state->highIndex >= 0 &&
+		state->highInRange = 
+			state->highIndex < node->numericChildrenCount && state->highIndex >= 0 &&
 			(state->firstNodeNumericIndex + state->highIndex)->value >= state->range->lower &&
 			(state->firstNodeNumericIndex + state->highIndex)->value < state->range->upper;
 	}
@@ -3473,24 +3665,30 @@ static void setNumericNodeState(const fiftyoneDegreesNode *node, fiftyoneDegrees
  * \cond
  * The iterator function used to return the next numeric node index for
  * the evaluation for the state provided.
- * @param state settings for the evalution
+ * @param state settings for the evaluation
  * @return NULL if no more indexes are available, or the next index
  * \endcond
  */
-static const fiftyoneDegreesNodeNumericIndex* getNextNumericNode(fiftyoneDegreesNumericNodeState *state) {
+static const fiftyoneDegreesNodeNumericIndex* getNextNumericNode(
+									fiftyoneDegreesNumericNodeState *state) {
 	int32_t lowDifference, highDifference;
 	const fiftyoneDegreesNodeNumericIndex *nodeNumericIndex = NULL;
 
 	if (state->lowInRange && state->highInRange)
 	{
 		// Get the differences between the two values.
-		lowDifference = abs((state->firstNodeNumericIndex + state->lowIndex)->value - state->target);
-		highDifference = abs((state->firstNodeNumericIndex + state->highIndex)->value - state->target);
+		lowDifference = abs(
+			(state->firstNodeNumericIndex + state->lowIndex)->value - 
+			state->target);
+		highDifference = abs(
+			(state->firstNodeNumericIndex + state->highIndex)->value - 
+			state->target);
 
-		// Favour the lowest value where the differences are equal.
+		// Favor the lowest value where the differences are equal.
 		if (lowDifference <= highDifference)
 		{
-			nodeNumericIndex = (state->firstNodeNumericIndex + state->lowIndex);
+			nodeNumericIndex = 
+				(state->firstNodeNumericIndex + state->lowIndex);
 
 			// Move to the next low index.
 			state->lowIndex--;
@@ -3500,7 +3698,8 @@ static const fiftyoneDegreesNodeNumericIndex* getNextNumericNode(fiftyoneDegrees
 		}
 		else
 		{
-			nodeNumericIndex = (state->firstNodeNumericIndex + state->highIndex);
+			nodeNumericIndex = 
+				(state->firstNodeNumericIndex + state->highIndex);
 
 			// Move to the next high index.
 			state->highIndex++;
@@ -3541,8 +3740,11 @@ static const fiftyoneDegreesNodeNumericIndex* getNextNumericNode(fiftyoneDegrees
  * @return pointer to the complete node found, or NULL if no node exists
  * \endcond
  */
-static const fiftyoneDegreesNode* getCompleteNumericNode(fiftyoneDegreesWorkset *ws, const fiftyoneDegreesNode *node) {
-	const fiftyoneDegreesNode *foundNode = NULL, *nextNode = getNextNode(ws, node);
+static const fiftyoneDegreesNode* getCompleteNumericNode(
+									fiftyoneDegreesWorkset *ws, 
+									const fiftyoneDegreesNode *node) {
+	const fiftyoneDegreesNode *foundNode = NULL, 
+		*nextNode = getNextNode(ws, node);
 	const fiftyoneDegreesNodeNumericIndex *nodeNumericIndex;
 	int32_t difference;
 	fiftyoneDegreesNumericNodeState state;
@@ -3564,7 +3766,8 @@ static const fiftyoneDegreesNode* getCompleteNumericNode(fiftyoneDegreesWorkset 
 			while (nodeNumericIndex != NULL)
 			{
 				foundNode = getCompleteNumericNode(ws,
-					getNodeByOffset(ws->dataSet, abs(nodeNumericIndex->relatedNodeOffset)));
+					getNodeByOffset(ws->dataSet, 
+					abs(nodeNumericIndex->relatedNodeOffset)));
 				if (foundNode != NULL)
 				{
 					difference = abs(state.target - nodeNumericIndex->value);
@@ -3582,13 +3785,15 @@ static const fiftyoneDegreesNode* getCompleteNumericNode(fiftyoneDegreesWorkset 
 
  /**
  * \cond
- * Passed two nodes and determines if their character positions overlap
+ * Passed two nodes and determines if their character positions overlap.
  * @param a the first node to test
  * @param b the second node to test
  * @return true if they overlap, otherwise false
  * \endcond
  */
-static byte areNodesOverlapped(const fiftyoneDegreesDataSet *dataSet, const fiftyoneDegreesNode *a, const fiftyoneDegreesNode *b) {
+static byte areNodesOverlapped(const fiftyoneDegreesDataSet *dataSet, 
+				const fiftyoneDegreesNode *a, 
+				const fiftyoneDegreesNode *b) {
 	const fiftyoneDegreesNode *lower = a->position < b->position ? a : b,
 		*higher = lower == b ? a : b,
 		*rootNode = getRootNode(dataSet, lower);
@@ -3609,7 +3814,8 @@ static byte areNodesOverlapped(const fiftyoneDegreesDataSet *dataSet, const fift
  * @return 1 if the node overlaps, otherwise 0
  * \endcond
  */
-static byte isNodeOverlapped(const fiftyoneDegreesNode *node, fiftyoneDegreesWorkset *ws) {
+static byte isNodeOverlapped(const fiftyoneDegreesNode *node, 
+				fiftyoneDegreesWorkset *ws) {
 	const fiftyoneDegreesNode  *currentNode;
 	int index;
 	for (index = ws->nodeCount - 1; index >= 0; index--) {
@@ -3637,10 +3843,12 @@ static void evaluateNumeric(fiftyoneDegreesWorkset *ws) {
 		ws->nodeCount < ws->dataSet->header.signatureNodesCount)
 	{
 		if (existingNodeIndex >= ws->nodeCount ||
-			getRootNode(ws->dataSet, ws->nodes[existingNodeIndex])->position < ws->nextCharacterPositionIndex)
+			getRootNode(ws->dataSet, ws->nodes[existingNodeIndex])->position < 
+				ws->nextCharacterPositionIndex)
 		{
 			ws->rootNodesEvaluated++;
-			node = getCompleteNumericNode(ws, ws->dataSet->rootNodes[ws->nextCharacterPositionIndex]);
+			node = getCompleteNumericNode(ws, 
+				ws->dataSet->rootNodes[ws->nextCharacterPositionIndex]);
 			if (node != NULL &&
 				isNodeOverlapped(node, ws) == 0)
 			{
@@ -3649,7 +3857,7 @@ static void evaluateNumeric(fiftyoneDegreesWorkset *ws) {
 				existingNodeIndex = insertNodeIntoWorkSet(ws, node) + 1;
 
 				// Move to the position of the node found as
-				// we can't use the next node incase there's another
+				// we can't use the next node in case there's another
 				// not part of the same signatures closer.
 				ws->nextCharacterPositionIndex = node->position;
 			}
@@ -3661,7 +3869,8 @@ static void evaluateNumeric(fiftyoneDegreesWorkset *ws) {
 		{
 			// The next position to evaluate should be to the left
 			// of the existing node already in the list.
-			ws->nextCharacterPositionIndex = ws->nodes[existingNodeIndex]->position;
+			ws->nextCharacterPositionIndex = 
+				ws->nodes[existingNodeIndex]->position;
 
 			// Swap the existing node for the next one in the list.
 			existingNodeIndex++;
@@ -3672,8 +3881,8 @@ static void evaluateNumeric(fiftyoneDegreesWorkset *ws) {
  /**
  * \cond
  * Enumerates the nodes signature indexes updating the frequency counts in the
- * linked list for any that exist already, adding those that still stand a chance
- * of making the count, or removing those that aren't necessary.
+ * linked list for any that exist already, adding those that still stand a 
+ * chance of making the count, or removing those that aren't necessary.
  * @param ws pointer to the work set used for the match
  * @param node pointer to the node whose signatures are to be added
  * @param count the current count that is needed to be considered
@@ -3681,9 +3890,13 @@ static void evaluateNumeric(fiftyoneDegreesWorkset *ws) {
  * @return the count after the node has been evaluated
  * \endcond
  */
-static int32_t setClosestSignaturesForNode(fiftyoneDegreesWorkset *ws, const fiftyoneDegreesNode *node, int32_t count, int32_t iteration) {
+static int32_t setClosestSignaturesForNode(fiftyoneDegreesWorkset *ws, 
+				const fiftyoneDegreesNode *node, 
+				int32_t count, 
+				int32_t iteration) {
 	byte thresholdReached = (ws->nodeCount - iteration) < count;
-	fiftyoneDegreesLinkedSignatureList *linkedList = &(ws->linkedSignatureList);
+	fiftyoneDegreesLinkedSignatureList *linkedList = 
+		&(ws->linkedSignatureList);
 	fiftyoneDegreesLinkedSignatureListItem *current = linkedList->first,
 		*next;
 	int32_t index = 0;
@@ -3705,8 +3918,10 @@ static int32_t setClosestSignaturesForNode(fiftyoneDegreesWorkset *ws, const fif
 		{
 			// The base list is higher than the target list. Add the element
 			// from the target list and move to the next element in each.
-			if (thresholdReached == 0)
-				linkedListAddBefore(linkedList, current, *currentRankedSignatureIndex);
+			if (thresholdReached == 0) {
+				linkedListAddBefore(
+					linkedList, current, *currentRankedSignatureIndex);
+			}
 			index++;
 		}
 		else if (current->rankedSignatureIndex < *currentRankedSignatureIndex)
@@ -3750,17 +3965,19 @@ static int32_t setClosestSignaturesForNode(fiftyoneDegreesWorkset *ws, const fif
 
  /**
  * \cond
- * Orders the nodes so that those with the lowest rank are are the top of the
+ * Orders the nodes so that those with the lowest rank are at the top of the
  * list.
  * @param ws pointer to the work set being used for the match
  * @param count frequency below which signatures should be removed
  * \endcond
  */
-static void setClosestSignaturesFinal(fiftyoneDegreesWorkset *ws, int32_t count) {
-	fiftyoneDegreesLinkedSignatureList *linkedList = &(ws->linkedSignatureList);
+static void setClosestSignaturesFinal(fiftyoneDegreesWorkset *ws, 
+				int32_t count) {
+	fiftyoneDegreesLinkedSignatureList *linkedList = 
+		&(ws->linkedSignatureList);
 	fiftyoneDegreesLinkedSignatureListItem *current = linkedList->first;
 
-	/* First iteration to remove any items with lower than the maxcount. */
+	/* First iteration to remove any items with lower than the max count. */
 	while (current != NULL) {
 		if (current->frequency < count) {
 			linkedListRemove(linkedList, current);
@@ -3778,7 +3995,8 @@ static void setClosestSignaturesFinal(fiftyoneDegreesWorkset *ws, int32_t count)
  * @return the difference between the nodes
  * \endcond
  */
-static int QSORT_COMPARER nodeSignatureCountCompare(const void *a, const void *b) {
+static int QSORT_COMPARER nodeSignatureCountCompare(const void *a, 
+							const void *b) {
 	fiftyoneDegreesNode* c1 = (*(fiftyoneDegreesNode**)a);
 	fiftyoneDegreesNode* c2 = (*(fiftyoneDegreesNode**)b);
 	int difference = c1->signatureCount - c2->signatureCount;
@@ -3861,14 +4079,18 @@ static byte getIsNumeric(const char *value) {
  /**
  * \cond
  * Works out the numeric difference between the current position and the target.
- * @param characters pointer to the ascii string of the node
+ * @param characters pointer to the ASCII string of the node
  * @param ws pointer to the work set used for the match
  * @param nodeIndex pointer to the index in the node being evaluated
  * @param targetIndex pointer to the target user agent index
  * @return the absolute difference between the characters or 0 if not numeric
  * \endcond
  */
-static int32_t calculateNumericDifference(const fiftyoneDegreesAsciiString *characters, fiftyoneDegreesWorkset *ws, int32_t *nodeIndex, int32_t *targetIndex) {
+static int32_t calculateNumericDifference(
+				const fiftyoneDegreesAsciiString *characters, 
+				fiftyoneDegreesWorkset *ws, 
+				int32_t *nodeIndex, 
+				int32_t *targetIndex) {
 	// Move right when the characters are numeric to ensure
 	// the full number is considered in the difference comparison.
 	int32_t newNodeIndex = *nodeIndex + 1;
@@ -3917,22 +4139,26 @@ static int32_t calculateNumericDifference(const fiftyoneDegreesAsciiString *char
  *         not present
  * \endcond
  */
-static int16_t matchIndexOf(fiftyoneDegreesWorkset *ws, const fiftyoneDegreesNode *node)
+static int16_t matchIndexOf(fiftyoneDegreesWorkset *ws, const 
+				fiftyoneDegreesNode *node)
 {
-	const fiftyoneDegreesAsciiString *characters = fiftyoneDegreesGetString(ws->dataSet, node->characterStringOffset);
+	const fiftyoneDegreesAsciiString *characters = 
+		fiftyoneDegreesGetString(ws->dataSet, node->characterStringOffset);
 	int16_t index,
 		nodeIndex,
 		targetIndex,
 		finalNodeIndex = characters->length - 2,
 		charactersLength = characters->length - 1;
 
-	for (index = 0; index < ws->targetUserAgentArrayLength - charactersLength; index++)
-	{
+	for (index = 0; 
+		 index < ws->targetUserAgentArrayLength - charactersLength; 
+		 index++) {
 		for (nodeIndex = 0, targetIndex = index;
 			nodeIndex < charactersLength && targetIndex < ws->targetUserAgentArrayLength;
 			nodeIndex++, targetIndex++)
 		{
-			if (*(&(characters->firstByte) + nodeIndex) != *(ws->targetUserAgent + targetIndex)) {
+			if (*(&(characters->firstByte) + nodeIndex) != 
+				*(ws->targetUserAgent + targetIndex)) {
 				break;
 			}
 			else if (nodeIndex == finalNodeIndex) {
@@ -3952,7 +4178,8 @@ static int16_t matchIndexOf(fiftyoneDegreesWorkset *ws, const fiftyoneDegreesNod
  * @return the difference in character positions or -1 if not present.
  * \endcond
  */
-static int32_t getScoreNearest(fiftyoneDegreesWorkset *ws, const fiftyoneDegreesNode *node) {
+static int32_t getScoreNearest(fiftyoneDegreesWorkset *ws, 
+				const fiftyoneDegreesNode *node) {
 	int16_t index = matchIndexOf(ws, node);
 	if (index >= 0) {
 		return abs(node->position + 1 - index);
@@ -3971,8 +4198,10 @@ static int32_t getScoreNearest(fiftyoneDegreesWorkset *ws, const fiftyoneDegrees
  * @return the difference based on character comparisons between the two
  * \endcond
  */
-static int32_t getScoreClosest(fiftyoneDegreesWorkset *ws, const fiftyoneDegreesNode *node) {
-	const fiftyoneDegreesAsciiString *characters = getNodeCharacters(ws->dataSet, node);
+static int32_t getScoreClosest(fiftyoneDegreesWorkset *ws, 
+				const fiftyoneDegreesNode *node) {
+	const fiftyoneDegreesAsciiString *characters = 
+		getNodeCharacters(ws->dataSet, node);
 	int32_t score = 0;
 	int32_t difference;
 	int32_t numericDifference;
@@ -4022,7 +4251,8 @@ static int32_t getScoreClosest(fiftyoneDegreesWorkset *ws, const fiftyoneDegrees
 static int32_t getScore(fiftyoneDegreesWorkset *ws,
 	const byte *signature,
 	int16_t lastNodeCharacter) {
-	const int32_t *nodeOffsets = getNodeOffsetsFromSignature(ws->dataSet, signature);
+	const int32_t *nodeOffsets = 
+		getNodeOffsetsFromSignature(ws->dataSet, signature);
 	const int32_t count = getSignatureNodeOffsetsCount(ws->dataSet, signature);
 	int32_t runningScore = ws->startWithInitialScore == 1 ?
 		abs(lastNodeCharacter + 1 - getSignatureLengthFromNodeOffsets(ws->dataSet, *(nodeOffsets + count - 1))) :
@@ -4033,9 +4263,7 @@ static int32_t getScore(fiftyoneDegreesWorkset *ws,
 		signatureNodeOffset,
 		score;
 
-	while (signatureNodeIndex < count &&
-		runningScore < ws->difference)
-	{
+	while (signatureNodeIndex < count && runningScore < ws->difference) {
 		matchNodeOffset = matchNodeIndex < 0 ?
 		INT32_MAX :
 				  getNodeOffsetFromNode(ws->dataSet, *(ws->nodes + matchNodeIndex));
@@ -4045,7 +4273,8 @@ static int32_t getScore(fiftyoneDegreesWorkset *ws,
 			// The matched node is either not available, or is higher than
 			// the current signature node. The signature node is not contained
 			// in the match so we must score it.
-			score = ws->functionPtrGetScore(ws, getNodeByOffset(ws->dataSet, signatureNodeOffset));
+			score = ws->functionPtrGetScore(
+				ws, getNodeByOffset(ws->dataSet, signatureNodeOffset));
 
 			// If the score is less than zero then a score could not be
 			// determined and the signature can't be compared to the target
@@ -4106,11 +4335,13 @@ static void evaluateSignature(fiftyoneDegreesWorkset *ws,
  * @return null if there are no more signature pointers.
  * \endcond
  */
-static const byte* getNextClosestSignatureForSingleNode(fiftyoneDegreesWorkset *ws) {
+static const byte* getNextClosestSignatureForSingleNode(
+					fiftyoneDegreesWorkset *ws) {
 	const byte *signature;
 	int32_t rankedSignatureIndex;
 	if (ws->closestNodeRankedSignatureIndex < ws->nodes[0]->signatureCount) {
-		rankedSignatureIndex = *getFirstRankedSignatureIndexForNode(ws->nodes[0]);
+		rankedSignatureIndex = 
+			*getFirstRankedSignatureIndexForNode(ws->nodes[0]);
 		// If there is a count greater than 1 then the value relates
 		// to the first index in the list of node ranked signature
 		// indexes. If the count is 1 then the value is the index.
@@ -4136,12 +4367,14 @@ static const byte* getNextClosestSignatureForSingleNode(fiftyoneDegreesWorkset *
  * @return null if there are no more signature pointers.
  * \endcond
  */
-static const byte* getNextClosestSignatureForLinkedList(fiftyoneDegreesWorkset *ws) {
+static const byte* getNextClosestSignatureForLinkedList(
+					fiftyoneDegreesWorkset *ws) {
 	const byte *signature;
 	if (ws->linkedSignatureList.current != NULL) {
 		signature = getSignatureByRankedIndex(ws->dataSet,
 			ws->linkedSignatureList.current->rankedSignatureIndex);
-		ws->linkedSignatureList.current = ws->linkedSignatureList.current->next;
+		ws->linkedSignatureList.current = 
+			ws->linkedSignatureList.current->next;
 	}
 	else {
 		signature = NULL;
@@ -4159,12 +4392,14 @@ static void resetClosestSignatureEnumeration(fiftyoneDegreesWorkset *ws) {
 	if (ws->nodeCount == 1) {
 		/* There's only 1 node so just iterate through it's indexes */
 		ws->closestNodeRankedSignatureIndex = 0;
-		ws->functionPtrNextClosestSignature = &getNextClosestSignatureForSingleNode;
+		ws->functionPtrNextClosestSignature = 
+			&getNextClosestSignatureForSingleNode;
 	}
 	else if (ws->nodeCount > 1) {
 		/* We'll need to walk the linked list to get the signatures */
 		ws->linkedSignatureList.current = ws->linkedSignatureList.first;
-		ws->functionPtrNextClosestSignature = &getNextClosestSignatureForLinkedList;
+		ws->functionPtrNextClosestSignature = 
+			&getNextClosestSignatureForLinkedList;
 	}
 }
 
@@ -4176,7 +4411,8 @@ static void resetClosestSignatureEnumeration(fiftyoneDegreesWorkset *ws) {
  * \endcond
  */
 static void evaluateSignatures(fiftyoneDegreesWorkset *ws) {
-	int16_t lastNodeCharacter = getRootNode(ws->dataSet, *(ws->nodes))->position;
+	int16_t lastNodeCharacter = 
+		getRootNode(ws->dataSet, *(ws->nodes))->position;
 	int32_t count = 0;
 	const byte *currentSignature;
 
@@ -4206,7 +4442,8 @@ static void evaluate(fiftyoneDegreesWorkset *ws) {
 	while (ws->nextCharacterPositionIndex >= 0 &&
 		ws->nodeCount < ws->dataSet->header.signatureNodesCount) {
 		ws->rootNodesEvaluated++;
-		node = getCompleteNode(ws, *(ws->dataSet->rootNodes + ws->nextCharacterPositionIndex));
+		node = getCompleteNode(ws, 
+			*(ws->dataSet->rootNodes + ws->nextCharacterPositionIndex));
 		if (node != NULL) {
 			*(ws->nodes + ws->nodeCount) = node;
 			ws->nodeCount++;
@@ -4282,19 +4519,24 @@ static void setMatch(fiftyoneDegreesWorkset *ws) {
 static fiftyoneDegreesResultset *checkCache(fiftyoneDegreesWorkset *ws) {
 	int32_t cacheIndex;
 	fiftyoneDegreesResultset *rs;
-	fiftyoneDegreesResultsetCache *cache = (fiftyoneDegreesResultsetCache*)ws->cache;
+	fiftyoneDegreesResultsetCache *cache = 
+		(fiftyoneDegreesResultsetCache*)ws->cache;
 
-	// Does the hashcode for the user agent already exist in the cache?
-	cacheIndex = resultsetCacheFetchIndex(ws->cache->active, getResultsetHashCode((fiftyoneDegreesResultset*)ws));
+	// Does the hash code for the user agent already exist in the cache?
+	cacheIndex = resultsetCacheFetchIndex(ws->cache->active, 
+		getResultsetHashCode((fiftyoneDegreesResultset*)ws));
 
 	if (cacheIndex < 0) {
 		// Not in the cache so set the result to NULL.
 		rs = NULL;
 		cache->misses++;
 	}
-	else if (ws->targetUserAgentArrayLength == ws->cache->active->resultSets[cacheIndex]->targetUserAgentArrayLength &&
-		memcmp(ws->targetUserAgentArray, ws->cache->active->resultSets[cacheIndex]->targetUserAgentArray, ws->targetUserAgentArrayLength) != 0) {
-		// The hashcode matched but the user agents didn't. This does
+	else if (ws->targetUserAgentArrayLength == 
+			ws->cache->active->resultSets[cacheIndex]->targetUserAgentArrayLength &&
+		memcmp(ws->targetUserAgentArray, 
+			   ws->cache->active->resultSets[cacheIndex]->targetUserAgentArray,
+			   ws->targetUserAgentArrayLength) != 0) {
+		// The hash code matched but the user agents didn't. This does
 		// count as a valid result.
 		rs = NULL;
 		cache->misses++;
@@ -4322,21 +4564,27 @@ static fiftyoneDegreesResultset *addToCache(fiftyoneDegreesWorkset *ws) {
 	int32_t cacheIndex;
 	fiftyoneDegreesResultset *rs;
 
-	// Does the hashcode for the user agent already exist in the cache?
-	cacheIndex = resultsetCacheFetchIndex(ws->cache->active, getResultsetHashCode((fiftyoneDegreesResultset*)ws));
+	// Does the hash code for the user agent already exist in the cache?
+	cacheIndex = resultsetCacheFetchIndex(ws->cache->active, 
+		getResultsetHashCode((fiftyoneDegreesResultset*)ws));
 
 	if (cacheIndex < 0) {
 		// The item doesn't exist in the cache so add it at the position returned.
-		rs = cacheItemsInsertWithCopy(ws->cache->active, (fiftyoneDegreesResultset*)ws, ~cacheIndex);
+		rs = cacheItemsInsertWithCopy(ws->cache->active, 
+			(fiftyoneDegreesResultset*)ws, ~cacheIndex);
 	}
-	else if (ws->targetUserAgentArrayLength == ws->cache->active->resultSets[cacheIndex]->targetUserAgentArrayLength &&
-		memcmp(ws->targetUserAgentArray, ws->cache->active->resultSets[cacheIndex]->targetUserAgentArray, ws->targetUserAgentArrayLength) != 0) {
-		// The hashcode matched but the user agents didn't. This does
+	else if (ws->targetUserAgentArrayLength == 
+			 ws->cache->active->resultSets[cacheIndex]->targetUserAgentArrayLength &&
+		memcmp(ws->targetUserAgentArray, 
+			   ws->cache->active->resultSets[cacheIndex]->targetUserAgentArray, 
+			   ws->targetUserAgentArrayLength) != 0) {
+		// The hash code matched but the user agents didn't. This does
 		// count as a valid result so we'll update the existing entry
-		// for the hashcode with these results.
-		resultsetCopy(ws->cache->active->resultSets[cacheIndex], (fiftyoneDegreesResultset*)ws);
+		// for the hash code with these results.
+		resultsetCopy(ws->cache->active->resultSets[cacheIndex], 
+			(fiftyoneDegreesResultset*)ws);
 
-		// Return the new value from the resultset.
+		// Return the new value from the result set.
 		rs = ws->cache->active->resultSets[cacheIndex];
 	}
 	else {
@@ -4345,7 +4593,7 @@ static fiftyoneDegreesResultset *addToCache(fiftyoneDegreesWorkset *ws) {
 		rs = ws->cache->active->resultSets[cacheIndex];
 	}
 
-	// Return the resultset from the cache.
+	// Return the result set from the cache.
 	return rs;
 }
 
@@ -4353,22 +4601,25 @@ static fiftyoneDegreesResultset *addToCache(fiftyoneDegreesWorkset *ws) {
  * \cond
  * First the cache is checked to determine if the userAgent has already been
  * found. If not then detection is performed. The cache is then updated before
- * the resultset is returned.
+ * the result set is returned.
  * @param ws pointer to a work set to be used for the match created via
  *        createWorkset function
  * @param userAgent pointer to the target user agent
  * @param userAgentLength of the user agent string
  * \endcond
  */
-static void internalMatch(fiftyoneDegreesWorkset *ws, const char* userAgent, int userAgentLength) {
+static void internalMatch(fiftyoneDegreesWorkset *ws, 
+						  const char* userAgent, 
+						  int userAgentLength) {
 	fiftyoneDegreesResultset *rs = NULL;
 	setTargetUserAgentArray(ws, userAgent, userAgentLength);
-	if (ws->targetUserAgentArrayLength >= ws->dataSet->header.minUserAgentLength) {
+	if (ws->targetUserAgentArrayLength >= 
+		ws->dataSet->header.minUserAgentLength) {
 		if (ws->cache != NULL) {
 
 			// Calculate the hash code for the target user agent before
 			// locking thing active list to improve performance over
-			// performing the hashcode calculation in the lock.
+			// performing the hash code calculation in the lock.
 			getResultsetHashCode((fiftyoneDegreesResultset*)ws);
 
 #ifndef FIFTYONEDEGREES_NO_THREADING
@@ -4397,7 +4648,7 @@ static void internalMatch(fiftyoneDegreesWorkset *ws, const char* userAgent, int
 
 #ifndef FIFTYONEDEGREES_NO_THREADING
 				// Lock the cache again whilst the result is added to the active
-				// list and the resulset from the cache copied into the result
+				// list and the result set from the cache copied into the result
 				FIFTYONEDEGREES_MUTEX_LOCK(&ws->cache->activeLock);
 #endif
 
@@ -4440,7 +4691,7 @@ static void internalMatch(fiftyoneDegreesWorkset *ws, const char* userAgent, int
  * \cond
  * Main entry method used for perform a match. First the cache is checked to
  * determine if the userAgent has already been found. If not then detection
- * is performed. The cache is then updated before the resultset is returned.
+ * is performed. The cache is then updated before the result set is returned.
  * @param ws pointer to a work set to be used for the match created via
  *        createWorkset function
  * @param userAgent pointer to the target user agent
@@ -4453,7 +4704,7 @@ void fiftyoneDegreesMatch(fiftyoneDegreesWorkset *ws, const char* userAgent) {
 
 /**
  * \cond
- * Looks for for first HTTP header that matches the component. If found then
+ * Looks for first HTTP header that matches the component. If found then
  * perform a standard match and returns.
  * @param ws pointer to a work set to be used for the match created via
  *        createWorkset function
@@ -4461,13 +4712,19 @@ void fiftyoneDegreesMatch(fiftyoneDegreesWorkset *ws, const char* userAgent) {
  * @return true if the header was found and processed, otherwise false
  * \endcond
  */
-static byte matchForHttpHeader(fiftyoneDegreesWorkset *ws, const fiftyoneDegreesComponent *component) {
+static byte matchForHttpHeader(fiftyoneDegreesWorkset *ws, 
+				const fiftyoneDegreesComponent *component) {
 	int httpHeaderIndex, importantHeaderIndex;
 	int32_t httpHeaderOffset;
-	for (httpHeaderIndex = 0; httpHeaderIndex < component->httpHeaderCount; httpHeaderIndex++) {
+	for (httpHeaderIndex = 0; 
+		 httpHeaderIndex < component->httpHeaderCount; 
+		 httpHeaderIndex++) {
 		httpHeaderOffset = getComponentHeaderOffset(component, httpHeaderIndex);
-		for (importantHeaderIndex = 0; importantHeaderIndex < ws->importantHeadersCount; importantHeaderIndex++) {
-			if (ws->importantHeaders[importantHeaderIndex].header->headerNameOffset == httpHeaderOffset) {
+		for (importantHeaderIndex = 0; 
+			 importantHeaderIndex < ws->importantHeadersCount; 
+			 importantHeaderIndex++) {
+			if (ws->importantHeaders[importantHeaderIndex].
+				header->headerNameOffset == httpHeaderOffset) {
 				internalMatch(ws,
 					ws->importantHeaders[importantHeaderIndex].headerValue,
 					ws->importantHeaders[importantHeaderIndex].headerValueLength);
@@ -4502,7 +4759,9 @@ void fiftyoneDegreesMatchForHttpHeaders(fiftyoneDegreesWorkset *ws) {
 		// Loop through each component and get the results for the first header
 		// that is also in the list of important headers.
 		resetCounters(ws);
-		for (componentIndex = 0; componentIndex < ws->dataSet->header.components.count; componentIndex++) {
+		for (componentIndex = 0; 
+			 componentIndex < ws->dataSet->header.components.count; 
+			 componentIndex++) {
 			ws->difference = 0;
 			if (matchForHttpHeader(ws, ws->dataSet->components[componentIndex])) {
 				differenceTotal += ws->difference;
@@ -4518,7 +4777,9 @@ void fiftyoneDegreesMatchForHttpHeaders(fiftyoneDegreesWorkset *ws) {
 
 		// Now set the profiles being returned based on the temp profiles found
 		// for each of the components.
-		for (componentIndex = 0; componentIndex < ws->dataSet->header.components.count; componentIndex++) {
+		for (componentIndex = 0; 
+			 componentIndex < ws->dataSet->header.components.count; 
+			 componentIndex++) {
 			if (ws->tempProfiles[componentIndex] != NULL) {
 				ws->profiles[profileIndex] = ws->tempProfiles[componentIndex];
 				profileIndex++;
@@ -4548,18 +4809,26 @@ void fiftyoneDegreesMatchForHttpHeaders(fiftyoneDegreesWorkset *ws) {
  * @param httpHeaderCount the number of entires in each array
  * \endcond
  */
-void fiftyoneDegreesMatchWithHeadersArray(fiftyoneDegreesWorkset *ws, const char **httpHeaderNames, const char **httpHeaderValues, int httpHeaderCount) {
+void fiftyoneDegreesMatchWithHeadersArray(fiftyoneDegreesWorkset *ws, 
+		const char **httpHeaderNames, 
+		const char **httpHeaderValues, 
+		int httpHeaderCount) {
 	int httpHeaderIndex, dataSetHeaderIndex, importantHeaderIndex = 0;
 	for (httpHeaderIndex = 0;
 		httpHeaderIndex < httpHeaderCount &&
 		importantHeaderIndex < ws->dataSet->httpHeadersCount;
 		httpHeaderIndex++) {
-		for (dataSetHeaderIndex = 0; dataSetHeaderIndex < ws->dataSet->httpHeadersCount; dataSetHeaderIndex++) {
-			if (strcmp(ws->dataSet->httpHeaders[dataSetHeaderIndex].headerName, httpHeaderNames[httpHeaderIndex]) == 0)
-			{
-				ws->importantHeaders[importantHeaderIndex].header = ws->dataSet->httpHeaders + dataSetHeaderIndex;
-				ws->importantHeaders[importantHeaderIndex].headerValue = httpHeaderValues[httpHeaderIndex];
-				ws->importantHeaders[importantHeaderIndex].headerValueLength = (int)strlen(httpHeaderValues[httpHeaderIndex]);
+		for (dataSetHeaderIndex = 0; 
+			 dataSetHeaderIndex < ws->dataSet->httpHeadersCount; 
+			 dataSetHeaderIndex++) {
+			if (strcmp(ws->dataSet->httpHeaders[dataSetHeaderIndex].headerName, 
+				httpHeaderNames[httpHeaderIndex]) == 0) {
+				ws->importantHeaders[importantHeaderIndex].header = 
+					ws->dataSet->httpHeaders + dataSetHeaderIndex;
+				ws->importantHeaders[importantHeaderIndex].headerValue = 
+					httpHeaderValues[httpHeaderIndex];
+				ws->importantHeaders[importantHeaderIndex].headerValueLength = 
+					(int)strlen(httpHeaderValues[httpHeaderIndex]);
 				importantHeaderIndex++;
 				break;
 			}
@@ -4579,24 +4848,34 @@ void fiftyoneDegreesMatchWithHeadersArray(fiftyoneDegreesWorkset *ws, const char
  * 		upper headers
  * \endcond
  */
-static void initPrefixedUpperHttpHeaderNames(const fiftyoneDegreesDataSet *dataSet) {
+static void initPrefixedUpperHttpHeaderNames(
+				const fiftyoneDegreesDataSet *dataSet) {
 	int index;
 	int httpHeaderIndex;
 	char *prefixedUpperHttpHeader;
 	const fiftyoneDegreesAsciiString *httpHeaderName;
-	((fiftyoneDegreesDataSet*)dataSet)->prefixedUpperHttpHeaders = (const char**)malloc(dataSet->httpHeadersCount * sizeof(const char*));
+	((fiftyoneDegreesDataSet*)dataSet)->prefixedUpperHttpHeaders = 
+		(const char**)malloc(dataSet->httpHeadersCount * sizeof(const char*));
 	if (dataSet->prefixedUpperHttpHeaders != NULL) {
-		for (httpHeaderIndex = 0; httpHeaderIndex < dataSet->httpHeadersCount; httpHeaderIndex++) {
+		for (httpHeaderIndex = 0; 
+			 httpHeaderIndex < dataSet->httpHeadersCount; 
+			 httpHeaderIndex++) {
 			httpHeaderName = fiftyoneDegreesGetString(
 				dataSet,
 				(dataSet->httpHeaders + httpHeaderIndex)->headerNameOffset);
-			dataSet->prefixedUpperHttpHeaders[httpHeaderIndex] = (char*)malloc((httpHeaderName->length + sizeof(HTTP_PREFIX_UPPER) - 1) * sizeof(char));
+			dataSet->prefixedUpperHttpHeaders[httpHeaderIndex] = 
+				(char*)malloc((httpHeaderName->length + 
+				sizeof(HTTP_PREFIX_UPPER) - 1) * sizeof(char));
 			if (dataSet->prefixedUpperHttpHeaders[httpHeaderIndex] != NULL) {
-				prefixedUpperHttpHeader = (char*)dataSet->prefixedUpperHttpHeaders[httpHeaderIndex];
-				memcpy(prefixedUpperHttpHeader, HTTP_PREFIX_UPPER, sizeof(HTTP_PREFIX_UPPER) - 1);
+				prefixedUpperHttpHeader = 
+					(char*)dataSet->prefixedUpperHttpHeaders[httpHeaderIndex];
+				memcpy(prefixedUpperHttpHeader, 
+					HTTP_PREFIX_UPPER, 
+					sizeof(HTTP_PREFIX_UPPER) - 1);
 				prefixedUpperHttpHeader += sizeof(HTTP_PREFIX_UPPER) - 1;
 				for (index = 0; index < httpHeaderName->length; index++) {
-					*prefixedUpperHttpHeader = (char)toupper(*(&httpHeaderName->firstByte + index));
+					*prefixedUpperHttpHeader = 
+						(char)toupper(*(&httpHeaderName->firstByte + index));
 					if (*prefixedUpperHttpHeader == '-') {
 						*prefixedUpperHttpHeader = '_';
 					}
@@ -4616,21 +4895,24 @@ static void initPrefixedUpperHttpHeaderNames(const fiftyoneDegreesDataSet *dataS
  * @returns name of the header, or NULL if index not valid
  * \endcond
  */
-const char* fiftyoneDegreesGetPrefixedUpperHttpHeaderName(const fiftyoneDegreesDataSet *dataSet, int httpHeaderIndex) {
+const char* fiftyoneDegreesGetPrefixedUpperHttpHeaderName(
+				const fiftyoneDegreesDataSet *dataSet, 
+				int httpHeaderIndex) {
 	const char *prefixedUpperHeaderName = NULL;
 	if (dataSet->prefixedUpperHttpHeaders == NULL) {
 		initPrefixedUpperHttpHeaderNames(dataSet);
 	}
 	if (httpHeaderIndex >= 0 &&
 		httpHeaderIndex < dataSet->httpHeadersCount) {
-		prefixedUpperHeaderName = dataSet->prefixedUpperHttpHeaders[httpHeaderIndex];
+		prefixedUpperHeaderName = 
+			dataSet->prefixedUpperHttpHeaders[httpHeaderIndex];
 	}
 	return prefixedUpperHeaderName;
 }
 
  /**
  * \cond
- * Sets name to the start of the http header name and returns the length of
+ * Sets name to the start of the HTTP header name and returns the length of
  * the string. A space or colon are used to identify the end of the header
  * name.
  * @param start of the string to be processed
@@ -4639,7 +4921,9 @@ const char* fiftyoneDegreesGetPrefixedUpperHttpHeaderName(const fiftyoneDegreesD
  * @returns the number of characters in the value
  * \endcond
  */
-static int setNextHttpHeaderName(const char* start, const char* end, char** name) {
+static int setNextHttpHeaderName(const char* start, 
+			const char* end, 
+			char** name) {
 	char *current = (char*)start, *lastChar = (char*)start;
 	while (current <= end) {
 		if (*current == ' ' ||
@@ -4666,7 +4950,9 @@ static int setNextHttpHeaderName(const char* start, const char* end, char** name
  * @returns the number of characters in the value
  * \endcond
  */
-static int setNextHttpHeaderValue(char* start, const char *end, char** value) {
+static int setNextHttpHeaderValue(char* start, 
+			const char *end, 
+			char** value) {
 	char *lastChar = start, *current;
 
 	// Move to the first non-space character.
@@ -4695,7 +4981,7 @@ static int setNextHttpHeaderValue(char* start, const char *end, char** value) {
  /**
  * \cond
  * Compares two header strings for case insensitive equality and where -
- * are replaced with _. The http header name must be the same length
+ * are replaced with _. The HTTP header name must be the same length
  * as the unique header.
  * @param httpHeaderName string to be checked for equality
  * @param uniqueHeader the unique HTTP header to be compared
@@ -4704,14 +4990,17 @@ static int setNextHttpHeaderValue(char* start, const char *end, char** value) {
  *          the first mismatched characters
  * \endcond
  */
-static int headerCompare(char *httpHeaderName, const fiftyoneDegreesAsciiString *uniqueHeader, int length) {
+static int headerCompare(char *httpHeaderName, 
+			const fiftyoneDegreesAsciiString *uniqueHeader, 
+			int length) {
 	int index, difference;
 	for (index = 0; index < length; index++) {
 		if (httpHeaderName[index] == '_') {
 			difference = '-' - (&uniqueHeader->firstByte)[index];
 		}
 		else {
-			difference = tolower(httpHeaderName[index]) - tolower((&uniqueHeader->firstByte)[index]);
+			difference = tolower(httpHeaderName[index]) - 
+				tolower((&uniqueHeader->firstByte)[index]);
 		}
 		if (difference != 0) {
 			return difference;
@@ -4730,7 +5019,9 @@ static int headerCompare(char *httpHeaderName, const fiftyoneDegreesAsciiString 
  * @returns the index in the datasets headers of this header or -1
  * \endcond
  */
-static int getUniqueHttpHeaderIndex(const fiftyoneDegreesDataSet *dataSet, char* httpHeaderName, int length) {
+static int getUniqueHttpHeaderIndex(const fiftyoneDegreesDataSet *dataSet, 
+			char* httpHeaderName, 
+			int length) {
 	int uniqueHeaderIndex;
 	static const int httpPrefixLength = sizeof(HTTP_PREFIX_UPPER) - 1;
 	char *adjustedHttpHeaderName;
@@ -4746,11 +5037,14 @@ static int getUniqueHttpHeaderIndex(const fiftyoneDegreesDataSet *dataSet, char*
 		adjustedHttpHeaderName = httpHeaderName;
 	}
 
-	for (uniqueHeaderIndex = 0; uniqueHeaderIndex < dataSet->httpHeadersCount; uniqueHeaderIndex++) {
+	for (uniqueHeaderIndex = 0; 
+		 uniqueHeaderIndex < dataSet->httpHeadersCount; 
+		 uniqueHeaderIndex++) {
 		// Get the unique header string to compare length and equality.
-		header = fiftyoneDegreesGetString(dataSet, (dataSet->httpHeaders + uniqueHeaderIndex)->headerNameOffset);
+		header = fiftyoneDegreesGetString(dataSet, 
+			(dataSet->httpHeaders + uniqueHeaderIndex)->headerNameOffset);
 
-		// Compare the headers for length and then equality recognising that
+		// Compare the headers for length and then equality recognizing that
 		// the data set string length includes the null terminator. If they
 		// match then a matching header is found and the unique index
 		// should be used.
@@ -4774,23 +5068,35 @@ static int getUniqueHttpHeaderIndex(const fiftyoneDegreesDataSet *dataSet, char*
  * @param size is the valid characters in the httpHeaders string
  * \endcond
  */
-int32_t fiftyoneDegreesSetHttpHeaders(fiftyoneDegreesWorkset *ws, const char *httpHeaders, size_t size) {
+int32_t fiftyoneDegreesSetHttpHeaders(fiftyoneDegreesWorkset *ws, 
+			const char *httpHeaders, 
+			size_t size) {
 	char *headerName, *headerValue;
 	const char *endOfHeaders = httpHeaders + size;
 	int headerNameLength, headerValueLength, uniqueHeaderIndex = 0;
 	ws->importantHeadersCount = 0;
-	headerNameLength = setNextHttpHeaderName(httpHeaders, endOfHeaders, &headerName);
+	headerNameLength = 
+		setNextHttpHeaderName(httpHeaders, endOfHeaders, &headerName);
 	while (headerNameLength > 0 &&
 		ws->importantHeadersCount < ws->dataSet->httpHeadersCount) {
-		headerValueLength = setNextHttpHeaderValue(headerName + headerNameLength, endOfHeaders, &headerValue);
-		uniqueHeaderIndex = getUniqueHttpHeaderIndex(ws->dataSet, headerName, headerNameLength);
+		headerValueLength = 
+			setNextHttpHeaderValue(headerName + headerNameLength, 
+			endOfHeaders, &headerValue);
+		uniqueHeaderIndex = 
+			getUniqueHttpHeaderIndex(ws->dataSet, 
+			headerName, headerNameLength);
 		if (uniqueHeaderIndex >= 0) {
-			ws->importantHeaders[ws->importantHeadersCount].header = ws->dataSet->httpHeaders + uniqueHeaderIndex;
-			ws->importantHeaders[ws->importantHeadersCount].headerValue = headerValue;
-			ws->importantHeaders[ws->importantHeadersCount].headerValueLength = headerValueLength;
+			ws->importantHeaders[ws->importantHeadersCount].header = 
+				ws->dataSet->httpHeaders + uniqueHeaderIndex;
+			ws->importantHeaders[ws->importantHeadersCount].headerValue = 
+				headerValue;
+			ws->importantHeaders[ws->importantHeadersCount].headerValueLength = 
+				headerValueLength;
 			ws->importantHeadersCount++;
 		}
-		headerNameLength = setNextHttpHeaderName(headerValue + headerValueLength, endOfHeaders, &headerName);
+		headerNameLength = 
+			setNextHttpHeaderName(headerValue + headerValueLength, 
+			endOfHeaders, &headerName);
 	}
 	return ws->importantHeadersCount;
 }
@@ -4798,7 +5104,7 @@ int32_t fiftyoneDegreesSetHttpHeaders(fiftyoneDegreesWorkset *ws, const char *ht
  /**
  * \cond
  * Passed a string where each line contains the HTTP header name and value.
- * The first space character seperates the HTTP header name at the beginning of
+ * The first space character separates the HTTP header name at the beginning of
  * the line and the value.
  * @param ws pointer to a work set to be used for the match created via
  *        createWorkset function
@@ -4806,7 +5112,9 @@ int32_t fiftyoneDegreesSetHttpHeaders(fiftyoneDegreesWorkset *ws, const char *ht
  * @param size is the valid characters in the httpHeaders string
  * \endcond
  */
-void fiftyoneDegreesMatchWithHeadersString(fiftyoneDegreesWorkset *ws, const char *httpHeaders, size_t size) {
+void fiftyoneDegreesMatchWithHeadersString(fiftyoneDegreesWorkset *ws, 
+		const char *httpHeaders, 
+		size_t size) {
 	fiftyoneDegreesSetHttpHeaders(ws, httpHeaders, size);
 	fiftyoneDegreesMatchForHttpHeaders(ws);
 }
@@ -4831,17 +5139,21 @@ int32_t fiftyoneDegreesGetSignatureRank(fiftyoneDegreesWorkset *ws) {
  * @return the number of bytes written for the device id
  * \endcond
  */
-int32_t fiftyoneDegreesGetDeviceId(fiftyoneDegreesWorkset *ws, char *deviceId, int size) {
+int32_t fiftyoneDegreesGetDeviceId(fiftyoneDegreesWorkset *ws, 
+			char *deviceId, 
+			int size) {
 	int32_t length = 0;
 	char *current = deviceId;
 	int profileIndex, profileId;
 
 	// Get the length of the string needed to store the device id where each
-	// profile id needs the number of digits plus one for the seperator or
+	// profile id needs the number of digits plus one for the separator or
 	// string terminator.
 	for (profileIndex = 0; profileIndex < ws->profileCount; profileIndex++) {
 		profileId = ws->profiles[profileIndex]->profileId;
-		length += profileId > 0 ? (int)(floor(log10((float)abs(profileId)))) + 2 : 1;
+		length += profileId > 0 ? 
+			(int)(floor(log10((float)abs(profileId)))) + 2 : 
+			1;
 	}
 
 	// Set the device id if enough space available.
@@ -4898,14 +5210,16 @@ static const fiftyoneDegreesProfile* findProfileForProfileId(
  * @param deviceId string representation of the device id to use for the match.
  * \endcond
  */
-void fiftyoneDegreesMatchForDeviceId(fiftyoneDegreesWorkset *ws, const char *deviceId) {
+void fiftyoneDegreesMatchForDeviceId(fiftyoneDegreesWorkset *ws, 
+		const char *deviceId) {
 	char *start = ws->input, *current = ws->input;
 	int lastId = 0, profileId;
 	const fiftyoneDegreesProfile *profile;
 	resetCounters(ws);
 	ws->profileCount = 0;
 	if (strncpy(ws->input, deviceId, strlen(deviceId) + 1) == ws->input) {
-		while (lastId == 0 && ws->profileCount < ws->dataSet->header.components.count) {
+		while (lastId == 0 && 
+				ws->profileCount < ws->dataSet->header.components.count) {
 			lastId = *current == 0;
 			if (isdigit(*current) == 0 || *current == 0) {
 				*current = 0;
@@ -4935,7 +5249,9 @@ void fiftyoneDegreesMatchForDeviceId(fiftyoneDegreesWorkset *ws, const char *dev
  * @return the number of bytes written for the signature
  * \endcond
  */
-int32_t fiftyoneDegreesGetSignatureAsString(fiftyoneDegreesWorkset *ws, char *signatureAsString, int size) {
+int32_t fiftyoneDegreesGetSignatureAsString(fiftyoneDegreesWorkset *ws, 
+			char *signatureAsString, 
+			int size) {
 	int32_t length;
 	if (ws->signature != NULL) {
 		setSignatureAsString(ws, ws->signature);
@@ -4968,10 +5284,12 @@ int32_t fiftyoneDegreesGetSignatureAsString(fiftyoneDegreesWorkset *ws, char *si
  * @return the number of values that were set.
  * \endcond
  */
-int32_t fiftyoneDegreesSetValues(fiftyoneDegreesWorkset *ws, int32_t requiredPropertyIndex) {
+int32_t fiftyoneDegreesSetValues(fiftyoneDegreesWorkset *ws, int32_t 
+			requiredPropertyIndex) {
 	int32_t profileIndex = 0, valueIndex;
 	const fiftyoneDegreesProfile *profile;
-	const fiftyoneDegreesProperty *property = *(ws->dataSet->requiredProperties + requiredPropertyIndex);
+	const fiftyoneDegreesProperty *property = 
+		*(ws->dataSet->requiredProperties + requiredPropertyIndex);
 	int32_t *profileValueIndexes;
 	int32_t propertyIndex;
 	const fiftyoneDegreesValue *value;
@@ -4982,11 +5300,13 @@ int32_t fiftyoneDegreesSetValues(fiftyoneDegreesWorkset *ws, int32_t requiredPro
 			ws->valuesCount == 0) {
 			profile = *(ws->profiles + profileIndex);
 			if (profile->componentIndex == property->componentIndex) {
-				profileValueIndexes = (int32_t*)((byte*)profile + sizeof(fiftyoneDegreesProfile));
+				profileValueIndexes = 
+					(int32_t*)((byte*)profile + sizeof(fiftyoneDegreesProfile));
 				valueIndex = 0;
 				while(valueIndex < profile->valueCount &&
 					ws->valuesCount == 0) {
-					value = ws->dataSet->values + profileValueIndexes[valueIndex];
+					value = 
+						ws->dataSet->values + profileValueIndexes[valueIndex];
 					while (value->propertyIndex == propertyIndex) {
 						ws->values[ws->valuesCount] = value;
 						ws->valuesCount++;
@@ -4994,7 +5314,9 @@ int32_t fiftyoneDegreesSetValues(fiftyoneDegreesWorkset *ws, int32_t requiredPro
 						if (valueIndex == profile->valueCount) {
 							break;
 						}
-						value = ws->dataSet->values + profileValueIndexes[valueIndex];
+						value = 
+							ws->dataSet->values + 
+							profileValueIndexes[valueIndex];
 					}
 					valueIndex++;
 				}
@@ -5061,19 +5383,23 @@ int32_t fiftyoneDegreesProcessDeviceCSV(fiftyoneDegreesWorkset *ws, char* csv) {
 			(int32_t)(endPos - currentPos),
 			"\n");
 
-		for (propertyIndex = 0; propertyIndex < ws->dataSet->requiredPropertyCount; propertyIndex++) {
+		for (propertyIndex = 0; 
+			 propertyIndex < ws->dataSet->requiredPropertyCount; 
+			 propertyIndex++) {
 			if (fiftyoneDegreesSetValues(ws, propertyIndex) > 0) {
 				currentPos += snprintf(
 					currentPos,
 					(int32_t)(endPos - currentPos),
 					"%s,",
-					fiftyoneDegreesGetPropertyName(ws->dataSet, *(ws->dataSet->requiredProperties + propertyIndex)));
+					fiftyoneDegreesGetPropertyName(ws->dataSet, 
+					*(ws->dataSet->requiredProperties + propertyIndex)));
 				for (valueIndex = 0; valueIndex < ws->valuesCount; valueIndex++) {
 					currentPos += snprintf(
 						currentPos,
 						(int32_t)(endPos - currentPos),
 						"%s",
-						fiftyoneDegreesGetValueName(ws->dataSet, *(ws->values + valueIndex)));
+						fiftyoneDegreesGetValueName(ws->dataSet, 
+						*(ws->values + valueIndex)));
 					if (valueIndex < ws->valuesCount - 1) {
 						currentPos += snprintf(
 							currentPos,
@@ -5180,7 +5506,8 @@ static int escapeJSON(char *start, char *next, char *max) {
  * @return number of characters written to the JSON string
  * \endcond
  */
-int32_t fiftyoneDegreesProcessDeviceJSON(fiftyoneDegreesWorkset *ws, char* json) {
+int32_t fiftyoneDegreesProcessDeviceJSON(fiftyoneDegreesWorkset *ws, 
+			char* json) {
 	int32_t propertyIndex, valueIndex, profileIndex;
 	const fiftyoneDegreesAsciiString* valueName;
 	char* currentPos = json;
@@ -5193,7 +5520,9 @@ int32_t fiftyoneDegreesProcessDeviceJSON(fiftyoneDegreesWorkset *ws, char* json)
 			currentPos,
 			(int32_t)(endPos - currentPos),
 			"{\"Id\": \"");
-		for (profileIndex = 0; profileIndex < ws->profileCount; profileIndex++) {
+		for (profileIndex = 0; 
+			 profileIndex < ws->profileCount; 
+			 profileIndex++) {
 			currentPos += snprintf(
 				currentPos,
 				(int32_t)(endPos - currentPos),
@@ -5210,18 +5539,28 @@ int32_t fiftyoneDegreesProcessDeviceJSON(fiftyoneDegreesWorkset *ws, char* json)
 			"\",\n");
 
 		// Add each of the required properties.
-		for (propertyIndex = 0; propertyIndex < ws->dataSet->requiredPropertyCount; propertyIndex++) {
+		for (propertyIndex = 0; 
+			 propertyIndex < ws->dataSet->requiredPropertyCount; 
+			 propertyIndex++) {
 			if (fiftyoneDegreesSetValues(ws, propertyIndex) > 0) {
 				currentPos += snprintf(
 					currentPos,
 					(int32_t)(endPos - currentPos),
 					"\"%s\": \"",
-					fiftyoneDegreesGetPropertyName(ws->dataSet, *(ws->dataSet->requiredProperties + propertyIndex)));
-				for (valueIndex = 0; valueIndex < ws->valuesCount; valueIndex++) {
-					valueName = fiftyoneDegreesGetString(ws->dataSet, ws->values[valueIndex]->nameOffset);
-					memcpy(currentPos, &valueName->firstByte, valueName->length - 1);
+					fiftyoneDegreesGetPropertyName(ws->dataSet, 
+					*(ws->dataSet->requiredProperties + propertyIndex)));
+				for (valueIndex = 0; 
+					 valueIndex < ws->valuesCount; 
+					 valueIndex++) {
+					valueName = fiftyoneDegreesGetString(ws->dataSet, 
+						ws->values[valueIndex]->nameOffset);
+					memcpy(currentPos, 
+						&valueName->firstByte, 
+						valueName->length - 1);
 					currentPos += valueName->length - 1 +
-						escapeJSON(currentPos, currentPos + valueName->length - 1, endPos);
+						escapeJSON(currentPos, 
+							currentPos + valueName->length - 1, 
+							endPos);
 					if (valueIndex < ws->valuesCount - 1) {
 						*currentPos = '|';
 						currentPos++;
@@ -5251,17 +5590,15 @@ int32_t fiftyoneDegreesProcessDeviceJSON(fiftyoneDegreesWorkset *ws, char* json)
 
 /**
  * \cond
- * Releases the workset provided back to the pool making it available for future
- * use.
- *
- * The method is obsolete as all worksets now have a pool associated with them
- * which used when returning the work set to the pool.
- *
+ * Releases the workset provided back to the pool making it available for 
+ * future use. The method is obsolete as all worksets now have a pool 
+ * associated with them which used when returning the work set to the pool.
  * @param pool containing worksets
  * @param ws workset to be placed back on the queue
  * \endcond
  */
-void fiftyoneDegreesWorksetPoolRelease(fiftyoneDegreesWorksetPool *pool, fiftyoneDegreesWorkset *ws) {
+void fiftyoneDegreesWorksetPoolRelease(fiftyoneDegreesWorksetPool *pool, 
+		fiftyoneDegreesWorkset *ws) {
 	// Just a precaution, associated pool is assigned when workset is created.
 	if (ws->associatedPool == NULL) {
 		ws->associatedPool = pool;
@@ -5269,14 +5606,32 @@ void fiftyoneDegreesWorksetPoolRelease(fiftyoneDegreesWorksetPool *pool, fiftyon
 	fiftyoneDegreesWorksetRelease(ws);
 }
 
-fiftyoneDegreesWorkset* fiftyoneDegreesCreateWorkset(const fiftyoneDegreesDataSet *dataSet) {
+/**
+ * Creates a single workset that is not contained in a pool. This function is 
+ * now deprecated and is only retained for backwards compatibility.
+ * @param dataSet pointer to the dataset to create workset from
+ */
+fiftyoneDegreesWorkset* fiftyoneDegreesCreateWorkset(
+							const fiftyoneDegreesDataSet *dataSet) {
 	return fiftyoneDegreesWorksetCreate(dataSet, NULL);
 }
 
+/**
+ * Frees the workset that was created without a pool. Method is deprecated and 
+ * should only be used to free the worksets created outside of the workset 
+ * pool.
+ * @param ws workset to free
+ */
 void fiftyoneDegreesFreeWorkset(const fiftyoneDegreesWorkset *ws) {
 	fiftyoneDegreesWorksetFree(ws);
 }
 
+/**
+ * Frees resources occupied by the dataset. This method is deprecated and 
+ * should only be used to free the standalone dataset that is not part of 
+ * the provider.
+ * @param dataSet pointer to dataset structure that should be freed
+ */
 void fiftyoneDegreesDestroy(const fiftyoneDegreesDataSet *dataSet) {
 	fiftyoneDegreesDataSetFree(dataSet);
 }
