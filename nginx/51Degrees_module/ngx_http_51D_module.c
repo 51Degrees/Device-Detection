@@ -140,27 +140,27 @@ static ngx_int_t reportDatasetInitStatus(fiftyoneDegreesDataSetInitStatus status
 										const char* fileName) {
 	switch (status) {
 	case DATA_SET_INIT_STATUS_INSUFFICIENT_MEMORY:
-		ngx_log_stderr(NGX_ERROR, "Insufficient memory to load '%s'.", fileName);
+		ngx_log_stderr(0, "Insufficient memory to load '%s'.", fileName);
 		break;
 	case DATA_SET_INIT_STATUS_CORRUPT_DATA:
-		ngx_log_stderr(NGX_ERROR, "Device data file '%s' is corrupted.", fileName);
+		ngx_log_stderr(0, "Device data file '%s' is corrupted.", fileName);
 		break;
 	case DATA_SET_INIT_STATUS_INCORRECT_VERSION:
-		ngx_log_stderr(NGX_ERROR, "Device data file '%s' is not correct version.", fileName);
+		ngx_log_stderr(0, "Device data file '%s' is not correct version.", fileName);
 		break;
 	case DATA_SET_INIT_STATUS_FILE_NOT_FOUND:
-		ngx_log_stderr(NGX_ERROR, "Device data file '%s' not found.", fileName);
+		ngx_log_stderr(0, "Device data file '%s' not found.", fileName);
 		break;
 	case DATA_SET_INIT_STATUS_NULL_POINTER:
-		ngx_log_stderr(NGX_ERROR, "Null pointer to the existing dataset or memory location.");
+		ngx_log_stderr(0, "Null pointer to the existing dataset or memory location.");
 		break;
 	case DATA_SET_INIT_STATUS_POINTER_OUT_OF_BOUNDS:
-		ngx_log_stderr(NGX_ERROR, "Allocated continuous memory containing 51Degrees data file "
+		ngx_log_stderr(0, "Allocated continuous memory containing 51Degrees data file "
 			"appears to be smaller than expected. Most likely because the"
 			" data file was not fully loaded into the allocated memory.");
 		break;
 	default:
-		ngx_log_stderr(NGX_ERROR, "Device data file '%s' could not be loaded.", fileName);
+		ngx_log_stderr(0, "Device data file '%s' could not be loaded.", fileName);
 		break;
 	}
 	return NGX_ERROR;
