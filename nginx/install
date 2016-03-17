@@ -1,5 +1,7 @@
 #!/bin/bash
 
+./bootstrap
+
 set -o nounset
 set -o errexit
 
@@ -26,10 +28,8 @@ else
 	printf "NGINX already downloaded\n"
 fi
 
-./exportmodule
-
 cd "vendor/nginx-$NGINX_VERSION"
-CFLAGS="-O3" ./configure           \
+CFLAGS="-O3 -DFIFTYONEDEGREES_NGINX" ./configure           \
     --prefix=$BUILDDIR \
     --with-ld-opt="-lm"  \
     --add-module=../../51Degrees_module
@@ -38,8 +38,3 @@ cd ../../
 cp nginx.conf build/conf/
 
 echo "nginx with 51Degrees installed to build"
-
-echo "#!/bin/bash
-killall nginx
-./build/sbin/nginx" > run
-chmod +x run
