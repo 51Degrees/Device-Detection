@@ -84,6 +84,7 @@
     <ClCompile Include="..\..\..\examples\MatchMetrics.c" />
     <ClCompile Include="..\..\..\src\cityhash\city.c" />
     <ClCompile Include="..\..\..\src\pattern\51Degrees.c" />
+    <ClCompile Include="..\..\..\src\threading.c" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">
