@@ -440,8 +440,8 @@ ngx_http_51D_set_properties(ngx_conf_t *cf, ngx_http_51D_main_conf_t *fdmcf, ngx
 	ngx_str_t *properties = &fdlcf->properties_string;
 
 	// Check that properties count is initialised (-1 = not initialised).
-	if ((int)fdmcf->properties_n <0)
-		fdmcf->properties_n =0;
+	if ((int)fdmcf->properties_n < 0)
+		fdmcf->properties_n = 0;
 
 	// Sepparate the properties by commas into an array.
 	int i = 0, j, found;
