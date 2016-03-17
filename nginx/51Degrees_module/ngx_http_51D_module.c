@@ -4,12 +4,21 @@
 #include <ngx_http.h>
 #include "src/pattern/51Degrees.h"
 
-#ifndef MAX_51D_PROPERTIES
-#define MAX_51D_PROPERTIES 20
+// Define default settings.
+#define FIFTYONEDEGREES_DEFAULTFILE "51Degrees.dat"
+#define FIFTYONEDEGREES_DEFAULTCACHE 10000
+#define FIFTYONEDEGREES_DEFAULTPOOL 20
+
+#ifndef FIFTYONEDEGREES_MAX_PROPERTIES
+#define FIFTYONEDEGREES_MAX_PROPERTIES 20
+#endif
+
+#ifndef FIFTYONEDEGREES_HTTP_PREFIX
+#define FIFTYONEDEGREES_HTTP_PREFIX "51D-"
 #endif
 
 // 51Degrees http header prefix.
-const char* prefix = "51D-";
+const char* prefix = FIFTYONEDEGREES_HTTP_PREFIX;
 
 // Module config functions to enable matching in selected locations.
 static char *ngx_http_51D_single(ngx_conf_t *cf, void *post, void *data);
@@ -39,15 +48,15 @@ typedef struct {
 	ngx_uint_t single;
 	ngx_uint_t multi;
 	ngx_str_t properties_string;
-	char *properties[MAX_51D_PROPERTIES];
-	char *prefixed_properties[MAX_51D_PROPERTIES];
-	char *lower_prefixed_properties[MAX_51D_PROPERTIES];
+	char *properties[FIFTYONEDEGREES_MAX_PROPERTIES];
+	char *prefixed_properties[FIFTYONEDEGREES_MAX_PROPERTIES];
+	char *lower_prefixed_properties[FIFTYONEDEGREES_MAX_PROPERTIES];
 	ngx_uint_t properties_n;
 } ngx_http_51D_loc_conf_t;
 
 // Module main config.
 typedef struct {
-    char *properties[MAX_51D_PROPERTIES];
+    char *properties[FIFTYONEDEGREES_MAX_PROPERTIES];
     ngx_uint_t properties_n;
     ngx_uint_t cacheSize;
     ngx_uint_t poolSize;
@@ -167,10 +176,16 @@ ngx_http_51D_init_process(ngx_cycle_t *cycle)
 	// Get module main config.
 	fdmcf = ngx_http_cycle_get_module_main_conf(cycle, ngx_http_51D_module);
 
-	// If the data file is not set, set the default.
+	// If a setting is not set, set the default.
 	if ((int)fdmcf->dataFile.len < 0) {
-		fdmcf->dataFile.data = "51Degrees.dat";
+		fdmcf->dataFile.data = FIFTYONEDEGREES_DEFAULTFILE;
 		fdmcf->dataFile.len = strlen(fdmcf->dataFile.data);
+	}
+	if ((int)fdmcf->cacheSize < 0) {
+		fdmcf->cacheSize = FIFTYONEDEGREES_DEFAULTCACHE;
+	}
+	if ((int)fdmcf->poolSize < 0) {
+		fdmcf->poolSize = FIFTYONEDEGREES_DEFAULTPOOL;
 	}
 
 	// Initialise the provider or return an error on failure.
@@ -319,7 +334,7 @@ ngx_http_51D_handler(ngx_http_request_t *r)
 	fiftyoneDegreesWorkset *ws;
 	int headerIndex, i, j, found;
 	ngx_table_elt_t *searchResult;
-	char *methodName, *property_name, *property_values_array[MAX_51D_PROPERTIES];
+	char *methodName, *property_name, *property_values_array[FIFTYONEDEGREES_MAX_PROPERTIES];
 
 	if (r->main->internal) {
 		return NGX_DECLINED;

@@ -33,11 +33,13 @@ Use this project to detect device properties using HTTP browser User-Agents as i
 
 ## Dependencies
 - gcc
+- Nginx source
 
-For Ubuntu based distributions this can be found on apt, use
+For Ubuntu based distributions gcc can be found on apt, use
 ```
 $ sudo apt-get install gcc
 ```
+and the Nginx source will be automatically downloaded by the ``bootstrap`` script.
 
 ## Install
 <installation>
