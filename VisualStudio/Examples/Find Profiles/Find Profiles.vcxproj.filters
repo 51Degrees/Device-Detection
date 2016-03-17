@@ -35,5 +35,8 @@
     <ClCompile Include="..\..\..\examples\FindProfiles.c">
       <Filter>Source Files</Filter>
     </ClCompile>
+    <ClCompile Include="..\..\..\src\threading.c">
+      <Filter>Source Files</Filter>
+    </ClCompile>
   </ItemGroup>
 </Project>

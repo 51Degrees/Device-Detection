@@ -19,6 +19,7 @@
     <ClCompile Include="..\..\..\examples\MatchForDeviceId.c" />
     <ClCompile Include="..\..\..\src\cityhash\city.c" />
     <ClCompile Include="..\..\..\src\pattern\51Degrees.c" />
+    <ClCompile Include="..\..\..\src\threading.c" />
   </ItemGroup>
   <PropertyGroup Label="Globals">
     <ProjectGuid>{C11D3CCB-F720-400B-89F7-A3C60B7079CC}</ProjectGuid>

@@ -23,47 +23,63 @@
 Getting started example of using 51Degrees device detection.
 The example shows how to:
 <ol>
-<li>Set the various settings for 51Degrees detector
-<p><pre class="prettyprint lang-c">
-const char* fileName = argv[1];
-const char* properties = "IsMobile";
-</pre></p>
-<li>Instantiate the 51Degrees device detection provider with these
-properties
-<p><pre class="prettyprint lang-c">
-fiftyoneDegreesInitWithPropertyString(fileName, &dataSet, properties);
-</pre></p>
-<li>Create a workset with which to find a match
-<p><pre class="prettyprint lang-c">
-ws = fiftyoneDegreesWorksetCreate(&dataSet, NULL);
-</pre></p>
-<li>Produce a match for a single HTTP User-Agent
-<p><pre class="prettyprint lang-c">
-fiftyoneDegreesMatch(ws, userAgent);
-</pre></p>
-<li>Extract the value of the IsMobile property
-<p><pre class="prettyprint lang-c">
-requiredPropertyIndex = fiftyoneDegreesGetRequiredPropertyIndex(ws->dataSet,
- "IsMobile");
-fiftyoneDegreesSetValues(ws, requiredPropertyIndex);
-valueName = fiftyoneDegreesGetString(ws->dataSet, ws->values[0]->nameOffset);
-isMobile = &(valueName->firstByte);
-</pre></p>
-<li>Release the memory taken by the workset
-<p><pre class="prettyprint lang-c">
-fiftyoneDegreesWorksetFree(ws);
-</pre></p>
-<li>Finally release the memory taken by the dataset
-<p><pre class="prettyprint lang-c">
-fiftyoneDegreesDataSetFree(&dataSet);
-</pre></p>
+	<li>Specify name of the data file and properties the dataset should be 
+	initialised with.
+	<p><pre class="prettyprint lang-c">
+	const char* fileName = argv[1];
+	const char* properties = "IsMobile";
+	</pre></p>
+	<li>Instantiate the 51Degrees provider from the specified data file with 
+	the required properties, number of worksets in the pool and cache of the 
+	specific size.
+	<p><pre class="prettyprint lang-c">
+	fiftyoneDegreesInitProviderWithPropertyString(
+	fileName, &provider, properties, 4, 1000);
+	</pre></p>
+	<li>Retrieve a workset from the pool and use it for a single match.
+	<p><pre class="prettyprint lang-c">
+	fiftyoneDegreesWorkset *ws = NULL;
+	ws = fiftyoneDegreesProviderWorksetGet(&provider);
+	</pre></p>
+	<li>Match a single HTTP User-Agent string to retrieve the values 
+	associated with the User-Agent for the selected properties.
+	<p><pre class="prettyprint lang-c">
+	fiftyoneDegreesMatch(ws, userAgent);
+	</pre></p>
+	<li>Extract the value of the IsMobile property.
+	<p><pre class="prettyprint lang-c">
+	requiredPropertyIndex = 
+	fiftyoneDegreesGetRequiredPropertyIndex(ws->dataSet,"IsMobile");
+	fiftyoneDegreesSetValues(ws, requiredPropertyIndex);
+	valueName = fiftyoneDegreesGetString(ws->dataSet, ws->values[0]->nameOffset);
+	isMobile = &(valueName->firstByte);
+	</pre></p>
+	<li>Release the workset back into the pool of worksets to be reused in one 
+	of the next matches.
+	<p><pre class="prettyprint lang-c">
+	fiftyoneDegreesWorksetRelease(ws);
+	</pre></p>
+	<li>Finally release the memory taken by the provider.
+	<p><pre class="prettyprint lang-c">
+	fiftyoneDegreesProviderFree(&provider);
+	</pre></p>
 </ol>
-This example assumes you have compiled with 51Degrees.c
-and city.c. This will happen automatically if you are compiling
-as part of the Visual Studio solution. Additionally, when running,
-the location of a 51Degrees data file must be passed as a
-command line argument if you wish to use Premium or Enterprise
-data files.
+<p>
+	This example assumes you have compiled with 51Degrees.c and city.c. 
+	This will happen automatically if you are compiling as part of the 
+	Visual Studio solution. Additionally, when running the program, the 
+	location of a 51Degrees data file must be passed as a command line 
+	argument if you wish to use Premium or Enterprise data files.
+</p>
+<p>
+	The size of the worksets pool parameter should be set to the maximum 
+	(expected) number of concurrent detections to avoid delays related to 
+	waiting for free worksets. Workset pool is thread safe. Initially the 
+	number of created worksets in the pool is zero. When a workset is 
+	retrieved from the pool a new workset is created if no worksets are 
+	currently free and the number of worksets already created is less than 
+	the maximum size of the workset pool.
+</p>
 </tutorial>
 */
 
@@ -80,45 +96,35 @@ data files.
 #include <string.h>
 #include "../src/pattern/51Degrees.h"
 
-fiftyoneDegreesWorkset *ws = NULL;
-fiftyoneDegreesDataSet dataSet;
+// Global settings and properties.
+static fiftyoneDegreesProvider provider;
+
+// Function declarations.
+static void reportDatasetInitStatus(
+	fiftyoneDegreesDataSetInitStatus status,
+	const char* fileName);
 
 const char* getIsMobile(fiftyoneDegreesWorkset* ws);
-void run(fiftyoneDegreesDataSet* dataSet);
+void run(fiftyoneDegreesProvider* provider);
 
 int main(int argc, char* argv[]) {
 	const char* properties = "IsMobile";
 	const char* fileName = argc > 1 ? argv[1] : "../../../data/51Degrees-LiteV3.2.dat";
-
-	/**
-	* Initialises the device detection dataset with the above settings.
-	* This uses the Lite data file For more info
-	* see:
-	* <a href="https://51degrees.com/compare-data-options">compare data options
-	* </a>
-	*/
-	if (fileName != NULL) {
-		switch (fiftyoneDegreesInitWithPropertyString(fileName, &dataSet, properties)) {
-		case DATA_SET_INIT_STATUS_INSUFFICIENT_MEMORY:
-			printf("Insufficient memory to load '%s'.", fileName);
-			break;
-		case DATA_SET_INIT_STATUS_CORRUPT_DATA:
-			printf("Device data file '%s' is corrupted.", fileName);
-			break;
-		case DATA_SET_INIT_STATUS_INCORRECT_VERSION:
-			printf("Device data file '%s' is not correct version.", fileName);
-			break;
-		case DATA_SET_INIT_STATUS_FILE_NOT_FOUND:
-			printf("Device data file '%s' not found.", fileName);
-			break;
-		case DATA_SET_INIT_STATUS_NOT_SET:
-			printf("Device data file '%s' could not be loaded.", fileName);
-			break;
-		default:
-			run(&dataSet);
-			break;
-		}
+	
+	// Create a pool of 4 worksets with a cache for 1000 items.
+	fiftyoneDegreesDataSetInitStatus status =
+		fiftyoneDegreesInitProviderWithPropertyString(
+		fileName, &provider, properties, 4, 1000);
+	if (status != DATA_SET_INIT_STATUS_SUCCESS) {
+		reportDatasetInitStatus(status, fileName);
+		fgetc(stdin);
+		return 1;
 	}
+
+	run(&provider);
+
+	// Free the pool, dataset and cache.
+	fiftyoneDegreesProviderFree(&provider);
 
 	// Wait for a character to be pressed.
 	fgetc(stdin);
@@ -132,8 +138,9 @@ int main(int argc, char* argv[]) {
 	return 0;
 }
 
-void run(fiftyoneDegreesDataSet* dataSet) {
+void run(fiftyoneDegreesProvider* provider) {
 	const char* isMobile;
+	fiftyoneDegreesWorkset *ws = NULL;
 
 	// User-Agent string of an iPhone mobile device.
 	const char* mobileUserAgent = ("Mozilla/5.0 (iPhone; CPU iPhone OS 7_1 like Mac OS X) "
@@ -151,32 +158,41 @@ void run(fiftyoneDegreesDataSet* dataSet) {
 
 	printf("Starting Getting Started Example.\n");
 
-	// Creates a workset.
-	ws = fiftyoneDegreesWorksetCreate(dataSet, NULL);
+	// Get a workset from the pool to perform this match.
+	ws = fiftyoneDegreesProviderWorksetGet(provider);
 
-	printf("\nUser-Agent: %s\n", mobileUserAgent);
-
+	printf("\nMobile User-Agent: %s\n", mobileUserAgent);
 	// Carries out a match for a mobile User-Agent.
 	fiftyoneDegreesMatch(ws, mobileUserAgent);
 	isMobile = getIsMobile(ws);
 	printf("   IsMobile: %s\n", isMobile);
 
+	// Release workset after match complete and workset no longer required.
+	fiftyoneDegreesWorksetRelease(ws);
+
+	// Get a workset from the pool to perform this match.
+	ws = fiftyoneDegreesProviderWorksetGet(provider);
+
 	// Carries out a match for a desktop User-Agent.
-	printf("\nUser-Agent: %s\n", desktopUserAgent);
+	printf("\n Desktop User-Agent: %s\n", desktopUserAgent);
 	fiftyoneDegreesMatch(ws, desktopUserAgent);
 	isMobile = getIsMobile(ws);
 	printf("   IsMobile: %s\n", isMobile);
 
+	// Release workset after match complete and workset no longer required.
+	fiftyoneDegreesWorksetRelease(ws);
+
+	// Get a workset from the pool to perform this match.
+	ws = fiftyoneDegreesProviderWorksetGet(provider);
+
 	// Carries out a match for a MediaHub User-Agent.
-	printf("\nUser-Agent: %s\n", mediaHubUserAgent);
+	printf("\n Media hub User-Agent: %s\n", mediaHubUserAgent);
 	fiftyoneDegreesMatch(ws, mediaHubUserAgent);
 	isMobile = getIsMobile(ws);
 	printf("   IsMobile: %s\n", isMobile);
 
-	// Frees workset.
-	fiftyoneDegreesWorksetFree(ws);
-
-	fiftyoneDegreesDataSetFree(dataSet);
+	// Release workset after match complete and workset no longer required.
+	fiftyoneDegreesWorksetRelease(ws);
 }
 
 /**
@@ -196,5 +212,37 @@ const char* getIsMobile(fiftyoneDegreesWorkset* ws) {
     valueName = fiftyoneDegreesGetString(ws->dataSet, ws->values[0]->nameOffset);
     isMobile = &(valueName->firstByte);
     return isMobile;
+}
+
+/**
+* Reports the status of the data file initialization.
+*/
+static void reportDatasetInitStatus(fiftyoneDegreesDataSetInitStatus status,
+	const char* fileName) {
+	switch (status) {
+	case DATA_SET_INIT_STATUS_INSUFFICIENT_MEMORY:
+		printf("Insufficient memory to load '%s'.", fileName);
+		break;
+	case DATA_SET_INIT_STATUS_CORRUPT_DATA:
+		printf("Device data file '%s' is corrupted.", fileName);
+		break;
+	case DATA_SET_INIT_STATUS_INCORRECT_VERSION:
+		printf("Device data file '%s' is not correct version.", fileName);
+		break;
+	case DATA_SET_INIT_STATUS_FILE_NOT_FOUND:
+		printf("Device data file '%s' not found.", fileName);
+		break;
+	case DATA_SET_INIT_STATUS_NULL_POINTER:
+		printf("Null pointer to the existing dataset or memory location.");
+		break;
+	case DATA_SET_INIT_STATUS_POINTER_OUT_OF_BOUNDS:
+		printf("Allocated continuous memory containing 51Degrees data file "
+			"appears to be smaller than expected. Most likely because the"
+			" data file was not fully loaded into the allocated memory.");
+		break;
+	default:
+		printf("Device data file '%s' could not be loaded.", fileName);
+		break;
+	}
 }
 // Snippet End
