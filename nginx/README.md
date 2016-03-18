@@ -11,7 +11,6 @@ In nginx.config, use like...
 http {
   51D_filePath path/to/51Degrees.dat;
   51D_cache 10000;
-  51D_pool 20;
   server {
     ...
     location /location/to/match/with/User-Agent/ {
@@ -70,9 +69,9 @@ Copy the module to the Nginx modules directory with
 ```
 $ cp -r 51Degrees_module [MODULE DIRECTORY]
 ```
-In the Nginx source directory, run ``./configure`` as normal and add the module, the linker option ``-lm`` and the definition ``FIFTYONEDEGREES_NGINX``. A basic example is,
+In the Nginx source directory, run ``./configure`` as normal and add the module, the linker option ``-lm`` and the definitions ``FIFTYONEDEGREES_NGINX`` and ``FIFTYONEDEGREES_NO_THREADING``. A basic example is,
 ```
-$ CFLAGS="-DFIFTYONEDEGREES_NGINX" ./configure \
+$ CFLAGS="-DFIFTYONEDEGREES_NGINX -DFIFTYONEDEGREES_NO_THREADING" ./configure \
     --prefix=[NGINX INSTALL DIRECTORY] \
     --with-ld-opt="-lm" \
     --add-module=[MODULE DIRECTORY]/51Degrees_module
@@ -93,13 +92,11 @@ These settings are valid in the main configuration block and should only be set 
 
  - ``51D_cache`` (defaults to ``10000``). Sets the size of the workset cache.
 
- - ``51D_pool`` (defaults to ``20``). Sets the size of the workset pool.
-
 #### Location Settings
 These settings are valid in a location configuration block and should only be set once per location.
  - ``51D_single`` (defaults to disabled). Gets device properties using a User-Agent. Takes a comma separated list of properties to return.
 
-- ``51D_multi`` (defaults to disabled). Gets device properties using multiple HTTP headers. Takes a comma separated list of properties to return.
+ - ``51D_multi`` (defaults to disabled). Gets device properties using multiple HTTP headers. Takes a comma separated list of properties to return.
 
 ## Usage
 ### The Config File
@@ -110,7 +107,6 @@ Within the HTTP block is where the detector settings are set, these should be se
 http {
   51D_filePath data/51Degrees.dat;
   51D_cache 10000;
-  51D_pool 20;
   ...
 }
 ```

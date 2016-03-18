@@ -18,7 +18,7 @@
 					<Add option="-g" />
 				</Compiler>
 				<ExtraCommands>
-					<Add before='CFLAGS=&quot;-g -O0&quot; ./configure --with-debug --with-ld-opt=&quot;-lm&quot; --add-module=../../51Degrees_module --prefix=$(PROJECTDIR)../build' />
+					<Add before='CFLAGS=&quot;-g -O0 -DFIFTYONEDEGREES_NGINX -DFIFTYONEDEGREES_NO_THREADING&quot; ./configure --with-debug --with-ld-opt=&quot;-lm&quot; --add-module=../../51Degrees_module --prefix=$(PROJECTDIR)../build' />
 					<Add after="cp $(PROJECTDIR)../nginx.conf $(PROJECTDIR)../build/conf/" />
 				</ExtraCommands>
 				<MakeCommands>
@@ -43,7 +43,7 @@
 					<Add option="-s" />
 				</Linker>
 				<ExtraCommands>
-					<Add before='CFLAGS=&quot;-O3&quot; ./configure --with-ld-opt=&quot;-lm&quot; --add-module=../../51Degrees_module --prefix=$(PROJECTDIR)../build' />
+					<Add before='CFLAGS=&quot;-O3 -DFIFTYONEDEGREES_NGINX -DFIFTYONEDEGREES_NO_THREADING&quot; ./configure --with-ld-opt=&quot;-lm&quot; --add-module=../../51Degrees_module --prefix=$(PROJECTDIR)../build' />
 					<Add after="cp $(PROJECTDIR)../nginx.conf $(PROJECTDIR)../build/conf/" />
 				</ExtraCommands>
 				<MakeCommands>
