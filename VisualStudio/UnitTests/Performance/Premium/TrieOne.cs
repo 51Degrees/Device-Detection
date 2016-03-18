@@ -60,42 +60,49 @@ namespace FiftyOne.UnitTests.Performance.Premium
         }
 
         [TestMethod]
+        [TestCategory("Premium"), TestCategory("Trie"), TestCategory("Performance"), TestCategory("Initialize")]
         public void PremiumV32Trie_Performance_InitializeTimeOne()
         {
             InitializeTime();
         }
         
         [TestMethod]
+        [TestCategory("Premium"), TestCategory("Trie"), TestCategory("Performance"), TestCategory("Multi"), TestCategory("Bad"), TestCategory("One")]
         public void PremiumV32Trie_Performance_BadUserAgentsMultiOne()
         {
             BadUserAgentsMulti(1);
         }
 
         [TestMethod]
+        [TestCategory("Premium"), TestCategory("Trie"), TestCategory("Performance"), TestCategory("Single"), TestCategory("Bad"), TestCategory("One")]
         public void PremiumV32Trie_Performance_BadUserAgentsSingleOne()
         {
             BadUserAgentsSingle(1);
         }
 
         [TestMethod]
+        [TestCategory("Premium"), TestCategory("Trie"), TestCategory("Performance"), TestCategory("Multi"), TestCategory("Unique"), TestCategory("One")]
         public void PremiumV32Trie_Performance_UniqueUserAgentsMultiOne()
         {
             UniqueUserAgentsMulti(1);
         }
 
         [TestMethod]
+        [TestCategory("Premium"), TestCategory("Trie"), TestCategory("Performance"), TestCategory("Single"), TestCategory("Unique"), TestCategory("One")]
         public void PremiumV32Trie_Performance_UniqueUserAgentsSingleOne()
         {
             UniqueUserAgentsSingle(1);
         }
 
         [TestMethod]
+        [TestCategory("Premium"), TestCategory("Trie"), TestCategory("Performance"), TestCategory("Multi"), TestCategory("Random"), TestCategory("One")]
         public void PremiumV32Trie_Performance_RandomUserAgentsMultiOne()
         {
             RandomUserAgentsMulti(1);
         }
 
         [TestMethod]
+        [TestCategory("Premium"), TestCategory("Trie"), TestCategory("Performance"), TestCategory("Single"), TestCategory("Random"), TestCategory("One")]
         public void PremiumV32Trie_Performance_RandomUserAgentsSingleOne()
         {
             RandomUserAgentsSingle(1);

@@ -47,18 +47,21 @@ namespace FiftyOne.UnitTests.HttpHeaders.Enterprise
         }
 
         [TestMethod]
+        [TestCategory("HttpHeaders"), TestCategory("Enterprise"), TestCategory("Pattern")]
         public void EnterpriseV32PatternFile_OperaMiniSamsung() 
         {
             base.OperaMini_Samsung();
         }
 
         [TestMethod]
+        [TestCategory("HttpHeaders"), TestCategory("Enterprise"), TestCategory("Pattern")]
         public void EnterpriseV32PatternFile_OperaMini_HTC()
         {
             base.OperaMini_HTC();
         }
 
         [TestMethod]
+        [TestCategory("HttpHeaders"), TestCategory("Enterprise"), TestCategory("Pattern")]
         public void EnterpriseV32PatternFile_OperaMini_iPhone()
         {
             base.OperaMini_iPhone();

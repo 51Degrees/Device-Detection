@@ -42,6 +42,7 @@ namespace UnitTests.API.Enterprise
         }
 
         [TestMethod]
+        [TestCategory("API"), TestCategory("Premium")]
         public void PatternPatternAPI_NullUserAgent()
         {
             using (var result = _wrapper.Match((string)null))
@@ -51,6 +52,7 @@ namespace UnitTests.API.Enterprise
         }
 
         [TestMethod]
+        [TestCategory("API"), TestCategory("Premium")]
         public void PatternPatternAPI_EmptyUserAgent()
         {
             using (var result = _wrapper.Match(String.Empty))
@@ -60,6 +62,7 @@ namespace UnitTests.API.Enterprise
         }
 
         [TestMethod]
+        [TestCategory("API"), TestCategory("Premium")]
         public void PatternPatternAPI_LongUserAgent()
         {
             var userAgent = String.Join(" ", UserAgentGenerator.GetEnumerable(10, 10));
@@ -70,6 +73,7 @@ namespace UnitTests.API.Enterprise
         }
 
         [TestMethod]
+        [TestCategory("API"), TestCategory("Premium")]
         public void PremiumPatternAPI_HttpHeaders()
         {
             var headers = new NameValueCollection();
@@ -87,6 +91,7 @@ namespace UnitTests.API.Enterprise
         }
 
         [TestMethod]
+        [TestCategory("API"), TestCategory("Premium")]
         public void PremiumPatternAPI_FindProfiles()
         {
             string[] properties = new string[3] { "IsTablet", "BrowserName", "HardwareVendor" };

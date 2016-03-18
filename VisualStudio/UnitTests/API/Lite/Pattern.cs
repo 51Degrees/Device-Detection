@@ -42,6 +42,7 @@ namespace UnitTests.API.Lite
         }
 
         [TestMethod]
+        [TestCategory("API"), TestCategory("Lite")]
         public void LitePatternAPI_NullUserAgent()
         {
             using (var result = _wrapper.Match((string)null))
@@ -51,6 +52,7 @@ namespace UnitTests.API.Lite
         }
 
         [TestMethod]
+        [TestCategory("API"), TestCategory("Lite")]
         public void LitePatternAPI_EmptyUserAgent()
         {
             using (var result = _wrapper.Match(String.Empty))
@@ -60,6 +62,7 @@ namespace UnitTests.API.Lite
         }
 
         [TestMethod]
+        [TestCategory("API"), TestCategory("Lite")]
         public void LitePatternAPI_LongUserAgent()
         {
             var userAgent = String.Join(" ", UserAgentGenerator.GetEnumerable(10, 10));
@@ -70,6 +73,7 @@ namespace UnitTests.API.Lite
         }
 
         [TestMethod]
+        [TestCategory("API"), TestCategory("Lite")]
         public void LitePatternAPI_HttpHeaders()
         {
             var headers = new NameValueCollection();
@@ -87,6 +91,7 @@ namespace UnitTests.API.Lite
         }
 
         [TestMethod]
+        [TestCategory("API"), TestCategory("Lite")]
         public void LitePatternAPI_DeviceId()
         {
             using (var userAgentMatch = _wrapper.Match(UserAgentGenerator.GetRandomUserAgent(0)))
@@ -103,6 +108,7 @@ namespace UnitTests.API.Lite
         }
 
         [TestMethod]
+        [TestCategory("API"), TestCategory("Lite")]
         public void LitePatternAPI_FindProfiles()
         {
             string[] properties = new string[3] {"IsMobile", "BrowserName", "PlatformName"};

@@ -60,42 +60,49 @@ namespace FiftyOne.UnitTests.Performance.Lite
         }
 
         [TestMethod]
+        [TestCategory("Lite"), TestCategory("Pattern"), TestCategory("Performance"), TestCategory("Initialize")]
         public void LiteV32Pattern_Performance_InitializeTimeOne()
         {
             InitializeTime();
         }
         
         [TestMethod]
+        [TestCategory("Lite"), TestCategory("Pattern"), TestCategory("Performance"), TestCategory("Multi"), TestCategory("Bad"), TestCategory("One")]
         public void LiteV32Pattern_Performance_BadUserAgentsMultiOne()
         {
             BadUserAgentsMulti(1);
         }
 
         [TestMethod]
+        [TestCategory("Lite"), TestCategory("Pattern"), TestCategory("Performance"), TestCategory("Single"), TestCategory("Bad"), TestCategory("One")]
         public void LiteV32Pattern_Performance_BadUserAgentsSingleOne()
         {
             BadUserAgentsSingle(1);
         }
 
         [TestMethod]
+        [TestCategory("Lite"), TestCategory("Pattern"), TestCategory("Performance"), TestCategory("Multi"), TestCategory("Unique"), TestCategory("One")]
         public void LiteV32Pattern_Performance_UniqueUserAgentsMultiOne()
         {
             UniqueUserAgentsMulti(1);
         }
 
         [TestMethod]
+        [TestCategory("Lite"), TestCategory("Pattern"), TestCategory("Performance"), TestCategory("Single"), TestCategory("Unique"), TestCategory("One")]
         public void LiteV32Pattern_Performance_UniqueUserAgentsSingleOne()
         {
             UniqueUserAgentsSingle(1);
         }
 
         [TestMethod]
+        [TestCategory("Lite"), TestCategory("Pattern"), TestCategory("Performance"), TestCategory("Multi"), TestCategory("Random"), TestCategory("One")]
         public void LiteV32Pattern_Performance_RandomUserAgentsMultiOne()
         {
             RandomUserAgentsMulti(1);
         }
 
         [TestMethod]
+        [TestCategory("Lite"), TestCategory("Pattern"), TestCategory("Performance"), TestCategory("Single"), TestCategory("Random"), TestCategory("One")]
         public void LiteV32Pattern_Performance_RandomUserAgentsSingleOne()
         {
             RandomUserAgentsSingle(1);
