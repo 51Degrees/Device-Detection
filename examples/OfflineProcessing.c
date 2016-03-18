@@ -23,66 +23,76 @@
 Offline processing example of using 51Degrees device detection.
 The example shows how to:
 <ol>
-<li>Set the various settings for 51Degrees detector
-<p><pre class="prettyprint lang-c">
-const char* fileName = argv[1];
-const char* properties = "IsMobile";
-</pre></p>
-<li>Instantiate the 51Degrees device detection provider with these
-properties
-<p><pre class="prettyprint lang-c">
-fiftyoneDegreesInitWithPropertyString(fileName, &dataSet, properties);
-</pre></p>
-<li>Create a workset with which to find a match
-<p><pre class="prettyprint lang-c">
-ws = fiftyoneDegreesWorksetCreate(&dataSet, NULL);
-</pre></p>
-<li>Open an input file with a list of User-Agents, and an output file,
-<p><pre class="prettyprint lang-c">
-FILE* fin = fopen(inputFile, "r");
-FILE* fout = fopen(outputFile, "w");
-</pre></p>
-<li>Write a header to the output file with the property names in '|'
-separated CSV format ('|' separated because some User-Agents contain
-commas)
-<p><pre class="prettyprint lang-c">
-fprintf(fout, "User-Agent");
-for (j=0;j&lt;propertiesCount;j++) {
-	fprintf(fout, "|%s", propertiesArray[j]);
-}
-fprintf(fout, "\n");
-</pre></p>
-<li>For the first 20 User-Agents in the input file, perform a match then
-write the User-Agent along with the values for chosen properties to
-the CSV.
-<p><pre class="prettyprint lang-c">
-for (i=0;i&lt;20;i++) {
-	fgets(userAgent, sizeof(userAgent), fin);
-	userAgent[strlen(userAgent)-1] = '\0';
-	fprintf(fout, "%s", userAgent);
-	fiftyoneDegreesMatch(ws, userAgent);
+	<li>Specify name of the data file and properties the dataset should be 
+	initialised with.
+	<p><pre class="prettyprint lang-c">
+	const char* fileName = argv[1];
+	const char* properties = "IsMobile";
+	</pre></p>
+	<li>Instantiate the 51Degrees device detection provider using an array of 
+	properties as opposed to a string containing coma separated properties.
+	<p><pre class="prettyprint lang-c">
+	fiftyoneDegreesInitProviderWithPropertyArray(
+		fileName, &provider, properties, propertiesCount, 4, 1000);
+	</pre></p>
+	<li>Retrieve a workset from the pool and use it for a single match.
+	<p><pre class="prettyprint lang-c">
+	fiftyoneDegreesWorkset *ws = NULL;
+	ws = fiftyoneDegreesProviderWorksetGet(&provider);
+	</pre></p>
+	<li>Open an input file with a list of User-Agents, and an output file,
+	<p><pre class="prettyprint lang-c">
+	FILE* fin = fopen(inputFile, "r");
+	FILE* fout = fopen(outputFile, "w");
+	</pre></p>
+	<li>Write a header to the output file with the property names in '|'
+	separated CSV format ('|' separated because some User-Agents contain
+	commas)
+	<p><pre class="prettyprint lang-c">
+	fprintf(fout, "User-Agent");
 	for (j=0;j&lt;propertiesCount;j++) {
-		value = getValue(ws, propertiesArray[j]);
-		fprintf(fout, "|%s", value);
+		fprintf(fout, "|%s", propertiesArray[j]);
 	}
 	fprintf(fout, "\n");
-}
-</pre></p>
-<li>Release the memory taken by the workset
-<p><pre class="prettyprint lang-c">
-fiftyoneDegreesWorksetFree(ws);
-</pre></p>
-<li>Finally release the memory taken by the dataset
-<p><pre class="prettyprint lang-c">
-fiftyoneDegreesDataSetFree(&dataSet);
-</pre></p>
+	</pre></p>
+	<li>For the first 20 User-Agents in the input file, perform a match then
+	write the User-Agent along with the values for chosen properties to
+	the CSV.
+	<p><pre class="prettyprint lang-c">
+	for (i=0;i&lt;20;i++) {
+		fgets(userAgent, sizeof(userAgent), fin);
+		userAgent[strlen(userAgent)-1] = '\0';
+		fprintf(fout, "%s", userAgent);
+		fiftyoneDegreesMatch(ws, userAgent);
+		for (j=0;j&lt;propertiesCount;j++) {
+			value = getValue(ws, propertiesArray[j]);
+			fprintf(fout, "|%s", value);
+		}
+		fprintf(fout, "\n");
+	}
+	</pre></p>
+	<li>Release the workset back into the pool of worksets to be reused in one 
+	of the next matches.
+	<p><pre class="prettyprint lang-c">
+	fiftyoneDegreesWorksetRelease(ws);
+	</pre></p>
+	<li>Finally release the memory taken by the provider.
+	<p><pre class="prettyprint lang-c">
+	fiftyoneDegreesProviderFree(&provider);
+	</pre></p>
 </ol>
-This example assumes you have compiled with 51Degrees.c
-and city.c. This will happen automatically if you are compiling
-as part of the Visual Studio solution. Additionally, when running,
-the location of a 51Degrees data file and an input file
-must be passed as a command line argument if you wish to use
-Premium or Enterprise data files.
+<p>
+	This example assumes you have compiled with 51Degrees.c and city.c.
+	This will happen automatically if you are compiling as part of the
+	Visual Studio solution. Additionally, when running the program, the
+	location of a 51Degrees data file must be passed as a command line
+	argument if you wish to use Premium or Enterprise data files.
+</p>
+<p>
+	This example demonstrates one possible use of the API and device data for 
+	the offline data processing. It also demostrates that you can reuse the 
+	retrieved workset for multiple uses and only then return it to the pool.
+</p>
 </tutorial>
 */
 
@@ -99,12 +109,16 @@ Premium or Enterprise data files.
 #include <string.h>
 #include "../src/pattern/51Degrees.h"
 
-fiftyoneDegreesWorkset *ws = NULL;
-fiftyoneDegreesDataSet dataSet;
+// Global settings and properties.
+static fiftyoneDegreesProvider provider;
 char *properties[3];
 
+// Function declarations.
+static void reportDatasetInitStatus(
+	fiftyoneDegreesDataSetInitStatus status,
+	const char* fileName);
 const char* getValue(fiftyoneDegreesWorkset* ws, char* propertyName);
-void run(fiftyoneDegreesDataSet* dataSet, char* properties[],
+void run(fiftyoneDegreesProvider* provider, char* properties[],
 	int propertiesCount, const char *inputFile);
 
 int main(int argc, char* argv[]) {
@@ -115,35 +129,20 @@ int main(int argc, char* argv[]) {
 	const char* fileName = argc > 1 ? argv[1] : "../../../data/51Degrees-LiteV3.2.dat";
 	const char* inputFile = argc > 2 ? argv[2] : "../../../data/20000 User Agents.csv";
 
-	/**
-	* Initialises the device detection dataset with the above settings.
-	* This uses the Lite data file For more info
-	* see:
-	* <a href="https://51degrees.com/compare-data-options">compare data options
-	* </a>
-	*/
-	if (fileName != NULL && inputFile != NULL) {
-		switch (fiftyoneDegreesInitWithPropertyArray(fileName, &dataSet, properties, propertiesCount)) {
-		case DATA_SET_INIT_STATUS_INSUFFICIENT_MEMORY:
-			printf("Insufficient memory to load '%s'.", fileName);
-			break;
-		case DATA_SET_INIT_STATUS_CORRUPT_DATA:
-			printf("Device data file '%s' is corrupted.", fileName);
-			break;
-		case DATA_SET_INIT_STATUS_INCORRECT_VERSION:
-			printf("Device data file '%s' is not correct version.", fileName);
-			break;
-		case DATA_SET_INIT_STATUS_FILE_NOT_FOUND:
-			printf("Device data file '%s' not found.", fileName);
-			break;
-		case DATA_SET_INIT_STATUS_NOT_SET:
-			printf("Device data file '%s' could not be loaded.", fileName);
-			break;
-		default:
-			run(&dataSet, properties, propertiesCount, inputFile);
-			break;
-		}
+	// Create a pool of 4 worksets with a cache for 1000 items.
+	fiftyoneDegreesDataSetInitStatus status =
+		fiftyoneDegreesInitProviderWithPropertyArray(
+		fileName, &provider, properties, propertiesCount, 4, 1000);
+	if (status != DATA_SET_INIT_STATUS_SUCCESS) {
+		reportDatasetInitStatus(status, fileName);
+		fgetc(stdin);
+		return 1;
 	}
+
+	run(&provider, properties, propertiesCount, inputFile);
+
+	// Free the pool, dataset and cache.
+	fiftyoneDegreesProviderFree(&provider);
 
 	// Wait for a character to be pressed.
 	fgetc(stdin);
@@ -157,14 +156,15 @@ int main(int argc, char* argv[]) {
 	return 0;
 }
 
-void run(fiftyoneDegreesDataSet* dataSet, char* properties[],
+void run(fiftyoneDegreesProvider* provider, char* properties[],
          int propertiesCount, const char *inputFile) {
 	char userAgent[1000];
 	const char* value;
 	int i, j;
+	fiftyoneDegreesWorkset *ws = NULL;
 
-	// Creates workset.
-	ws = fiftyoneDegreesWorksetCreate(dataSet, NULL);
+	// Get a workset from the pool to perform this match.
+	ws = fiftyoneDegreesProviderWorksetGet(provider);
 
 	printf("Starting Offline Processing Example.\n");
 
@@ -196,11 +196,8 @@ void run(fiftyoneDegreesDataSet* dataSet, char* properties[],
 
 	printf("Output Written to %s\n", outputFile);
 
-	// Frees workset.
-	fiftyoneDegreesWorksetFree(ws);
-
-	// Frees dataset.
-	fiftyoneDegreesDataSetFree(dataSet);
+	// Release workset after match complete and workset no longer required.
+	fiftyoneDegreesWorksetRelease(ws);
 }
 
 /**
@@ -225,6 +222,38 @@ const char* getValue(fiftyoneDegreesWorkset* ws, char* propertyName) {
 	}
 	else {
 		return "";
+	}
+}
+
+/**
+* Reports the status of the data file initialization.
+*/
+static void reportDatasetInitStatus(fiftyoneDegreesDataSetInitStatus status,
+	const char* fileName) {
+	switch (status) {
+	case DATA_SET_INIT_STATUS_INSUFFICIENT_MEMORY:
+		printf("Insufficient memory to load '%s'.", fileName);
+		break;
+	case DATA_SET_INIT_STATUS_CORRUPT_DATA:
+		printf("Device data file '%s' is corrupted.", fileName);
+		break;
+	case DATA_SET_INIT_STATUS_INCORRECT_VERSION:
+		printf("Device data file '%s' is not correct version.", fileName);
+		break;
+	case DATA_SET_INIT_STATUS_FILE_NOT_FOUND:
+		printf("Device data file '%s' not found.", fileName);
+		break;
+	case DATA_SET_INIT_STATUS_NULL_POINTER:
+		printf("Null pointer to the existing dataset or memory location.");
+		break;
+	case DATA_SET_INIT_STATUS_POINTER_OUT_OF_BOUNDS:
+		printf("Allocated continuous memory containing 51Degrees data file "
+			"appears to be smaller than expected. Most likely because the"
+			" data file was not fully loaded into the allocated memory.");
+		break;
+	default:
+		printf("Device data file '%s' could not be loaded.", fileName);
+		break;
 	}
 }
 // Snippet End
