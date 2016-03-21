@@ -7,15 +7,26 @@
 Use C code like...
 
 ```c
-fiftyoneDegreesDataSet dataSet;
-fiftyoneDegreesWorkset *workSet;
-fiftyoneDegreesInitWithPropertyString("[DATA FILE LOCATION]" , &dataSet,
-    "IsMobile,DeviceType,ScreenInchesDiagonal,PriceBand");
-workSet = fiftyoneDegreesCreateWorkset(dataSet);
-fiftyoneDegreesMatch(workset, "[YOUR USERAGENT]");
+// Declare Resources.
+fiftyoneDegreesProvider provider;
+fiftyoneDegreesWorkset *ws = NULL;
+char *properties = "IsMobile,DeviceType,ScreenInchesDiagonal,PriceBand";
+int cacheSize = 1000;
+int poolSize = 5;
+// Initialise provider.
+fiftyoneDegreesDataSetInitStatus status = fiftyoneDegreesInitProviderWithPropertyString(
+"[DATA FILE LOCATION]", &provider, properties, poolSize, cacheSize);
+// Get workset from the pool.
+ws = fiftyoneDegreesProviderWorksetGet(provider);
+// Perform detection.
+fiftyoneDegreesMatch(ws, "[DEVICE USER AGENT]");
+// Return Workset to the pool.
+fiftyoneDegreesWorksetRelease(ws);
+// Free provider when program complete.
+fiftyoneDegreesProviderFree(&provider);
 ```
 
-... to turn User-Agent HTTP headers into useful information about physical screen size, device price and type of device.
+... to turn User-Agent HTTP header into useful information about device type, screen diagonal in inches, price band of the device and whether or not device is mobile.
 
 Use C++ code like ...
 
@@ -27,7 +38,7 @@ match.Dispose();
 provider.Dispose();
 ```
 
-... to turn User-Agent HTTP headers into useful information about physical screen size, device price and type of device.
+... to turn User-Agent HTTP headers into useful information about device type, screen diagonal in inches, price band of the device and whether or not device is mobile.
 
 Extensions available for PHP, Python, Perl and Node.
 
@@ -35,7 +46,7 @@ Extensions available for PHP, Python, Perl and Node.
 
 ## Introduction
 
-Use this project to detect device properties using HTTP browser user agents as input. It can be used to process server log files, or for real time device detection to support web optimisation.
+Use this project to detect device properties using HTTP browser User-Agent headers as input. It can be used to process server log files, or for real time device detection to support web optimisation.
 
 Two detection methods are supported.
 
@@ -51,7 +62,7 @@ This package includes the following examples:
   id via stdout. Can easily be modified to return other properties.
   (ProcPat & ProcTrie projects)
 
-2. Command line performance evaluation programme which takes a file of user
+2. Command line performance evaluation program which takes a file of user
   agents and returns a performance score measured in detections per second
   per CPU core.
   (PerfPat & PerfTrie projects)
@@ -74,7 +85,13 @@ This package includes the following examples:
 8. Match for Device Id, takes some common device ids and returns the value of
   the IsMobile property.
 
-9. PHP extension.
+9. Reload from File, illustrates how to reload the data file from the data file on disk without restarting the application. Contains example of both the single threaded and multithreaded reload.
+
+10. Reload from Memory, illustrates how to reload the data file from a continuous memory space that the data file was read into without restarting the application. Contains example of both the single threaded and multithreaded reload.
+
+11. Find Profiles, illustrates how to retrieve profiles based on some user-defined value of one of the properties.
+
+12. PHP, Perl and Python folders containing makefiles for building the respective extensions.
 
 Examples 3-8 are available in C, and in C# using the C++ Provider.
 They are also available in Python, Perl and PHP using the same
@@ -85,113 +102,140 @@ target platforms.
 
 ### Included Files
 
-makefile - Builds a command line executable under Linux.
-LICENSE - The licence terms for all source code and Lite data.
+makefile - Builds a command line executable under Linux.  
+LICENSE - The licence terms for all source code and Lite data.  
 
-CodeBlocks - project files for CodeBlocks IDE for 5 generic project types.
+ApacheBench/ - A version of the Apache Benchmarking tool modified to randomly generate User-Agent headers. See ApacheBench/README.md for more details.
 
-  PerfPat.* - Project files using standard C source.
-  PerfTrie.* - Project files using standard C source.
-  ProcPat.* - Project files using standard C source.
-  ProcTrie.* - Project files using standard C source.
-  Console.* - Project files using standard C source.
+CodeBlocks/ - project files for CodeBlocks IDE for 5 generic project types.  
 
-data - Open source device data files.
-  51Degrees-LiteV3.2.dat - uncompressed data file for use with Pattern.
-  51Degrees-LiteV3.2.trie - uncompressed data file for use with Trie.
-  20000 User Agents.csv - file with 20,000 popular User-Agents.
+&nbsp;&nbsp;&nbsp;&nbsp;PerfPat - Project files using standard C source.  
+&nbsp;&nbsp;&nbsp;&nbsp;PerfTrie - Project files using standard C source.  
+&nbsp;&nbsp;&nbsp;&nbsp;ProcPat - Project files using standard C source.  
+&nbsp;&nbsp;&nbsp;&nbsp;ProcTrie - Project files using standard C source.  
+&nbsp;&nbsp;&nbsp;&nbsp;Console - Project files using standard C source.  
+&nbsp;&nbsp;&nbsp;&nbsp;FindProfiles - Project files using standard C source.  
+&nbsp;&nbsp;&nbsp;&nbsp;GettingStarted - Project files using standard C source.  
+&nbsp;&nbsp;&nbsp;&nbsp;MatchForDeviceId - Project files using standard C source.  
+&nbsp;&nbsp;&nbsp;&nbsp;MatchMetrics - Project files using standard C source.  
+&nbsp;&nbsp;&nbsp;&nbsp;OfflineProcessing - Project files using standard C source.  
+&nbsp;&nbsp;&nbsp;&nbsp;ReloadFromFile - Project files using standard C source.  
+&nbsp;&nbsp;&nbsp;&nbsp;ReloadFromMemory - Project files using standard C source.  
+&nbsp;&nbsp;&nbsp;&nbsp;StronglyTyped - Project files using standard C source.  
 
+data/ - Open source device data files.  
+
+&nbsp;&nbsp;&nbsp;&nbsp;51Degrees-LiteV3.2.dat - uncompressed data file for use with Pattern.   
+&nbsp;&nbsp;&nbsp;&nbsp;51Degrees-LiteV3.2.trie - uncompressed data file for use with Trie.  
+&nbsp;&nbsp;&nbsp;&nbsp;20000 User Agents.csv - file with 20,000 popular User-Agents.  
 **[Compare Device Databases](https://51degrees.com/compare-data-options?utm_source=github&utm_medium=repository&utm_content=home-cta&utm_campaign=c-open-source "Compare different data file options for 51Degrees device detection")**
+
+examples/ - Contain C source files of example programs. Corresponding project files are available for Visual Studio and Code Blocks.
+
+haproxy/ - Contains files necessary to build the API with HA Proxy.
+
+node.js/ - Files for Node.js extension. See node.js/README.md for details.
+
+perl/ - Files for Perl extension. See perl/README.md for details.
 
 php/ - Files for PHP extension. See php/README.md for details.
 
+python/ - Files for Python extension. See python/README.md for details.
+
 src/ - all generic C files used across multiple platforms.
 
-  threading.h - Macros used for threading including locking, signalling and running multi threaded operations for GCC and MSVC compilers.  
+&nbsp;&nbsp;&nbsp;&nbsp;threading.h - Macros used for threading including locking, signalling and running multi threaded operations for GCC and MSVC compilers.    
+&nbsp;&nbsp;&nbsp;&nbsp;threading.c - Macros used for threading including locking, signalling and running multi threaded operations.  
 
 src/Pattern - all source files related to Pattern matching detection.
 
-  51Degrees.h - The header file for the core detection library.
-  51Degrees.c - All the code and necessary data. Quite large.
-  ProcPat.c - The command line interface wrapper.
-  PerfPat.c - The command line performance test executable.
-  Provider.cpp - Uses 51Degrees.c and Match.cpp to serve a Provider object.
-  Provider.hpp - The header file for Provider.cpp.
-  Match.cpp - Uses 51Degrees.c to serve a match object.
-  Match.cpp - The header file for Match.cpp.
+&nbsp;&nbsp;&nbsp;&nbsp;51Degrees.h - The header file for the core detection library.  
+&nbsp;&nbsp;&nbsp;&nbsp;51Degrees.c - All the code and necessary data. Quite large.  
+&nbsp;&nbsp;&nbsp;&nbsp;ProcPat.c - The command line interface wrapper.  
+&nbsp;&nbsp;&nbsp;&nbsp;PerfPat.c - The command line performance test executable.  
+&nbsp;&nbsp;&nbsp;&nbsp;Provider.cpp - Uses 51Degrees.c and Match.cpp to serve a Provider object.  
+&nbsp;&nbsp;&nbsp;&nbsp;Provider.hpp - The header file for Provider.cpp.  
+&nbsp;&nbsp;&nbsp;&nbsp;Match.cpp - Uses 51Degrees.c to serve a match object.  
+&nbsp;&nbsp;&nbsp;&nbsp;Match.hpp - The header file for Match.cpp.  
+&nbsp;&nbsp;&nbsp;&nbsp;Profiles.cpp - Used by the provider for the find profiles functionality.  
+&nbsp;&nbsp;&nbsp;&nbsp;Profiles.hpp - The header file for Profiles.cpp  
+&nbsp;&nbsp;&nbsp;&nbsp;51Degrees.i - Used by SWIG to generate Pattern-based extensions.  
+&nbsp;&nbsp;&nbsp;&nbsp;The CXX files - Wrappers generated by SWIG.  
+&nbsp;&nbsp;&nbsp;&nbsp;ProcPat - Example console project that performs detection based on user input.  
+&nbsp;&nbsp;&nbsp;&nbsp;PerfPat - Example console project that measures Pattern performance.  
 
 src/Trie - all source files related to Trie matching detection.
 
-  51Degrees.h - The header file for the core detection library.
-  51Degrees.c - Source code needed to interrogate the data.
-  ProcTrie.c - The command line interface wrapper.
-  PerfTrie.c - The command line performance test executable.
-  Provider.cpp - Uses 51Degrees.c and Match.cpp to serve a Provider object.
-  Provider.hpp - The header file for Provider.cpp.
-  Match.cpp - Uses 51Degrees.c to serve a match object.
-  Match.cpp - The header file for Match.cpp.
+&nbsp;&nbsp;&nbsp;&nbsp;51Degrees.h - The header file for the core detection library.  
+&nbsp;&nbsp;&nbsp;&nbsp;51Degrees.c - Source code needed to interrogate the data.  
+&nbsp;&nbsp;&nbsp;&nbsp;ProcTrie.c - The command line interface wrapper.  
+&nbsp;&nbsp;&nbsp;&nbsp;PerfTrie.c - The command line performance test executable.  
+&nbsp;&nbsp;&nbsp;&nbsp;Provider.cpp - Uses 51Degrees.c and Match.cpp to serve a Provider object.  
+&nbsp;&nbsp;&nbsp;&nbsp;Provider.hpp - The header file for Provider.cpp.  
+&nbsp;&nbsp;&nbsp;&nbsp;Match.cpp - Uses 51Degrees.c to serve a match object.  
+&nbsp;&nbsp;&nbsp;&nbsp;Match.cpp - The header file for Match.cpp.  
 
 src/cityhash - a port of Google's cityhash algorithm to C by Alexander Nusov.
 
-  city.h - The cityhash header file with CRC methods removed.
-  city.c - The cityhash implementation in C with CRC methods removed.
-  LICENSE.txt - Licence under which cityhash is distributed.
+&nbsp;&nbsp;&nbsp;&nbsp;city.h - The cityhash header file with CRC methods removed.  
+&nbsp;&nbsp;&nbsp;&nbsp;city.c - The cityhash implementation in C with CRC methods removed.  
+&nbsp;&nbsp;&nbsp;&nbsp;LICENSE.txt - Licence under which cityhash is distributed.  
 
 src/snprintf - source files to provide safe, OS independent snprintf functions if not supported by the compiler. These resources are no longer used but retained in case integrators need them.
 
-  snprintf.h - The snprintf header file.
-  snprintf.c - The snprintf implementation.
-  LICENSE.txt - Licence under which snprintf is distributed.
+&nbsp;&nbsp;&nbsp;&nbsp;snprintf.h - The snprintf header file.  
+&nbsp;&nbsp;&nbsp;&nbsp;snprintf.c - The snprintf implementation.  
+&nbsp;&nbsp;&nbsp;&nbsp;LICENSE.txt - Licence under which snprintf is distributed.  
 
 VisualStudio/ - all files related exclusively to Windows and Visual Studio 2013.
 
-  Win32build.bat - Builds command line executable in 32 bit Windows.
-  Win64build.bat - Builds command line executable in 64 bit Windows.
-  WinGCCbuild.bat - Builds command line executable using GCC for Windows.
+&nbsp;&nbsp;&nbsp;&nbsp;Win32build.bat - Builds command line executable in 32 bit Windows.  
+&nbsp;&nbsp;&nbsp;&nbsp;Win64build.bat - Builds command line executable in 64 bit Windows.  
+&nbsp;&nbsp;&nbsp;&nbsp;WinGCCbuild.bat - Builds command line executable using GCC for Windows.  
 
-  Interop/FiftyOne.Mobile.Detection.Provider.Interop.csproj - C# project.
-  Interop/PatternWrapper.cs - C# class used to wrap and expose Pattern matching library to .NET callers.
-  Interop/TrieWrapper.cs - C# class used to wrap and expose Trie matching library to .NET callers.
-  Interop/Utils.cs - Utility class for shared internal methods.
-  Interop/Properties/AssemblyInfo.cs - DLL header information.
+&nbsp;&nbsp;&nbsp;&nbsp;Interop/FiftyOne.Mobile.Detection.Provider.Interop.csproj - C# project.  
+&nbsp;&nbsp;&nbsp;&nbsp;Interop/PatternWrapper.cs - C# class used to wrap and expose Pattern matching library to .NET callers.  
+&nbsp;&nbsp;&nbsp;&nbsp;Interop/TrieWrapper.cs - C# class used to wrap and expose Trie matching library to .NET callers.  
+&nbsp;&nbsp;&nbsp;&nbsp;Interop/Utils.cs - Utility class for shared internal methods.  
+&nbsp;&nbsp;&nbsp;&nbsp;Interop/Properties/AssemblyInfo.cs - DLL header information.  
 
-  Trie/FiftyOne.Mobile.Detection.Provider.Trie.vcxproj - C library project.
-  Trie/FuncsTrieDll.c - Dll methods accessible to any Windows library.
+&nbsp;&nbsp;&nbsp;&nbsp;Trie/FiftyOne.Mobile.Detection.Provider.Trie.vcxproj - C library project.  
+&nbsp;&nbsp;&nbsp;&nbsp;Trie/FuncsTrieDll.c - Dll methods accessible to any Windows library.  
 
-  Pattern/FiftyOne.Mobile.Detection.Provider.Pattern.vcxproj - C lib project.
-  Pattern/FuncsPatternDll.c - Dll methods accessible to any Windows library.
+&nbsp;&nbsp;&nbsp;&nbsp;Pattern/FiftyOne.Mobile.Detection.Provider.Pattern.vcxproj - C lib project.  
+&nbsp;&nbsp;&nbsp;&nbsp;Pattern/FuncsPatternDll.c - Dll methods accessible to any Windows library.  
 
-  Console Interop/Console Interop.csproj - Project file for a console application which demonstrates access to the Interop wrapper.
-  Console Interop/Program.cs - Main method with simple code to prove the Interop wrappers are working.
-  Console Interop/Properties/AssemblyInfo.cs - Project header information.
+&nbsp;&nbsp;&nbsp;&nbsp;Console Interop/Console Interop.csproj - Project file for a console application which demonstrates access to the Interop wrapper.  
+&nbsp;&nbsp;&nbsp;&nbsp;Console Interop/Program.cs - Main method with simple code to prove the Interop wrappers are working.  
+&nbsp;&nbsp;&nbsp;&nbsp;Console Interop/Properties/AssemblyInfo.cs - Project header information.  
 
-  Examples/Getting Started/Getting Started.* - Project files for a getting started example.
-  Examples/Match For Device Id/Match For Device Id.* - Project files for a match for device id example.
-  Exampes/Match Metrics/Match Metrics.* - Project files for a match metrics example.
-  Examples/Offline Processing/Offline Processing.* - Project files for an offline processing example.
-  Exampels/Strongly Typed/Strongly Typed.* - Project files for a strongly typed example.
+&nbsp;&nbsp;&nbsp;&nbsp;Examples/Getting Started/Getting Started.* - Project files for a getting started example.  
+&nbsp;&nbsp;&nbsp;&nbsp;Examples/Match For Device Id/Match For Device Id.* - Project files for a match for device id example.  
+&nbsp;&nbsp;&nbsp;&nbsp;Exampes/Match Metrics/Match Metrics.* - Project files for a match metrics example.  
+&nbsp;&nbsp;&nbsp;&nbsp;Examples/Offline Processing/Offline Processing.* - Project files for an offline processing example.  
+&nbsp;&nbsp;&nbsp;&nbsp;Exampels/Strongly Typed/Strongly Typed.* - Project files for a strongly typed example.  
 
-  CS Examples/Getting Started/* - Project files for a getting started example/
-  CS Examples/Match For Device Id/* - Project files for a match for device id example.
-  CS Examples/Match Metrics/* - Project files for a match metrics example.
-  CS Examples/Offline Processing/* - Project files for an offline processing example.
-  CS Examples/Strongly Typed/* - Project files for a strongly typed example.
-  CS Examples/Examples Tests/* - Project files for tests which test each example.
+&nbsp;&nbsp;&nbsp;&nbsp;CS Examples/Getting Started/* - Project files for a getting started example/  
+&nbsp;&nbsp;&nbsp;&nbsp;CS Examples/Match For Device Id/* - Project files for a match for device id example.  
+&nbsp;&nbsp;&nbsp;&nbsp;CS Examples/Match Metrics/* - Project files for a match metrics example.  
+&nbsp;&nbsp;&nbsp;&nbsp;CS Examples/Offline Processing/* - Project files for an offline processing example.  
+&nbsp;&nbsp;&nbsp;&nbsp;CS Examples/Strongly Typed/* - Project files for a strongly typed example.  
+&nbsp;&nbsp;&nbsp;&nbsp;CS Examples/Examples Tests/* - Project files for tests which test each example.  
 
-  Demo/Web Site.csproj - Demo web site using the Interop assembly to request properties associated with the requesting device.
-  Demo/Default.aspx.* - Demo web page used to display properties. See these files for examples of how to create providers and reTrieve properties.
-  Demo/Properties/AssemblyInfo.cs - Project header information.
+&nbsp;&nbsp;&nbsp;&nbsp;Demo/Web Site.csproj - Demo web site using the Interop assembly to request properties associated with the requesting device.  
+&nbsp;&nbsp;&nbsp;&nbsp;Demo/Default.aspx.* - Demo web page used to display properties. See these files for examples of how to create providers and reTrieve properties.  
+&nbsp;&nbsp;&nbsp;&nbsp;Demo/Properties/AssemblyInfo.cs - Project header information.  
 
-  Performance/FiftyOne.Mobile.Detection.Performance.vcxproj - Project file for the multi threaded Windows command line executable.
-  Performance/Performance.cpp - Main class for the executable.
-  Performance/*.cpp & *.h - Related files to the C++ programme.
+&nbsp;&nbsp;&nbsp;&nbsp;Performance/FiftyOne.Mobile.Detection.Performance.vcxproj - Project file for the multi threaded Windows command line executable.  
+&nbsp;&nbsp;&nbsp;&nbsp;Performance/Performance.cpp - Main class for the executable.  
+&nbsp;&nbsp;&nbsp;&nbsp;Performance/*.cpp & *.h - Related files to the C++ program.  
 
-  PerfPat/PerfPat.vcxproj - Project file using standard C source.
-  PerfTrie/PerfTrie.vcxproj - Project file using standard C source.
-  ProcPat/ProcPat.vcxproj - Project file using standard C source.
-  ProcTrie/ProcTrie.vcxproj - Project file using standard C source.
-  Console/Console.vcxproj - Project file using standard C source.
+&nbsp;&nbsp;&nbsp;&nbsp;PerfPat/PerfPat.vcxproj - Project file using standard C source.  
+&nbsp;&nbsp;&nbsp;&nbsp;PerfTrie/PerfTrie.vcxproj - Project file using standard C source.  
+&nbsp;&nbsp;&nbsp;&nbsp;ProcPat/ProcPat.vcxproj - Project file using standard C source.  
+&nbsp;&nbsp;&nbsp;&nbsp;ProcTrie/ProcTrie.vcxproj - Project file using standard C source.  
+&nbsp;&nbsp;&nbsp;&nbsp;Console/Console.vcxproj - Project file using standard C source.  
 
-  x64Build.bat - Uses the Visual Studio compiler to build a x64 library.
-  x86Build.bat - Uses the Visual Studio compiler to build a x86 library.
-  VisualStudio.sln - Visual Studio 2013 solution including demonstration web site, interop console, performance and general C projects.
+&nbsp;&nbsp;&nbsp;&nbsp;x64Build.bat - Uses the Visual Studio compiler to build a x64 library.  
+&nbsp;&nbsp;&nbsp;&nbsp;x86Build.bat - Uses the Visual Studio compiler to build a x86 library.  
+&nbsp;&nbsp;&nbsp;&nbsp;VisualStudio.sln - Visual Studio 2013 solution including demonstration web site, interop console, performance and general C projects.  
