@@ -132,7 +132,7 @@ data/ - Open source device data files.
 
 examples/ - Contain C source files of example programs. Corresponding project files are available for Visual Studio and Code Blocks.
 
-haproxy/ - Contains files necessary to build the API with HA Proxy.
+haproxy/ - References files necessary to build the API with HA Proxy.
 
 node.js/ - Files for Node.js extension. See node.js/README.md for details.
 
@@ -145,7 +145,7 @@ python/ - Files for Python extension. See python/README.md for details.
 src/ - all generic C files used across multiple platforms.
 
 &nbsp;&nbsp;&nbsp;&nbsp;threading.h - Macros used for threading including locking, signalling and running multi threaded operations for GCC and MSVC compilers.    
-&nbsp;&nbsp;&nbsp;&nbsp;threading.c - Macros used for threading including locking, signalling and running multi threaded operations.  
+&nbsp;&nbsp;&nbsp;&nbsp;threading.c - provide more complex implementations for GCC compilers.   
 
 src/Pattern - all source files related to Pattern matching detection.
 
