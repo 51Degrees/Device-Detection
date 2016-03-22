@@ -63,6 +63,7 @@ the location of a 51Degrees data file must be passed as a
 command line argument if you wish to use premium or enterprise
 </tutorial>
 */
+using Microsoft.VisualStudio.TestTools.UnitTesting;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -75,6 +76,25 @@ namespace FiftyOne.Example.Illustration.CSharp.MatchMetrics
     public class Program
     {
         // Snippet Start
+        /// <summary>
+        /// Performs the various assert tests.
+        /// </summary>
+        /// <param name="match"></param>
+        public static void validateMatchMetrics(Match match)
+        {
+            // EXACT and NONE method.
+            if (match.Method == 1 || match.Method == 0)
+            {
+                Assert.IsTrue(match.Difference == 0);
+            }
+            // NUMERIC, NEAREST or CLOSEST
+            else
+            {
+                Assert.IsTrue(match.Difference > 0);
+            }
+            Assert.IsTrue(match.Rank >= 0);
+        }
+
         /// <summary>
         /// Prints match metrics associated with a given match object.
         /// </summary>
@@ -119,16 +139,19 @@ namespace FiftyOne.Example.Illustration.CSharp.MatchMetrics
             // Carries out a match for a mobile User-Agent.
             Console.WriteLine("\nMobile User-Agent: " + mobileUserAgent);
             match = provider.getMatch(mobileUserAgent);
+            validateMatchMetrics(match);
             OutputMatchMetrics(match);
 
             // Carries out a match for a desktop User-Agent.
             Console.WriteLine("\nDesktop User-Agent: " + desktopUserAgent);
             match = provider.getMatch(desktopUserAgent);
+            validateMatchMetrics(match);
             OutputMatchMetrics(match);
 
             // Carries out a match for a MediaHub User-Agent.
             Console.WriteLine("\nMediaHub User-Agent: " + mediaHubUserAgent);
             match = provider.getMatch(mediaHubUserAgent);
+            validateMatchMetrics(match);
             OutputMatchMetrics(match);
         }
         // Snippet End

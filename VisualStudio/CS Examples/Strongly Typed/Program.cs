@@ -52,6 +52,7 @@ the location of a 51Degrees data file must be passed as a
 command line argument if you wish to use premium or enterprise
 </tutorial> 
 */
+using Microsoft.VisualStudio.TestTools.UnitTesting;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -112,6 +113,7 @@ namespace FiftyOne.Example.Illustration.CSharp.StronglyTyped
             match = provider.getMatch(mobileUserAgent);
             Console.WriteLine("\nMobile User-Agent: " + mobileUserAgent);
             IsMobile = GetIsMobileBool(match);
+            Assert.IsTrue(IsMobile);
             if (IsMobile)
                 Console.WriteLine("   Mobile");
             else
@@ -121,6 +123,7 @@ namespace FiftyOne.Example.Illustration.CSharp.StronglyTyped
             match = provider.getMatch(desktopUserAgent);
             Console.WriteLine("\nDesktop User-Agent: " + desktopUserAgent);
             IsMobile = GetIsMobileBool(match);
+            Assert.IsFalse(IsMobile);
             if (IsMobile)
                 Console.WriteLine("   Mobile");
             else
@@ -130,6 +133,7 @@ namespace FiftyOne.Example.Illustration.CSharp.StronglyTyped
             match = provider.getMatch(mediaHubUserAgent);
             Console.WriteLine("\nMediaHub User-Agent: " + mediaHubUserAgent);
             IsMobile = GetIsMobileBool(match);
+            Assert.IsFalse(IsMobile);
             if (IsMobile)
                 Console.WriteLine("   Mobile");
             else

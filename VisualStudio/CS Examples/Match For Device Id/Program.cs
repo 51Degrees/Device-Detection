@@ -49,6 +49,7 @@ the location of a 51Degrees data file must be passed as a
 command line argument if you wish to use premium or enterprise
 </tutorial>
 */
+using Microsoft.VisualStudio.TestTools.UnitTesting;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -90,18 +91,21 @@ namespace FiftyOne.Example.Illustration.CSharp.MatchForDeviceId
             match = provider.getMatchForDeviceId(mobileDeviceId);
             Console.WriteLine("\nMobile Device Id: " + mobileDeviceId);
             IsMobile = match.getValue("IsMobile");
+            Assert.AreEqual("True", IsMobile);
             Console.WriteLine("   IsMobile: " + IsMobile);
 
             // Carries out a match for a desktop device id.
             match = provider.getMatchForDeviceId(desktopDeviceId);
             Console.WriteLine("\nDesktop Device Id: " + desktopDeviceId);
             IsMobile = match.getValue("IsMobile");
+            Assert.AreEqual("False", IsMobile);
             Console.WriteLine("   IsMobile: " + IsMobile);
 
             // Carries out a match for a MediaHub device id.
             match = provider.getMatchForDeviceId(mediaHubDeviceId);
             Console.WriteLine("\nMediaHub Device Id: " + mediaHubDeviceId);
             IsMobile = match.getValue("IsMobile");
+            Assert.AreEqual("False", IsMobile);
             Console.WriteLine("   IsMobile: " + IsMobile);
         }
         // Snippet End

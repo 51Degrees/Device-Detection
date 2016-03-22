@@ -48,6 +48,7 @@ the location of a 51Degrees data file must be passed as a
 command line argument if you wish to use premium or enterprise
 </tutorial>
 */
+using Microsoft.VisualStudio.TestTools.UnitTesting;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -97,27 +98,22 @@ namespace FiftyOne.Example.Illustration.CSharp.GettingStarted
             match = provider.getMatch(mobileUserAgent);
             Console.WriteLine("\nMobile User-Agent: " + mobileUserAgent);
             IsMobile = match.getValue("IsMobile");
+            Assert.AreEqual("True", IsMobile);
             Console.WriteLine("   IsMobile: " + IsMobile);
 
             // Carries out a match for a desktop User-Agent.
             match = provider.getMatch(desktopUserAgent);
             Console.WriteLine("\nDesktop User-Agent: " + desktopUserAgent);
             IsMobile = match.getValue("IsMobile");
+            Assert.AreEqual("False", IsMobile);
             Console.WriteLine("   IsMobile: " + IsMobile);
 
             // Carries out a match for a MediaHub User-Agent.
             match = provider.getMatch(mediaHubUserAgent);
             Console.WriteLine("\nMediaHub User-Agent: " + mediaHubUserAgent);
             IsMobile = match.getValue("IsMobile");
+            Assert.AreEqual("False", IsMobile);
             Console.WriteLine("   IsMobile: " + IsMobile);
-
-            // Profiles the number of profiles where IsMobile == "False".
-            Profiles profiles = provider.findProfiles("IsMobile", "False");
-            Console.WriteLine(profiles.getCount() + "  " + profiles.getProfileId(0));
-
-            // Uses the device ID method to return details.
-            match = provider.getMatchForDeviceId(profiles.getProfileId(0).ToString());
-            Console.WriteLine(match.getValue("IsMobile"));
         }
         // Snippet End
 

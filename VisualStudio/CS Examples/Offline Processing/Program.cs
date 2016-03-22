@@ -73,6 +73,7 @@ the location of a 51Degrees data file must be passed as a
 command line argument if you wish to use premium or enterprise
 </tutorial>
 */
+using Microsoft.VisualStudio.TestTools.UnitTesting;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -126,6 +127,7 @@ namespace FiftyOne.Example.Illustration.CSharp.OfflineProcessing
             {
                 userAgent = fin.ReadLine();
                 match = provider.getMatch(userAgent);
+                Assert.IsNotNull(match);
                 fout.Write(userAgent);
                 for (j = 0; j < properties.Count(); j++ )
                 {

@@ -46,6 +46,7 @@ the location of a 51Degrees data file must be passed as a
 command line argument if you wish to use premium or enterprise
 </tutorial>
 */
+using Microsoft.VisualStudio.TestTools.UnitTesting;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -77,10 +78,17 @@ namespace FiftyOne.Example.Illustration.CSharp.FindProfiles
             Console.WriteLine("There are '{0}' mobile profiles in the '{1}' data set.",
                 profiles.getCount(),
                 provider.getDataSetName());
+
+            Assert.IsNotNull(profiles);
+            Assert.IsTrue(profiles.getCount() != 0);
+
             profiles = provider.findProfiles("IsMobile", "False");
             Console.WriteLine("There are '{0}' non-mobile profiles in the '{1}' data set.",
                 profiles.getCount(),
                 provider.getDataSetName());
+
+            Assert.IsNotNull(profiles);
+            Assert.IsTrue(profiles.getCount() != 0);
         }
         // Snippet End
 
