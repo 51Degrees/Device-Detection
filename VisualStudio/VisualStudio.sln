@@ -106,6 +106,8 @@ Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "ReloadFromFile", "Examples\
 EndProject
 Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "ReloadFromMemory", "Examples\ReloadFromMemory\ReloadFromMemory.vcxproj", "{C7F539C1-757B-4007-8177-C100BACE800A}"
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Reload Data File", "Reload Data File\Reload Data File.csproj", "{0E073F36-0544-47C9-B489-32316F73EF2A}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -500,6 +502,18 @@ Global
 		{C7F539C1-757B-4007-8177-C100BACE800A}.Release|Win32.ActiveCfg = Release|Win32
 		{C7F539C1-757B-4007-8177-C100BACE800A}.Release|Win32.Build.0 = Release|Win32
 		{C7F539C1-757B-4007-8177-C100BACE800A}.Release|x64.ActiveCfg = Release|Win32
+		{0E073F36-0544-47C9-B489-32316F73EF2A}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{0E073F36-0544-47C9-B489-32316F73EF2A}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{0E073F36-0544-47C9-B489-32316F73EF2A}.Debug|Mixed Platforms.ActiveCfg = Debug|Any CPU
+		{0E073F36-0544-47C9-B489-32316F73EF2A}.Debug|Mixed Platforms.Build.0 = Debug|Any CPU
+		{0E073F36-0544-47C9-B489-32316F73EF2A}.Debug|Win32.ActiveCfg = Debug|Any CPU
+		{0E073F36-0544-47C9-B489-32316F73EF2A}.Debug|x64.ActiveCfg = Debug|x64
+		{0E073F36-0544-47C9-B489-32316F73EF2A}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{0E073F36-0544-47C9-B489-32316F73EF2A}.Release|Any CPU.Build.0 = Release|Any CPU
+		{0E073F36-0544-47C9-B489-32316F73EF2A}.Release|Mixed Platforms.ActiveCfg = Release|Any CPU
+		{0E073F36-0544-47C9-B489-32316F73EF2A}.Release|Mixed Platforms.Build.0 = Release|Any CPU
+		{0E073F36-0544-47C9-B489-32316F73EF2A}.Release|Win32.ActiveCfg = Release|Any CPU
+		{0E073F36-0544-47C9-B489-32316F73EF2A}.Release|x64.ActiveCfg = Release|x64
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
@@ -537,5 +551,6 @@ Global
 		{FD83A2A6-3A66-4F86-BA87-7577521913BB} = {265E957D-344C-4140-9A1F-EE18B729F462}
 		{64B903CB-82E5-441C-8BC5-32BE24B30F5A} = {DF20EFCE-8171-4272-A5A2-44E75A07B3C5}
 		{C7F539C1-757B-4007-8177-C100BACE800A} = {DF20EFCE-8171-4272-A5A2-44E75A07B3C5}
+		{0E073F36-0544-47C9-B489-32316F73EF2A} = {265E957D-344C-4140-9A1F-EE18B729F462}
 	EndGlobalSection
 EndGlobal
