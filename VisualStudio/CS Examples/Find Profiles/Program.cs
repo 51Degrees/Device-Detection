@@ -71,16 +71,18 @@ namespace FiftyOne.Example.Illustration.CSharp.FindProfiles
             * </a>
             */
             Provider provider = new Provider(fileName, properties);
+            Profiles profiles;
 
             Console.WriteLine("Starting Find Profiles Example.\n");
-            
-            Profiles profiles = provider.findProfiles("IsMobile", "True");
+
+            profiles = provider.findProfiles("IsMobile", "True");
             Console.WriteLine("There are '{0}' mobile profiles in the '{1}' data set.",
                 profiles.getCount(),
                 provider.getDataSetName());
-
+            
             Assert.IsNotNull(profiles);
             Assert.IsTrue(profiles.getCount() != 0);
+            profiles.Dispose();
 
             profiles = provider.findProfiles("IsMobile", "False");
             Console.WriteLine("There are '{0}' non-mobile profiles in the '{1}' data set.",
@@ -89,6 +91,9 @@ namespace FiftyOne.Example.Illustration.CSharp.FindProfiles
 
             Assert.IsNotNull(profiles);
             Assert.IsTrue(profiles.getCount() != 0);
+            profiles.Dispose();
+
+            provider.Dispose();
         }
         // Snippet End
 

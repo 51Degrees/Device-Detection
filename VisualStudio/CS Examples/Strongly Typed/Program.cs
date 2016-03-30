@@ -118,6 +118,9 @@ namespace FiftyOne.Example.Illustration.CSharp.StronglyTyped
                 Console.WriteLine("   Mobile");
             else
                 Console.WriteLine("   Non-Mobile");
+            // Each match retrieves a workset from the pool, it is important 
+            // to return the workset back into the pool by using Dispose().
+            match.Dispose();
 
             // Carries out a match for a desktop User-Agent.
             match = provider.getMatch(desktopUserAgent);
@@ -128,6 +131,9 @@ namespace FiftyOne.Example.Illustration.CSharp.StronglyTyped
                 Console.WriteLine("   Mobile");
             else
                 Console.WriteLine("   Non-Mobile");
+            // Each match retrieves a workset from the pool, it is important 
+            // to return the workset back into the pool by using Dispose().
+            match.Dispose();
 
             // Carries out a match for a MediaHub User-Agent.
             match = provider.getMatch(mediaHubUserAgent);
@@ -138,6 +144,10 @@ namespace FiftyOne.Example.Illustration.CSharp.StronglyTyped
                 Console.WriteLine("   Mobile");
             else
                 Console.WriteLine("   Non-Mobile");
+            // Each match retrieves a workset from the pool, it is important 
+            // to return the workset back into the pool by using Dispose().
+            match.Dispose();
+            provider.Dispose();
         }
         // Snipped End
 

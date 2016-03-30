@@ -134,6 +134,8 @@ namespace FiftyOne.Example.Illustration.CSharp.OfflineProcessing
                     fout.Write("|" + match.getValue(properties[j]));
                 }
                 fout.Write("\n");
+                // Each match retrieves a workset from the pool, it is important 
+                // to return the workset back into the pool by using Dispose().
                 match.Dispose();
             }
 
@@ -141,6 +143,7 @@ namespace FiftyOne.Example.Illustration.CSharp.OfflineProcessing
             fout.Close();
 
             Console.WriteLine("Output Written to " + outputFile);
+            provider.Dispose();
         }
         // Snippet End
 

@@ -93,6 +93,9 @@ namespace FiftyOne.Example.Illustration.CSharp.MatchForDeviceId
             IsMobile = match.getValue("IsMobile");
             Assert.AreEqual("True", IsMobile);
             Console.WriteLine("   IsMobile: " + IsMobile);
+            // Each match retrieves a workset from the pool, it is important 
+            // to return the workset back into the pool by using Dispose().
+            match.Dispose();
 
             // Carries out a match for a desktop device id.
             match = provider.getMatchForDeviceId(desktopDeviceId);
@@ -100,6 +103,9 @@ namespace FiftyOne.Example.Illustration.CSharp.MatchForDeviceId
             IsMobile = match.getValue("IsMobile");
             Assert.AreEqual("False", IsMobile);
             Console.WriteLine("   IsMobile: " + IsMobile);
+            // Each match retrieves a workset from the pool, it is important 
+            // to return the workset back into the pool by using Dispose().
+            match.Dispose();
 
             // Carries out a match for a MediaHub device id.
             match = provider.getMatchForDeviceId(mediaHubDeviceId);
@@ -107,6 +113,10 @@ namespace FiftyOne.Example.Illustration.CSharp.MatchForDeviceId
             IsMobile = match.getValue("IsMobile");
             Assert.AreEqual("False", IsMobile);
             Console.WriteLine("   IsMobile: " + IsMobile);
+            // Each match retrieves a workset from the pool, it is important 
+            // to return the workset back into the pool by using Dispose().
+            match.Dispose();
+            provider.Dispose();
         }
         // Snippet End
 

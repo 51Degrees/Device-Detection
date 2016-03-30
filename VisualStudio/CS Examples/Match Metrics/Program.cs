@@ -141,18 +141,28 @@ namespace FiftyOne.Example.Illustration.CSharp.MatchMetrics
             match = provider.getMatch(mobileUserAgent);
             validateMatchMetrics(match);
             OutputMatchMetrics(match);
+            // Each match retrieves a workset from the pool, it is important 
+            // to return the workset back into the pool by using Dispose().
+            match.Dispose();
 
             // Carries out a match for a desktop User-Agent.
             Console.WriteLine("\nDesktop User-Agent: " + desktopUserAgent);
             match = provider.getMatch(desktopUserAgent);
             validateMatchMetrics(match);
             OutputMatchMetrics(match);
+            // Each match retrieves a workset from the pool, it is important 
+            // to return the workset back into the pool by using Dispose().
+            match.Dispose();
 
             // Carries out a match for a MediaHub User-Agent.
             Console.WriteLine("\nMediaHub User-Agent: " + mediaHubUserAgent);
             match = provider.getMatch(mediaHubUserAgent);
             validateMatchMetrics(match);
             OutputMatchMetrics(match);
+            // Each match retrieves a workset from the pool, it is important 
+            // to return the workset back into the pool by using Dispose().
+            match.Dispose();
+            provider.Dispose();
         }
         // Snippet End
 
