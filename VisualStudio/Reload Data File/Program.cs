@@ -16,7 +16,7 @@ namespace FiftyOne.Example.Illustration.CSharp.Reload_Data_File
         public void Run(string fileName)
         {
             // Threads that run device detection in the background.
-            int backgroundThreads = 1;
+            int backgroundThreads = 4;
             string properties = "IsMobile";
             Thread[] threads;
 
@@ -53,7 +53,7 @@ namespace FiftyOne.Example.Illustration.CSharp.Reload_Data_File
             
             string path = "D:\\Workspace\\Device-Detection\\data\\20000 User Agents.csv";
             int hash = 0;
-            int i = 0;
+            int recordsProcessed = 0;
             Match match;
 
             using (FileStream fs = File.Open(path, FileMode.Open, FileAccess.Read, FileShare.ReadWrite))
@@ -63,15 +63,13 @@ namespace FiftyOne.Example.Illustration.CSharp.Reload_Data_File
                 string line;
                 while ((line = sr.ReadLine()) != null)
                 {
-                    Console.WriteLine(line);
                     match = provider.getMatch(line);
                     hash ^= match.GetHashCode();
-                    Console.WriteLine(1);
-                    sr.DiscardBufferedData();
-                    match = null;
+                    match.Dispose();
+                    recordsProcessed++;
                 }
             }
-            Console.WriteLine("Thread complete with hash code: " + hash);
+            Console.WriteLine("Thread complete with hash code: " + hash + " and records processed: " + recordsProcessed);
         }
     }
 }

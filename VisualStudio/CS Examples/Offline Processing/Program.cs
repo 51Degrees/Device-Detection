@@ -134,6 +134,7 @@ namespace FiftyOne.Example.Illustration.CSharp.OfflineProcessing
                     fout.Write("|" + match.getValue(properties[j]));
                 }
                 fout.Write("\n");
+                match.Dispose();
             }
 
             fin.Close();
