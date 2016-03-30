@@ -1,4 +1,29 @@
-﻿using System;
+﻿/**
+ * This Source Code Form is copyright of 51Degrees Mobile Experts Limited.
+ * Copyright (c) 2015 51Degrees Mobile Experts Limited, 5 Charlotte Close,
+ * Caversham, Reading, Berkshire, United Kingdom RG4 7BY
+ * 
+ * This Source Code Form is the subject of the following patent
+ * applications, owned by 51Degrees Mobile Experts Limited of 5 Charlotte
+ * Close, Caversham, Reading, Berkshire, United Kingdom RG4 7BY:
+ * European Patent Application No. 13192291.6; and
+ * United States Patent Application Nos. 14/085,223 and 14/085,301.
+ * 
+ * This Source Code Form is subject to the terms of the Mozilla Public
+ * License, v. 2.0.
+ * 
+ * If a copy of the MPL was not distributed with this file, You can obtain
+ * one at http://mozilla.org/MPL/2.0/.
+ * 
+ * This Source Code Form is "Incompatible With Secondary Licenses", as
+ * defined by the Mozilla Public License, v. 2.0.
+ */
+/*
+<tutorial>
+<p>
+</tutorial>
+*/
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
@@ -6,22 +31,28 @@ using System.Threading.Tasks;
 using FiftyOne.Mobile.Detection.Provider.Interop.Pattern;
 using System.IO;
 using System.Threading;
+using System.Collections.Concurrent;
+using Microsoft.VisualStudio.TestTools.UnitTesting;
 
 namespace FiftyOne.Example.Illustration.CSharp.Reload_Data_File
 {
-    class Program
+    public class Program
     {
+        // Snippet Start
+
         // A memory-resident data file initialised with specified properties, 
         // a cache and a workset pool.
         static Provider provider;
         // Location of the 51Degrees data file.
         string deviceDataFile;
         // Location of the file containing User-Agent strings.
-        string userAfentsFile;
+        string userAgentsFile;
         // A list of comma-separated properties to initialise provider with.
         string propertiesToUse;
         // Indicates how many threads have finished executing.
         static int threadsFinished = 0;
+        // Contains hash codes from threads.
+        ConcurrentBag<long> cb;
 
         /// <summary>
         /// Performs dataset reload tests. A number of threads run in the 
@@ -66,6 +97,18 @@ namespace FiftyOne.Example.Illustration.CSharp.Reload_Data_File
             // Release resources held by the provider.
             provider.Dispose();
 
+            // Perform the test.
+            if (!cb.IsEmpty)
+            {
+                long first, current;
+                cb.TryTake(out first);
+                while (!cb.IsEmpty)
+                {
+                    cb.TryTake(out current);
+                    Assert.IsTrue(first == current, "Hash values are not equal.");
+                }
+            }
+
             // Report the end of the program and exit.
             Console.WriteLine("Program execution complete. Press Enter to exit.");
             Console.ReadKey();
@@ -86,7 +129,7 @@ namespace FiftyOne.Example.Illustration.CSharp.Reload_Data_File
             Match match;
 
             // Open file containing User-Agent strings for read.
-            using (FileStream fs = File.Open(userAfentsFile, 
+            using (FileStream fs = File.Open(userAgentsFile, 
                     FileMode.Open, 
                     FileAccess.Read, 
                     FileShare.ReadWrite))
@@ -101,7 +144,10 @@ namespace FiftyOne.Example.Illustration.CSharp.Reload_Data_File
                     match = provider.getMatch(line);
                     // Compute hash for this match.
                     hash ^= getHash(match);
-                    // Release match.
+                    // Important to release the match as it releases the 
+                    // the workset back into the pool.
+                    // Not disposing of the match will exhaust the pool of 
+                    // worksets and prevent further device detection.
                     match.Dispose();
                     // Update count of processed User-Agent lines.
                     recordsProcessed++;
@@ -109,6 +155,7 @@ namespace FiftyOne.Example.Illustration.CSharp.Reload_Data_File
             }
             // When thread is finished increment threadsFinished counter and
             // Report on the progress
+            cb.Add(hash);
             Interlocked.Increment(ref threadsFinished);
             Console.WriteLine("Thread complete with hash code: " + hash + 
                               " and records processed: " + recordsProcessed);
@@ -136,28 +183,6 @@ namespace FiftyOne.Example.Illustration.CSharp.Reload_Data_File
         }
 
         /// <summary>
-        /// Constructs the new instance of the Program with provided parameters.
-        /// </summary>
-        /// <param name="deviceDataFile"> 
-        /// Location of the 51Degrees data file.
-        /// </param>
-        /// <param name="userAfentsFile"> 
-        /// Location of the file with User-Agent strings.
-        /// </param>
-        /// <param name="propertiesToUse"> 
-        /// Comma-separated string of properties to initialise the Provider 
-        /// with.
-        /// </param>
-        public Program(string deviceDataFile,
-                       string userAfentsFile,
-                       string propertiesToUse)
-        {
-            this.deviceDataFile = deviceDataFile;
-            this.userAfentsFile = userAfentsFile;
-            this.propertiesToUse = propertiesToUse;
-        }
-
-        /// <summary>
         /// Main entry point for this program.
         /// </summary>
         /// <param name="args">
@@ -178,5 +203,29 @@ namespace FiftyOne.Example.Illustration.CSharp.Reload_Data_File
             Program program = new Program(fileName, userAgents, properties);
             program.Run();
         }
+
+        /// <summary>
+        /// Constructs the new instance of the Program with provided parameters.
+        /// </summary>
+        /// <param name="deviceDataFile"> 
+        /// Location of the 51Degrees data file.
+        /// </param>
+        /// <param name="userAfentsFile"> 
+        /// Location of the file with User-Agent strings.
+        /// </param>
+        /// <param name="propertiesToUse"> 
+        /// Comma-separated string of properties to initialise the Provider 
+        /// with.
+        /// </param>
+        public Program(string deviceDataFile,
+                       string userAgentsFile,
+                       string propertiesToUse)
+        {
+            this.deviceDataFile = deviceDataFile;
+            this.userAgentsFile = userAgentsFile;
+            this.propertiesToUse = propertiesToUse;
+            cb = new ConcurrentBag<long>();
+        }
+        // Snippet End
     }
 }
