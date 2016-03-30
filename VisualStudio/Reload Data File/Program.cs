@@ -20,7 +20,66 @@
  */
 /*
 <tutorial>
+Reload Data File example demonstrates:
+<ol>
+    <li> Instantiate the 51Degrees device detection provider with various 
+    settings.
+    <li> Run device detection in a number of parallel threads.
+    <li> Read a file with User-Agent strings line by line and perform device 
+    detection for each.
+    <li> Reload the dataset in the main thread while the background threads 
+    perform device detection.
+    <li> Calculate hash of a Match object.
+</ol>
 <p>
+    When creating a new Provider you can specify the following parameters: 
+    path to the 51Degrees data file, size of pool, size of cache and a list 
+    of properties that the underlying dataset should be initialised with.
+    This example demonstrates how to initialise the Provider with a path to 
+    the 51Degrees device data file and a comma-separated list of properties.
+    <br/><code>
+        Provider provider;
+        provider = new Provider(deviceDataFile, propertiesToUse);
+    </code>
+</p>
+<p>
+    The provider is thread safe and can be used for device detection by as many 
+    threads as you need. It is important to remember that each Match object 
+    is using a workset from the workset pool, therefore you need to make sure 
+    that match is disposed of when the current detection is complete:
+    <br /><code>
+        match = provider.getMatch(line);
+        match.Dispose();
+    </code>
+    Not disposing of Match will prevent worksets from being returned to the 
+    pool. Once the pool is exhausted the program may slall.
+</p>
+<p>
+    Please also keep in mind that you should set the size of the pool to be 
+    at lease the same as the number of background threads that will make use 
+    of device detection. By default the pool is created with 20 worksets.
+</p>
+<p>
+    The data file reload is designed not to disrupt the device detection 
+    process and this example demostrates this by running the reload multiple 
+    times in the main thread while the background threads perform device 
+    detection and calculate the hash value for each match.
+</p>
+<p>
+    If you ever need to calculate a hash of the Match object you should use 
+    the values of all available properties:
+    <br /><code>
+        long hash = 0L;
+        foreach(var property in provider.getAvailableProperties()) 
+        {
+            hash += match.getValue(property).GetHashCode();
+        }
+    </code>
+</p>
+<p>
+    If your environment only allows one thread, then the reload functionality 
+    will disrupt the detection process.
+</p>
 </tutorial>
 */
 using System;
