@@ -1,7 +1,7 @@
 {
     "targets": [
         {
-            "target_name": "FiftyOneDegreesPatternV3",
+            "target_name": "FiftyOneDegreesPattern",
             "sources": [
                 "../src/pattern/51Degrees.c",
                 "../src/cityhash/city.c",

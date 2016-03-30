@@ -1,0 +1,4 @@
+swig3.0 -javascript -node -c++ -o ../src/pattern/51Degrees_node.cpp ../src/pattern/51Degrees.i
+node-gyp clean
+node-gyp configure
+node-gyp build
