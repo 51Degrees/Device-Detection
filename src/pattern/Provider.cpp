@@ -125,6 +125,11 @@ Provider::~Provider() {
 	fiftyoneDegreesProviderFree(&provider);
 }
 
+void Provider::destroy() {
+    fiftyoneDegreesProviderFree(&provider);
+}
+
+
 /**
  * Initialises the Provider.
  * This method should not be called as it is part of the internal logic.
@@ -480,6 +485,13 @@ Match* Provider::getMatch(const string& userAgent) {
  * @returns new Match instance configured to provide access to the results
  */
 Match* Provider::getMatch(const map<string, string>& headers) {
+	Match *result = new Match();
+	initMatch(result);
+	matchForHttpHeaders(result->ws, &headers);
+	return result;
+}
+
+Match* Provider::getMatchForHttpHeaders(const map<string, string>& headers) {
 	Match *result = new Match();
 	initMatch(result);
 	matchForHttpHeaders(result->ws, &headers);

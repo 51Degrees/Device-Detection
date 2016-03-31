@@ -55,6 +55,8 @@ class Provider {
 		Provider(const string &fileName, int cacheSize, int poolSize);
 
 		virtual ~Provider();
+    
+        void destroy();
 
 		vector<string> getHttpHeaders();
 		vector<string> getAvailableProperties();
@@ -68,6 +70,7 @@ class Provider {
         Match* getMatch(const char *userAgent);
         Match* getMatch(const string &userAgent);
         Match* getMatch(const map<string, string> &headers);
+        Match* getMatchForHttpHeaders(const map<string, string> &headers);
 
         map<string, vector<string> >& getMatchMap(const char *userAgent);
 		map<string, vector<string> >& getMatchMap(const string &userAgent);

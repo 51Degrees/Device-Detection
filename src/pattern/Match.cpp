@@ -35,6 +35,9 @@ Match::~Match() {
     fiftyoneDegreesWorksetRelease(ws);
 }
 
+void Match::destroy() {
+    fiftyoneDegreesWorksetRelease(ws);
+}
 /**
  * Returns a string representation of the value associated with the required
  * property index. If the index is not valid an empty string is returned. If

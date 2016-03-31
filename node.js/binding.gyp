@@ -11,7 +11,10 @@
 		"../src/threading.c",
                 "../src/pattern/51Degrees_node.cpp"
             ],
-            "cflags_cc!": ["-fno-exceptions"]
+            "cflags_cc!": ["-fno-exceptions"],
+            "include_dirs": [
+                "<!(node -e \"require('nan')\")"
+            ]
         }
     ]
 }

@@ -49,6 +49,8 @@ public:
 	Match();
 	virtual ~Match();
 
+    void destroy();
+    
 	vector<string> getValues(const char *propertyName);
 	vector<string> getValues(string &propertyName);
 	vector<string> getValues(int requiredPropertyIndex);

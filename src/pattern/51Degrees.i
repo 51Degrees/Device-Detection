@@ -112,6 +112,8 @@ class Match {
 
 	virtual ~Match();
 
+    void destroy();
+    
 	std::vector<std::string> getValues(const char *propertyName);
 	std::vector<std::string> getValues(std::string &propertyName);
 	std::vector<std::string> getValues(int propertyIndex);
@@ -150,6 +152,8 @@ class Provider {
 	Provider(const std::string &fileName, std::vector<std::string> &propertiesArray, int cacheSize, int poolSize);
 	Provider(const std::string &fileName, int cacheSize, int poolSize);
 	virtual ~Provider();
+    
+    void destroy();
 
 	std::vector<std::string> getHttpHeaders();
 	std::vector<std::string> getAvailableProperties();
