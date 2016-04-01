@@ -12,6 +12,7 @@
                 "../src/pattern/51Degrees_node.cpp"
             ],
             "cflags_cc!": ["-fno-exceptions"],
+            "cflags": ["-DSWIG_V8_VERSION=0x040685"],
             "include_dirs": [
                 "<!(node -e \"require('nan')\")"
             ]
