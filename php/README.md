@@ -122,7 +122,7 @@ FiftyOneDegreesPatternV3.cache_size=10000
 FiftyOneDegreesPatternV3.pool_size=20
 ```
 
-In both Patternand Trie directories, there is a php file which contains all the classes needed. So put this in a directory accessible by your web server, e.g. /var/www/html/51Degrees. This can then be included at the top of any php script using the detector with
+In both Pattern and Trie directories, there is a php file which contains all the classes needed. So put this in a directory accessible by your web server, e.g. /var/www/html/51Degrees. This can then be included at the top of any php script using the detector with
 ```php5
 require(path/to/FiftyOneDegreesPatternV3.php);
 ```
