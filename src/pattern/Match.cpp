@@ -30,11 +30,11 @@ Match::Match() {}
 /**
  * Releases the workset back into the pool ready for another Match instance
  * to use.
- */
+ *
 Match::~Match() {
     fiftyoneDegreesWorksetRelease(ws);
 }
-
+*/
 void Match::destroy() {
     fiftyoneDegreesWorksetRelease(ws);
 }

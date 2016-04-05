@@ -30,7 +30,7 @@ http.createServer(function (req, res) {
 //    res.write(match.getValue("BrowserName"));
 //    res.write(match.getValue("PlatformName"));
 res.write(match.getDifference().toString());
-    //match.destroy();
+    match.destroy();
     res.end();
 }).listen(3000);
 //

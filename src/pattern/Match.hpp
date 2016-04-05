@@ -47,7 +47,7 @@ class Match {
 
 public:
 	Match();
-	virtual ~Match();
+//	virtual ~Match();
 
     void destroy();
     

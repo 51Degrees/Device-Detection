@@ -110,7 +110,7 @@ class Match {
 
 	public:
 
-	virtual ~Match();
+//	virtual ~Match();
 
     void destroy();
     
