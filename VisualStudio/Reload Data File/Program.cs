@@ -48,11 +48,16 @@ Reload Data File example demonstrates:
     is using a workset from the workset pool, therefore you need to make sure 
     that match is disposed of when the current detection is complete:
     <br /><code>
-        match = provider.getMatch(line);
-        match.Dispose();
+        using (match = provider.getMatch(line)) 
+        {
+            // Compute hash for this match.
+            hash ^= getHash(match);
+            // Update count of processed User-Agent lines.
+            recordsProcessed++;
+        }
     </code>
     Not disposing of Match will prevent worksets from being returned to the 
-    pool. Once the pool is exhausted the program may slall.
+    pool. Once the pool is exhausted the program may stall.
 </p>
 <p>
     Please also keep in mind that you should set the size of the pool to be 
@@ -61,7 +66,7 @@ Reload Data File example demonstrates:
 </p>
 <p>
     The data file reload is designed not to disrupt the device detection 
-    process and this example demostrates this by running the reload multiple 
+    process and this example demonstrates this by running the reload multiple 
     times in the main thread while the background threads perform device 
     detection and calculate the hash value for each match.
 </p>
@@ -199,17 +204,14 @@ namespace FiftyOne.Example.Illustration.CSharp.Reload_Data_File
                 string line;
                 while ((line = sr.ReadLine()) != null)
                 {
-                    // Perform detection.
-                    match = provider.getMatch(line);
-                    // Compute hash for this match.
-                    hash ^= getHash(match);
-                    // Important to release the match as it releases the 
-                    // the workset back into the pool.
-                    // Not disposing of the match will exhaust the pool of 
-                    // worksets and prevent further device detection.
-                    match.Dispose();
-                    // Update count of processed User-Agent lines.
-                    recordsProcessed++;
+                    // Performs detection. Disposes of match.
+                    using (match = provider.getMatch(line)) 
+                    {
+                        // Compute hash for this match.
+                        hash ^= getHash(match);
+                        // Update count of processed User-Agent lines.
+                        recordsProcessed++;
+                    }
                 }
             }
             // When thread is finished increment threadsFinished counter and

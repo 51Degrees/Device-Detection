@@ -21,29 +21,52 @@
 
 /*
 <tutorial>
-Find profiles example of using 51Degrees device detection. 
-The example shows how to:
+Find profiles example of using 51Degrees device detection. The example shows 
+how to:
 <ol>
-<li>Set the various settings for the 51Degrees detector
-<p><code>
-string properties = "IsMobile";<br>
-string fileName = args[0];
-</code></p>
-<li>Instantiate the 51Degrees device detection provider
-with these settings
-<p><code>
-Provider provider = new Provider(FileName, properties);
-</code></p>
-<li>Retrive all the profiles from the data set which match
-a specified property value pair
-<p><code>
-Profiles profiles = provider.findProfiles("IsMobile", "True");
-</code></p>
+    <li>Initialise detector with path to the 51Degrees device data file and 
+    a list of properties.
+    <p><code>
+        string properties = args[1];<br />
+        string fileName = args[0];<br />
+        Provider provider = new Provider(FileName, properties);
+    </code></p>
+    <li>Use Provider to retrieve a list of profiles that match some given 
+    property : value pair.
+    <p><code>
+        Profiles profiles;<br />
+        using (profiles = provider.findProfiles(property, value))<br />
+        {<br />
+            // Do something with the list.<br />
+        }<br />
+    </code></p>
+    <li> Dispose of the Provider releasing the resources.
+    <p><code>
+        provider.Dispose();
+    </code></p>
 </ol>
-This tutorial assumes you are building this from within the
-51Degrees Visual Studio solution. Additionaly, when running,
-the location of a 51Degrees data file must be passed as a 
-command line argument if you wish to use premium or enterprise
+<p>
+    This tutorial assumes you are building this example using Visual Studio. 
+    You should supply path to the 51Degrees device data file that you wish to 
+    use as a command line argument.
+</p>
+<p>
+    By default the API is distributed with Lite data which is free to use for 
+    both the non-commercial and commercial purposes. Lite data file contains 
+    over 60 properties. For more properties like DeviceType, PriceBand and 
+    HardwareVendor check out the Premium and Enterprise data files:
+    https://51degrees.com/compare-data-options
+</p>
+<p>
+    Passing a list of properties to the provider constructor limits the number 
+    of properties in the dataset the provider wraps to only the chosen 
+    properties. Not providing a list or providing an empty list will cause the 
+    dataset to be created with all available properties:
+    <br /><code>
+        Provider provider = new Provider(fileName, "");
+        Provider provider = new Provider(fileName);
+    </code>
+</p>
 </tutorial>
 */
 using Microsoft.VisualStudio.TestTools.UnitTesting;
@@ -58,49 +81,90 @@ namespace FiftyOne.Example.Illustration.CSharp.FindProfiles
 {
     public class Program
     {
-        // Snippet Start
+        /// <summary>
+        /// Used for testing. Runs the program with the path provided and 
+        /// only the IsMobile property.
+        /// </summary>
+        /// <param name="fileName">
+        /// Path to the 51Degrees device data file.
+        /// </param>
         public static void Run(string fileName)
         {
-            string properties = "IsMobile";
+            Run(fileName, "IsMobile");
+        }
 
-            /**
-            * Initialises the device detection dataset with the above settings.
-            * This uses the Lite data file For more info
-            * see:
-            * <a href="https://51degrees.com/compare-data-options">compare data options
-            * </a>
-            */
+        // Snippet Start
+
+        /// <summary>
+        /// Runs the program with the provided path to the data file and list 
+        /// of comma-separated properties.
+        /// </summary>
+        /// <param name="fileName">
+        /// Path to the 51Degrees device data file.
+        /// </param>
+        /// <param name="properties">
+        /// Comma-separated list of properties to initialise the data set with.
+        /// </param>
+        public static void Run(string fileName, string properties)
+        {
+            // Use path to the data file and a list of properties to create 
+            // provider.
             Provider provider = new Provider(fileName, properties);
-            Profiles profiles;
-
+            Console.WriteLine(provider.getAvailableProperties().Count);
             Console.WriteLine("Starting Find Profiles Example.\n");
 
-            profiles = provider.findProfiles("IsMobile", "True");
-            Console.WriteLine("There are '{0}' mobile profiles in the '{1}' data set.",
-                profiles.getCount(),
-                provider.getDataSetName());
-            
-            Assert.IsNotNull(profiles);
-            Assert.IsTrue(profiles.getCount() != 0);
-            profiles.Dispose();
+            // Find all profiles for devices classified as mobile.
+            findProfiles(provider, "IsMobile", "True");
 
-            profiles = provider.findProfiles("IsMobile", "False");
-            Console.WriteLine("There are '{0}' non-mobile profiles in the '{1}' data set.",
-                profiles.getCount(),
-                provider.getDataSetName());
+            // Find all profiles for devices classified as non-mobile.
+            findProfiles(provider, "IsMobile", "False");
 
-            Assert.IsNotNull(profiles);
-            Assert.IsTrue(profiles.getCount() != 0);
-            profiles.Dispose();
-
+            // At the end of the program dispose of the data file to 
+            // deallocate memory.
             provider.Dispose();
+        }
+
+        /// <summary>
+        /// Generates a list of profiles where the required property is equal 
+        /// to the required value. List may be empty if either the selected 
+        /// property is not present in the data file, or if the value for the 
+        /// chosen property was not found. 
+        /// </summary>
+        /// <param name="provider">
+        /// FiftyOne Provider that provides methods to interact with the 
+        /// 51Degrees device data file.
+        /// </param>
+        /// <param name="property">
+        /// Name of the property that the profile should contain.
+        /// </param>
+        /// <param name="value">
+        /// Value for the above property to search for.
+        /// </param>
+        public static void findProfiles(Provider provider, 
+                                        string property, 
+                                        string value)
+        {
+            Profiles profiles;
+
+            using (profiles = provider.findProfiles(property, value)) 
+            {
+                Console.WriteLine("There are '{0}' '{1}'" +
+                "profiles in the '{2}' data set.",
+                profiles.getCount(),
+                value,
+                provider.getDataSetName());
+                Assert.IsNotNull(profiles);
+                Assert.IsTrue(profiles.getCount() != 0);
+            }
         }
         // Snippet End
 
         static void Main(string[] args)
         {
-            string fileName = args.Length > 0 ? args[0] : "../../../../../../data/51Degrees-LiteV3.2.dat";
-            Run(fileName);
+            string fileName = args.Length > 0 ? args[0] : 
+                "../../../../../../data/51Degrees-LiteV3.2.dat";
+            string properties = args.Length > 1 ? args[1] : "IsMobile";
+            Run(fileName, properties);
 
             // Wait for a character to be pressed.
             Console.ReadKey();
