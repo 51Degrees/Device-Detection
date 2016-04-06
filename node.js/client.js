@@ -1,21 +1,8 @@
-var express = require("express");
 var FOD = require("./51d");
-//// examples of error logging.
-//FOD.log.on("error", function (message) {
-//    console.log(message);
-//})
-//FOD.log.on("updated", function (message) {
-//    console.log(message);
-//})
-//
+
 //// Initialise a new Provider.
 var provider = new FOD.provider("config.json");
-////process.on("uncaughtException", function(e) {
-////    if(e.stack){
-////        console.log(e.stack);
-////    }
-////    console.log(e);
-////})
+
 var http = require("http");
 http.createServer(function (req, res) {
 //    res.write(provider.getDataSetName());
@@ -27,13 +14,15 @@ http.createServer(function (req, res) {
     
     var match = provider.getMatchForHttpHeaders(req.headers);
     
-//    res.write(match.getValue("BrowserName"));
-//    res.write(match.getValue("PlatformName"));
-res.write(match.getDifference().toString());
-    match.destroy();
+    res.write(match.getValue("BrowserName") + "\n");
+    res.write(match.getValue("PlatformName") + "\n");
+    res.write(match.getValue("DeviceType") + "\n");
+
+    match.dispose();
     res.end();
 }).listen(3000);
-//
+
+//var express = require("express");
 //var app = express();
 //app.use(function(req, res, next) {
 //    req.device = provider.getMatchForHttpHeaders(req.headers).getValue("DeviceType");

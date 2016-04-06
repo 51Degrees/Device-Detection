@@ -72,7 +72,9 @@
  * language to be responsible for memory cleanup.
  */
 %nodefaultctor Match;
+#ifndef BUILDING_NODE_EXTENSION
 %newobject Provider::getMatch;
+#endif
 %newobject Provider::getMatchForDeviceId;
 %nodefaultctor Profiles;
 %newobject Provider::findProfiles;
@@ -110,10 +112,8 @@ class Match {
 
 	public:
 
-//	virtual ~Match();
+	virtual ~Match();
 
-    void destroy();
-    
 	std::vector<std::string> getValues(const char *propertyName);
 	std::vector<std::string> getValues(std::string &propertyName);
 	std::vector<std::string> getValues(int propertyIndex);
@@ -127,6 +127,11 @@ class Match {
 	int getDifference();
 	int getMethod();
 	std::string getUserAgent();
+    
+    // Manual dispose method for node.
+#ifdef BUILDING_NODE_EXTENSION
+    void dispose();
+#endif
 };
 
 class Profiles {
@@ -153,7 +158,7 @@ class Provider {
 	Provider(const std::string &fileName, int cacheSize, int poolSize);
 	virtual ~Provider();
     
-    void destroy();
+//    void destroy();
 
 	std::vector<std::string> getHttpHeaders();
 	std::vector<std::string> getAvailableProperties();

@@ -30,14 +30,11 @@ Match::Match() {}
 /**
  * Releases the workset back into the pool ready for another Match instance
  * to use.
- *
+ */
 Match::~Match() {
     fiftyoneDegreesWorksetRelease(ws);
 }
-*/
-void Match::destroy() {
-    fiftyoneDegreesWorksetRelease(ws);
-}
+
 /**
  * Returns a string representation of the value associated with the required
  * property index. If the index is not valid an empty string is returned. If
@@ -194,4 +191,11 @@ int Match::getDifference() {
  */
 int Match::getMethod() {
     return ws->method;
+}
+
+/**
+ * Manual dispose method for node.
+ */
+void Match::dispose() {
+    fiftyoneDegreesWorksetRelease(ws);
 }
