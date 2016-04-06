@@ -70,11 +70,13 @@ The example shows how to:
 </tutorial>
 */
 
-#ifdef _MSC_VER
 #ifdef _DEBUG
+#ifdef _MSC_VER
 #define _CRTDBG_MAP_ALLOC
 #include <stdlib.h>
 #include <crtdbg.h>
+#else
+#include "dmalloc.h"
 #endif
 #endif
 
@@ -96,6 +98,12 @@ int main(int argc, char* argv[]) {
 	const char* properties = "IsMobile";
 	const char* fileName = argc > 1 ? argv[1] : "../../../data/51Degrees-LiteV3.2.dat";
 
+#ifdef _DEBUG
+#ifndef _MSC_VER
+	dmalloc_debug_setup("log-stats,log-non-free,check-fence,log=dmalloc.log");
+#endif
+#endif
+
 	// Create a pool of 4 worksets with a cache for 1000 items.
 	fiftyoneDegreesDataSetInitStatus status =
 		fiftyoneDegreesInitProviderWithPropertyString(
@@ -111,14 +119,16 @@ int main(int argc, char* argv[]) {
 	// Free the pool, dataset and cache.
 	fiftyoneDegreesProviderFree(&provider);
 
+#ifdef _DEBUG
+#ifdef _MSC_VER
+	_CrtDumpMemoryLeaks();
+#else
+	printf("Log file is %s\r\n", dmalloc_logpath);
+#endif
+#endif
+
 	// Wait for a character to be pressed.
 	fgetc(stdin);
-
-#ifdef _MSC_VER
-#ifdef _DEBUG
-	_CrtDumpMemoryLeaks();
-#endif
-#endif
 
 	return 0;
 }
