@@ -32,15 +32,21 @@
       <GenerateDebugInformation>true</GenerateDebugInformation>
     </Link>
     <ClCompile>
-      <AdditionalUsingDirectories>FIFTYONEDEGREES_NO_THREADING</AdditionalUsingDirectories>
+      <AdditionalUsingDirectories>
+      </AdditionalUsingDirectories>
       <CallingConvention>StdCall</CallingConvention>
+      <PreprocessorDefinitions>FIFTYONEDEGREES_NO_THREADING</PreprocessorDefinitions>
+      <Optimization>Disabled</Optimization>
     </ClCompile>
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
     <Link />
     <ClCompile>
-      <AdditionalUsingDirectories>FIFTYONEDEGREES_NO_THREADING</AdditionalUsingDirectories>
+      <AdditionalUsingDirectories>
+      </AdditionalUsingDirectories>
       <CallingConvention>StdCall</CallingConvention>
+      <PreprocessorDefinitions>FIFTYONEDEGREES_NO_THREADING</PreprocessorDefinitions>
+      <Optimization>Full</Optimization>
     </ClCompile>
   </ItemDefinitionGroup>
   <ItemGroup>

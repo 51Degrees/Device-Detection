@@ -76,7 +76,7 @@ void reportProgress(PERFORMANCE_STATE *state, int count) {
 
 #ifndef FIFTYONEDEGREES_NO_THREADING
 	// Lock the state whilst the counters are updated.
-	FIFTYONEDEGREES_MUTEX_LOCK(state->lock);
+	FIFTYONEDEGREES_MUTEX_LOCK(&state->lock);
 #endif
 
 	// Increase the count.
@@ -87,7 +87,7 @@ void reportProgress(PERFORMANCE_STATE *state, int count) {
 
 #ifndef FIFTYONEDEGREES_NO_THREADING
 	// Unlock the signal now that the count has been updated.
-	FIFTYONEDEGREES_MUTEX_UNLOCK(state->lock);
+	FIFTYONEDEGREES_MUTEX_UNLOCK(&state->lock);
 #endif
 }
 
@@ -119,8 +119,7 @@ void runPerformanceTest(PERFORMANCE_STATE *state) {
 		strtok(result, "\n");
 
 		// If detection should be performed get the result and the property values.
-		if (state->calibrate == 0)
-		{
+		if (state->calibrate == 0) {
             ws = fiftyoneDegreesWorksetPoolGet(state->pool);
 			fiftyoneDegreesMatch(ws, input);
 			valueCount = 0;
@@ -132,11 +131,11 @@ void runPerformanceTest(PERFORMANCE_STATE *state) {
 			}
 			fiftyoneDegreesWorksetPoolRelease(state->pool, ws);
 #ifndef FIFTYONEDEGREES_NO_THREADING
-			FIFTYONEDEGREES_MUTEX_LOCK(state->lock);
+			FIFTYONEDEGREES_MUTEX_LOCK(&state->lock);
 #endif
 			state->valueCount += valueCount;
 #ifndef FIFTYONEDEGREES_NO_THREADING
-			FIFTYONEDEGREES_MUTEX_UNLOCK(state->lock);
+			FIFTYONEDEGREES_MUTEX_UNLOCK(&state->lock);
 #endif
 		}
 
@@ -243,9 +242,10 @@ void performance(char *fileName, fiftyoneDegreesWorksetPool *pool) {
 
 	// Time to complete.
 	totalSec = test - calibration;
+	printf("Number of records per iteration: %i s\n", state.count);
 	printf("Average detection time for total data set: %.2f s\n", totalSec);
 	printf("Average number of detections per second per thread: %.2f\n", (double)state.max / totalSec / (double)state.numberOfThreads);
-	printf("Average milliseconds per detection: %.6f\n", (totalSec * (double)1000) / (double)state.max / (double)state.numberOfThreads);
+	printf("Average milliseconds per detection: %.6f\n", (totalSec * (double)1000) / (double)state.max);
 	if (pool->cache != NULL) {
 		printf("Cache hits: %d\n", pool->cache->hits);
 		printf("Cache misses: %d\n", pool->cache->misses);
@@ -314,6 +314,7 @@ int main(int argc, char* argv[]) {
         case DATA_SET_INIT_STATUS_INSUFFICIENT_MEMORY:
             printf("Insufficient memory to load '%s'.", argv[1]);
             break;
+		case DATA_SET_INIT_STATUS_POINTER_OUT_OF_BOUNDS:
         case DATA_SET_INIT_STATUS_CORRUPT_DATA:
             printf("Device data file '%s' is corrupted.", argv[1]);
             break;
@@ -326,6 +327,8 @@ int main(int argc, char* argv[]) {
         case DATA_SET_INIT_STATUS_NOT_SET:
             printf("Device data file '%s' could not be used to initialise.", argv[1]);
             break;
+		case DATA_SET_INIT_STATUS_NULL_POINTER:
+			printf("Null pointer prevented loading of '%s'.", argv[1]);
 		default: {
 			cache = fiftyoneDegreesResultsetCacheCreate(&dataSet, cacheSize);
             pool = fiftyoneDegreesWorksetPoolCreate(&dataSet, cache, THREAD_COUNT);

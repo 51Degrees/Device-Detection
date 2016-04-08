@@ -47,18 +47,21 @@ namespace FiftyOne.UnitTests.HttpHeaders.Premium
         }
 
         [TestMethod]
+        [TestCategory("HttpHeaders"), TestCategory("Premium"), TestCategory("Trie")]
         public void PremiumV32TrieFile_OperaMiniSamsung() 
         {
             base.OperaMini_Samsung();
         }
 
         [TestMethod]
+        [TestCategory("HttpHeaders"), TestCategory("Premium"), TestCategory("Trie")]
         public void PremiumV32TrieFile_OperaMini_HTC()
         {
             base.OperaMini_HTC();
         }
 
         [TestMethod]
+        [TestCategory("HttpHeaders"), TestCategory("Premium"), TestCategory("Trie")]
         public void PremiumV32TrieFile_OperaMini_iPhone()
         {
             base.OperaMini_iPhone();

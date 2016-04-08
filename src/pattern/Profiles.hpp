@@ -27,15 +27,11 @@
 #ifndef FIFTYONEDEGREESPROFILES_HPP
 #define FIFTYONEDEGREESPROFILES_HPP
 
-using namespace std;
-
 /**
  * Encapsulates the profiles structure returned from the
- * findProfiles function. Contains the number of profiles
- * found, accessible via getCount. The profile indexes found
- * accessible via getProfileIndex, and the profile id's
- * accessible via getProfileId.
+ * findProfiles function.
  */
+using namespace std;
 class Profiles {
 	friend class Provider;
 
