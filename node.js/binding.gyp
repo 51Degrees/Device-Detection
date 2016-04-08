@@ -12,10 +12,17 @@
                 "../src/pattern/51Degrees_node.cpp"
             ],
             "cflags_cc!": ["-fno-exceptions"],
-            "cflags": ["-DSWIG_V8_VERSION=0x040685"],
-            "include_dirs": [
-                "<!(node -e \"require('nan')\")"
-            ]
+            "cflags": ["<!(node -e \"\
+                var v8Version = process.versions.v8;\
+                var string = '-DSWIG_V8_VERSION=0x';\
+                var arr = v8Version.split('.');\
+                for (var i = 0; i < 3; i++) {\
+                    if (arr[i].length === 1) {\
+                        string += '0';\
+                        }\
+                    string += arr[i];\
+                }\
+                console.log(string);\")"]
         }
     ]
 }

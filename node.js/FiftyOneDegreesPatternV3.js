@@ -5,14 +5,18 @@ var path = require("path");
 var FiftyOneDegrees = {};
 
 // Return the Provider object initialised with the supplied config file.
-FiftyOneDegrees.provider = function (configFile) {
+FiftyOneDegrees.provider = function (configuration) {
     FiftyOneDegrees.log = new eventEmitter();
-
-    var rawConfig = fs.readFileSync(configFile, "UTF8"),
-        config = JSON.parse(rawConfig),
-        FODcore,
+    if (typeof(configuration) === "string") {
+        var rawConfig = fs.readFileSync(configuration, "UTF8"),
+            config = JSON.parse(rawConfig)
+    }
+    else if (typeof(configuration) === "object") {
+        var config = configuration;
+    }
+    
+    var FODcore,
         returnedProvider;
-
     // Require the 51Degrees node library.
     if (path.parse(config.dataFile).ext === ".dat") {
         config.Type = "BinaryV32";
@@ -37,7 +41,7 @@ FiftyOneDegrees.provider = function (configFile) {
         } else {
             if (config.properties) {
                 if (config.cacheSize && config.poolSize) {
-                    returreturnedProvider = new FODcore.Provider(config.dataFile, config.properties, config.cacheSize, config.poolSize);
+                    returnedProvider = new FODcore.Provider(config.dataFile, config.properties.toString(), config.cacheSize, config.poolSize);
                 } else {
                     returnedProvider = new FODcore.Provider(config.dataFile, config.properties);
                 }
@@ -70,7 +74,7 @@ FiftyOneDegrees.provider = function (configFile) {
 
     // Expose the config for extrernal use.
     returnedProvider.config = config;
-
+    
     // Wrapper function to ensure matching with HTTP headers uses the correct native function.
     returnedProvider.getMatchForHttpHeaders = function (headers) {
         var headersMap = new FODcore.MapStringString();
