@@ -1,0 +1,57 @@
+----------------------------------
+------51Degrees Nginx Module------
+----------------------------------
+
+[Introduction]
+The 51Degrees Nginx module can be used to detect many
+properties of the device accessing your site and add
+the requested properties to the request as headers.
+For example, if the property you want to know is the
+browser being used, you would set it with
+	51D_properties BrowserName
+and when a request is forwarded to your site, it will
+have a header like
+	HTTP_FIFTYONEDEGREES_BROWSERNAME = Firefox
+added.
+
+This module is in a testing phase, to quickly view the
+TODO's in the module code, run:
+	grep "TODO" 51Degrees_module/ngx_http_51D_module.c
+from this directory.
+
+[Installation]
+To install, first run:
+	./bootstrap
+to download Nginx, set the install location to within this
+folder and do various other pre-install actions.
+Then run:
+	./compile
+to install Nginx and the 51Degrees module to a new sub-folder
+named 'build'.
+
+[Configuration]
+The module will run with the settings as they are in
+nginx.conf, but you may wish to change them to better fit
+your needs (particularly the properties list).
+The available settings are:
+	51D_filePath -string, path to 51D data file.
+	51D_properties -comma separated string,
+	                properties to return.
+	51D_cacheSize -int, size of 51D workset cache.
+	51D_poolSize -int, size of 51D workset pool.
+
+[PHP Page]
+If you want to easily test the output from this, copy 'page.php'
+to your Apache folder (probably '/var/www/html') and restart
+Apache with:
+	sudo service restart apache2
+
+[Usage]
+To start up nginx from this directory, run:
+	./start
+This will stop and Nginx process currently running and start
+an Nginx proxy server at localhost:8888. Then if you access
+	localhost:8888/page.php
+from a browser, you will see a list of properties for your
+device (These properties can be added or removed in
+'nginx.conf').

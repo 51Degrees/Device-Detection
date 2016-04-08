@@ -567,12 +567,13 @@ EXTERNAL fiftyoneDegreesDataSetInitStatus fiftyoneDegreesInitProviderWithPropert
 	int poolSize,
 	int cacheSize);
 
+
 /**
  * \ingroup FiftyOneDegreesFunctions
  * Creates a new dataset, pool and cache using the same configuration options
- * as the current data set, pool and cache associated with the provider. The
- * original file location is used to create the new data set.
- * The exisitng data set, pool and cache are marked to be freed if worksets are
+ * as the current data set, pool and cache associated with the provider. The 
+ * original file location is used to create the new data set. 
+ * The exisitng data set, pool and cache are marked to be freed if worksets are 
  * being used by other threads, or if no work sets are in use they are freed
  * immediately.
  * @param provider pointer to the provider whose data set should be reloaded
@@ -598,7 +599,7 @@ EXTERNAL fiftyoneDegreesDataSetInitStatus fiftyoneDegreesProviderReloadFromFile(
  * pool, data set and cache are freed after the last work set is returned to
  * the pool.
  * @param provider pointer to the provider whose data set should be reloaded
- * @param source pointer to the memory containing the device data
+ * @param provider pointer to the provider whose data set should be reloaded.
  * @param length number of bytes that the file occupies in memory.
  * @return fiftyoneDegreesDataSetInitStatus indicating the result of the reload
  * 	   operation.
@@ -608,9 +609,9 @@ EXTERNAL fiftyoneDegreesDataSetInitStatus fiftyoneDegreesProviderReloadFromMemor
 	void *source,
 	long length);
 
-/**
+/** 
  * \ingroup FiftyOneDegreesFunctions
- * Releases all the resources used by the provider. The provider can not be
+ * Releases all the resources used by the provider. The provider can not be 
  * used without being reinitialised after calling this method.
  * @param provider pointer to the provider to be freed
  */
@@ -619,7 +620,7 @@ EXTERNAL void fiftyoneDegreesProviderFree(fiftyoneDegreesProvider *provider);
 /**
  * \ingroup FiftyOneDegreesFunctions
  * Retrieves a work set from the pool associated with the provider. In multi
- * threaded operation will always return a work set. In single threaded
+ * threaded operation will always return a work set. In single threaded 
  * operation may return NULL if no work sets are available in the pool.
  * The work set returned must be released back to the provider by calling
  * fiftyoneDegreesWorksetRelease when finished with.
