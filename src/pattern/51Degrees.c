@@ -82,23 +82,8 @@ const int16_t POWERS[] = { 1, 10, 100, 1000, 10000 };
 #include <ngx_core.h>
 #endif
 
-void *fiftyoneDegreesMalloc(size_t __size)
-{
-#ifdef FIFTYONEDEGREES_NGINX
-	return ngx_palloc(ngx_cycle->pool, __size);
-#else
-	return malloc(__size);
-#endif
-}
-
-void fiftyoneDegreesFree(void *__ptr)
-{
-#ifdef FIFTYONEDEGREES_NGINX
-	return ngx_pfree(ngx_cycle->pool, __ptr);
-#else
-	return free(__ptr);
-#endif
-}
+void *(*fiftyoneDegreesMalloc)(size_t __size) = malloc;
+void (*fiftyoneDegreesFree)(void *__ptr) = free;
 
  /**
  * \cond

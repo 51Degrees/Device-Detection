@@ -47,6 +47,9 @@
 #include <time.h>
 #include "../threading.h"
 
+EXTERNAL void *(*fiftyoneDegreesMalloc)(size_t __size);
+EXTERNAL void (*fiftyoneDegreesFree)(void *__ptr);
+
 /* Used to represent bytes */
 typedef unsigned char byte;
 
