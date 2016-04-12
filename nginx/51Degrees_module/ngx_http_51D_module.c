@@ -12,13 +12,9 @@
 #ifndef FIFTYONEDEGREES_MAX_PROPERTIES
 #define FIFTYONEDEGREES_MAX_PROPERTIES 20
 #endif
-
-#ifndef FIFTYONEDEGREES_HTTP_PREFIX
-#define FIFTYONEDEGREES_HTTP_PREFIX "51D-"
+#ifndef FIFTYONEDEGREES_MAX_STRING
+#define FIFTYONEDEGREES_MAX_STRING FIFTYONEDEGREES_MAX_PROPERTIES * 20
 #endif
-
-// 51Degrees http header prefix.
-const char* prefix = FIFTYONEDEGREES_HTTP_PREFIX;
 
 // Module config functions to enable matching in selected locations.
 static char *ngx_http_51D_set(ngx_conf_t* cf, ngx_command_t *cmd, void *conf);
@@ -34,9 +30,6 @@ static char *ngx_http_51D_merge_loc_conf(ngx_conf_t *cf, void *parent, void *chi
 // Handler declaration.
 static ngx_int_t ngx_http_51D_handler(ngx_http_request_t *r);
 
-// Declaration of string functions.
-static char *join(ngx_pool_t* ngx_pool, const char* s1, const char* s2);
-void lower_string(char s[]);
 
 typedef struct {
     ngx_uint_t multi;
@@ -54,7 +47,7 @@ typedef struct {
 
 // Module main config.
 typedef struct {
-    char properties[120];
+    char properties[FIFTYONEDEGREES_MAX_STRING];
     ngx_uint_t cacheSize;
     ngx_uint_t poolSize;
     ngx_str_t dataFile;
@@ -336,9 +329,12 @@ ngx_http_51D_handler(ngx_http_request_t *r)
 	int headerIndex, i, j, found;
 	ngx_table_elt_t *searchResult;
 	char *methodName, *property_name;
+	char buffer[FIFTYONEDEGREES_MAX_STRING];
 	if (r->main->internal) {
 		return NGX_DECLINED;
 	}
+
+	r->main->internal = 1;
 
 	// Get 51Degrees location config.
 	fdlcf = ngx_http_get_module_loc_conf(r, ngx_http_51D_module);
@@ -350,9 +346,8 @@ ngx_http_51D_handler(ngx_http_request_t *r)
 	int count;
 	for (count=0;count<fdlcf->count;count++)
 	{
-	values_string[count] = (char*)ngx_palloc(r->pool, 1000*sizeof(char));
+		values_string[count] = (char*)ngx_palloc(r->pool, FIFTYONEDEGREES_MAX_STRING*sizeof(char));
 		values_string[count][0] = '\0';
-		r->main->internal = 1;
 
 		// Get 51Degrees main config.
         fdmcf = ngx_http_get_module_main_conf(r, ngx_http_51D_module);
@@ -398,19 +393,16 @@ ngx_http_51D_handler(ngx_http_request_t *r)
                 found = 1;
             }
             else if (strcmp("Difference", fdlcf->match[count]->property[property_index]->data) == 0) {
-                char buffer[20];
                 sprintf(buffer, "%d", ws->difference);
                 add_value(buffer, values_string[count]);
                 found = 1;
             }
             else if (strcmp("Rank", fdlcf->match[count]->property[property_index]->data) == 0) {
-                char buffer[20];
                 sprintf(buffer, "%d", fiftyoneDegreesGetSignatureRank(ws));
                 add_value(buffer, values_string[count]);
                 found = 1;
             }
             else if (strcmp("DeviceId", fdlcf->match[count]->property[property_index]->data) == 0) {
-                char buffer[24];
 					fiftyoneDegreesGetDeviceId(ws, buffer, 24);
 					add_value(buffer, values_string[count]);
 					found = 1;
@@ -441,9 +433,9 @@ ngx_http_51D_handler(ngx_http_request_t *r)
 			h[count] = ngx_list_push(&r->headers_in.headers);
 			h[count]->hash = count;
 			h[count]->key.data = (u_char*)fdlcf->match[count]->name.data;
-			h[count]->key.len = ngx_strlen(h[i]->key.data);
+			h[count]->key.len = ngx_strlen(h[count]->key.data);
 			h[count]->value.data = (u_char*)values_string[count];
-			h[count]->value.len = ngx_strlen(h[i]->value.data);
+			h[count]->value.len = ngx_strlen(h[count]->value.data);
 			h[count]->lowcase_key = (u_char*)fdlcf->match[count]->lower_name.data;
 	}
 	return NGX_DECLINED;
@@ -497,7 +489,7 @@ static char *ngx_http_51D_set(ngx_conf_t* cf, ngx_command_t *cmd, void *conf)
 	fdlcf = ngx_http_conf_get_module_loc_conf(cf, ngx_http_51D_module);
 
 	fdlcf->match[fdlcf->count] = (ngx_http_51D_match_t*)ngx_palloc(cf->pool, sizeof(ngx_http_51D_match_t));
-	fdlcf->match[fdlcf->count]->property = (ngx_str_t**)ngx_palloc(cf->pool, sizeof(ngx_str_t*)*100);
+	fdlcf->match[fdlcf->count]->property = (ngx_str_t**)ngx_palloc(cf->pool, sizeof(ngx_str_t*)*FIFTYONEDEGREES_MAX_PROPERTIES);
 
 	// Enable single User-Agent matching.
 	if (strcmp(cmd->name.data, "51D_single") == 0) {
@@ -514,16 +506,3 @@ static char *ngx_http_51D_set(ngx_conf_t* cf, ngx_command_t *cmd, void *conf)
 
 	return NGX_OK;
 }
-
-// Simple string join function.
-char *join(ngx_pool_t* ngx_pool, const char* s1, const char* s2)
-{
-    char* result = ngx_pcalloc(ngx_pool, ngx_strlen(s1) + ngx_strlen(s2) + 1);
-    if (result)
-    {
-        strcpy(result, s1);
-        strcat(result, s2);
-    }
-    return result;
-}
-
