@@ -18,7 +18,7 @@
 					<Add option="-g" />
 				</Compiler>
 				<ExtraCommands>
-					<Add before='CFLAGS=&quot;-g -O0 -DFIFTYONEDEGREES_NGINX -DFIFTYONEDEGREES_NO_THREADING&quot; ./configure --with-debug --with-ld-opt=&quot;-lm&quot; --add-module=../../51Degrees_module --prefix=$(PROJECTDIR)../build' />
+					<Add before='CFLAGS=&quot;-g -O0 -DEXTERNAL_MALLOC -DFIFTYONEDEGREES_NO_THREADING&quot; ./configure --with-debug --with-ld-opt=&quot;-lm&quot; --add-module=../../51Degrees_module --prefix=$(PROJECTDIR)../build' />
 					<Add after="cp $(PROJECTDIR)../nginx.conf $(PROJECTDIR)../build/conf/" />
 					<Add after="cp $(PROJECTDIR)../51Degrees_module/src/pattern/51Degrees.c $(PROJECTDIR)../../src/pattern/" />
 					<Add after="cp $(PROJECTDIR)../51Degrees_module/src/pattern/51Degrees.h $(PROJECTDIR)../../src/pattern/" />

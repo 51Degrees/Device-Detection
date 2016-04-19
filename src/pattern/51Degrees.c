@@ -77,14 +77,10 @@ const int16_t POWERS[] = { 1, 10, 100, 1000, 10000 };
 
 #define HTTP_PREFIX_UPPER "HTTP_"
 
-#ifdef FIFTYONEDEGREES_NGINX
-#include <nginx.h>
-#include <ngx_core.h>
-#endif
-
+#ifndef EXTERNAL_MALLOC
 void *(*fiftyoneDegreesMalloc)(size_t __size) = malloc;
 void (*fiftyoneDegreesFree)(void *__ptr) = free;
-
+#endif
  /**
  * \cond
  * DATA SET FILE AND MEMORY METHODS
@@ -106,7 +102,7 @@ void (*fiftyoneDegreesFree)(void *__ptr) = free;
  *
  * @param pointer is the pointer to the current byte. Gets incremented by the
 		  number of bytes provided in advanceBy.
- * @param lastByte pointer to the last valid byte in the memory space. A 
+ * @param lastByte pointer to the last valid byte in the memory space. A
 		  corrupt memory response is return if this is exceeded.
  * @param advanceBy number of bytes to advance the pointer by.
  * @return fiftyoneDegreesDataSetInitStatus stating the result of the
@@ -396,7 +392,7 @@ static fiftyoneDegreesDataSetInitStatus reloadCommon(
 	fiftyoneDegreesDataSetInitStatus status;
 
 	// Maintain a reference to the current pool in case it can be freed.
-	const fiftyoneDegreesWorksetPool *oldPool = 
+	const fiftyoneDegreesWorksetPool *oldPool =
 		(const fiftyoneDegreesWorksetPool*)provider->activePool;
 
 	// Initialise the new dataset with the same properties as the old one.
@@ -415,7 +411,7 @@ static fiftyoneDegreesDataSetInitStatus reloadCommon(
 		oldPool->size, oldPool->cache != NULL ? oldPool->cache->total : 0);
 	if (status != DATA_SET_INIT_STATUS_SUCCESS) {
 		fiftyoneDegreesDataSetFree(newDataSet);
-	} 
+	}
 
 	// If the old pool is ready to be freed then do so.
 	else if (oldPool->available == oldPool->size) {
@@ -1753,7 +1749,7 @@ static void setProfileStructs(const fiftyoneDegreesDataSet *dataSet,
  * @param property pointer to the 51Degrees property to be initialised.
  * \endcond
  */
-static void initFindProfiles(const fiftyoneDegreesDataSet *dataSet, 
+static void initFindProfiles(const fiftyoneDegreesDataSet *dataSet,
 							 const fiftyoneDegreesProperty *property) {
 	int profileIndex;
 	int valueIndex;
@@ -1820,7 +1816,7 @@ static void initFindProfiles(const fiftyoneDegreesDataSet *dataSet,
  * \endcond
  */
 fiftyoneDegreesProfilesStruct *fiftyoneDegreesFindProfiles(
-	const fiftyoneDegreesDataSet *dataSet, 
+	const fiftyoneDegreesDataSet *dataSet,
 	const char *propertyName,
 	const char* valueName) {
 	int32_t valueIndex;
@@ -1904,9 +1900,9 @@ static int QSORT_COMPARER intcmp(const void *a, const void *b) {
  * \endcond
  */
 fiftyoneDegreesProfilesStruct *fiftyoneDegreesFindProfilesInProfiles(
-	const fiftyoneDegreesDataSet *dataSet, 
-	const char *propertyName, 
-	const char* valueName, 
+	const fiftyoneDegreesDataSet *dataSet,
+	const char *propertyName,
+	const char* valueName,
 	fiftyoneDegreesProfilesStruct *profilesList) {
 	int32_t valueIndex;
 	const char *currentValueName;
@@ -2136,7 +2132,7 @@ void fiftyoneDegreesWorksetRelease(fiftyoneDegreesWorkset *ws) {
 	}
 
 	// If the pool the work set is associated with is not the active pool and
-	// all the work sets have been handed back then free the pool and its 
+	// all the work sets have been handed back then free the pool and its
 	// related resources.
 	if (pool->provider != NULL &&
 		pool->provider->activePool != pool &&
@@ -2168,7 +2164,7 @@ void fiftyoneDegreesProviderFree(fiftyoneDegreesProvider *provider) {
  * \cond
  * Returns a work set from the pool if one is available.
  * @param pool pointer to the pool to return the work set from
- * @return a work set ready for device detection, or NULL if no work sets are 
+ * @return a work set ready for device detection, or NULL if no work sets are
  *		   available
  * \endcond
  */

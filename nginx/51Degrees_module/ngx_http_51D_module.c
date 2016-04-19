@@ -18,9 +18,12 @@
 
 // Module config functions to enable matching in selected locations.
 static char *ngx_http_51D_set(ngx_conf_t* cf, ngx_command_t *cmd, void *conf);
+	FILE *fp;
 
 // Module declaration.
 ngx_module_t ngx_http_51D_module;
+
+static ngx_shm_zone_t *ngx_http_51D_shm_zone;
 
 // Configuration function declarations.
 static void *ngx_http_51D_create_main_conf(ngx_conf_t *cf);
@@ -29,7 +32,9 @@ static char *ngx_http_51D_merge_loc_conf(ngx_conf_t *cf, void *parent, void *chi
 
 // Handler declaration.
 static ngx_int_t ngx_http_51D_handler(ngx_http_request_t *r);
+static ngx_shm_zone_t *ngx_http_51D_shm_zone;
 
+static ngx_int_t ngx_http_51D_init_shm_zone(ngx_shm_zone_t *shm_zone, void *data);
 
 typedef struct {
     ngx_uint_t multi;
@@ -51,7 +56,7 @@ typedef struct {
     ngx_uint_t cacheSize;
     ngx_uint_t poolSize;
     ngx_str_t dataFile;
-    fiftyoneDegreesProvider provider;
+    fiftyoneDegreesProvider *provider;
 } ngx_http_51D_main_conf_t;
 
 // Module post config. Added module handler to main config.
@@ -79,6 +84,9 @@ static void *
 ngx_http_51D_create_main_conf(ngx_conf_t *cf)
 {
     ngx_http_51D_main_conf_t  *conf;
+	ngx_str_t name;
+	name.data = "provider";
+	name.len = ngx_strlen(name.data);
 
     conf = ngx_pcalloc(cf->pool, sizeof(ngx_http_51D_main_conf_t));
     if (conf == NULL) {
@@ -87,6 +95,10 @@ ngx_http_51D_create_main_conf(ngx_conf_t *cf)
 	conf->cacheSize = NGX_CONF_UNSET_UINT;
 	conf->poolSize = NGX_CONF_UNSET_UINT;
 	conf->properties[0] = '\0';
+
+	ngx_http_51D_shm_zone = ngx_shared_memory_add(cf, &name, 10000000000, (void*)&ngx_http_51D_module);
+	ngx_http_51D_shm_zone->init = ngx_http_51D_init_shm_zone;
+	conf->provider = (fiftyoneDegreesProvider*)ngx_http_51D_shm_zone->data;
 
     return conf;
 }
@@ -118,7 +130,7 @@ ngx_http_51D_merge_loc_conf(ngx_conf_t *cf, void *parent, void *child)
 
 	ngx_conf_merge_uint_value(conf->count, prev->count, 0);
 
-return NGX_CONF_OK;
+	return NGX_CONF_OK;
 }
 
 // Throws an error if data set initialisation fails.
@@ -151,6 +163,45 @@ static ngx_int_t reportDatasetInitStatus(fiftyoneDegreesDataSetInitStatus status
 	}
 	return NGX_ERROR;
 }
+static ngx_int_t ngx_http_51D_init_shm_zone(ngx_shm_zone_t *shm_zone, void *data)
+{
+	ngx_slab_pool_t *shpool;
+	fiftyoneDegreesProvider *provider;
+	fiftyoneDegreesDataSetInitStatus status;
+	if (data) {
+fp = fopen("/home/ben/ngx.log", "a");
+fprintf(fp, "free provider\n");
+fclose(fp);
+		//shm_zone->data = data;
+		fiftyoneDegreesProviderFree((fiftyoneDegreesProvider*)data);
+		//return NGX_OK;
+	}
+fp = fopen("/home/ben/ngx.log", "a");
+fprintf(fp, "new provider\n");
+fclose(fp);
+	shpool = (ngx_slab_pool_t *) shm_zone->shm.addr;
+	//provider = (fiftyoneDegreesProvider*)ngx_slab_alloc(shpool, sizeof(fiftyoneDegreesProvider));
+	fiftyoneDegreesInitProviderWithPropertyString((const char*)"/home/ben/Device-Detection/51Degrees-LiteV3.2.dat", provider, (const char*)"", 20, 1000);
+
+	shm_zone->data = provider;
+	return NGX_OK;
+}
+
+void *ngx_http_51D_shm_alloc(size_t __size)
+{
+	ngx_slab_pool_t *shpool;
+	shpool = (ngx_slab_pool_t *) ngx_http_51D_shm_zone->shm.addr;
+	return ngx_slab_alloc(shpool, __size);
+
+}
+void ngx_http_51D_shm_free(void *__ptr)
+{
+	ngx_slab_pool_t *shpool;
+	shpool = (ngx_slab_pool_t *) ngx_http_51D_shm_zone->shm.addr;
+	ngx_slab_free(shpool, __ptr);
+}
+void *(*fiftyoneDegreesMalloc)(size_t __size) = malloc;//ngx_http_51D_shm_alloc;
+void (*fiftyoneDegreesFree)(void *__ptr) = free;//ngx_http_51D_shm_free;
 
 // Initialises the provider on process start.
 static ngx_int_t
@@ -158,9 +209,11 @@ ngx_http_51D_init_process(ngx_cycle_t *cycle)
 {
 	fiftyoneDegreesDataSetInitStatus status;
 	ngx_http_51D_main_conf_t *fdmcf;
+//fiftyoneDegreesMalloc = ngx_http_51D_shm_alloc;
 
 	// Get module main config.
 	fdmcf = ngx_http_cycle_get_module_main_conf(cycle, ngx_http_51D_module);
+	fdmcf->provider = ngx_http_51D_shm_zone->data;
 
 	// If a setting is not set, set the default.
 	if ((int)fdmcf->dataFile.len < 0) {
@@ -173,12 +226,15 @@ ngx_http_51D_init_process(ngx_cycle_t *cycle)
 	if ((int)fdmcf->poolSize < 0) {
 		fdmcf->poolSize = FIFTYONEDEGREES_DEFAULTPOOL;
 	}
-
+fp = fopen("/home/ben/ngx.log", "a");
+fprintf(fp, "init provider\n");
+fclose(fp);
 	// Initialise the provider or return an error on failure.
-	status = fiftyoneDegreesInitProviderWithPropertyString((const char*)fdmcf->dataFile.data, &fdmcf->provider, (const char*)fdmcf->properties, fdmcf->poolSize, fdmcf->cacheSize);
-	if (status != DATA_SET_INIT_STATUS_SUCCESS) {
-		return reportDatasetInitStatus(status, (const char*)fdmcf->dataFile.data);
-	}
+	//status = fiftyoneDegreesInitProviderWithPropertyString((const char*)fdmcf->dataFile.data, fdmcf->provider, (const char*)fdmcf->properties, fdmcf->poolSize, fdmcf->cacheSize);
+
+	//if (status != DATA_SET_INIT_STATUS_SUCCESS) {
+	//	return reportDatasetInitStatus(status, "data");
+	//}
 
 	return NGX_OK;
 }
@@ -190,7 +246,8 @@ ngx_http_51D_exit_process(ngx_cycle_t *cycle)
 	ngx_http_51D_main_conf_t *fdmcf = ngx_http_cycle_get_module_main_conf(cycle, ngx_http_51D_module);
 
 	// Free the provider.
-	fiftyoneDegreesProviderFree(&fdmcf->provider);
+	//fiftyoneDegreesProviderFree(fdmcf->provider);
+	fdmcf->provider = NULL;
 }
 
 // Definitions of functions which can be called in 'nginx.conf'
@@ -352,7 +409,7 @@ ngx_http_51D_handler(ngx_http_request_t *r)
 		// Get 51Degrees main config.
         fdmcf = ngx_http_get_module_main_conf(r, ngx_http_51D_module);
 
-		ws = fiftyoneDegreesProviderWorksetGet(&fdmcf->provider);
+		ws = fiftyoneDegreesProviderWorksetGet(fdmcf->provider);
 
 		// If single requested, match for single User-Agent.
 		if (fdlcf->match[count]->multi == 0) {
@@ -417,10 +474,10 @@ ngx_http_51D_handler(ngx_http_request_t *r)
                         found = 1;
                         break;
                     }
+                    }
                     if (!found) {
                         add_value("NA", values_string[count]);
                     }
-                }
             }
         }
 
