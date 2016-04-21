@@ -22,7 +22,6 @@ static char *ngx_http_51D_set(ngx_conf_t* cf, ngx_command_t *cmd, void *conf);
 
 // Module declaration.
 ngx_module_t ngx_http_51D_module;
-
 static ngx_shm_zone_t *ngx_http_51D_shm_zone;
 
 // Configuration function declarations.
@@ -85,7 +84,7 @@ ngx_http_51D_create_main_conf(ngx_conf_t *cf)
 {
     ngx_http_51D_main_conf_t  *conf;
 	ngx_str_t name;
-	name.data = "provider";
+	name.data = "fiftyoneDegreesProvider";
 	name.len = ngx_strlen(name.data);
 
     conf = ngx_pcalloc(cf->pool, sizeof(ngx_http_51D_main_conf_t));
@@ -96,7 +95,7 @@ ngx_http_51D_create_main_conf(ngx_conf_t *cf)
 	conf->poolSize = NGX_CONF_UNSET_UINT;
 	conf->properties[0] = '\0';
 
-	ngx_http_51D_shm_zone = ngx_shared_memory_add(cf, &name, 10000000000, (void*)&ngx_http_51D_module);
+	ngx_http_51D_shm_zone = ngx_shared_memory_add(cf, &name, 100000000, (void*)&ngx_http_51D_module);
 	ngx_http_51D_shm_zone->init = ngx_http_51D_init_shm_zone;
 	conf->provider = (fiftyoneDegreesProvider*)ngx_http_51D_shm_zone->data;
 
@@ -168,22 +167,29 @@ static ngx_int_t ngx_http_51D_init_shm_zone(ngx_shm_zone_t *shm_zone, void *data
 	ngx_slab_pool_t *shpool;
 	fiftyoneDegreesProvider *provider;
 	fiftyoneDegreesDataSetInitStatus status;
+	shpool = (ngx_slab_pool_t *) ngx_http_51D_shm_zone->shm.addr;
 	if (data) {
-fp = fopen("/home/ben/ngx.log", "a");
-fprintf(fp, "free provider\n");
-fclose(fp);
-		//shm_zone->data = data;
-		fiftyoneDegreesProviderFree((fiftyoneDegreesProvider*)data);
+		//provider = (fiftyoneDegreesProvider*)data;
+		fp = fopen("/home/ben/ngx.log", "a");
+		fprintf(fp, "free  sh %p - %p pr %p ds %p\n", shpool->start, shpool->end, provider, provider->activePool->dataSet);
+		fclose(fp);
+		//fiftyoneDegreesProviderFree(provider);
+		//ngx_slab_free(shpool, provider);
+		//fp = fopen("/home/ben/ngx.log", "a");
+		//fprintf(fp, "freed sh %p - %p pr %p ds %p\n", shpool->start, shpool->end, provider, provider->activePool->dataSet);
+		//fclose(fp);
 		//return NGX_OK;
 	}
-fp = fopen("/home/ben/ngx.log", "a");
-fprintf(fp, "new provider\n");
-fclose(fp);
-	shpool = (ngx_slab_pool_t *) shm_zone->shm.addr;
-	//provider = (fiftyoneDegreesProvider*)ngx_slab_alloc(shpool, sizeof(fiftyoneDegreesProvider));
-	fiftyoneDegreesInitProviderWithPropertyString((const char*)"/home/ben/Device-Detection/51Degrees-LiteV3.2.dat", provider, (const char*)"", 20, 1000);
+	provider = (fiftyoneDegreesProvider*)ngx_slab_alloc(shpool, sizeof(fiftyoneDegreesProvider));
+	status = fiftyoneDegreesInitProviderWithPropertyString((const char*)"/home/ben/Device-Detection/data/51Degrees-LiteV3.2.dat", provider, (const char*)"", 20, 1000);
+		fp = fopen("/home/ben/ngx.log", "a");
+		fprintf(fp, "alloc sh %p - %p pr %p ds %p\n", shpool->start, shpool->end, provider, provider->activePool->dataSet);
+		fclose(fp);
 
 	shm_zone->data = provider;
+	fiftyoneDegreesProviderFree(provider);
+	ngx_slab_free(shpool, provider);
+reportDatasetInitStatus(status, (const char*)"test");
 	return NGX_OK;
 }
 
@@ -191,17 +197,38 @@ void *ngx_http_51D_shm_alloc(size_t __size)
 {
 	ngx_slab_pool_t *shpool;
 	shpool = (ngx_slab_pool_t *) ngx_http_51D_shm_zone->shm.addr;
+	//fp = fopen("/home/ben/ngx.log", "a");
+	//fprintf(fp, "alloc %p - %p\n", shpool->start, shpool->end);
+	//fclose(fp);
 	return ngx_slab_alloc(shpool, __size);
-
+	//return ngx_palloc(ngx_cycle->pool, __size);
 }
+
+void *ngx_http_51D_shm_calloc(size_t __nmemb, size_t __size)
+{
+	void *ptr;
+	ngx_slab_pool_t *shpool;
+	shpool = (ngx_slab_pool_t *) ngx_http_51D_shm_zone->shm.addr;
+	ptr = ngx_slab_alloc(shpool, __size*__nmemb);
+	ngx_memzero(ptr, __size*__nmemb);
+	return ptr;
+}
+
 void ngx_http_51D_shm_free(void *__ptr)
 {
 	ngx_slab_pool_t *shpool;
 	shpool = (ngx_slab_pool_t *) ngx_http_51D_shm_zone->shm.addr;
+	fp = fopen("/home/ben/ngx.log", "a");
+	fprintf(fp, "free  %p - %p\n", shpool->start, shpool->end);
+	fclose(fp);
 	ngx_slab_free(shpool, __ptr);
+	//free(__ptr);
+	//__ptr = NULL;
+	//ngx_pfree(ngx_cycle->pool, __ptr);
 }
-void *(*fiftyoneDegreesMalloc)(size_t __size) = malloc;//ngx_http_51D_shm_alloc;
-void (*fiftyoneDegreesFree)(void *__ptr) = free;//ngx_http_51D_shm_free;
+void *(*fiftyoneDegreesCalloc)(size_t __nmemb, size_t __size) = ngx_http_51D_shm_calloc;
+void *(*fiftyoneDegreesMalloc)(size_t __size) = ngx_http_51D_shm_alloc;
+void (*fiftyoneDegreesFree)(void *__ptr) = ngx_http_51D_shm_free;
 
 // Initialises the provider on process start.
 static ngx_int_t
@@ -226,9 +253,9 @@ ngx_http_51D_init_process(ngx_cycle_t *cycle)
 	if ((int)fdmcf->poolSize < 0) {
 		fdmcf->poolSize = FIFTYONEDEGREES_DEFAULTPOOL;
 	}
-fp = fopen("/home/ben/ngx.log", "a");
-fprintf(fp, "init provider\n");
-fclose(fp);
+//fp = fopen("/home/ben/ngx.log", "a");
+//fprintf(fp, "init process %p\n", ngx_http_51D_shm_zone);
+//fclose(fp);
 	// Initialise the provider or return an error on failure.
 	//status = fiftyoneDegreesInitProviderWithPropertyString((const char*)fdmcf->dataFile.data, fdmcf->provider, (const char*)fdmcf->properties, fdmcf->poolSize, fdmcf->cacheSize);
 
@@ -244,10 +271,14 @@ static void
 ngx_http_51D_exit_process(ngx_cycle_t *cycle)
 {
 	ngx_http_51D_main_conf_t *fdmcf = ngx_http_cycle_get_module_main_conf(cycle, ngx_http_51D_module);
+//fp = fopen("/home/ben/ngx.log", "a");
+//fprintf(fp, "exit process %p\n", ngx_http_51D_shm_zone);
+//fclose(fp);
 
+	//fiftyoneDegreesProviderFree((fiftyoneDegreesProvider*)fdmcf->provider);
+	//ngx_pfree(ngx_cycle->pool, fdmcf->provider);
+	//fiftyoneDegreesFree((fiftyoneDegreesProvider*)fdmcf->provider);
 	// Free the provider.
-	//fiftyoneDegreesProviderFree(fdmcf->provider);
-	fdmcf->provider = NULL;
 }
 
 // Definitions of functions which can be called in 'nginx.conf'

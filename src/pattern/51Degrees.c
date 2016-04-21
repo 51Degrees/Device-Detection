@@ -77,10 +77,17 @@ const int16_t POWERS[] = { 1, 10, 100, 1000, 10000 };
 
 #define HTTP_PREFIX_UPPER "HTTP_"
 
+#ifdef FIFTYONEDEGREES_NGINX
+#include <nginx.h>
+#include <ngx_core.h>
+#endif
+
 #ifndef EXTERNAL_MALLOC
 void *(*fiftyoneDegreesMalloc)(size_t __size) = malloc;
+void *(*fiftyoneDegreesCalloc)(size_t __nmemb, size_t __size) = calloc;
 void (*fiftyoneDegreesFree)(void *__ptr) = free;
 #endif
+
  /**
  * \cond
  * DATA SET FILE AND MEMORY METHODS
@@ -549,7 +556,7 @@ static void ensureValueProfilesSet(fiftyoneDegreesDataSet *dataSet) {
 	int propertyIndex, valuesCount;
 	// Allocate an array element for each property.
 	dataSet->valuePointersArray =
-		(fiftyoneDegreesProfilesStructArray*)calloc(dataSet->header.properties.count, sizeof(fiftyoneDegreesProfilesStructArray));
+		(fiftyoneDegreesProfilesStructArray*)fiftyoneDegreesCalloc(dataSet->header.properties.count, sizeof(fiftyoneDegreesProfilesStructArray));
 	for (propertyIndex = 0; propertyIndex < dataSet->header.properties.count; propertyIndex++) {
 		property = (fiftyoneDegreesProperty*)(dataSet->properties + (int32_t)propertyIndex);
 		valuesCount = property->lastValueIndex - property->firstValueIndex + 1;
@@ -557,7 +564,7 @@ static void ensureValueProfilesSet(fiftyoneDegreesDataSet *dataSet) {
 		dataSet->valuePointersArray[propertyIndex].initialised = 0;
 		// Allocate an array element for each value of the current property.
 		dataSet->valuePointersArray[propertyIndex].profilesStructs =
-			(fiftyoneDegreesProfileIndexesStruct*)calloc(valuesCount, sizeof(fiftyoneDegreesProfileIndexesStruct));
+			(fiftyoneDegreesProfileIndexesStruct*)fiftyoneDegreesCalloc(valuesCount, sizeof(fiftyoneDegreesProfileIndexesStruct));
 #ifndef FIFTYONEDEGREES_NO_THREADING
 		FIFTYONEDEGREES_MUTEX_CREATE(dataSet->valuePointersArray[propertyIndex].lock);
 #endif
@@ -1766,7 +1773,7 @@ static void initFindProfiles(const fiftyoneDegreesDataSet *dataSet,
 		// Get the amount of values for the property.
 		int propertyValuesCount = property->lastValueIndex - property->firstValueIndex + 1;
 		// Initialise the array with the profiles count for each of the property's values.
-		int *valuesProfileCount = (int32_t*)calloc(propertyValuesCount, sizeof(int32_t));
+		int *valuesProfileCount = (int32_t*)fiftyoneDegreesCalloc(propertyValuesCount, sizeof(int32_t));
 
 		// Loop through all profiles incrementing the profile count for the
 		// for the values they relate to.
@@ -1947,8 +1954,8 @@ fiftyoneDegreesProfilesStruct *fiftyoneDegreesFindProfilesInProfiles(
 					// Set the profiles count and allocate the space for the
 					// indexes and pointers.
 					matchingProfiles->count = matchingProfilesCount;
-					matchingProfiles->indexes = (int32_t*)calloc(matchingProfilesCount, sizeof(int32_t));
-					matchingProfiles->profiles = (fiftyoneDegreesProfile**)calloc(matchingProfilesCount, sizeof(fiftyoneDegreesProfile*));
+					matchingProfiles->indexes = (int32_t*)fiftyoneDegreesCalloc(matchingProfilesCount, sizeof(int32_t));
+					matchingProfiles->profiles = (fiftyoneDegreesProfile**)fiftyoneDegreesCalloc(matchingProfilesCount, sizeof(fiftyoneDegreesProfile*));
 
 					// Do a second pass of the seach adding the indexes and
 					// pointers to the structure to be returned.
