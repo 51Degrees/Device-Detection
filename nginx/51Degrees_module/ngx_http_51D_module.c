@@ -172,9 +172,9 @@ static ngx_int_t ngx_http_51D_init_shm_zone(ngx_shm_zone_t *shm_zone, void *data
 		fiftyoneDegreesProviderFree(provider);
 		ngx_slab_free_locked(shpool, provider);
 		ngx_log_debug0(NGX_LOG_DEBUG_ALL, shm_zone->shm.log, 0, "51Degrees freed old Provider.");
+
 	}
 	provider = (fiftyoneDegreesProvider*)ngx_slab_alloc_locked(shpool, sizeof(fiftyoneDegreesProvider));
-	shpool->data = provider;
 	shm_zone->data = provider;
 	if (provider == NULL) {
 		ngx_log_stderr(0, "51Degrees shared memory could not be allocated for Provider.");
@@ -338,12 +338,12 @@ ngx_module_t ngx_http_51D_module = {
 	ngx_http_51D_commands,         /* module directives */
 	NGX_HTTP_MODULE,               /* module type */
 	NULL,                          /* init master */
-	ngx_http_51D_init_process,                          /* init module */
-	NULL,     /* init process */
+	ngx_http_51D_init_process,     /* init module */
+	NULL,                          /* init process */
 	NULL,                          /* init thread */
 	NULL,                          /* exit thread */
-	NULL,     /* exit process */
-	ngx_http_51D_exit_process,                          /* exit master */
+	NULL,                          /* exit process */
+	ngx_http_51D_exit_process,     /* exit master */
 	NGX_MODULE_V1_PADDING
 };
 
@@ -498,8 +498,6 @@ ngx_http_51D_handler(ngx_http_request_t *r)
 		fiftyoneDegreesWorksetRelease(ws);
 
 		// For each property value pair, set a new header name and value.
-
-
 			h[count] = ngx_list_push(&r->headers_in.headers);
 			h[count]->hash = count;
 			h[count]->key.data = (u_char*)fdlcf->match[count]->name.data;
@@ -567,7 +565,6 @@ static char *ngx_http_51D_set(ngx_conf_t* cf, ngx_command_t *cmd, void *conf)
 	else if (strcmp(cmd->name.data, "51D_all") == 0) {
 		fdlcf->match[fdlcf->count]->multi = 1;
 	}
-
 
 	// Set the properties for the selected location.
 	ngx_http_51D_set_match(cf, fdlcf->match[fdlcf->count], value, fdmcf);
