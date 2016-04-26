@@ -77,11 +77,6 @@ const int16_t POWERS[] = { 1, 10, 100, 1000, 10000 };
 
 #define HTTP_PREFIX_UPPER "HTTP_"
 
-#ifdef FIFTYONEDEGREES_NGINX
-#include <nginx.h>
-#include <ngx_core.h>
-#endif
-
 #ifndef EXTERNAL_MALLOC
 void *(*fiftyoneDegreesMalloc)(size_t __size) = malloc;
 void *(*fiftyoneDegreesCalloc)(size_t __nmemb, size_t __size) = calloc;
