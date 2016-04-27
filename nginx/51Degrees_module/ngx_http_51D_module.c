@@ -88,7 +88,7 @@ ngx_http_51D_create_main_conf(ngx_conf_t *cf)
 	name.data = "fiftyoneDegreesProvider";
 	name.len = ngx_strlen(name.data);
 
-    conf = ngx_pcalloc(ngx_cycle->pool, sizeof(ngx_http_51D_main_conf_t));
+    conf = ngx_pcalloc(cf->pool, sizeof(ngx_http_51D_main_conf_t));
     if (conf == NULL) {
         return NULL;
     }
@@ -108,12 +108,12 @@ ngx_http_51D_create_loc_conf(ngx_conf_t *cf)
 {
     ngx_http_51D_loc_conf_t *conf;
 
-    conf = ngx_pcalloc(ngx_cycle->pool, sizeof(ngx_http_51D_loc_conf_t));
+    conf = ngx_pcalloc(cf->pool, sizeof(ngx_http_51D_loc_conf_t));
     if (conf == NULL) {
         return NULL;
     }
 	conf->count = 0;
-	conf->match = (ngx_http_51D_match_t**)ngx_palloc(ngx_cycle->pool, sizeof(ngx_http_51D_match_t*)*10);
+	conf->match = (ngx_http_51D_match_t**)ngx_palloc(cf->pool, sizeof(ngx_http_51D_match_t*)*10);
 
     return conf;
 }
@@ -216,9 +216,9 @@ void ngx_http_51D_shm_free(void *__ptr)
 		ngx_slab_free_locked(shpool, __ptr);
 	}
 }
-void *(*fiftyoneDegreesCalloc)(size_t __nmemb, size_t __size) = ngx_http_51D_shm_calloc;
-void *(*fiftyoneDegreesMalloc)(size_t __size) = ngx_http_51D_shm_alloc;
-void (*fiftyoneDegreesFree)(void *__ptr) = ngx_http_51D_shm_free;
+void *(__cdecl *fiftyoneDegreesCalloc)(size_t __nmemb, size_t __size) = ngx_http_51D_shm_calloc;
+void *(__cdecl *fiftyoneDegreesMalloc)(size_t __size) = ngx_http_51D_shm_alloc;
+void (__cdecl *fiftyoneDegreesFree)(void *__ptr) = ngx_http_51D_shm_free;
 
 // Initialises the provider on process start.
 static ngx_int_t
@@ -519,8 +519,8 @@ ngx_http_51D_set_match(ngx_conf_t *cf, ngx_http_51D_match_t *match, ngx_str_t *v
 {
 	match->count = 0;
 	// Set the name of the match.
-	match->name.data = (u_char*)ngx_palloc(ngx_cycle->pool, sizeof(value[1]));
-	match->lower_name.data = (u_char*)ngx_palloc(ngx_cycle->pool, sizeof(value[1]));
+	match->name.data = (u_char*)ngx_palloc(cf->pool, sizeof(value[1]));
+	match->lower_name.data = (u_char*)ngx_palloc(cf->pool, sizeof(value[1]));
 	match->name.data = value[1].data;
 	match->name.len = value[1].len;
 	ngx_strlow(match->lower_name.data, match->name.data, match->name.len);
@@ -530,8 +530,8 @@ ngx_http_51D_set_match(ngx_conf_t *cf, ngx_http_51D_match_t *match, ngx_str_t *v
 
 	char *tok = strtok((char*)properties_string, (const char*)",");
 	while (tok != NULL) {
-		match->property[match->count] = (ngx_str_t*)ngx_palloc(ngx_cycle->pool, sizeof(ngx_str_t));
-		match->property[match->count]->data = (u_char*)ngx_palloc(ngx_cycle->pool, sizeof(u_char)*(ngx_strlen(tok)));
+		match->property[match->count] = (ngx_str_t*)ngx_palloc(cf->pool, sizeof(ngx_str_t));
+		match->property[match->count]->data = (u_char*)ngx_palloc(cf->pool, sizeof(u_char)*(ngx_strlen(tok)));
 		match->property[match->count]->data = (u_char*)tok;
 		match->property[match->count]->len = ngx_strlen(match->property[match->count]->data);
 		if (ngx_strstr(fdmcf->properties, tok) == NULL) {
@@ -555,8 +555,8 @@ static char *ngx_http_51D_set(ngx_conf_t* cf, ngx_command_t *cmd, void *conf)
 	fdmcf = ngx_http_conf_get_module_main_conf(cf, ngx_http_51D_module);
 	fdlcf = ngx_http_conf_get_module_loc_conf(cf, ngx_http_51D_module);
 
-	fdlcf->match[fdlcf->count] = (ngx_http_51D_match_t*)ngx_palloc(ngx_cycle->pool, sizeof(ngx_http_51D_match_t));
-	fdlcf->match[fdlcf->count]->property = (ngx_str_t**)ngx_palloc(ngx_cycle->pool, sizeof(ngx_str_t*)*FIFTYONEDEGREES_MAX_PROPERTIES);
+	fdlcf->match[fdlcf->count] = (ngx_http_51D_match_t*)ngx_palloc(cf->pool, sizeof(ngx_http_51D_match_t));
+	fdlcf->match[fdlcf->count]->property = (ngx_str_t**)ngx_palloc(cf->pool, sizeof(ngx_str_t*)*FIFTYONEDEGREES_MAX_PROPERTIES);
 
 	// Enable single User-Agent matching.
 	if (strcmp(cmd->name.data, "51D_single") == 0) {
