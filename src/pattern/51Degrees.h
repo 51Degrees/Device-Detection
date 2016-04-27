@@ -34,8 +34,6 @@
 
 #ifdef _MSC_VER
 #define _INTPTR 0
-#else
-#define __cdecl
 #endif
 
 #ifdef __cplusplus
@@ -44,14 +42,21 @@
 #define EXTERNAL
 #endif
 
+#ifdef _MSC_VER
+#define ALLOC_CALL_CONV __cdecl
+#else
+#define ALLOC_CALL_CONV
+#endif
+
+
 #include <stdint.h>
 #include <limits.h>
 #include <time.h>
 #include "../threading.h"
 
-EXTERNAL void *(__cdecl *fiftyoneDegreesMalloc)(size_t __size);
-EXTERNAL void *(__cdecl *fiftyoneDegreesCalloc)(size_t __nmemb, size_t __size);
-EXTERNAL void (__cdecl *fiftyoneDegreesFree)(void *__ptr);
+EXTERNAL void *(ALLOC_CALL_CONV *fiftyoneDegreesMalloc)(size_t __size);
+EXTERNAL void *(ALLOC_CALL_CONV *fiftyoneDegreesCalloc)(size_t __nmemb, size_t __size);
+EXTERNAL void (ALLOC_CALL_CONV *fiftyoneDegreesFree)(void *__ptr);
 
 /* Used to represent bytes */
 typedef unsigned char byte;

@@ -78,9 +78,9 @@ const int16_t POWERS[] = { 1, 10, 100, 1000, 10000 };
 #define HTTP_PREFIX_UPPER "HTTP_"
 
 #ifndef EXTERNAL_MALLOC
-void *(__cdecl *fiftyoneDegreesMalloc)(size_t __size) = malloc;
-void *(__cdecl *fiftyoneDegreesCalloc)(size_t __nmemb, size_t __size) = calloc;
-void (__cdecl *fiftyoneDegreesFree)(void *__ptr) = free;
+void *(ALLOC_CALL_CONV *fiftyoneDegreesMalloc)(size_t __size) = malloc;
+void *(ALLOC_CALL_CONV *fiftyoneDegreesCalloc)(size_t __nmemb, size_t __size) = calloc;
+void (ALLOC_CALL_CONV *fiftyoneDegreesFree)(void *__ptr) = free;
 #endif
 
  /**
