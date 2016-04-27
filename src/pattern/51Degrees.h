@@ -48,7 +48,6 @@
 #define ALLOC_CALL_CONV
 #endif
 
-
 #include <stdint.h>
 #include <limits.h>
 #include <time.h>
