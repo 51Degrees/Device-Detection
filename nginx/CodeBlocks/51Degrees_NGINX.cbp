@@ -18,8 +18,10 @@
 					<Add option="-g" />
 				</Compiler>
 				<ExtraCommands>
-					<Add before='CFLAGS=&quot;-g -O0 -DFIFTYONEDEGREES_NGINX -DFIFTYONEDEGREES_NO_THREADING&quot; ./configure --with-debug --with-ld-opt=&quot;-lm&quot; --add-module=../../51Degrees_module --prefix=$(PROJECTDIR)../build' />
+					<Add before='CFLAGS=&quot;-g -O0 -DEXTERNAL_MALLOC -DFIFTYONEDEGREES_NO_THREADING&quot; ./configure --with-debug --with-ld-opt=&quot;-lm&quot; --add-module=../../51Degrees_module --prefix=$(PROJECTDIR)../build' />
 					<Add after="cp $(PROJECTDIR)../nginx.conf $(PROJECTDIR)../build/conf/" />
+					<Add after="cp $(PROJECTDIR)../51Degrees_module/src/pattern/51Degrees.c $(PROJECTDIR)../../src/pattern/" />
+					<Add after="cp $(PROJECTDIR)../51Degrees_module/src/pattern/51Degrees.h $(PROJECTDIR)../../src/pattern/" />
 				</ExtraCommands>
 				<MakeCommands>
 					<Build command="make install" />
@@ -55,6 +57,28 @@
 					<SilentBuild command="make install &gt; $(CMD_NULL)" />
 				</MakeCommands>
 			</Target>
+			<Target title="Blank">
+				<Option output="../build/sbin/nginx" prefix_auto="0" extension_auto="0" />
+				<Option working_dir="../vendor/nginx-1.4.7" />
+				<Option object_output="obj/Debug/" />
+				<Option type="1" />
+				<Option compiler="gcc" />
+				<Compiler>
+					<Add option="-g" />
+				</Compiler>
+				<ExtraCommands>
+					<Add before='CFLAGS=&quot;-g -O0&quot; ./configure --with-debug --with-ld-opt=&quot;-lm&quot; --add-module=../../blank_module --prefix=$(PROJECTDIR)../build' />
+					<Add after="cp $(PROJECTDIR)../nginx.conf $(PROJECTDIR)../build/conf/" />
+				</ExtraCommands>
+				<MakeCommands>
+					<Build command="make install" />
+					<CompileFile command="" />
+					<Clean command="" />
+					<DistClean command="$make -f $makefile distclean$target" />
+					<AskRebuildNeeded command="" />
+					<SilentBuild command="make install &gt; $(CMD_NULL)" />
+				</MakeCommands>
+			</Target>
 		</Build>
 		<Compiler>
 			<Add option="-Wall" />
@@ -71,6 +95,10 @@
 		</Unit>
 		<Unit filename="../51Degrees_module/src/pattern/51Degrees.h" />
 		<Unit filename="../51Degrees_module/src/threading.h" />
+		<Unit filename="../blank_module/ngx_http_blank_module.c">
+			<Option compilerVar="CC" />
+			<Option target="Blank" />
+		</Unit>
 		<Unit filename="../bootstrap" />
 		<Unit filename="../compile" />
 		<Unit filename="../nginx.conf" />
@@ -672,6 +700,9 @@
 		<Extensions>
 			<code_completion />
 			<debugger>
+				<remote_debugging target="Blank">
+					<options conn_type="0" serial_baud="115200" additional_cmds_before="set follow-exec-mode new&#x0A;set follow-fork-mode child" />
+				</remote_debugging>
 				<remote_debugging target="Debug">
 					<options conn_type="0" serial_baud="115200" additional_cmds_before="set follow-exec-mode new&#x0A;set follow-fork-mode child" />
 				</remote_debugging>

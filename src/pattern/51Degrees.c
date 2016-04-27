@@ -77,28 +77,11 @@ const int16_t POWERS[] = { 1, 10, 100, 1000, 10000 };
 
 #define HTTP_PREFIX_UPPER "HTTP_"
 
-#ifdef FIFTYONEDEGREES_NGINX
-#include <nginx.h>
-#include <ngx_core.h>
+#ifndef EXTERNAL_MALLOC
+void *(__cdecl *fiftyoneDegreesMalloc)(size_t __size) = malloc;
+void *(__cdecl *fiftyoneDegreesCalloc)(size_t __nmemb, size_t __size) = calloc;
+void (__cdecl *fiftyoneDegreesFree)(void *__ptr) = free;
 #endif
-
-void *fiftyoneDegreesMalloc(size_t __size)
-{
-#ifdef FIFTYONEDEGREES_NGINX
-	return ngx_palloc(ngx_cycle->pool, __size);
-#else
-	return malloc(__size);
-#endif
-}
-
-void fiftyoneDegreesFree(void *__ptr)
-{
-#ifdef FIFTYONEDEGREES_NGINX
-	ngx_pfree(ngx_cycle->pool, __ptr);
-#else
-	free(__ptr);
-#endif
-}
 
  /**
  * \cond
@@ -121,7 +104,7 @@ void fiftyoneDegreesFree(void *__ptr)
  *
  * @param pointer is the pointer to the current byte. Gets incremented by the
 		  number of bytes provided in advanceBy.
- * @param lastByte pointer to the last valid byte in the memory space. A 
+ * @param lastByte pointer to the last valid byte in the memory space. A
 		  corrupt memory response is return if this is exceeded.
  * @param advanceBy number of bytes to advance the pointer by.
  * @return fiftyoneDegreesDataSetInitStatus stating the result of the
@@ -411,7 +394,7 @@ static fiftyoneDegreesDataSetInitStatus reloadCommon(
 	fiftyoneDegreesDataSetInitStatus status;
 
 	// Maintain a reference to the current pool in case it can be freed.
-	const fiftyoneDegreesWorksetPool *oldPool = 
+	const fiftyoneDegreesWorksetPool *oldPool =
 		(const fiftyoneDegreesWorksetPool*)provider->activePool;
 
 	// Initialise the new dataset with the same properties as the old one.
@@ -430,7 +413,7 @@ static fiftyoneDegreesDataSetInitStatus reloadCommon(
 		oldPool->size, oldPool->cache != NULL ? oldPool->cache->total : 0);
 	if (status != DATA_SET_INIT_STATUS_SUCCESS) {
 		fiftyoneDegreesDataSetFree(newDataSet);
-	} 
+	}
 
 	// If the old pool is ready to be freed then do so.
 	else if (oldPool->available == oldPool->size) {
@@ -568,7 +551,7 @@ static void ensureValueProfilesSet(fiftyoneDegreesDataSet *dataSet) {
 	int propertyIndex, valuesCount;
 	// Allocate an array element for each property.
 	dataSet->valuePointersArray =
-		(fiftyoneDegreesProfilesStructArray*)calloc(dataSet->header.properties.count, sizeof(fiftyoneDegreesProfilesStructArray));
+		(fiftyoneDegreesProfilesStructArray*)fiftyoneDegreesCalloc(dataSet->header.properties.count, sizeof(fiftyoneDegreesProfilesStructArray));
 	for (propertyIndex = 0; propertyIndex < dataSet->header.properties.count; propertyIndex++) {
 		property = (fiftyoneDegreesProperty*)(dataSet->properties + (int32_t)propertyIndex);
 		valuesCount = property->lastValueIndex - property->firstValueIndex + 1;
@@ -576,7 +559,7 @@ static void ensureValueProfilesSet(fiftyoneDegreesDataSet *dataSet) {
 		dataSet->valuePointersArray[propertyIndex].initialised = 0;
 		// Allocate an array element for each value of the current property.
 		dataSet->valuePointersArray[propertyIndex].profilesStructs =
-			(fiftyoneDegreesProfileIndexesStruct*)calloc(valuesCount, sizeof(fiftyoneDegreesProfileIndexesStruct));
+			(fiftyoneDegreesProfileIndexesStruct*)fiftyoneDegreesCalloc(valuesCount, sizeof(fiftyoneDegreesProfileIndexesStruct));
 #ifndef FIFTYONEDEGREES_NO_THREADING
 		FIFTYONEDEGREES_MUTEX_CREATE(dataSet->valuePointersArray[propertyIndex].lock);
 #endif
@@ -1768,7 +1751,7 @@ static void setProfileStructs(const fiftyoneDegreesDataSet *dataSet,
  * @param property pointer to the 51Degrees property to be initialised.
  * \endcond
  */
-static void initFindProfiles(const fiftyoneDegreesDataSet *dataSet, 
+static void initFindProfiles(const fiftyoneDegreesDataSet *dataSet,
 							 const fiftyoneDegreesProperty *property) {
 	int profileIndex;
 	int valueIndex;
@@ -1785,7 +1768,7 @@ static void initFindProfiles(const fiftyoneDegreesDataSet *dataSet,
 		// Get the amount of values for the property.
 		int propertyValuesCount = property->lastValueIndex - property->firstValueIndex + 1;
 		// Initialise the array with the profiles count for each of the property's values.
-		int *valuesProfileCount = (int32_t*)calloc(propertyValuesCount, sizeof(int32_t));
+		int *valuesProfileCount = (int32_t*)fiftyoneDegreesCalloc(propertyValuesCount, sizeof(int32_t));
 
 		// Loop through all profiles incrementing the profile count for the
 		// for the values they relate to.
@@ -1835,7 +1818,7 @@ static void initFindProfiles(const fiftyoneDegreesDataSet *dataSet,
  * \endcond
  */
 fiftyoneDegreesProfilesStruct *fiftyoneDegreesFindProfiles(
-	const fiftyoneDegreesDataSet *dataSet, 
+	const fiftyoneDegreesDataSet *dataSet,
 	const char *propertyName,
 	const char* valueName) {
 	int32_t valueIndex;
@@ -1919,9 +1902,9 @@ static int QSORT_COMPARER intcmp(const void *a, const void *b) {
  * \endcond
  */
 fiftyoneDegreesProfilesStruct *fiftyoneDegreesFindProfilesInProfiles(
-	const fiftyoneDegreesDataSet *dataSet, 
-	const char *propertyName, 
-	const char* valueName, 
+	const fiftyoneDegreesDataSet *dataSet,
+	const char *propertyName,
+	const char* valueName,
 	fiftyoneDegreesProfilesStruct *profilesList) {
 	int32_t valueIndex;
 	const char *currentValueName;
@@ -1966,8 +1949,8 @@ fiftyoneDegreesProfilesStruct *fiftyoneDegreesFindProfilesInProfiles(
 					// Set the profiles count and allocate the space for the
 					// indexes and pointers.
 					matchingProfiles->count = matchingProfilesCount;
-					matchingProfiles->indexes = (int32_t*)calloc(matchingProfilesCount, sizeof(int32_t));
-					matchingProfiles->profiles = (fiftyoneDegreesProfile**)calloc(matchingProfilesCount, sizeof(fiftyoneDegreesProfile*));
+					matchingProfiles->indexes = (int32_t*)fiftyoneDegreesCalloc(matchingProfilesCount, sizeof(int32_t));
+					matchingProfiles->profiles = (fiftyoneDegreesProfile**)fiftyoneDegreesCalloc(matchingProfilesCount, sizeof(fiftyoneDegreesProfile*));
 
 					// Do a second pass of the seach adding the indexes and
 					// pointers to the structure to be returned.
@@ -2151,7 +2134,7 @@ void fiftyoneDegreesWorksetRelease(fiftyoneDegreesWorkset *ws) {
 	}
 
 	// If the pool the work set is associated with is not the active pool and
-	// all the work sets have been handed back then free the pool and its 
+	// all the work sets have been handed back then free the pool and its
 	// related resources.
 	if (pool->provider != NULL &&
 		pool->provider->activePool != pool &&
@@ -2183,7 +2166,7 @@ void fiftyoneDegreesProviderFree(fiftyoneDegreesProvider *provider) {
  * \cond
  * Returns a work set from the pool if one is available.
  * @param pool pointer to the pool to return the work set from
- * @return a work set ready for device detection, or NULL if no work sets are 
+ * @return a work set ready for device detection, or NULL if no work sets are
  *		   available
  * \endcond
  */
