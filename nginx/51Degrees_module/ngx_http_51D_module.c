@@ -95,7 +95,7 @@ ngx_http_51D_create_main_conf(ngx_conf_t *cf)
 	conf->cacheSize = NGX_CONF_UNSET_UINT;
 	conf->poolSize = NGX_CONF_UNSET_UINT;
 
-	ngx_http_51D_shm_zone = ngx_shared_memory_add(cf, &name, 400000000, (void*)&ngx_http_51D_module);
+	ngx_http_51D_shm_zone = ngx_shared_memory_add(cf, &name, 900000000, (void*)&ngx_http_51D_module);
 	ngx_http_51D_shm_zone->init = ngx_http_51D_init_shm_zone;
 
     return conf;
@@ -168,10 +168,9 @@ static ngx_int_t ngx_http_51D_init_shm_zone(ngx_shm_zone_t *shm_zone, void *data
 	fiftyoneDegreesDataSetInitStatus status;
 	shpool = (ngx_slab_pool_t *) ngx_http_51D_shm_zone->shm.addr;
 	if (data) {
-		provider = (fiftyoneDegreesProvider*)data;
-		fiftyoneDegreesProviderFree(provider);
-		ngx_slab_free_locked(shpool, provider);
-		ngx_log_debug0(NGX_LOG_DEBUG_ALL, shm_zone->shm.log, 0, "51Degrees freed old Provider.");
+		shm_zone->data = data;
+		fiftyoneDegreesProviderReloadFromFile((fiftyoneDegreesProvider*)shm_zone->data);
+		return NGX_OK;
 
 	}
 	provider = (fiftyoneDegreesProvider*)ngx_slab_alloc_locked(shpool, sizeof(fiftyoneDegreesProvider));
@@ -216,9 +215,9 @@ void ngx_http_51D_shm_free(void *__ptr)
 		ngx_slab_free_locked(shpool, __ptr);
 	}
 }
-void *(__cdecl *fiftyoneDegreesCalloc)(size_t __nmemb, size_t __size) = ngx_http_51D_shm_calloc;
-void *(__cdecl *fiftyoneDegreesMalloc)(size_t __size) = ngx_http_51D_shm_alloc;
-void (__cdecl *fiftyoneDegreesFree)(void *__ptr) = ngx_http_51D_shm_free;
+void *(ALLOC_CALL_CONV *fiftyoneDegreesCalloc)(size_t __nmemb, size_t __size) = ngx_http_51D_shm_calloc;
+void *(ALLOC_CALL_CONV *fiftyoneDegreesMalloc)(size_t __size) = ngx_http_51D_shm_alloc;
+void (ALLOC_CALL_CONV *fiftyoneDegreesFree)(void *__ptr) = ngx_http_51D_shm_free;
 
 // Initialises the provider on process start.
 static ngx_int_t
@@ -242,12 +241,20 @@ ngx_http_51D_init_process(ngx_cycle_t *cycle)
 	if ((int)fdmcf->poolSize < 0) {
 		fdmcf->poolSize = FIFTYONEDEGREES_DEFAULTPOOL;
 	}
-	status = fiftyoneDegreesInitProviderWithPropertyString((const char*)fdmcf->dataFile.data, fdmcf->provider, (const char*)fdmcf->properties, fdmcf->poolSize, fdmcf->cacheSize);
-	if (status != DATA_SET_INIT_STATUS_SUCCESS) {
-		return reportDatasetInitStatus(cycle, status, (const char*)fdmcf->dataFile.data);
+	if(fdmcf->provider->activePool == NULL) {
+		status = fiftyoneDegreesInitProviderWithPropertyString((const char*)fdmcf->dataFile.data, fdmcf->provider, (const char*)fdmcf->properties, fdmcf->poolSize, fdmcf->cacheSize);
+		if (status != DATA_SET_INIT_STATUS_SUCCESS) {
+			return reportDatasetInitStatus(cycle, status, (const char*)fdmcf->dataFile.data);
+		}
+		ngx_log_debug2(NGX_LOG_DEBUG_ALL, cycle->log, 0, "51Degrees initialised Provider from file '%s' with properties '%s'.", (char*)fdmcf->dataFile.data, fdmcf->properties);
 	}
-	ngx_log_debug2(NGX_LOG_DEBUG_ALL, cycle->log, 0, "51Degrees initialised Provider from file '%s' with properties '%s'.", (char*)fdmcf->dataFile.data, fdmcf->properties);
-
+	else {
+		if (ngx_strcmp(fdmcf->dataFile.data, fdmcf->provider->activePool->dataSet->fileName) != 0
+		|| (int)fdmcf->poolSize != (int)fdmcf->provider->activePool->size
+		|| (int)fdmcf->cacheSize != (int)fdmcf->provider->activePool->cache->total) {
+			ngx_log_error(NGX_LOG_NOTICE, cycle->log, 0, "51Degrees reloading with a different file name, pool size or cache size requires a full restart.");
+		}
+	}
 	return NGX_OK;
 }
 
@@ -388,6 +395,83 @@ void add_value(char *val, char *buffer)
 	strcat(buffer, val);
 }
 
+void ngx_http_51D_get_match(fiftyoneDegreesWorkset *ws, ngx_http_request_t *r, int multi)
+{
+	int headerIndex;
+	ngx_table_elt_t *searchResult;
+
+	// If single requested, match for single User-Agent.
+	if (multi == 0) {
+		if (r->headers_in.user_agent)
+			fiftyoneDegreesMatch(ws, (const char*)r->headers_in.user_agent[0].value.data);
+		else
+			fiftyoneDegreesMatch(ws, "");
+	}
+	// If multi requested, match for multiple http headers.
+	else if (multi == 1) {
+		ws->importantHeadersCount = 0;
+		for (headerIndex = 0; headerIndex < ws->dataSet->httpHeadersCount; headerIndex++) {
+			searchResult = search_headers_in(r, (u_char*)ws->dataSet->httpHeaders[headerIndex].headerName, strlen(ws->dataSet->httpHeaders[headerIndex].headerName));
+			if (searchResult) {
+				ws->importantHeaders[ws->importantHeadersCount].header = ws->dataSet->httpHeaders + headerIndex;
+				ws->importantHeaders[ws->importantHeadersCount].headerValue = searchResult->value.data;
+				ws->importantHeaders[ws->importantHeadersCount].headerValueLength = searchResult->value.len;
+				ws->importantHeadersCount++;
+			}
+			fiftyoneDegreesMatchForHttpHeaders(ws);
+		}
+	}
+}
+
+void ngx_http_51D_get_value(fiftyoneDegreesWorkset *ws, char *values_string, const char *requiredPropertyName)
+{
+	char *methodName, *propertyName;
+	char buffer[FIFTYONEDEGREES_MAX_STRING];
+	int i, found = 0;
+	if (strcmp("Method", requiredPropertyName) == 0) {
+		switch(ws->method) {
+			case EXACT: methodName = "Exact"; break;
+			case NUMERIC: methodName = "Numeric"; break;
+			case NEAREST: methodName = "Nearest"; break;
+			case CLOSEST: methodName = "Closest"; break;
+			default:
+			case NONE: methodName = "None"; break;
+		}
+		add_value(methodName, values_string);
+		found = 1;
+	}
+	else if (strcmp("Difference", requiredPropertyName) == 0) {
+		sprintf(buffer, "%d", ws->difference);
+		add_value(buffer, values_string);
+		found = 1;
+	}
+	else if (strcmp("Rank", requiredPropertyName) == 0) {
+		sprintf(buffer, "%d", fiftyoneDegreesGetSignatureRank(ws));
+		add_value(buffer, values_string);
+		found = 1;
+	}
+	else if (strcmp("DeviceId", requiredPropertyName) == 0) {
+			fiftyoneDegreesGetDeviceId(ws, buffer, 24);
+			add_value(buffer, values_string);
+			found = 1;
+
+	}
+	else {
+		for (i = 0; i < ws->dataSet->requiredPropertyCount; i++) {
+			propertyName = (char*)fiftyoneDegreesGetPropertyName(ws->dataSet, ws->dataSet->requiredProperties[i]);
+			if (strcmp(propertyName, requiredPropertyName) == 0) {
+				fiftyoneDegreesSetValues(ws, i);
+				add_value((char*)fiftyoneDegreesGetValueName(ws->dataSet, *ws->values), values_string);
+				found = 1;
+				break;
+			}
+		}
+		if (!found) {
+			add_value("NA", values_string);
+		}
+	}
+}
+
 // Module handler, gets a match using either the User-Agent or multiple http
 // headers, then sets properties as headers.
 static ngx_int_t
@@ -396,116 +480,54 @@ ngx_http_51D_handler(ngx_http_request_t *r)
 	ngx_http_51D_main_conf_t *fdmcf;
 	ngx_http_51D_loc_conf_t *fdlcf;
 	fiftyoneDegreesWorkset *ws;
-	int headerIndex, i, j, found;
-	ngx_table_elt_t *searchResult;
-	char *methodName, *property_name;
-	char buffer[FIFTYONEDEGREES_MAX_STRING];
+	int matchIndex;
+	char **values_string;
+
 	if (r->main->internal) {
 		return NGX_DECLINED;
 	}
-
 	r->main->internal = 1;
 
 	// Get 51Degrees location config.
 	fdlcf = ngx_http_get_module_loc_conf(r, ngx_http_51D_module);
 
-	char **values_string;
+	// Get 51Degrees main config.
+	fdmcf = ngx_http_get_module_main_conf(r, ngx_http_51D_module);
+
 	values_string = (char**)ngx_palloc(r->pool, fdlcf->count*sizeof(char*));
 
 	ngx_table_elt_t *h[fdlcf->count];
-	int count;
-	for (count=0;count<fdlcf->count;count++)
+
+	// Get a workset from the pool.
+	ws = fiftyoneDegreesProviderWorksetGet(fdmcf->provider);
+
+	for (matchIndex=0;matchIndex<fdlcf->count;matchIndex++)
 	{
-		values_string[count] = (char*)ngx_palloc(r->pool, FIFTYONEDEGREES_MAX_STRING*sizeof(char));
-		values_string[count][0] = '\0';
+		values_string[matchIndex] = (char*)ngx_palloc(r->pool, FIFTYONEDEGREES_MAX_STRING*sizeof(char));
+		values_string[matchIndex][0] = '\0';
 
-		// Get 51Degrees main config.
-        fdmcf = ngx_http_get_module_main_conf(r, ngx_http_51D_module);
-		fdmcf->provider = (fiftyoneDegreesProvider*)ngx_http_51D_shm_zone->data;
-		ws = fiftyoneDegreesProviderWorksetGet(fdmcf->provider);
-
-		// If single requested, match for single User-Agent.
-		if (fdlcf->match[count]->multi == 0) {
-			if (r->headers_in.user_agent)
-				fiftyoneDegreesMatch(ws, (const char*)r->headers_in.user_agent[0].value.data);
-			else
-				fiftyoneDegreesMatch(ws, "");
-		}
-		// If multi requested, match for multiple http headers.
-		else if (fdlcf->match[count]->multi == 1) {
-			ws->importantHeadersCount = 0;
-			for (headerIndex = 0; headerIndex < ws->dataSet->httpHeadersCount; headerIndex++) {
-				searchResult = search_headers_in(r, (u_char*)ws->dataSet->httpHeaders[headerIndex].headerName, strlen(ws->dataSet->httpHeaders[headerIndex].headerName));
-                if (searchResult) {
-					ws->importantHeaders[ws->importantHeadersCount].header = ws->dataSet->httpHeaders + headerIndex;
-					ws->importantHeaders[ws->importantHeadersCount].headerValue = searchResult->value.data;
-					ws->importantHeaders[ws->importantHeadersCount].headerValueLength = searchResult->value.len;
-					ws->importantHeadersCount++;
-                }
-                fiftyoneDegreesMatchForHttpHeaders(ws);
-			}
-		}
+		// Get a match.
+		ngx_http_51D_get_match(ws, r, fdlcf->match[matchIndex]->multi);
 
 		// For each property, set the value in values_string_array.
 		int property_index;
-        for (property_index=0;property_index<fdlcf->match[count]->count; property_index++) {
-            found = 0;
-            if (strcmp("Method", fdlcf->match[count]->property[property_index]->data) == 0) {
-                switch(ws->method) {
-                    case EXACT: methodName = "Exact"; break;
-                    case NUMERIC: methodName = "Numeric"; break;
-                    case NEAREST: methodName = "Nearest"; break;
-                    case CLOSEST: methodName = "Closest"; break;
-                    default:
-                    case NONE: methodName = "None"; break;
-                }
-                add_value(methodName, values_string[count]);
-                found = 1;
-            }
-            else if (strcmp("Difference", fdlcf->match[count]->property[property_index]->data) == 0) {
-                sprintf(buffer, "%d", ws->difference);
-                add_value(buffer, values_string[count]);
-                found = 1;
-            }
-            else if (strcmp("Rank", fdlcf->match[count]->property[property_index]->data) == 0) {
-                sprintf(buffer, "%d", fiftyoneDegreesGetSignatureRank(ws));
-                add_value(buffer, values_string[count]);
-                found = 1;
-            }
-            else if (strcmp("DeviceId", fdlcf->match[count]->property[property_index]->data) == 0) {
-					fiftyoneDegreesGetDeviceId(ws, buffer, 24);
-					add_value(buffer, values_string[count]);
-					found = 1;
-
-            }
-            else {
-                for (j = 0; j < ws->dataSet->requiredPropertyCount; j++) {
-                    property_name = (char*)fiftyoneDegreesGetPropertyName(ws->dataSet, ws->dataSet->requiredProperties[j]);
-                    if (strcmp(property_name, fdlcf->match[count]->property[property_index]->data) == 0) {
-                        fiftyoneDegreesSetValues(ws, j);
-                        add_value((char*)fiftyoneDegreesGetValueName(ws->dataSet, *ws->values), values_string[count]);
-                        found = 1;
-                        break;
-                    }
-                    }
-                    if (!found) {
-                        add_value("NA", values_string[count]);
-                    }
-            }
+        for (property_index=0;property_index<fdlcf->match[matchIndex]->count; property_index++) {
+			ngx_http_51D_get_value(ws, values_string[matchIndex], fdlcf->match[matchIndex]->property[property_index]->data);
         }
 
-		// Release the workset back to the pool.
-		fiftyoneDegreesWorksetRelease(ws);
-
 		// For each property value pair, set a new header name and value.
-			h[count] = ngx_list_push(&r->headers_in.headers);
-			h[count]->hash = count;
-			h[count]->key.data = (u_char*)fdlcf->match[count]->name.data;
-			h[count]->key.len = ngx_strlen(h[count]->key.data);
-			h[count]->value.data = (u_char*)values_string[count];
-			h[count]->value.len = ngx_strlen(h[count]->value.data);
-			h[count]->lowcase_key = (u_char*)fdlcf->match[count]->lower_name.data;
+		h[matchIndex] = ngx_list_push(&r->headers_in.headers);
+		h[matchIndex]->hash = matchIndex;
+		h[matchIndex]->key.data = (u_char*)fdlcf->match[matchIndex]->name.data;
+		h[matchIndex]->key.len = ngx_strlen(h[matchIndex]->key.data);
+		h[matchIndex]->value.data = (u_char*)values_string[matchIndex];
+		h[matchIndex]->value.len = ngx_strlen(h[matchIndex]->value.data);
+		h[matchIndex]->lowcase_key = (u_char*)fdlcf->match[matchIndex]->lower_name.data;
 	}
+
+	// Release the workset back to the pool.
+	fiftyoneDegreesWorksetRelease(ws);
+
 	return NGX_DECLINED;
 
 }
