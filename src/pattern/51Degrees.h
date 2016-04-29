@@ -348,7 +348,7 @@ typedef struct fiftyoneDegrees_dataset_t {
 	const int32_t *nodeRankedSignatureIndexes;
 	const int32_t *rankedSignatureIndexes;
 	const byte *nodes;
-	const fiftyoneDegreesNode **rootNodes;
+	const fiftyoneDegreesNode **rootNodes; /* Array of root nodes equal to the size of the max user agent length */
 	const fiftyoneDegreesProfileOffset *profileOffsets;
 	int32_t httpHeadersCount; /* Number of unique HTTP headers in the array */
 	fiftyoneDegreesHttpHeader *httpHeaders; /* Array of HTTP headers the data set can process */

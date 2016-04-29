@@ -83,6 +83,12 @@ void *(ALLOC_CALL_CONV *fiftyoneDegreesCalloc)(size_t __nmemb, size_t __size) = 
 void (ALLOC_CALL_CONV *fiftyoneDegreesFree)(void *__ptr) = free;
 #endif
 
+/**
+ * MEMORY ALLOCATION SIZE MACROS
+ */
+
+#define SIZE_OF_ROOT_NODES(h) h.rootNodes.count * sizeof(fiftyoneDegreesNode*)
+
  /**
  * \cond
  * DATA SET FILE AND MEMORY METHODS
@@ -198,7 +204,7 @@ static fiftyoneDegreesDataSetInitStatus readRootNodesFromMemory(
 	fiftyoneDegreesDataSet *dataSet) {
 	int32_t index;
 	dataSet->rootNodes = (const fiftyoneDegreesNode**)
-		fiftyoneDegreesMalloc(dataSet->header.rootNodes.count * sizeof(fiftyoneDegreesNode*));
+		fiftyoneDegreesMalloc(SIZE_OF_ROOT_NODES(dataSet->header));
 	if (dataSet->rootNodes == NULL) {
 		return DATA_SET_INIT_STATUS_INSUFFICIENT_MEMORY;
 	}
