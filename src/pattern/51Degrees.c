@@ -1892,6 +1892,27 @@ int fiftyoneDegreesGetProviderSizeWithPropertyCount(const char *fileName, int pr
 	return getProviderSizeWithPropertyCount(sizeOfFile, header, propertyCount, poolSize, cacheSize);
 }
 
+int fiftyoneDegreesGetMaxValueLength(const fiftyoneDegreesDataSet *dataSet, char *propertyName)
+{
+	const fiftyoneDegreesProperty *property;
+	const fiftyoneDegreesValue *value;
+	int32_t propertyIndex, valueIndex;
+	const char* valueName;
+	int maxLength = 0;
+
+	property = getPropertyByName(dataSet, propertyName);
+	propertyIndex = getPropertyIndex(dataSet, property);
+
+	for (valueIndex = property->firstValueIndex; valueIndex <= property->lastValueIndex; valueIndex++) {
+		value = dataSet->values + valueIndex;
+		valueName = fiftyoneDegreesGetValueName(dataSet, value);
+		if (strlen(valueName) > maxLength) {
+			maxLength = strlen(valueName);
+		}
+	}
+	return maxLength;
+}
+
 /**
  * FIND PROFILES METHODS
  */
@@ -2120,7 +2141,7 @@ fiftyoneDegreesProfilesStruct *fiftyoneDegreesFindProfilesInProfiles(
 	fiftyoneDegreesProfilesStruct *matchingProfiles;
 	fiftyoneDegreesProfile *firstProfile;
 	int i, *matchingIndex, matchingProfilesCount;
-	
+
 	matchingProfilesCount = 0;
 	profileStructElement = 0;
 

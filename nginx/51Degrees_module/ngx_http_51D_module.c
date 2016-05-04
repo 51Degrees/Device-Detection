@@ -31,6 +31,7 @@ static char *ngx_http_51D_merge_loc_conf(ngx_conf_t *cf, void *parent, void *chi
 // Handler declaration.
 static ngx_int_t ngx_http_51D_handler(ngx_http_request_t *r);
 static ngx_shm_zone_t *ngx_http_51D_shm_zone;
+ngx_atomic_t shmname = 1;
 
 static ngx_int_t ngx_http_51D_init_shm_zone(ngx_shm_zone_t *shm_zone, void *data);
 
@@ -40,6 +41,7 @@ typedef struct {
     ngx_str_t **property;
     ngx_str_t name;
     ngx_str_t lower_name;
+    char *valueString;
 } ngx_http_51D_match_t;
 
 // Module location config.
@@ -75,6 +77,14 @@ ngx_http_51D_post_conf(ngx_conf_t *cf)
 
 	*h = ngx_http_51D_handler;
 
+	ngx_str_t name;
+	name.data = "fiftyoneDegreesProvider";
+	name.len = ngx_strlen(name.data);
+	ngx_atomic_int_t i = ngx_atomic_fetch_add(&shmname, (ngx_atomic_int_t)1);
+	size_t size = (size_t)fiftyoneDegreesGetProviderSizeWithPropertyString((const char*)fdmcf->dataFile.data, (const char*)fdmcf->properties, (int)fdmcf->poolSize + 1, (int)fdmcf->cacheSize);
+	ngx_http_51D_shm_zone = ngx_shared_memory_add(cf, &name, size, (void*)&ngx_http_51D_module + i);
+	ngx_http_51D_shm_zone->init = ngx_http_51D_init_shm_zone;
+
 	return NGX_OK;
 }
 
@@ -84,9 +94,6 @@ static void *
 ngx_http_51D_create_main_conf(ngx_conf_t *cf)
 {
     ngx_http_51D_main_conf_t  *conf;
-	ngx_str_t name;
-	name.data = "fiftyoneDegreesProvider";
-	name.len = ngx_strlen(name.data);
 
     conf = ngx_pcalloc(cf->pool, sizeof(ngx_http_51D_main_conf_t));
     if (conf == NULL) {
@@ -94,10 +101,6 @@ ngx_http_51D_create_main_conf(ngx_conf_t *cf)
     }
 	conf->cacheSize = NGX_CONF_UNSET_UINT;
 	conf->poolSize = NGX_CONF_UNSET_UINT;
-
-	ngx_http_51D_shm_zone = ngx_shared_memory_add(cf, &name, 900000000, (void*)&ngx_http_51D_module);
-	ngx_http_51D_shm_zone->init = ngx_http_51D_init_shm_zone;
-
     return conf;
 }
 
@@ -169,14 +172,14 @@ static ngx_int_t ngx_http_51D_init_shm_zone(ngx_shm_zone_t *shm_zone, void *data
 	shpool = (ngx_slab_pool_t *) ngx_http_51D_shm_zone->shm.addr;
 	if (data) {
 		shm_zone->data = data;
-		fiftyoneDegreesProviderReloadFromFile((fiftyoneDegreesProvider*)shm_zone->data);
-		return NGX_OK;
-
+		ngx_log_error(NGX_LOG_ERR, shm_zone->shm.log, 0, "51Degrees shared memory exists and has not been reinitialised correctly.");
+		return NGX_ERROR;
 	}
 	provider = (fiftyoneDegreesProvider*)ngx_slab_alloc_locked(shpool, sizeof(fiftyoneDegreesProvider));
+
 	shm_zone->data = provider;
 	if (provider == NULL) {
-		ngx_log_stderr(0, "51Degrees shared memory could not be allocated for Provider.");
+		ngx_log_error(NGX_LOG_ERR, shm_zone->shm.log, 0, "51Degrees shared memory could not be allocated for Provider.");
 		return NGX_ERROR;
 	}
 	ngx_log_debug1(NGX_LOG_DEBUG_ALL, shm_zone->shm.log, 0, "51Degrees initialised shared memory with size %d.", shm_zone->shm.size);
@@ -186,7 +189,7 @@ static ngx_int_t ngx_http_51D_init_shm_zone(ngx_shm_zone_t *shm_zone, void *data
 
 void *ngx_http_51D_shm_alloc(size_t __size)
 {
-	void *ptr;
+	void *ptr = NULL;
 	ngx_slab_pool_t *shpool;
 	shpool = (ngx_slab_pool_t *) ngx_http_51D_shm_zone->shm.addr;
 	ptr = ngx_slab_alloc_locked(shpool, __size);
@@ -200,7 +203,7 @@ void *ngx_http_51D_shm_calloc(size_t __nmemb, size_t __size)
 {
 	void *ptr;
 	ptr = ngx_http_51D_shm_alloc(__nmemb * __size);
-	ngx_memzero(ptr, __size*__nmemb);
+	ngx_memzero(ptr, __nmemb * __size);
 	return ptr;
 }
 
@@ -235,6 +238,8 @@ ngx_http_51D_init_process(ngx_cycle_t *cycle)
 		fdmcf->dataFile.data = FIFTYONEDEGREES_DEFAULTFILE;
 		fdmcf->dataFile.len = strlen(fdmcf->dataFile.data);
 	}
+	#define FIFTYONEDEGREES_PATTERN
+#ifdef FIFTYONEDEGREES_PATTERN
 	if ((int)fdmcf->cacheSize < 0) {
 		fdmcf->cacheSize = FIFTYONEDEGREES_DEFAULTCACHE;
 	}
@@ -255,6 +260,10 @@ ngx_http_51D_init_process(ngx_cycle_t *cycle)
 			ngx_log_error(NGX_LOG_NOTICE, cycle->log, 0, "51Degrees reloading with a different file name, pool size or cache size requires a full restart.");
 		}
 	}
+#endif // FIFTYONEDEGREES_PATTERN
+#ifdef FIFTYONEDEGREES_TRIE
+
+#endif // FIFTYONEDEGREES_TRIE
 	return NGX_OK;
 }
 
@@ -305,7 +314,7 @@ static ngx_command_t  ngx_http_51D_commands[] = {
 	NGX_HTTP_MAIN_CONF_OFFSET,
 	offsetof(ngx_http_51D_main_conf_t, dataFile),
 	NULL },
-
+#ifdef FIFTYONEDEGREES_PATTERN
 	{ ngx_string("51D_cache"),
 	NGX_HTTP_MAIN_CONF|NGX_CONF_TAKE1,
 	ngx_conf_set_num_slot,
@@ -319,7 +328,7 @@ static ngx_command_t  ngx_http_51D_commands[] = {
 	NGX_HTTP_MAIN_CONF_OFFSET,
 	offsetof(ngx_http_51D_main_conf_t, poolSize),
 	NULL },
-
+#endif // FIFTYONEDEGREES_PATTERN
 	ngx_null_command
 };
 
@@ -350,7 +359,7 @@ ngx_module_t ngx_http_51D_module = {
 	NULL,                          /* init thread */
 	NULL,                          /* exit thread */
 	NULL,                          /* exit process */
-	ngx_http_51D_exit_process,     /* exit master */
+	NULL,     /* exit master */
 	NGX_MODULE_V1_PADDING
 };
 
@@ -395,6 +404,7 @@ void add_value(char *val, char *buffer)
 	strcat(buffer, val);
 }
 
+#ifdef FIFTYONEDEGREES_PATTERN
 void ngx_http_51D_get_match(fiftyoneDegreesWorkset *ws, ngx_http_request_t *r, int multi)
 {
 	int headerIndex;
@@ -422,11 +432,15 @@ void ngx_http_51D_get_match(fiftyoneDegreesWorkset *ws, ngx_http_request_t *r, i
 		}
 	}
 }
+#endif // FIFTYONEDEGREES_PATTERN
+#ifdef FIFTYONEDEGREES_TRIE
 
+#endif // FIFTYONEDEGREES_TRIE
+#ifdef FIFTYONEDEGREES_PATTERN
 void ngx_http_51D_get_value(fiftyoneDegreesWorkset *ws, char *values_string, const char *requiredPropertyName)
 {
 	char *methodName, *propertyName;
-	char buffer[FIFTYONEDEGREES_MAX_STRING];
+	char buffer[24];
 	int i, found = 0;
 	if (strcmp("Method", requiredPropertyName) == 0) {
 		switch(ws->method) {
@@ -471,6 +485,28 @@ void ngx_http_51D_get_value(fiftyoneDegreesWorkset *ws, char *values_string, con
 		}
 	}
 }
+#endif // FIFTYONEDEGREES_PATTERN
+#ifdef FIFTYONEDEGREES_TRIE
+
+#endif // FIFTYONEDEGREES_TRIE
+
+static void ngx_http_51D_allocate_string(const fiftyoneDegreesDataSet *dataSet, ngx_http_51D_match_t *match)
+{
+	int i, tmpLength, length = 0;
+	for (i = 0; i < match->count; i++) {
+		if (i != 0) {
+			length++;
+		}
+		tmpLength = fiftyoneDegreesGetMaxValueLength(dataSet, (char*)match->property[i]->data);
+		if (tmpLength > 0) {
+			length += (int)tmpLength;
+		}
+		else {
+			length += 2; //todo make general
+		}
+	}
+	match->valueString = (char*)ngx_palloc(ngx_cycle->pool, length * sizeof(char));
+}
 
 // Module handler, gets a match using either the User-Agent or multiple http
 // headers, then sets properties as headers.
@@ -481,7 +517,7 @@ ngx_http_51D_handler(ngx_http_request_t *r)
 	ngx_http_51D_loc_conf_t *fdlcf;
 	fiftyoneDegreesWorkset *ws;
 	int matchIndex;
-	char **values_string;
+	int multi;
 
 	if (r->main->internal) {
 		return NGX_DECLINED;
@@ -494,37 +530,39 @@ ngx_http_51D_handler(ngx_http_request_t *r)
 	// Get 51Degrees main config.
 	fdmcf = ngx_http_get_module_main_conf(r, ngx_http_51D_module);
 
-	values_string = (char**)ngx_palloc(r->pool, fdlcf->count*sizeof(char*));
-
 	ngx_table_elt_t *h[fdlcf->count];
 
 	// Get a workset from the pool.
 	ws = fiftyoneDegreesProviderWorksetGet(fdmcf->provider);
 
-	for (matchIndex=0;matchIndex<fdlcf->count;matchIndex++)
-	{
-		values_string[matchIndex] = (char*)ngx_palloc(r->pool, FIFTYONEDEGREES_MAX_STRING*sizeof(char));
-		values_string[matchIndex][0] = '\0';
+	for (multi = 0; multi < 2; multi++) {
+		for (matchIndex=0;matchIndex<fdlcf->count;matchIndex++)
+		{
+			if ((int)fdlcf->match[matchIndex]->multi == multi) {
+				if (fdlcf->match[matchIndex]->valueString == NULL) {
+					ngx_http_51D_allocate_string(fdmcf->provider->activePool->dataSet, fdlcf->match[matchIndex]);
+				}
+				fdlcf->match[matchIndex]->valueString[0] = '\0';
+				// Get a match.
+				ngx_http_51D_get_match(ws, r, fdlcf->match[matchIndex]->multi);
 
-		// Get a match.
-		ngx_http_51D_get_match(ws, r, fdlcf->match[matchIndex]->multi);
+				// For each property, set the value in values_string_array.
+				int property_index;
+				for (property_index=0;property_index<fdlcf->match[matchIndex]->count; property_index++) {
+					ngx_http_51D_get_value(ws, fdlcf->match[matchIndex]->valueString, fdlcf->match[matchIndex]->property[property_index]->data);
+				}
 
-		// For each property, set the value in values_string_array.
-		int property_index;
-        for (property_index=0;property_index<fdlcf->match[matchIndex]->count; property_index++) {
-			ngx_http_51D_get_value(ws, values_string[matchIndex], fdlcf->match[matchIndex]->property[property_index]->data);
-        }
-
-		// For each property value pair, set a new header name and value.
-		h[matchIndex] = ngx_list_push(&r->headers_in.headers);
-		h[matchIndex]->hash = matchIndex;
-		h[matchIndex]->key.data = (u_char*)fdlcf->match[matchIndex]->name.data;
-		h[matchIndex]->key.len = ngx_strlen(h[matchIndex]->key.data);
-		h[matchIndex]->value.data = (u_char*)values_string[matchIndex];
-		h[matchIndex]->value.len = ngx_strlen(h[matchIndex]->value.data);
-		h[matchIndex]->lowcase_key = (u_char*)fdlcf->match[matchIndex]->lower_name.data;
+				// For each property value pair, set a new header name and value.
+				h[matchIndex] = ngx_list_push(&r->headers_in.headers);
+				h[matchIndex]->hash = matchIndex;
+				h[matchIndex]->key.data = (u_char*)fdlcf->match[matchIndex]->name.data;
+				h[matchIndex]->key.len = ngx_strlen(h[matchIndex]->key.data);
+				h[matchIndex]->value.data = (u_char*)fdlcf->match[matchIndex]->valueString;
+				h[matchIndex]->value.len = ngx_strlen(h[matchIndex]->value.data);
+				h[matchIndex]->lowcase_key = (u_char*)fdlcf->match[matchIndex]->lower_name.data;
+			}
+		}
 	}
-
 	// Release the workset back to the pool.
 	fiftyoneDegreesWorksetRelease(ws);
 

@@ -1142,6 +1142,8 @@ EXTERNAL int fiftyoneDegreesGetProviderSizeWithPropertyCount(
 	int poolSize,
 	int cacheSize);
 
+EXTERNAL int fiftyoneDegreesGetMaxValueLength(const fiftyoneDegreesDataSet *dataSet, char *propertyName);
+
 /**
  * OBSOLETE METHODS - RETAINED FOR BACKWARDS COMPAITABILITY
  */
