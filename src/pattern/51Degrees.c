@@ -84,10 +84,40 @@ void (ALLOC_CALL_CONV *fiftyoneDegreesFree)(void *__ptr) = free;
 #endif
 
 /**
- * MEMORY ALLOCATION SIZE MACROS
+ * DATASET MEMORY ALLOCATION SIZE MACROS
  */
-
 #define SIZE_OF_ROOT_NODES(h) h.rootNodes.count * sizeof(fiftyoneDegreesNode*)
+#define SIZE_OF_REQUIRED_PROPERTIES_ARRAY(h) requiredPropertyCount * sizeof(char*)
+#define SIZE_OF_FILE_NAME(fileName) sizeof(char) * (strlen(fileName) + 1)
+#define SIZE_OF_COMPONENTS(h) h.components.count * sizeof(fiftyoneDegreesComponent*)
+#define SIZE_OF_HTTP_HEADERS(count) count * sizeof(fiftyoneDegreesHttpHeader)
+#define SIZE_OF_REQUIRED_PROPERTIES(count) count * sizeof(fiftyoneDegreesProperty*)
+#define SIZE_OF_PROFILES_STRUCT_ARRAY(h) h.properties.count * sizeof(fiftyoneDegreesProfilesStructArray)
+#define SIZE_OF_PROFILE_INDEXES_STRUCT(count) count * sizeof(fiftyoneDegreesProfileIndexesStruct)
+
+/**
+* CACHE MEMORY ALLOCATION SIZE MACROS
+*/
+#define SIZE_OF_RESULTSET_CACHE sizeof(fiftyoneDegreesResultsetCache)
+#define SIZE_OF_RESULTSET_CACHE_LIST sizeof(fiftyoneDegreesResultsetCacheList)
+#define SIZE_OF_RESULTSETS(size) size * sizeof(fiftyoneDegreesResultset*)
+#define SIZE_OF_RESULTSET_PROFILES(h) h.components.count * sizeof(const fiftyoneDegreesProfile*)
+#define SIZE_OF_RESULTSET_TARGET_USERAGENT_ARRAY(h) (h.maxUserAgentLength + 1) * sizeof(byte)
+#define SIZE_OF_CACHE_RESULTSET(count, h) count * (sizeof(fiftyoneDegreesResultset) + SIZE_OF_RESULTSET_TARGET_USERAGENT_ARRAY(h) + SIZE_OF_RESULTSET_PROFILES(h))
+
+/**
+* WORKSET MEMORY ALLOCATION SIZE MACROS
+*/
+#define SIZE_OF_WORKSET_POOL sizeof(fiftyoneDegreesWorksetPool)
+#define SIZE_OF_POOL_WORKSETS(size) size * sizeof(fiftyoneDegreesWorkset*)
+#define SIZE_OF_WORKSET sizeof(fiftyoneDegreesWorkset)
+#define SIZE_OF_WORKSET_INPUT(h) (h.maxUserAgentLength + 1) * sizeof(char)
+#define SIZE_OF_WORKSET_SIGLIST_ITEMS(h) h.maxSignaturesClosest * sizeof(fiftyoneDegreesLinkedSignatureListItem)
+#define SIZE_OF_WORKSET_NODES(h) h.maxUserAgentLength * sizeof(const fiftyoneDegreesNode*)
+#define SIZE_OF_WORKSET_USED_NODES(h) h.maxUserAgentLength + 1
+#define SIZE_OF_WORKSET_SIG_AS_STRING(h) (h.maxUserAgentLength + 1) * sizeof(char)
+#define SIZE_OF_WORKSET_VALUES(h) h.maxValues * sizeof(const fiftyoneDegreesValue*)
+#define SIZE_OF_WORKSET_IMPORTANT_HEADERS(count) count * sizeof(fiftyoneDegreesHttpHeaderWorkset)
 
  /**
  * \cond
@@ -245,7 +275,7 @@ static fiftyoneDegreesDataSetInitStatus readComponents(
 
 	// Allocate the memory needed for the components array.
 	dataSet->components = (const fiftyoneDegreesComponent**)fiftyoneDegreesMalloc(
-		dataSet->header.components.count * sizeof(fiftyoneDegreesComponent*));
+		SIZE_OF_COMPONENTS(dataSet->header));
 	if (dataSet->components == NULL) {
 		return DATA_SET_INIT_STATUS_INSUFFICIENT_MEMORY;
 	}
@@ -260,7 +290,7 @@ static fiftyoneDegreesDataSetInitStatus readComponents(
 	// Now create a list of unique HTTP headers which will be used to identify
 	// which headers should be checked when an array of multiple headers is
 	// passed for detection.
-	dataSet->httpHeaders = (fiftyoneDegreesHttpHeader*)fiftyoneDegreesMalloc(httpHeadersCount * sizeof(fiftyoneDegreesHttpHeader));
+	dataSet->httpHeaders = (fiftyoneDegreesHttpHeader*)fiftyoneDegreesMalloc(SIZE_OF_HTTP_HEADERS(httpHeadersCount));
 	if (dataSet->httpHeaders == NULL) {
 		return DATA_SET_INIT_STATUS_INSUFFICIENT_MEMORY;
 	}
@@ -557,7 +587,7 @@ static void ensureValueProfilesSet(fiftyoneDegreesDataSet *dataSet) {
 	int propertyIndex, valuesCount;
 	// Allocate an array element for each property.
 	dataSet->valuePointersArray =
-		(fiftyoneDegreesProfilesStructArray*)fiftyoneDegreesCalloc(dataSet->header.properties.count, sizeof(fiftyoneDegreesProfilesStructArray));
+		(fiftyoneDegreesProfilesStructArray*)fiftyoneDegreesMalloc(SIZE_OF_PROFILES_STRUCT_ARRAY(dataSet->header));
 	for (propertyIndex = 0; propertyIndex < dataSet->header.properties.count; propertyIndex++) {
 		property = (fiftyoneDegreesProperty*)(dataSet->properties + (int32_t)propertyIndex);
 		valuesCount = property->lastValueIndex - property->firstValueIndex + 1;
@@ -565,7 +595,7 @@ static void ensureValueProfilesSet(fiftyoneDegreesDataSet *dataSet) {
 		dataSet->valuePointersArray[propertyIndex].initialised = 0;
 		// Allocate an array element for each value of the current property.
 		dataSet->valuePointersArray[propertyIndex].profilesStructs =
-			(fiftyoneDegreesProfileIndexesStruct*)fiftyoneDegreesCalloc(valuesCount, sizeof(fiftyoneDegreesProfileIndexesStruct));
+			(fiftyoneDegreesProfileIndexesStruct*)fiftyoneDegreesMalloc(SIZE_OF_PROFILE_INDEXES_STRUCT(valuesCount));
 #ifndef FIFTYONEDEGREES_NO_THREADING
 		FIFTYONEDEGREES_MUTEX_CREATE(dataSet->valuePointersArray[propertyIndex].lock);
 #endif
@@ -632,7 +662,7 @@ static fiftyoneDegreesDataSetInitStatus initFromMemory(
 static fiftyoneDegreesDataSetInitStatus setDataSetFileName(
 	fiftyoneDegreesDataSet *dataSet,
 	const char *fileName) {
-	dataSet->fileName = (const char*)fiftyoneDegreesMalloc(sizeof(char) * (strlen(fileName) + 1));
+	dataSet->fileName = (const char*)fiftyoneDegreesMalloc(SIZE_OF_FILE_NAME(fileName));
 	if (dataSet->fileName == NULL) {
 		return DATA_SET_INIT_STATUS_INSUFFICIENT_MEMORY;
 	}
@@ -1427,7 +1457,7 @@ static void setAllProperties(fiftyoneDegreesDataSet *dataSet) {
 	int32_t index;
 	dataSet->requiredPropertyCount = dataSet->header.properties.count;
 	dataSet->requiredProperties =
-		(const fiftyoneDegreesProperty**)fiftyoneDegreesMalloc(dataSet->requiredPropertyCount * sizeof(fiftyoneDegreesProperty*));
+		(const fiftyoneDegreesProperty**)fiftyoneDegreesMalloc(SIZE_OF_REQUIRED_PROPERTIES(dataSet->requiredPropertyCount));
 	if (dataSet->requiredProperties != NULL) {
 		for (index = 0; index < dataSet->requiredPropertyCount; index++) {
 			*(dataSet->requiredProperties + index) = dataSet->properties + index;
@@ -1452,7 +1482,7 @@ static void setProperties(fiftyoneDegreesDataSet *dataSet, const char** properti
 
 	// Allocate memory for this number of properties.
 	dataSet->requiredPropertyCount = 0;
-	dataSet->requiredProperties = (const fiftyoneDegreesProperty**)fiftyoneDegreesMalloc(count * sizeof(const fiftyoneDegreesProperty*));
+	dataSet->requiredProperties = (const fiftyoneDegreesProperty**)fiftyoneDegreesMalloc(SIZE_OF_REQUIRED_PROPERTIES(count));
 	// Add the properties to the list of required properties.
 	if (dataSet->requiredProperties != NULL) {
 		for (propertyIndex = 0; propertyIndex < count; propertyIndex++) {
@@ -1534,7 +1564,7 @@ fiftyoneDegreesDataSetInitStatus fiftyoneDegreesInitWithPropertyString(
 		copyRequiredProperties = strdup(requiredProperties);
 		if (copyRequiredProperties != NULL) {
 			// Allocate pointers for each of the properties.
-			requiredPropertiesArray = (const char**)fiftyoneDegreesMalloc(requiredPropertyCount * sizeof(char*));
+			requiredPropertiesArray = (const char**)fiftyoneDegreesMalloc(SIZE_OF_REQUIRED_PROPERTIES_ARRAY(h));
 			currentProperty = copyRequiredProperties;
 			if (requiredPropertiesArray != NULL) {
 				// Change the input string so that the separators are changed to nulls.
@@ -1690,6 +1720,176 @@ fiftyoneDegreesDataSetInitStatus fiftyoneDegreesInitProviderWithPropertyArray(
 	FIFTYONEDEGREES_SIGNAL_CREATE(provider->signal);
 #endif
 	return initProvider(provider, dataSet, poolSize, cacheSize);
+}
+
+/**
+* \cond
+* Uses the memory allocation size macros to calculate the amount of memory
+* needed by the provider. The size of the file and filename must be set prior
+* to this function. The returned value overestimates by about 10 bytes to
+* accommodate for extra http headers being introduced.
+* @param sizeOfFile the size of the file and filename.
+* @param header the data set header read from the file.
+* @param requiredPropertyCount the number of properties the provider
+* will be initialised with.
+* @param poolSize the number of worksets in the pool.
+* @param cacheSize the size of the resultset cache.
+* @returns int the total size in bytes that the provider will need.
+* \endcond
+*/
+static int getProviderSizeWithPropertyCount(int sizeOfFile, fiftyoneDegreesDataSetHeader header, int requiredPropertyCount, int poolSize, int cacheSize)
+{
+	int size, httpHeadersCount;
+
+	// Start with the size taken by the file and the filename.
+	size = sizeOfFile;
+
+	// Set maximum http headers per component. This is a slight overestimate
+	// but saves reading in the data set.
+	httpHeadersCount = 5;
+
+	// Add provider.
+	size += sizeof(fiftyoneDegreesProvider);
+	// Add dataset.
+	size += sizeof(fiftyoneDegreesDataSet);
+	// Add components.
+	size += (SIZE_OF_COMPONENTS(header));
+	// Add http headers.
+	size += (SIZE_OF_HTTP_HEADERS(httpHeadersCount * header.components.count));
+	// Add root nodes.
+	size += (SIZE_OF_ROOT_NODES(header));
+	// Add required properties.
+	size += (SIZE_OF_REQUIRED_PROPERTIES(requiredPropertyCount));
+
+	// Add profile structures.
+	size += (SIZE_OF_PROFILES_STRUCT_ARRAY(header));
+	size += (SIZE_OF_PROFILE_INDEXES_STRUCT(header.values.count));
+
+	// Add cache.
+	if (cacheSize > 0) {
+		size += (SIZE_OF_RESULTSET_CACHE);
+		size += (SIZE_OF_CACHE_RESULTSET(cacheSize, header));
+		size += (SIZE_OF_RESULTSET_CACHE_LIST)* 2;
+		size += (SIZE_OF_RESULTSETS(cacheSize)) * 2;
+	}
+
+	// Add workset pool.
+	size += (SIZE_OF_WORKSET_POOL);
+	size += (SIZE_OF_POOL_WORKSETS(poolSize));
+
+	// Add worksets.
+	size += ((SIZE_OF_WORKSET)* poolSize);
+	size += ((SIZE_OF_WORKSET_INPUT(header)) * poolSize);
+	size += ((SIZE_OF_WORKSET_SIGLIST_ITEMS(header)) * poolSize);
+	size += ((SIZE_OF_WORKSET_NODES(header)) * poolSize * 2);
+	size += ((SIZE_OF_WORKSET_USED_NODES(header)) * poolSize * 2);
+	size += ((SIZE_OF_WORKSET_SIG_AS_STRING(header)) * poolSize);
+	size += ((SIZE_OF_WORKSET_VALUES(header)) * poolSize);
+	size += ((SIZE_OF_RESULTSET_PROFILES(header)) * poolSize * 2);
+	size += ((SIZE_OF_RESULTSET_TARGET_USERAGENT_ARRAY(header)) * poolSize);
+	size += ((SIZE_OF_WORKSET_IMPORTANT_HEADERS(httpHeadersCount)) * poolSize);
+
+	// Return the total size needed for the provider.
+	return size;
+}
+
+/**
+* \cond
+* Calculates the amount of memory that the provider will need to allocate for
+* the given data file and initialisation parameters. This should be used with
+* the fiftyoneDegreesInitProviderWithPropertyString function.
+* NOTE: This function will over estimate by about 10 bytes to account for a
+* possible increase in http headers.
+* @param fileName the file path of the data file.
+* @param properties the comma separated string of properties that will be
+* initialised.
+* @param poolSize the number of worksets the pool will contain.
+* @param cacheSize the size of the resultset cache.
+* @return int the total size in bytes that is needed to initilaise the
+* provider with the given parameters.
+* \endcond
+*/
+int fiftyoneDegreesGetProviderSizeWithPropertyString(const char *fileName, const char *properties, int poolSize, int cacheSize)
+{
+	int requiredPropertyCount, sizeOfFile;
+	FILE *inputFilePtr;
+	fiftyoneDegreesDataSetHeader header;
+
+	// Open the file and hold on to the pointer.
+#ifndef _MSC_FULL_VER
+	inputFilePtr = fopen(fileName, "rb");
+#else
+	/* If using Microsoft use the fopen_s method to avoid warning */
+	if (fopen_s(&inputFilePtr, fileName, "rb") != 0) {
+		return DATA_SET_INIT_STATUS_FILE_NOT_FOUND;
+	}
+#endif
+
+	// Read in header.
+	fread(&header, sizeof(fiftyoneDegreesDataSetHeader), 1, inputFilePtr);
+	fseek(inputFilePtr, 0, SEEK_END);
+
+	// Add file size.
+	sizeOfFile = ftell(inputFilePtr);
+	fclose(inputFilePtr);
+
+	// Add file name.
+	sizeOfFile += (SIZE_OF_FILE_NAME(fileName));
+
+	// Get property count.
+	requiredPropertyCount = getSeparatorCount(properties);
+
+	// Add required properties array.
+	sizeOfFile += (SIZE_OF_REQUIRED_PROPERTIES_ARRAY(header));
+
+	// Return the total size needed for the provider.
+	return getProviderSizeWithPropertyCount(sizeOfFile, header, requiredPropertyCount, poolSize, cacheSize);
+}
+
+/**
+* \cond
+* Calculates the amount of memory that the provider will need to allocate for
+* the given data file and initialisation parameters. This should be used with
+* the fiftyoneDegreesInitProviderWithPropertyArray function.
+* NOTE: This function will over estimate by about 10 bytes to account for a
+* possible increase in http headers.
+* @param fileName the file path of the data file.
+* @param propertyCount the number of properties in the properties array.
+* @param poolSize the number of worksets the pool will contain.
+* @param cacheSize the size of the resultset cache.
+* @return int the total size in bytes that is needed to initilaise the
+* provider with the given parameters.
+* \endcond
+*/
+int fiftyoneDegreesGetProviderSizeWithPropertyCount(const char *fileName, int propertyCount, int poolSize, int cacheSize)
+{
+	int sizeOfFile;
+	FILE *inputFilePtr;
+	fiftyoneDegreesDataSetHeader header;
+
+	// Open the file and hold on to the pointer.
+#ifndef _MSC_FULL_VER
+	inputFilePtr = fopen(fileName, "rb");
+#else
+	/* If using Microsoft use the fopen_s method to avoid warning */
+	if (fopen_s(&inputFilePtr, fileName, "rb") != 0) {
+		return DATA_SET_INIT_STATUS_FILE_NOT_FOUND;
+	}
+#endif
+
+	// Read in header.
+	fread(&header, sizeof(fiftyoneDegreesDataSetHeader), 1, inputFilePtr);
+	fseek(inputFilePtr, 0, SEEK_END);
+
+	// Add file size.
+	sizeOfFile = ftell(inputFilePtr);
+	fclose(inputFilePtr);
+
+	// Add file name.
+	sizeOfFile += (SIZE_OF_FILE_NAME(fileName));
+
+	// Return the total size needed for the provider.
+	return getProviderSizeWithPropertyCount(sizeOfFile, header, propertyCount, poolSize, cacheSize);
 }
 
 /**
@@ -1992,9 +2192,6 @@ fiftyoneDegreesProfilesStruct *fiftyoneDegreesFindProfilesInProfiles(
  * \endcond
  */
 
-#define RESULTSET_PROFILES_SIZE(h) h.components.count * sizeof(const fiftyoneDegreesProfile*)
-#define RESULTSET_TARGET_USERAGENT_ARRAY_SIZE(h) (h.maxUserAgentLength + 1) * sizeof(byte)
-
  /**
  * \cond
  * Copies the data associated with the source resultset to the destination.
@@ -2010,12 +2207,12 @@ static void resultsetCopy(fiftyoneDegreesResultset *dst, const fiftyoneDegreesRe
 	dst->method = src->method;
 	dst->nodesEvaluated = src->nodesEvaluated;
 	dst->profileCount = src->profileCount;
-	memcpy((void*)dst->profiles, (void*)src->profiles, RESULTSET_PROFILES_SIZE(src->dataSet->header));
+	memcpy((void*)dst->profiles, (void*)src->profiles, SIZE_OF_RESULTSET_PROFILES(src->dataSet->header));
 	dst->rootNodesEvaluated = src->rootNodesEvaluated;
 	dst->signaturesCompared = src->signaturesCompared;
 	dst->signaturesRead = src->signaturesRead;
 	dst->stringsRead = src->stringsRead;
-	memcpy((void*)dst->targetUserAgentArray, (void*)src->targetUserAgentArray, RESULTSET_TARGET_USERAGENT_ARRAY_SIZE(src->dataSet->header));
+	memcpy((void*)dst->targetUserAgentArray, (void*)src->targetUserAgentArray, SIZE_OF_RESULTSET_TARGET_USERAGENT_ARRAY(src->dataSet->header));
 	dst->targetUserAgentArrayLength = src->targetUserAgentArrayLength;
 	dst->targetUserAgentHashCode = src->targetUserAgentHashCode;
 	dst->signature = src->signature;
@@ -2061,7 +2258,7 @@ fiftyoneDegreesWorksetPool *fiftyoneDegreesWorksetPoolCreate(
 								int32_t size) {
 	int worksetIndex;
 	fiftyoneDegreesWorksetPool *pool =
-		(fiftyoneDegreesWorksetPool*)fiftyoneDegreesMalloc(sizeof(fiftyoneDegreesWorksetPool));
+		(fiftyoneDegreesWorksetPool*)fiftyoneDegreesMalloc(SIZE_OF_WORKSET_POOL);
 	if (pool != NULL) {
 		pool->dataSet = dataSet;
 		pool->cache = cache;
@@ -2071,7 +2268,7 @@ fiftyoneDegreesWorksetPool *fiftyoneDegreesWorksetPoolCreate(
 		FIFTYONEDEGREES_MUTEX_CREATE(pool->lock);
 		FIFTYONEDEGREES_SIGNAL_CREATE(pool->signal);
 #endif
-		pool->worksets = (fiftyoneDegreesWorkset**)fiftyoneDegreesMalloc(size * sizeof(fiftyoneDegreesWorkset*));
+		pool->worksets = (fiftyoneDegreesWorkset**)fiftyoneDegreesMalloc(SIZE_OF_POOL_WORKSETS(size));
 		if (pool->worksets == NULL
 #ifndef FIFTYONEDEGREES_NO_THREADING
 			||
@@ -2300,9 +2497,8 @@ void fiftyoneDegreesWorksetPoolCacheDataSetFree(const fiftyoneDegreesWorksetPool
  * Macros used to get the position of referenced memory items.
  * \endcond
  */
-#define CACHED_RESULTSET_LENGTH(h) sizeof(fiftyoneDegreesResultset) + RESULTSET_TARGET_USERAGENT_ARRAY_SIZE(h) + RESULTSET_PROFILES_SIZE(h)
 #define CACHED_RESULTSET_TARGET_USERAGENT_ARRAY_OFFSET(h) sizeof(fiftyoneDegreesResultset)
-#define CACHED_RESULTSET_PROFILES_OFFSET(h) CACHED_RESULTSET_TARGET_USERAGENT_ARRAY_OFFSET(h) + RESULTSET_TARGET_USERAGENT_ARRAY_SIZE(h)
+#define CACHED_RESULTSET_PROFILES_OFFSET(h) CACHED_RESULTSET_TARGET_USERAGENT_ARRAY_OFFSET(h) + SIZE_OF_RESULTSET_TARGET_USERAGENT_ARRAY(h)
 #define CACHED_RESULTSET_INDEX(rsc, i) (fiftyoneDegreesResultset*)((void*)rsc->resultSets + (i * rsc->sizeOfResultset))
 
  /**
@@ -2386,9 +2582,9 @@ static void resultsetCacheInit(fiftyoneDegreesResultsetCache *rsc) {
  * \endcond
  */
 static fiftyoneDegreesResultsetCacheList* resultsetCacheListCreate(int32_t size) {
-	fiftyoneDegreesResultsetCacheList* rscl = (fiftyoneDegreesResultsetCacheList*)fiftyoneDegreesMalloc(sizeof(fiftyoneDegreesResultsetCacheList));
+	fiftyoneDegreesResultsetCacheList* rscl = (fiftyoneDegreesResultsetCacheList*)fiftyoneDegreesMalloc(SIZE_OF_RESULTSET_CACHE_LIST);
 	if (rscl != NULL) {
-		rscl->resultSets = (fiftyoneDegreesResultset **)fiftyoneDegreesMalloc(size * sizeof(fiftyoneDegreesResultset*));
+		rscl->resultSets = (fiftyoneDegreesResultset **)fiftyoneDegreesMalloc(SIZE_OF_RESULTSETS(size));
 		if (rscl->resultSets == NULL) {
 			fiftyoneDegreesFree((void*)rscl);
 			rscl = NULL;
@@ -2408,7 +2604,7 @@ static fiftyoneDegreesResultsetCacheList* resultsetCacheListCreate(int32_t size)
  * \endcond
  */
 fiftyoneDegreesResultsetCache *fiftyoneDegreesResultsetCacheCreate(const fiftyoneDegreesDataSet *dataSet, int32_t size) {
-	fiftyoneDegreesResultsetCache *rsc = size >= MIN_CACHE_SIZE ? (fiftyoneDegreesResultsetCache*)fiftyoneDegreesMalloc(sizeof(fiftyoneDegreesResultsetCache)) : NULL;
+	fiftyoneDegreesResultsetCache *rsc = size >= MIN_CACHE_SIZE ? (fiftyoneDegreesResultsetCache*)fiftyoneDegreesMalloc(SIZE_OF_RESULTSET_CACHE) : NULL;
 	if (rsc != NULL) {
 		rsc->dataSet = dataSet;
 		rsc->hits = 0;
@@ -2418,8 +2614,8 @@ fiftyoneDegreesResultsetCache *fiftyoneDegreesResultsetCacheCreate(const fiftyon
 		rsc->switchLimit = size / 2;
 
 		// Initialise the memory used for the list of result sets.
-		rsc->sizeOfResultset = CACHED_RESULTSET_LENGTH(dataSet->header);
-		rsc->resultSets = (const fiftyoneDegreesResultset*)fiftyoneDegreesMalloc(size * rsc->sizeOfResultset);
+		rsc->sizeOfResultset = SIZE_OF_CACHE_RESULTSET(1, dataSet->header);
+		rsc->resultSets = (const fiftyoneDegreesResultset*)fiftyoneDegreesMalloc(SIZE_OF_CACHE_RESULTSET(size, dataSet->header));
 		rsc->active = resultsetCacheListCreate(size);
 		rsc->background = resultsetCacheListCreate(size);
 #ifndef FIFTYONEDEGREES_NO_THREADING
@@ -2695,7 +2891,7 @@ fiftyoneDegreesWorkset *fiftyoneDegreesWorksetCreate(
 						const fiftyoneDegreesDataSet *dataSet,
 						const fiftyoneDegreesResultsetCache *cache) {
 	fiftyoneDegreesWorkset *ws =
-		(fiftyoneDegreesWorkset*)fiftyoneDegreesMalloc(sizeof(fiftyoneDegreesWorkset));
+		(fiftyoneDegreesWorkset*)fiftyoneDegreesMalloc(SIZE_OF_WORKSET);
 	if (ws != NULL) {
 		// Initialise all the parameters of the workset.
 		ws->dataSet = dataSet;
@@ -2703,18 +2899,18 @@ fiftyoneDegreesWorkset *fiftyoneDegreesWorksetCreate(
 		ws->associatedPool = NULL;
 
 		// Allocate all the memory needed to the workset.
-		ws->input = (char*)fiftyoneDegreesMalloc((ws->dataSet->header.maxUserAgentLength + 1) * sizeof(char));
-		ws->linkedSignatureList.items = (fiftyoneDegreesLinkedSignatureListItem*)fiftyoneDegreesMalloc(dataSet->header.maxSignaturesClosest * sizeof(fiftyoneDegreesLinkedSignatureListItem));
-		ws->nodes = (const fiftyoneDegreesNode**)fiftyoneDegreesMalloc(dataSet->header.maxUserAgentLength * sizeof(const fiftyoneDegreesNode*));
-		ws->orderedNodes = (const fiftyoneDegreesNode**)fiftyoneDegreesMalloc(dataSet->header.maxUserAgentLength * sizeof(const fiftyoneDegreesNode*));
-		ws->relevantNodes = (char*)fiftyoneDegreesMalloc(dataSet->header.maxUserAgentLength + 1);
-		ws->closestNodes = (char*)fiftyoneDegreesMalloc(dataSet->header.maxUserAgentLength + 1);
-		ws->signatureAsString = (char*)fiftyoneDegreesMalloc((dataSet->header.maxUserAgentLength + 1) * sizeof(char));
-		ws->values = (const fiftyoneDegreesValue**)fiftyoneDegreesMalloc(dataSet->header.maxValues * sizeof(const fiftyoneDegreesValue*));
-		ws->profiles = (const fiftyoneDegreesProfile**)fiftyoneDegreesMalloc(RESULTSET_PROFILES_SIZE(dataSet->header));
-		ws->tempProfiles = (const fiftyoneDegreesProfile**)fiftyoneDegreesMalloc(RESULTSET_PROFILES_SIZE(dataSet->header));
-		ws->targetUserAgentArray = (char*)fiftyoneDegreesMalloc(RESULTSET_TARGET_USERAGENT_ARRAY_SIZE(dataSet->header));
-		ws->importantHeaders = (fiftyoneDegreesHttpHeaderWorkset*)fiftyoneDegreesMalloc(ws->dataSet->httpHeadersCount * sizeof(fiftyoneDegreesHttpHeaderWorkset));
+		ws->input = (char*)fiftyoneDegreesMalloc(SIZE_OF_WORKSET_INPUT(ws->dataSet->header));
+		ws->linkedSignatureList.items = (fiftyoneDegreesLinkedSignatureListItem*)fiftyoneDegreesMalloc(SIZE_OF_WORKSET_SIGLIST_ITEMS(dataSet->header));
+		ws->nodes = (const fiftyoneDegreesNode**)fiftyoneDegreesMalloc(SIZE_OF_WORKSET_NODES(dataSet->header));
+		ws->orderedNodes = (const fiftyoneDegreesNode**)fiftyoneDegreesMalloc(SIZE_OF_WORKSET_NODES(dataSet->header));
+		ws->relevantNodes = (char*)fiftyoneDegreesMalloc(SIZE_OF_WORKSET_USED_NODES(dataSet->header));
+		ws->closestNodes = (char*)fiftyoneDegreesMalloc(SIZE_OF_WORKSET_USED_NODES(dataSet->header));
+		ws->signatureAsString = (char*)fiftyoneDegreesMalloc(SIZE_OF_WORKSET_SIG_AS_STRING(dataSet->header));
+		ws->values = (const fiftyoneDegreesValue**)fiftyoneDegreesMalloc(SIZE_OF_WORKSET_VALUES(dataSet->header));
+		ws->profiles = (const fiftyoneDegreesProfile**)fiftyoneDegreesMalloc(SIZE_OF_RESULTSET_PROFILES(dataSet->header));
+		ws->tempProfiles = (const fiftyoneDegreesProfile**)fiftyoneDegreesMalloc(SIZE_OF_RESULTSET_PROFILES(dataSet->header));
+		ws->targetUserAgentArray = (char*)fiftyoneDegreesMalloc(SIZE_OF_RESULTSET_TARGET_USERAGENT_ARRAY(dataSet->header));
+		ws->importantHeaders = (fiftyoneDegreesHttpHeaderWorkset*)fiftyoneDegreesMalloc(SIZE_OF_WORKSET_IMPORTANT_HEADERS(ws->dataSet->httpHeadersCount));
 
 		// Check all the memory was allocated correctly and also
 		// allocate using the result set method.

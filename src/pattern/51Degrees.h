@@ -1101,6 +1101,46 @@ EXTERNAL fiftyoneDegreesProfilesStruct *fiftyoneDegreesFindProfilesInProfiles(
  */
 EXTERNAL void fiftyoneDegreesFreeProfilesStruct(
 	fiftyoneDegreesProfilesStruct *profiles);
+/**
+* \ingroup FiftyOneDegreesFunctions
+* Calculates the amount of memory that the provider will need to allocate for
+* the given data file and initialisation parameters. This should be used with
+* the fiftyoneDegreesInitProviderWithPropertyString function.
+* NOTE: This function will over estimate by about 10 bytes to account for a
+* possible increase in http headers.
+* @param fileName the file path of the data file.
+* @param properties the comma separated string of properties that will be
+* initialised.
+* @param poolSize the number of worksets the pool will contain.
+* @param cacheSize the size of the resultset cache.
+* @return int the total size in bytes that is needed to initilaise the
+* provider with the given parameters.
+*/
+EXTERNAL int fiftyoneDegreesGetProviderSizeWithPropertyString(
+	const char *fileName,
+	const char *properties,
+	int poolSize,
+	int cacheSize);
+
+/**
+* \ingroup FiftyOneDegreesFunctions
+* Calculates the amount of memory that the provider will need to allocate for
+* the given data file and initialisation parameters. This should be used with
+* the fiftyoneDegreesInitProviderWithPropertyArray function.
+* NOTE: This function will over estimate by about 10 bytes to account for a
+* possible increase in http headers.
+* @param fileName the file path of the data file.
+* @param propertyCount the number of properties in the properties array.
+* @param poolSize the number of worksets the pool will contain.
+* @param cacheSize the size of the resultset cache.
+* @return int the total size in bytes that is needed to initilaise the
+* provider with the given parameters.
+*/
+EXTERNAL int fiftyoneDegreesGetProviderSizeWithPropertyCount(
+	const char *fileName,
+	int propertyCount,
+	int poolSize,
+	int cacheSize);
 
 /**
  * OBSOLETE METHODS - RETAINED FOR BACKWARDS COMPAITABILITY
@@ -1126,4 +1166,3 @@ EXTERNAL void fiftyoneDegreesDestroy(const fiftyoneDegreesDataSet *dataSet);
 EXTERNAL void fiftyoneDegreesWorksetPoolRelease(fiftyoneDegreesWorksetPool *pool, fiftyoneDegreesWorkset *ws);
 
 #endif // 51DEGREES_H_INCLUDED
-
