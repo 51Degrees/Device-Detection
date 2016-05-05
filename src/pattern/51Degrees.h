@@ -53,10 +53,6 @@
 #include <time.h>
 #include "../threading.h"
 
-EXTERNAL void *(ALLOC_CALL_CONV *fiftyoneDegreesMalloc)(size_t __size);
-EXTERNAL void *(ALLOC_CALL_CONV *fiftyoneDegreesCalloc)(size_t __nmemb, size_t __size);
-EXTERNAL void (ALLOC_CALL_CONV *fiftyoneDegreesFree)(void *__ptr);
-
 /* Used to represent bytes */
 typedef unsigned char byte;
 
@@ -1101,6 +1097,31 @@ EXTERNAL fiftyoneDegreesProfilesStruct *fiftyoneDegreesFindProfilesInProfiles(
  */
 EXTERNAL void fiftyoneDegreesFreeProfilesStruct(
 	fiftyoneDegreesProfilesStruct *profiles);
+
+/**
+ * \ingroup FiftyOneDegreesFunctions
+ * Malloc function, defaults to malloc.
+ * @param __size the size of memory to allocate.
+ * @returns void* pointer to allocated memory.
+ */
+EXTERNAL void *(ALLOC_CALL_CONV *fiftyoneDegreesMalloc)(size_t __size);
+
+/**
+ * \ingroup FiftyOneDegreesFunctions
+ * Calloc function, defaults to calloc.
+ * @param __nmemb the number of elements to allocate.
+ * @param __size the size of memory to allocate for each element.
+ * @returns void* pointer to allocated memory.
+ */
+EXTERNAL void *(ALLOC_CALL_CONV *fiftyoneDegreesCalloc)(size_t __nmemb, size_t __size);
+
+/**
+ * \ingroup FiftyOneDegreesFunctions
+ * Free function, defaults to free.
+ * @param __ptr the pointer to memory to be freed.
+ */
+EXTERNAL void (ALLOC_CALL_CONV *fiftyoneDegreesFree)(void *__ptr);
+
 /**
 * \ingroup FiftyOneDegreesFunctions
 * Calculates the amount of memory that the provider will need to allocate for
@@ -1133,7 +1154,7 @@ EXTERNAL int fiftyoneDegreesGetProviderSizeWithPropertyString(
 * @param propertyCount the number of properties in the properties array.
 * @param poolSize the number of worksets the pool will contain.
 * @param cacheSize the size of the resultset cache.
-* @return int the total size in bytes that is needed to initilaise the
+* @return int the total size in bytes that is needed to initialise the
 * provider with the given parameters.
 */
 EXTERNAL int fiftyoneDegreesGetProviderSizeWithPropertyCount(
@@ -1142,6 +1163,15 @@ EXTERNAL int fiftyoneDegreesGetProviderSizeWithPropertyCount(
 	int poolSize,
 	int cacheSize);
 
+/**
+* \ingroup FiftyOneDegreesFunctions
+* Finds the maximum string length of the values associated with the given
+* property name.
+* @param dataSet pointer to a fiftyoneDegreesDataSet.
+* @param propertyName the name of the property to find the value length for.
+* @returns int the maximum string length of the values associated with the
+* given property.
+*/
 EXTERNAL int fiftyoneDegreesGetMaxValueLength(const fiftyoneDegreesDataSet *dataSet, char *propertyName);
 
 /**

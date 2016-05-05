@@ -7,14 +7,13 @@
 // Define default settings.
 #define FIFTYONEDEGREES_DEFAULTFILE "51Degrees.dat"
 #define FIFTYONEDEGREES_DEFAULTCACHE 10000
-#define FIFTYONEDEGREES_DEFAULTPOOL 20
-
-#ifndef FIFTYONEDEGREES_MAX_PROPERTIES
-#define FIFTYONEDEGREES_MAX_PROPERTIES 20
-#endif
+#define FIFTYONEDEGREES_DEFAULTPOOL 4
+#ifndef FIFTYONEDEGREES_PROPERTY_NOT_AVAILABLE
+#define FIFTYONEDEGREES_PROPERTY_NOT_AVAILABLE "NA"
+#endif // FIFTYONEDEGREES_PROPERTY_NOT_AVAILABLE
 #ifndef FIFTYONEDEGREES_MAX_STRING
-#define FIFTYONEDEGREES_MAX_STRING FIFTYONEDEGREES_MAX_PROPERTIES * 20
-#endif
+#define FIFTYONEDEGREES_MAX_STRING 100
+#endif // FIFTYONEDEGREES_MAX_STRING
 
 // Module config functions to enable matching in selected locations.
 static char *ngx_http_51D_set(ngx_conf_t* cf, ngx_command_t *cmd, void *conf);
@@ -31,16 +30,17 @@ static char *ngx_http_51D_merge_loc_conf(ngx_conf_t *cf, void *parent, void *chi
 // Handler declaration.
 static ngx_int_t ngx_http_51D_handler(ngx_http_request_t *r);
 static ngx_shm_zone_t *ngx_http_51D_shm_zone;
-ngx_atomic_t shmname = 1;
+ngx_atomic_t ngx_http_51D_shm_tag = 1;
 
 static ngx_int_t ngx_http_51D_init_shm_zone(ngx_shm_zone_t *shm_zone, void *data);
 
+static int ngx_http_51D_total_matches = -1;
 typedef struct {
     ngx_uint_t multi;
     ngx_uint_t count;
     ngx_str_t **property;
     ngx_str_t name;
-    ngx_str_t lower_name;
+    ngx_str_t lowerName;
     char *valueString;
 } ngx_http_51D_match_t;
 
@@ -59,13 +59,74 @@ typedef struct {
     fiftyoneDegreesProvider *provider;
 } ngx_http_51D_main_conf_t;
 
-// Module post config. Added module handler to main config.
+/**
+ * Set defaults function checks that all the necessary parameters have been
+ * set, and if they have not, sets them to the default value. In the case of
+ * pool size, if undefined, this is set to the number of worker processes
+ * if defined in the config file.
+ */
+static void ngx_http_51D_set_defaults(ngx_http_51D_main_conf_t *fdmcf, ngx_conf_t *cf)
+{
+	const char *buffer;
+	int charPos;
+	int workerProcesses;
+
+	// Set the search buffer to the start of the config file.
+	buffer = cf->conf_file->buffer->start;
+
+	// Set default data file if necessary.
+	if ((int)fdmcf->dataFile.len < 0) {
+		fdmcf->dataFile.data = FIFTYONEDEGREES_DEFAULTFILE;
+		fdmcf->dataFile.len = strlen(fdmcf->dataFile.data);
+	}
+	// Set default cache size if necessary.
+	if ((int)fdmcf->cacheSize < 0) {
+		fdmcf->cacheSize = FIFTYONEDEGREES_DEFAULTCACHE;
+	}
+	// Set default pool size if necessary.
+	if ((int)fdmcf->poolSize < 0) {
+		// Find the string "worker_processes" in the config file.
+		buffer = ngx_strstr(buffer, "worker_processes");
+		// If it is found, check it is not commented out by searching backwards
+		// for a '#' character.
+		if (buffer != NULL ) {
+			charPos = 0;
+			while (buffer[charPos] != '\n'
+				&& buffer[charPos] != '\0') {
+				if (buffer[charPos] == '#') {
+					// "worker_processes" is commented out.
+					buffer = NULL;
+					break;
+				}
+				charPos--;
+			}
+			// "worker_processes" is not commented out (search reached the
+			// beginning of the line).
+		}
+		// If the number of worker processes is defined, use that.
+		if (buffer != NULL) {
+			buffer += ngx_strlen("worker_processes");
+			fdmcf->poolSize= (ngx_uint_t)strtol(buffer, NULL, 10);
+		}
+		// If not, use the default.
+		else {
+			fdmcf->poolSize = FIFTYONEDEGREES_DEFAULTPOOL;
+		}
+	}
+}
+
+/**
+ * Module post config. Adds the module to the HTTP access phase array and
+ * and allocates a fresh shared memory zone to store the provider in.
+ */
 static ngx_int_t
 ngx_http_51D_post_conf(ngx_conf_t *cf)
 {
 	ngx_http_handler_pt *h;
 	ngx_http_core_main_conf_t *cmcf;
 	ngx_http_51D_main_conf_t *fdmcf;
+	ngx_atomic_int_t tagOffset;
+	ngx_str_t name;
 
 	cmcf = ngx_http_conf_get_module_main_conf(cf, ngx_http_core_module);
 	fdmcf = ngx_http_conf_get_module_main_conf(cf, ngx_http_51D_module);
@@ -77,19 +138,22 @@ ngx_http_51D_post_conf(ngx_conf_t *cf)
 
 	*h = ngx_http_51D_handler;
 
-	ngx_str_t name;
+	ngx_http_51D_set_defaults(fdmcf, cf);
+
 	name.data = "fiftyoneDegreesProvider";
 	name.len = ngx_strlen(name.data);
-	ngx_atomic_int_t i = ngx_atomic_fetch_add(&shmname, (ngx_atomic_int_t)1);
+	tagOffset = ngx_atomic_fetch_add(&ngx_http_51D_shm_tag, (ngx_atomic_int_t)1);
 	size_t size = (size_t)fiftyoneDegreesGetProviderSizeWithPropertyString((const char*)fdmcf->dataFile.data, (const char*)fdmcf->properties, (int)fdmcf->poolSize + 1, (int)fdmcf->cacheSize);
-	ngx_http_51D_shm_zone = ngx_shared_memory_add(cf, &name, size, (void*)&ngx_http_51D_module + i);
+	ngx_http_51D_shm_zone = ngx_shared_memory_add(cf, &name, size, (void*)&ngx_http_51D_module + tagOffset);
 	ngx_http_51D_shm_zone->init = ngx_http_51D_init_shm_zone;
 
 	return NGX_OK;
 }
 
-// Create main config. Allocates memory to the configuration and initialises
-// integers to -1.
+/**
+ * Create main config. Allocates memory to the configuration and initialises
+ * cacheSize and poolSize to -1 (unset).
+ */
 static void *
 ngx_http_51D_create_main_conf(ngx_conf_t *cf)
 {
@@ -104,8 +168,29 @@ ngx_http_51D_create_main_conf(ngx_conf_t *cf)
     return conf;
 }
 
-// Create location config. Allocates memory to the configuration and initialises
-// integers to -1.
+/**
+ * Count matches function. Counts the number of matches defined in the config
+ * file. This is used in create location conf to determine how many match
+ * structures to allocate.
+ */
+static void ngx_http_51D_count_matches(ngx_conf_t *cf)
+{
+	const char *buffer = (char*)cf->conf_file->buffer->start;
+	const char* searchString = "51D_match";
+	char *match;
+
+	ngx_http_51D_total_matches = 0;
+	match = strstr(buffer, searchString);
+	while (match != NULL) {
+		ngx_http_51D_total_matches++;
+		match = strstr((const char*)match + strlen(searchString), searchString);
+	}
+}
+
+/**
+ * Create location config. Allocates memory to the configuration and each match
+ * structure. Initialises count to -1 (unset).
+ */
 static void *
 ngx_http_51D_create_loc_conf(ngx_conf_t *cf)
 {
@@ -115,14 +200,19 @@ ngx_http_51D_create_loc_conf(ngx_conf_t *cf)
     if (conf == NULL) {
         return NULL;
     }
+    if (ngx_http_51D_total_matches < 0) {
+		ngx_http_51D_count_matches(cf);
+    }
 	conf->count = 0;
-	conf->match = (ngx_http_51D_match_t**)ngx_palloc(cf->pool, sizeof(ngx_http_51D_match_t*)*10);
+	conf->match = (ngx_http_51D_match_t**)ngx_palloc(cf->pool, sizeof(ngx_http_51D_match_t*) * ngx_http_51D_total_matches);
 
     return conf;
 }
 
-// Merges location config. Either gets the value set, or sets to the default
-// of 0.
+/**
+ * Merge location config. Either gets the value of count that is set, or sets
+ * to the default of 0.
+ */
 static char *
 ngx_http_51D_merge_loc_conf(ngx_conf_t *cf, void *parent, void *child)
 {
@@ -134,7 +224,10 @@ ngx_http_51D_merge_loc_conf(ngx_conf_t *cf, void *parent, void *child)
 	return NGX_CONF_OK;
 }
 
-// Throws an error if data set initialisation fails.
+/**
+ * Throws an error if data set initialisation fails. Used by the init module
+ * function.
+ */
 static ngx_int_t reportDatasetInitStatus(ngx_cycle_t *cycle, fiftyoneDegreesDataSetInitStatus status,
 										const char* fileName) {
 	switch (status) {
@@ -164,6 +257,11 @@ static ngx_int_t reportDatasetInitStatus(ngx_cycle_t *cycle, fiftyoneDegreesData
 	}
 	return NGX_ERROR;
 }
+
+/**
+ * Init shared memory zone. Allocates space for the provider in the shared
+ * memory zone.
+ */
 static ngx_int_t ngx_http_51D_init_shm_zone(ngx_shm_zone_t *shm_zone, void *data)
 {
 	ngx_slab_pool_t *shpool;
@@ -187,6 +285,10 @@ static ngx_int_t ngx_http_51D_init_shm_zone(ngx_shm_zone_t *shm_zone, void *data
 	return NGX_OK;
 }
 
+/**
+ * Shared memory alloc function. Replaces fiftyoneDegreesMalloc to store
+ * the data set in the shared memory zone.
+ */
 void *ngx_http_51D_shm_alloc(size_t __size)
 {
 	void *ptr = NULL;
@@ -199,14 +301,10 @@ void *ngx_http_51D_shm_alloc(size_t __size)
 	return ptr;
 }
 
-void *ngx_http_51D_shm_calloc(size_t __nmemb, size_t __size)
-{
-	void *ptr;
-	ptr = ngx_http_51D_shm_alloc(__nmemb * __size);
-	ngx_memzero(ptr, __nmemb * __size);
-	return ptr;
-}
-
+/**
+ * Shared memory free function. Replaces fiftyoneDegreesFree to free pointers
+ * to the shared memory zone.
+ */
 void ngx_http_51D_shm_free(void *__ptr)
 {
 	ngx_slab_pool_t *shpool;
@@ -218,13 +316,13 @@ void ngx_http_51D_shm_free(void *__ptr)
 		ngx_slab_free_locked(shpool, __ptr);
 	}
 }
-void *(ALLOC_CALL_CONV *fiftyoneDegreesCalloc)(size_t __nmemb, size_t __size) = ngx_http_51D_shm_calloc;
-void *(ALLOC_CALL_CONV *fiftyoneDegreesMalloc)(size_t __size) = ngx_http_51D_shm_alloc;
-void (ALLOC_CALL_CONV *fiftyoneDegreesFree)(void *__ptr) = ngx_http_51D_shm_free;
 
-// Initialises the provider on process start.
+/**
+ * Init module function. Initialises the provider with the given initialisation
+ * parameters. Throws an error if the data set could not be initialised.
+ */
 static ngx_int_t
-ngx_http_51D_init_process(ngx_cycle_t *cycle)
+ngx_http_51D_init_module(ngx_cycle_t *cycle)
 {
 	fiftyoneDegreesDataSetInitStatus status;
 	ngx_http_51D_main_conf_t *fdmcf;
@@ -233,75 +331,45 @@ ngx_http_51D_init_process(ngx_cycle_t *cycle)
 	fdmcf = ngx_http_cycle_get_module_main_conf(cycle, ngx_http_51D_module);
 	fdmcf->provider = (fiftyoneDegreesProvider*)ngx_http_51D_shm_zone->data;
 
-	// If a setting is not set, set the default.
-	if ((int)fdmcf->dataFile.len < 0) {
-		fdmcf->dataFile.data = FIFTYONEDEGREES_DEFAULTFILE;
-		fdmcf->dataFile.len = strlen(fdmcf->dataFile.data);
-	}
-	#define FIFTYONEDEGREES_PATTERN
-#ifdef FIFTYONEDEGREES_PATTERN
-	if ((int)fdmcf->cacheSize < 0) {
-		fdmcf->cacheSize = FIFTYONEDEGREES_DEFAULTCACHE;
-	}
-	if ((int)fdmcf->poolSize < 0) {
-		fdmcf->poolSize = FIFTYONEDEGREES_DEFAULTPOOL;
-	}
-	if(fdmcf->provider->activePool == NULL) {
-		status = fiftyoneDegreesInitProviderWithPropertyString((const char*)fdmcf->dataFile.data, fdmcf->provider, (const char*)fdmcf->properties, fdmcf->poolSize, fdmcf->cacheSize);
-		if (status != DATA_SET_INIT_STATUS_SUCCESS) {
-			return reportDatasetInitStatus(cycle, status, (const char*)fdmcf->dataFile.data);
-		}
-		ngx_log_debug2(NGX_LOG_DEBUG_ALL, cycle->log, 0, "51Degrees initialised Provider from file '%s' with properties '%s'.", (char*)fdmcf->dataFile.data, fdmcf->properties);
-	}
-	else {
-		if (ngx_strcmp(fdmcf->dataFile.data, fdmcf->provider->activePool->dataSet->fileName) != 0
-		|| (int)fdmcf->poolSize != (int)fdmcf->provider->activePool->size
-		|| (int)fdmcf->cacheSize != (int)fdmcf->provider->activePool->cache->total) {
-			ngx_log_error(NGX_LOG_NOTICE, cycle->log, 0, "51Degrees reloading with a different file name, pool size or cache size requires a full restart.");
-		}
-	}
-#endif // FIFTYONEDEGREES_PATTERN
-#ifdef FIFTYONEDEGREES_TRIE
+	// Set the memory allocation functions to use the shared memory zone.
+	fiftyoneDegreesMalloc = ngx_http_51D_shm_alloc;
+	fiftyoneDegreesFree = ngx_http_51D_shm_free;
 
-#endif // FIFTYONEDEGREES_TRIE
+	// Initialise the provider.
+	status = fiftyoneDegreesInitProviderWithPropertyString((const char*)fdmcf->dataFile.data, fdmcf->provider, (const char*)fdmcf->properties, fdmcf->poolSize, fdmcf->cacheSize);
+	if (status != DATA_SET_INIT_STATUS_SUCCESS) {
+		return reportDatasetInitStatus(cycle, status, (const char*)fdmcf->dataFile.data);
+	}
+	ngx_log_debug2(NGX_LOG_DEBUG_ALL, cycle->log, 0, "51Degrees initialised Provider from file '%s' with properties '%s'.", (char*)fdmcf->dataFile.data, fdmcf->properties);
+
 	return NGX_OK;
 }
 
-// Frees the provider on process close.
-static void
-ngx_http_51D_exit_process(ngx_cycle_t *cycle)
-{
-	ngx_slab_pool_t *shpool;
-	shpool = (ngx_slab_pool_t*) ngx_http_51D_shm_zone->shm.addr;
-	// Free the provider.
-	fiftyoneDegreesProviderFree((fiftyoneDegreesProvider*)ngx_http_51D_shm_zone->data);
-	ngx_slab_free(shpool, ngx_http_51D_shm_zone->data);
-	ngx_log_debug0(NGX_LOG_DEBUG_ALL, cycle->log, 0, "51Degrees freed Provider.");
-}
-
-// Definitions of functions which can be called in 'nginx.conf'
-// --51D_single takes one string argument, a comma separated
-// list of properties to be returned. Is called within location
-// block. Enables User-Agent matching.
-// --51D_multi takes one string argument, a comma separated
-// list of properties to be returned. Is called within location
-// block. Enables multiple http header matching.
-// --51D_filePath takes one string argument, the path to a
-// 51Degrees data file. Is called within server block.
-// --51D_cache takes one integer argument, the size of the
-// 51Degrees cache.
-// --51D_pool takes one integer argument, the size of the
-// 51Degrees pool.
+/**
+ * Definitions of functions which can be called from the config file.
+ * --51D_match_single takes two string arguments, the name of the header
+ * to be set and a comma separated list of properties to be returned.
+ * Is called within location block. Enables User-Agent matching.
+ * --51D_match_all takes two string arguments, the name of the header to
+ * be set and a comma separated list of properties to be returned. Is
+ * called within location block. Enables multiple http header matching.
+ * --51D_filePath takes one string argument, the path to a
+ * 51Degrees data file. Is called within server block.
+ * --51D_cache takes one integer argument, the size of the
+ * 51Degrees cache.
+ * --51D_pool takes one integer argument, the size of the
+ * 51Degrees pool.
+ */
 static ngx_command_t  ngx_http_51D_commands[] = {
 
-	{ ngx_string("51D_single"),
+	{ ngx_string("51D_match_single"),
 	NGX_HTTP_LOC_CONF|NGX_CONF_TAKE2,
 	ngx_http_51D_set,
 	NGX_HTTP_LOC_CONF_OFFSET,
     0,
 	NULL },
 
-	{ ngx_string("51D_all"),
+	{ ngx_string("51D_match_all"),
 	NGX_HTTP_LOC_CONF|NGX_CONF_TAKE2,
 	ngx_http_51D_set,
 	NGX_HTTP_LOC_CONF_OFFSET,
@@ -314,7 +382,7 @@ static ngx_command_t  ngx_http_51D_commands[] = {
 	NGX_HTTP_MAIN_CONF_OFFSET,
 	offsetof(ngx_http_51D_main_conf_t, dataFile),
 	NULL },
-#ifdef FIFTYONEDEGREES_PATTERN
+
 	{ ngx_string("51D_cache"),
 	NGX_HTTP_MAIN_CONF|NGX_CONF_TAKE1,
 	ngx_conf_set_num_slot,
@@ -328,11 +396,13 @@ static ngx_command_t  ngx_http_51D_commands[] = {
 	NGX_HTTP_MAIN_CONF_OFFSET,
 	offsetof(ngx_http_51D_main_conf_t, poolSize),
 	NULL },
-#endif // FIFTYONEDEGREES_PATTERN
+
 	ngx_null_command
 };
 
-// 51Degres module context.
+/**
+ * Module context. Sets the configuration functions.
+ */
 static ngx_http_module_t ngx_http_51D_module_ctx = {
 	NULL,                          /* preconfiguration */
 	ngx_http_51D_post_conf,        /* postconfiguration */
@@ -347,25 +417,30 @@ static ngx_http_module_t ngx_http_51D_module_ctx = {
 	ngx_http_51D_merge_loc_conf    /* merge location configuration */
 };
 
-// 51Degrees module definition.
+/**
+ * Module definition. Set the module context, commands, type and init function.
+ */
 ngx_module_t ngx_http_51D_module = {
 	NGX_MODULE_V1,
 	&ngx_http_51D_module_ctx,      /* module context */
 	ngx_http_51D_commands,         /* module directives */
 	NGX_HTTP_MODULE,               /* module type */
 	NULL,                          /* init master */
-	ngx_http_51D_init_process,     /* init module */
+	ngx_http_51D_init_module,      /* init module */
 	NULL,                          /* init process */
 	NULL,                          /* init thread */
 	NULL,                          /* exit thread */
 	NULL,                          /* exit process */
-	NULL,     /* exit master */
+	NULL,                          /* exit master */
 	NGX_MODULE_V1_PADDING
 };
 
-// Used when matching multiple http headers to find important headers.
-// See:
-// https://www.nginx.com/resources/wiki/start/topics/examples/headers_management
+/**
+ * Search headers function. Searched request headers for the name supplied.
+ * Used when matching multiple http headers to find important headers.
+ * See:
+ * https://www.nginx.com/resources/wiki/start/topics/examples/headers_management
+ */
 static ngx_table_elt_t *
 search_headers_in(ngx_http_request_t *r, u_char *name, size_t len) {
     ngx_list_part_t            *part;;
@@ -396,7 +471,10 @@ search_headers_in(ngx_http_request_t *r, u_char *name, size_t len) {
     return NULL;
 }
 
-void add_value(char *val, char *buffer)
+/**
+ * Add value function. Appends a string to a comma separated list.
+ */
+static void add_value(char *val, char *buffer)
 {
 	if (buffer[0] != '\0') {
 		strcat(buffer, ",");
@@ -404,7 +482,10 @@ void add_value(char *val, char *buffer)
 	strcat(buffer, val);
 }
 
-#ifdef FIFTYONEDEGREES_PATTERN
+/**
+ * Get match function. Gets a match from the workset for either a single
+ * User-Agent or all request headers.
+ */
 void ngx_http_51D_get_match(fiftyoneDegreesWorkset *ws, ngx_http_request_t *r, int multi)
 {
 	int headerIndex;
@@ -432,11 +513,11 @@ void ngx_http_51D_get_match(fiftyoneDegreesWorkset *ws, ngx_http_request_t *r, i
 		}
 	}
 }
-#endif // FIFTYONEDEGREES_PATTERN
-#ifdef FIFTYONEDEGREES_TRIE
 
-#endif // FIFTYONEDEGREES_TRIE
-#ifdef FIFTYONEDEGREES_PATTERN
+/**
+ * Get value function. Gets the requested value for the current match and
+ * appends the value to the comma separated list of values.
+ */
 void ngx_http_51D_get_value(fiftyoneDegreesWorkset *ws, char *values_string, const char *requiredPropertyName)
 {
 	char *methodName, *propertyName;
@@ -481,15 +562,15 @@ void ngx_http_51D_get_value(fiftyoneDegreesWorkset *ws, char *values_string, con
 			}
 		}
 		if (!found) {
-			add_value("NA", values_string);
+			add_value(FIFTYONEDEGREES_PROPERTY_NOT_AVAILABLE, values_string);
 		}
 	}
 }
-#endif // FIFTYONEDEGREES_PATTERN
-#ifdef FIFTYONEDEGREES_TRIE
 
-#endif // FIFTYONEDEGREES_TRIE
-
+/**
+ * Allocate string function. Gets the maximum possible length of the returned
+ * list of values for specified match structure and allocates space for it.
+ */
 static void ngx_http_51D_allocate_string(const fiftyoneDegreesDataSet *dataSet, ngx_http_51D_match_t *match)
 {
 	int i, tmpLength, length = 0;
@@ -502,14 +583,16 @@ static void ngx_http_51D_allocate_string(const fiftyoneDegreesDataSet *dataSet, 
 			length += (int)tmpLength;
 		}
 		else {
-			length += 2; //todo make general
+			length += ngx_strlen(FIFTYONEDEGREES_PROPERTY_NOT_AVAILABLE);
 		}
 	}
 	match->valueString = (char*)ngx_palloc(ngx_cycle->pool, length * sizeof(char));
 }
 
-// Module handler, gets a match using either the User-Agent or multiple http
-// headers, then sets properties as headers.
+/**
+ * Module handler, gets a match using either the User-Agent or multiple http
+ * headers, then sets properties as headers.
+ */
 static ngx_int_t
 ngx_http_51D_handler(ngx_http_request_t *r)
 {
@@ -559,7 +642,7 @@ ngx_http_51D_handler(ngx_http_request_t *r)
 				h[matchIndex]->key.len = ngx_strlen(h[matchIndex]->key.data);
 				h[matchIndex]->value.data = (u_char*)fdlcf->match[matchIndex]->valueString;
 				h[matchIndex]->value.len = ngx_strlen(h[matchIndex]->value.data);
-				h[matchIndex]->lowcase_key = (u_char*)fdlcf->match[matchIndex]->lower_name.data;
+				h[matchIndex]->lowcase_key = (u_char*)fdlcf->match[matchIndex]->lowerName.data;
 			}
 		}
 	}
@@ -569,26 +652,36 @@ ngx_http_51D_handler(ngx_http_request_t *r)
 	return NGX_DECLINED;
 
 }
-
-// Set properties function. Is passed a comma separated
-// list of properties from nginx.conf and assigns
-// each to an element in properties.
-// It then initialises the detector.
+/**
+ * Set match function. Initialises the match structure for a given occurrence
+ * of "51D_match_single" or "51D_match_all" in the config file. Allocates
+ * space required and sets the name and properties.
+ */
 void
 ngx_http_51D_set_match(ngx_conf_t *cf, ngx_http_51D_match_t *match, ngx_str_t *value, ngx_http_51D_main_conf_t *fdmcf)
 {
+	char *tok;
+	int propertiesCount, charPos;
 	match->count = 0;
 	// Set the name of the match.
 	match->name.data = (u_char*)ngx_palloc(cf->pool, sizeof(value[1]));
-	match->lower_name.data = (u_char*)ngx_palloc(cf->pool, sizeof(value[1]));
+	match->lowerName.data = (u_char*)ngx_palloc(cf->pool, sizeof(value[1]));
 	match->name.data = value[1].data;
 	match->name.len = value[1].len;
-	ngx_strlow(match->lower_name.data, match->name.data, match->name.len);
-	match->lower_name.len = match->name.len;
+	ngx_strlow(match->lowerName.data, match->name.data, match->name.len);
+	match->lowerName.len = match->name.len;
 
-    char *properties_string = (char*)value[2].data;
+    char *propertiesString = (char*)value[2].data;
 
-	char *tok = strtok((char*)properties_string, (const char*)",");
+	propertiesCount = 1;
+	for (charPos = 0; charPos < (int)value[2].len; charPos++) {
+		if (propertiesString[charPos] == ',') {
+			propertiesCount++;
+		}
+	}
+	match->property = (ngx_str_t**)ngx_palloc(cf->pool, sizeof(ngx_str_t*)*propertiesCount);
+
+	tok = strtok((char*)propertiesString, (const char*)",");
 	while (tok != NULL) {
 		match->property[match->count] = (ngx_str_t*)ngx_palloc(cf->pool, sizeof(ngx_str_t));
 		match->property[match->count]->data = (u_char*)ngx_palloc(cf->pool, sizeof(u_char)*(ngx_strlen(tok)));
@@ -603,8 +696,11 @@ ngx_http_51D_set_match(ngx_conf_t *cf, ngx_http_51D_match_t *match, ngx_str_t *v
 
 }
 
-// Enables User-Agent matching in the selected location with the properties
-// string in data.
+/**
+ * Set function. Is called for each occurrence of "51D_match_single" or
+ * "51D_match_all". Allocates space for the match structure and initialises
+ * it with the set match function.
+ */
 static char *ngx_http_51D_set(ngx_conf_t* cf, ngx_command_t *cmd, void *conf)
 {
 	ngx_http_51D_main_conf_t *fdmcf;
@@ -616,13 +712,12 @@ static char *ngx_http_51D_set(ngx_conf_t* cf, ngx_command_t *cmd, void *conf)
 	fdlcf = ngx_http_conf_get_module_loc_conf(cf, ngx_http_51D_module);
 
 	fdlcf->match[fdlcf->count] = (ngx_http_51D_match_t*)ngx_palloc(cf->pool, sizeof(ngx_http_51D_match_t));
-	fdlcf->match[fdlcf->count]->property = (ngx_str_t**)ngx_palloc(cf->pool, sizeof(ngx_str_t*)*FIFTYONEDEGREES_MAX_PROPERTIES);
 
 	// Enable single User-Agent matching.
-	if (strcmp(cmd->name.data, "51D_single") == 0) {
+	if (strcmp(cmd->name.data, "51D_match_single") == 0) {
 		fdlcf->match[fdlcf->count]->multi = 0;
 	}
-	else if (strcmp(cmd->name.data, "51D_all") == 0) {
+	else if (strcmp(cmd->name.data, "51D_match_all") == 0) {
 		fdlcf->match[fdlcf->count]->multi = 1;
 	}
 

@@ -77,11 +77,12 @@ const int16_t POWERS[] = { 1, 10, 100, 1000, 10000 };
 
 #define HTTP_PREFIX_UPPER "HTTP_"
 
-#ifndef EXTERNAL_MALLOC
+/**
+ * Memory allocation functions.
+ */
 void *(ALLOC_CALL_CONV *fiftyoneDegreesMalloc)(size_t __size) = malloc;
 void *(ALLOC_CALL_CONV *fiftyoneDegreesCalloc)(size_t __nmemb, size_t __size) = calloc;
 void (ALLOC_CALL_CONV *fiftyoneDegreesFree)(void *__ptr) = free;
-#endif
 
 /**
  * DATASET MEMORY ALLOCATION SIZE MACROS
@@ -1891,7 +1892,16 @@ int fiftyoneDegreesGetProviderSizeWithPropertyCount(const char *fileName, int pr
 	// Return the total size needed for the provider.
 	return getProviderSizeWithPropertyCount(sizeOfFile, header, propertyCount, poolSize, cacheSize);
 }
-
+/**
+* \cond
+* Finds the maximum string length of the values associated with the given
+* property name.
+* @param dataSet pointer to a fiftyoneDegreesDataSet.
+* @param propertyName the name of the property to find the value length for.
+* @returns int the maximum string length of the values associated with the
+* given property.
+* \endcond
+*/
 int fiftyoneDegreesGetMaxValueLength(const fiftyoneDegreesDataSet *dataSet, char *propertyName)
 {
 	const fiftyoneDegreesProperty *property;
@@ -1901,6 +1911,11 @@ int fiftyoneDegreesGetMaxValueLength(const fiftyoneDegreesDataSet *dataSet, char
 	int maxLength = 0;
 
 	property = getPropertyByName(dataSet, propertyName);
+
+	if (property == NULL) {
+		return -1;
+	}
+
 	propertyIndex = getPropertyIndex(dataSet, property);
 
 	for (valueIndex = property->firstValueIndex; valueIndex <= property->lastValueIndex; valueIndex++) {
