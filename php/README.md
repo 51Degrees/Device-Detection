@@ -89,7 +89,7 @@ make the binary tools available in the system path:
 ```
 $ bin\phpsdk_setvars.bat
 ```
-Configure and build the php source by running the follwing in the php-src directory:
+Configure and build the php source by running the following in the php-src directory:
 ```
 $ cd php-sdk
 $ buildconf
