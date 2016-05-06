@@ -84,7 +84,7 @@ $ git clone https://github.com/51Degrees/Device-Detection.git
 Now download the php source (the same version as is installed on the target system) from http://windows.php.net/download and extract to either the Pattern or Trie directory and rename to php-src.
 
 Download the necessary binary tools from http://windows.php.net/downloads/php-sdk/ and extract the bin subfolder to either the Pattern or Trie directory.
-In a developer command prompt and move to either the Pattern or Trie directory.
+In a developer command prompt (for PHP 5.5/5.6 use Visual Studio 2012, for 7.0+ use 2015) and move to either the Pattern or Trie directory.
 make the binary tools available in the system path:
 ```
 $ bin\phpsdk_setvars.bat
