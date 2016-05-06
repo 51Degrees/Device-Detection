@@ -57,6 +57,7 @@ typedef struct {
     ngx_uint_t poolSize;
     ngx_str_t dataFile;
     fiftyoneDegreesProvider *provider;
+    fiftyoneDegreesWorkset *ws;
 } ngx_http_51D_main_conf_t;
 
 /**
@@ -440,6 +441,25 @@ static ngx_http_module_t ngx_http_51D_module_ctx = {
 	ngx_http_51D_merge_loc_conf    /* merge location configuration */
 };
 
+static ngx_int_t
+ngx_http_51D_init_process(ngx_cycle_t *cycle)
+{
+	ngx_http_51D_main_conf_t *fdmcf;
+	fdmcf = ngx_http_cycle_get_module_main_conf(cycle, ngx_http_51D_module);
+
+	fdmcf->ws = fiftyoneDegreesProviderWorksetGet(fdmcf->provider);
+	return NGX_OK;
+}
+
+static void
+ngx_http_51D_exit_process(ngx_cycle_t *cycle)
+{
+	ngx_http_51D_main_conf_t *fdmcf;
+	fdmcf = ngx_http_cycle_get_module_main_conf(cycle, ngx_http_51D_module);
+
+	fiftyoneDegreesWorksetRelease(fdmcf->ws);
+}
+
 /**
  * Module definition. Set the module context, commands, type and init function.
  */
@@ -450,8 +470,8 @@ ngx_module_t ngx_http_51D_module = {
 	NGX_HTTP_MODULE,               /* module type */
 	NULL,                          /* init master */
 	ngx_http_51D_init_module,      /* init module */
-	NULL,                          /* init process */
-	NULL,                          /* init thread */
+	ngx_http_51D_init_process,                          /* init process */
+	ngx_http_51D_exit_process,                          /* init thread */
 	NULL,                          /* exit thread */
 	NULL,                          /* exit process */
 	NULL,                          /* exit master */
@@ -597,7 +617,6 @@ void ngx_http_51D_get_value(fiftyoneDegreesWorkset *ws, char *values_string, con
 static ngx_int_t
 ngx_http_51D_handler(ngx_http_request_t *r)
 {
-	ngx_log_debug0(NGX_LOG_DEBUG_ALL, ngx_cycle->log, 0, "51Degrees in handler.");
 
 	ngx_http_51D_main_conf_t *fdmcf;
 	ngx_http_51D_loc_conf_t *fdlcf;
@@ -612,36 +631,28 @@ ngx_http_51D_handler(ngx_http_request_t *r)
 
 	// Get 51Degrees location config.
 	fdlcf = ngx_http_get_module_loc_conf(r, ngx_http_51D_module);
-ngx_log_debug0(NGX_LOG_DEBUG_ALL, ngx_cycle->log, 0, "51Degrees in handler loc.");
 	// Get 51Degrees main config.
 	fdmcf = ngx_http_get_module_main_conf(r, ngx_http_51D_module);
-ngx_log_debug0(NGX_LOG_DEBUG_ALL, ngx_cycle->log, 0, "51Degrees in handler main.");
 	ngx_table_elt_t *h[fdlcf->headerCount];
 
 	// Get a workset from the pool.
-	ws = fiftyoneDegreesProviderWorksetGet(fdmcf->provider);
-ngx_log_debug0(NGX_LOG_DEBUG_ALL, ngx_cycle->log, 0, "51Degrees in handler ws.");
+	ws = fdmcf->ws;
+	//ws = fiftyoneDegreesProviderWorksetGet(fdmcf->provider);
 	for (multi = 0; multi < 2; multi++) {
 		for (matchIndex=0;matchIndex<fdlcf->headerCount;matchIndex++)
 		{
-			ngx_log_debug0(NGX_LOG_DEBUG_ALL, ngx_cycle->log, 0, "51Degrees in handler header index.");
 			if ((int)fdlcf->header[matchIndex]->multi == multi) {
 				if (fdlcf->header[matchIndex]->valueString == NULL) {
 					ngx_http_51D_allocate_string(fdmcf->provider->activePool->dataSet, fdlcf->header[matchIndex]);
-					ngx_log_debug0(NGX_LOG_DEBUG_ALL, ngx_cycle->log, 0, "51Degrees in handler alloc.");
 				}
-				ngx_log_debug0(NGX_LOG_DEBUG_ALL, ngx_cycle->log, 0, "51Degrees in handler match.");
 				fdlcf->header[matchIndex]->valueString[0] = '\0';
-			ngx_log_debug1(NGX_LOG_DEBUG_ALL, ngx_cycle->log, 0, "51Degrees in handler %s.", fdlcf->header[matchIndex]->valueString);
 				// Get a match.
 				ngx_http_51D_get_match(ws, r, fdlcf->header[matchIndex]->multi);
-ngx_log_debug0(NGX_LOG_DEBUG_ALL, ngx_cycle->log, 0, "51Degrees in handler got.");
 				// For each property, set the value in values_string_array.
 				int property_index;
 				for (property_index=0;property_index<fdlcf->header[matchIndex]->propertyCount; property_index++) {
 					ngx_http_51D_get_value(ws, fdlcf->header[matchIndex]->valueString, fdlcf->header[matchIndex]->property[property_index]->data);
 				}
-				ngx_log_debug0(NGX_LOG_DEBUG_ALL, ngx_cycle->log, 0, "51Degrees in handler value.");
 
 				// For each property value pair, set a new header name and value.
 				h[matchIndex] = ngx_list_push(&r->headers_in.headers);
@@ -651,12 +662,11 @@ ngx_log_debug0(NGX_LOG_DEBUG_ALL, ngx_cycle->log, 0, "51Degrees in handler got."
 				h[matchIndex]->value.data = (u_char*)fdlcf->header[matchIndex]->valueString;
 				h[matchIndex]->value.len = ngx_strlen(h[matchIndex]->value.data);
 				h[matchIndex]->lowcase_key = (u_char*)fdlcf->header[matchIndex]->lowerName.data;
-				ngx_log_debug0(NGX_LOG_DEBUG_ALL, ngx_cycle->log, 0, "51Degrees in handler headers.");
 			}
 		}
 	}
 	// Release the workset back to the pool.
-	fiftyoneDegreesWorksetRelease(ws);
+	//fiftyoneDegreesWorksetRelease(ws);
 
 	return NGX_DECLINED;
 
