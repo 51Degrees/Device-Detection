@@ -4,7 +4,7 @@
 	<Project>
 		<Option title="51Degrees_NGINX" />
 		<Option makefile_is_custom="1" />
-		<Option execution_dir="../vendor/nginx-1.4.7" />
+		<Option execution_dir="../vendor/nginx-1.8.1" />
 		<Option pch_mode="2" />
 		<Option compiler="gcc" />
 		<Build>
@@ -700,13 +700,14 @@
 		<Extensions>
 			<code_completion />
 			<debugger>
-				<remote_debugging target="Blank">
-					<options conn_type="0" serial_baud="115200" additional_cmds_before="set follow-exec-mode new&#x0A;set follow-fork-mode child" />
-				</remote_debugging>
 				<remote_debugging target="Debug">
 					<options conn_type="0" serial_baud="115200" additional_cmds_before="set follow-exec-mode new&#x0A;set follow-fork-mode child" />
 				</remote_debugging>
+				<remote_debugging target="Blank">
+					<options conn_type="0" serial_baud="115200" additional_cmds_before="set follow-exec-mode new&#x0A;set follow-fork-mode child" />
+				</remote_debugging>
 			</debugger>
+			<envvars />
 		</Extensions>
 	</Project>
 </CodeBlocks_project_file>

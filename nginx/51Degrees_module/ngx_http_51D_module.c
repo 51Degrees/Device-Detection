@@ -34,20 +34,20 @@ ngx_atomic_t ngx_http_51D_shm_tag = 1;
 
 static ngx_int_t ngx_http_51D_init_shm_zone(ngx_shm_zone_t *shm_zone, void *data);
 
-static int ngx_http_51D_total_matches = -1;
-typedef struct {
+static int ngx_http_51D_total_headers_to_set = -1;
+typedef struct ngx_http_51D_header_to_set_t {
     ngx_uint_t multi;
-    ngx_uint_t count;
+    ngx_uint_t propertyCount;
     ngx_str_t **property;
     ngx_str_t name;
     ngx_str_t lowerName;
     char *valueString;
-} ngx_http_51D_match_t;
+} ngx_http_51D_header_to_set;
 
 // Module location config.
 typedef struct {
-    int count;
-    ngx_http_51D_match_t **match;
+    int headerCount;
+    ngx_http_51D_header_to_set **header;
 } ngx_http_51D_loc_conf_t;
 
 // Module main config.
@@ -177,18 +177,18 @@ static void ngx_http_51D_count_matches(ngx_conf_t *cf)
 {
 	const char *buffer = (char*)cf->conf_file->buffer->start;
 	const char* searchString = "51D_match";
-	char *match;
+	char *header;
 
-	ngx_http_51D_total_matches = 0;
-	match = strstr(buffer, searchString);
-	while (match != NULL) {
-		ngx_http_51D_total_matches++;
-		match = strstr((const char*)match + strlen(searchString), searchString);
+	ngx_http_51D_total_headers_to_set = 0;
+	header = strstr(buffer, searchString);
+	while (header != NULL) {
+		ngx_http_51D_total_headers_to_set++;
+		header = strstr((const char*)header + strlen(searchString), searchString);
 	}
 }
 
 /**
- * Create location config. Allocates memory to the configuration and each match
+ * Create location config. Allocates memory to the configuration and each header
  * structure. Initialises count to -1 (unset).
  */
 static void *
@@ -200,11 +200,11 @@ ngx_http_51D_create_loc_conf(ngx_conf_t *cf)
     if (conf == NULL) {
         return NULL;
     }
-    if (ngx_http_51D_total_matches < 0) {
+    if (ngx_http_51D_total_headers_to_set < 0) {
 		ngx_http_51D_count_matches(cf);
     }
-	conf->count = 0;
-	conf->match = (ngx_http_51D_match_t**)ngx_palloc(cf->pool, sizeof(ngx_http_51D_match_t*) * ngx_http_51D_total_matches);
+	conf->headerCount = 0;
+	conf->header = (ngx_http_51D_header_to_set**)ngx_palloc(cf->pool, sizeof(ngx_http_51D_header_to_set*) * ngx_http_51D_total_headers_to_set);
 
     return conf;
 }
@@ -219,7 +219,7 @@ ngx_http_51D_merge_loc_conf(ngx_conf_t *cf, void *parent, void *child)
 	ngx_http_51D_loc_conf_t  *prev = parent;
 	ngx_http_51D_loc_conf_t  *conf = child;
 
-	ngx_conf_merge_uint_value(conf->count, prev->count, 0);
+	ngx_conf_merge_uint_value(conf->headerCount, prev->headerCount, 0);
 
 	return NGX_CONF_OK;
 }
@@ -315,6 +315,29 @@ void ngx_http_51D_shm_free(void *__ptr)
 	else {
 		ngx_slab_free_locked(shpool, __ptr);
 	}
+}
+
+/**
+ * Allocate string function. Gets the maximum possible length of the returned
+ * list of values for specified header structure and allocates space for it.
+ */
+static void
+ngx_http_51D_allocate_string(const fiftyoneDegreesDataSet *dataSet, ngx_http_51D_header_to_set *header)
+{
+	int i, tmpLength, length = 0;
+	for (i = 0; i < header->propertyCount; i++) {
+		if (i != 0) {
+			length++;
+		}
+		tmpLength = fiftyoneDegreesGetMaxValueLength(dataSet, (char*)header->property[i]->data);
+		if (tmpLength > 0) {
+			length += (int)tmpLength;
+		}
+		else {
+			length += ngx_strlen(FIFTYONEDEGREES_PROPERTY_NOT_AVAILABLE);
+		}
+	}
+	header->valueString = (char*)ngx_palloc(ngx_cycle->pool, length * sizeof(char));
 }
 
 /**
@@ -568,34 +591,14 @@ void ngx_http_51D_get_value(fiftyoneDegreesWorkset *ws, char *values_string, con
 }
 
 /**
- * Allocate string function. Gets the maximum possible length of the returned
- * list of values for specified match structure and allocates space for it.
- */
-static void ngx_http_51D_allocate_string(const fiftyoneDegreesDataSet *dataSet, ngx_http_51D_match_t *match)
-{
-	int i, tmpLength, length = 0;
-	for (i = 0; i < match->count; i++) {
-		if (i != 0) {
-			length++;
-		}
-		tmpLength = fiftyoneDegreesGetMaxValueLength(dataSet, (char*)match->property[i]->data);
-		if (tmpLength > 0) {
-			length += (int)tmpLength;
-		}
-		else {
-			length += ngx_strlen(FIFTYONEDEGREES_PROPERTY_NOT_AVAILABLE);
-		}
-	}
-	match->valueString = (char*)ngx_palloc(ngx_cycle->pool, length * sizeof(char));
-}
-
-/**
  * Module handler, gets a match using either the User-Agent or multiple http
  * headers, then sets properties as headers.
  */
 static ngx_int_t
 ngx_http_51D_handler(ngx_http_request_t *r)
 {
+	ngx_log_debug0(NGX_LOG_DEBUG_ALL, ngx_cycle->log, 0, "51Degrees in handler.");
+
 	ngx_http_51D_main_conf_t *fdmcf;
 	ngx_http_51D_loc_conf_t *fdlcf;
 	fiftyoneDegreesWorkset *ws;
@@ -609,40 +612,46 @@ ngx_http_51D_handler(ngx_http_request_t *r)
 
 	// Get 51Degrees location config.
 	fdlcf = ngx_http_get_module_loc_conf(r, ngx_http_51D_module);
-
+ngx_log_debug0(NGX_LOG_DEBUG_ALL, ngx_cycle->log, 0, "51Degrees in handler loc.");
 	// Get 51Degrees main config.
 	fdmcf = ngx_http_get_module_main_conf(r, ngx_http_51D_module);
-
-	ngx_table_elt_t *h[fdlcf->count];
+ngx_log_debug0(NGX_LOG_DEBUG_ALL, ngx_cycle->log, 0, "51Degrees in handler main.");
+	ngx_table_elt_t *h[fdlcf->headerCount];
 
 	// Get a workset from the pool.
 	ws = fiftyoneDegreesProviderWorksetGet(fdmcf->provider);
-
+ngx_log_debug0(NGX_LOG_DEBUG_ALL, ngx_cycle->log, 0, "51Degrees in handler ws.");
 	for (multi = 0; multi < 2; multi++) {
-		for (matchIndex=0;matchIndex<fdlcf->count;matchIndex++)
+		for (matchIndex=0;matchIndex<fdlcf->headerCount;matchIndex++)
 		{
-			if ((int)fdlcf->match[matchIndex]->multi == multi) {
-				if (fdlcf->match[matchIndex]->valueString == NULL) {
-					ngx_http_51D_allocate_string(fdmcf->provider->activePool->dataSet, fdlcf->match[matchIndex]);
+			ngx_log_debug0(NGX_LOG_DEBUG_ALL, ngx_cycle->log, 0, "51Degrees in handler header index.");
+			if ((int)fdlcf->header[matchIndex]->multi == multi) {
+				if (fdlcf->header[matchIndex]->valueString == NULL) {
+					ngx_http_51D_allocate_string(fdmcf->provider->activePool->dataSet, fdlcf->header[matchIndex]);
+					ngx_log_debug0(NGX_LOG_DEBUG_ALL, ngx_cycle->log, 0, "51Degrees in handler alloc.");
 				}
-				fdlcf->match[matchIndex]->valueString[0] = '\0';
+				ngx_log_debug0(NGX_LOG_DEBUG_ALL, ngx_cycle->log, 0, "51Degrees in handler match.");
+				fdlcf->header[matchIndex]->valueString[0] = '\0';
+			ngx_log_debug1(NGX_LOG_DEBUG_ALL, ngx_cycle->log, 0, "51Degrees in handler %s.", fdlcf->header[matchIndex]->valueString);
 				// Get a match.
-				ngx_http_51D_get_match(ws, r, fdlcf->match[matchIndex]->multi);
-
+				ngx_http_51D_get_match(ws, r, fdlcf->header[matchIndex]->multi);
+ngx_log_debug0(NGX_LOG_DEBUG_ALL, ngx_cycle->log, 0, "51Degrees in handler got.");
 				// For each property, set the value in values_string_array.
 				int property_index;
-				for (property_index=0;property_index<fdlcf->match[matchIndex]->count; property_index++) {
-					ngx_http_51D_get_value(ws, fdlcf->match[matchIndex]->valueString, fdlcf->match[matchIndex]->property[property_index]->data);
+				for (property_index=0;property_index<fdlcf->header[matchIndex]->propertyCount; property_index++) {
+					ngx_http_51D_get_value(ws, fdlcf->header[matchIndex]->valueString, fdlcf->header[matchIndex]->property[property_index]->data);
 				}
+				ngx_log_debug0(NGX_LOG_DEBUG_ALL, ngx_cycle->log, 0, "51Degrees in handler value.");
 
 				// For each property value pair, set a new header name and value.
 				h[matchIndex] = ngx_list_push(&r->headers_in.headers);
 				h[matchIndex]->hash = matchIndex;
-				h[matchIndex]->key.data = (u_char*)fdlcf->match[matchIndex]->name.data;
+				h[matchIndex]->key.data = (u_char*)fdlcf->header[matchIndex]->name.data;
 				h[matchIndex]->key.len = ngx_strlen(h[matchIndex]->key.data);
-				h[matchIndex]->value.data = (u_char*)fdlcf->match[matchIndex]->valueString;
+				h[matchIndex]->value.data = (u_char*)fdlcf->header[matchIndex]->valueString;
 				h[matchIndex]->value.len = ngx_strlen(h[matchIndex]->value.data);
-				h[matchIndex]->lowcase_key = (u_char*)fdlcf->match[matchIndex]->lowerName.data;
+				h[matchIndex]->lowcase_key = (u_char*)fdlcf->header[matchIndex]->lowerName.data;
+				ngx_log_debug0(NGX_LOG_DEBUG_ALL, ngx_cycle->log, 0, "51Degrees in handler headers.");
 			}
 		}
 	}
@@ -652,24 +661,25 @@ ngx_http_51D_handler(ngx_http_request_t *r)
 	return NGX_DECLINED;
 
 }
+
 /**
- * Set match function. Initialises the match structure for a given occurrence
+ * Set match function. Initialises the header structure for a given occurrence
  * of "51D_match_single" or "51D_match_all" in the config file. Allocates
  * space required and sets the name and properties.
  */
 void
-ngx_http_51D_set_match(ngx_conf_t *cf, ngx_http_51D_match_t *match, ngx_str_t *value, ngx_http_51D_main_conf_t *fdmcf)
+ngx_http_51D_set_header(ngx_conf_t *cf, ngx_http_51D_header_to_set *header, ngx_str_t *value, ngx_http_51D_main_conf_t *fdmcf)
 {
 	char *tok;
 	int propertiesCount, charPos;
-	match->count = 0;
-	// Set the name of the match.
-	match->name.data = (u_char*)ngx_palloc(cf->pool, sizeof(value[1]));
-	match->lowerName.data = (u_char*)ngx_palloc(cf->pool, sizeof(value[1]));
-	match->name.data = value[1].data;
-	match->name.len = value[1].len;
-	ngx_strlow(match->lowerName.data, match->name.data, match->name.len);
-	match->lowerName.len = match->name.len;
+	header->propertyCount = 0;
+	// Set the name of the header.
+	header->name.data = (u_char*)ngx_palloc(cf->pool, sizeof(value[1]));
+	header->lowerName.data = (u_char*)ngx_palloc(cf->pool, sizeof(value[1]));
+	header->name.data = value[1].data;
+	header->name.len = value[1].len;
+	ngx_strlow(header->lowerName.data, header->name.data, header->name.len);
+	header->lowerName.len = header->name.len;
 
     char *propertiesString = (char*)value[2].data;
 
@@ -679,27 +689,27 @@ ngx_http_51D_set_match(ngx_conf_t *cf, ngx_http_51D_match_t *match, ngx_str_t *v
 			propertiesCount++;
 		}
 	}
-	match->property = (ngx_str_t**)ngx_palloc(cf->pool, sizeof(ngx_str_t*)*propertiesCount);
+	header->property = (ngx_str_t**)ngx_palloc(cf->pool, sizeof(ngx_str_t*)*propertiesCount);
 
 	tok = strtok((char*)propertiesString, (const char*)",");
 	while (tok != NULL) {
-		match->property[match->count] = (ngx_str_t*)ngx_palloc(cf->pool, sizeof(ngx_str_t));
-		match->property[match->count]->data = (u_char*)ngx_palloc(cf->pool, sizeof(u_char)*(ngx_strlen(tok)));
-		match->property[match->count]->data = (u_char*)tok;
-		match->property[match->count]->len = ngx_strlen(match->property[match->count]->data);
+		header->property[header->propertyCount] = (ngx_str_t*)ngx_palloc(cf->pool, sizeof(ngx_str_t));
+		header->property[header->propertyCount]->data = (u_char*)ngx_palloc(cf->pool, sizeof(u_char)*(ngx_strlen(tok)));
+		header->property[header->propertyCount]->data = (u_char*)tok;
+		header->property[header->propertyCount]->len = ngx_strlen(header->property[header->propertyCount]->data);
 		if (ngx_strstr(fdmcf->properties, tok) == NULL) {
 			add_value(tok, fdmcf->properties);
 		}
-		match->count++;
+		header->propertyCount++;
 		tok = strtok(NULL, ",");
 	}
-
+	header->valueString = NULL;
 }
 
 /**
  * Set function. Is called for each occurrence of "51D_match_single" or
- * "51D_match_all". Allocates space for the match structure and initialises
- * it with the set match function.
+ * "51D_match_all". Allocates space for the header structure and initialises
+ * it with the set header function.
  */
 static char *ngx_http_51D_set(ngx_conf_t* cf, ngx_command_t *cmd, void *conf)
 {
@@ -711,19 +721,20 @@ static char *ngx_http_51D_set(ngx_conf_t* cf, ngx_command_t *cmd, void *conf)
 	fdmcf = ngx_http_conf_get_module_main_conf(cf, ngx_http_51D_module);
 	fdlcf = ngx_http_conf_get_module_loc_conf(cf, ngx_http_51D_module);
 
-	fdlcf->match[fdlcf->count] = (ngx_http_51D_match_t*)ngx_palloc(cf->pool, sizeof(ngx_http_51D_match_t));
+	fdlcf->header[fdlcf->headerCount] = (ngx_http_51D_header_to_set*)ngx_palloc(cf->pool, sizeof(ngx_http_51D_header_to_set));
 
 	// Enable single User-Agent matching.
 	if (strcmp(cmd->name.data, "51D_match_single") == 0) {
-		fdlcf->match[fdlcf->count]->multi = 0;
+		fdlcf->header[fdlcf->headerCount]->multi = 0;
 	}
 	else if (strcmp(cmd->name.data, "51D_match_all") == 0) {
-		fdlcf->match[fdlcf->count]->multi = 1;
+		fdlcf->header[fdlcf->headerCount]->multi = 1;
 	}
 
 	// Set the properties for the selected location.
-	ngx_http_51D_set_match(cf, fdlcf->match[fdlcf->count], value, fdmcf);
-	fdlcf->count++;
+	ngx_http_51D_set_header(cf, fdlcf->header[fdlcf->headerCount], value, fdmcf);
+
+	fdlcf->headerCount++;
 
 	return NGX_OK;
 }

@@ -8,7 +8,7 @@ set -o errexit
 DIR=$(pwd)
 BUILDDIR=$DIR/build
 NGINX_DIR=nginx
-NGINX_VERSION=1.4.7
+NGINX_VERSION=1.8.1
 
 rm -rf build vendor
 if [ ! -d $BUILDDIR ]; then
@@ -29,7 +29,7 @@ else
 fi
 
 cd "vendor/nginx-$NGINX_VERSION"
-CFLAGS="-O3 -DFIFTYONEDEGREES_NGINX -DFIFTYONEDEGREES_NO_THREADING" ./configure           \
+CFLAGS="-O3" ./configure           \
     --prefix=$BUILDDIR \
     --with-ld-opt="-lm"  \
     --add-module=../../51Degrees_module
