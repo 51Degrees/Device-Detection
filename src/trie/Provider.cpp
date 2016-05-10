@@ -248,9 +248,9 @@ string Provider::getDataSetName() {
  * @returns the version format of the data file and API.
  */
 string Provider::getDataSetFormat() {
-    string result;
-    result.assign((&dataSet)->version);
-    return result;
+	stringstream stream;
+	stream << dataSet.version;
+	return stream.str();
 }
 
 /**
