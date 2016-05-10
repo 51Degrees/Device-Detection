@@ -44,7 +44,7 @@ class Match {
 	friend class Provider;
 
 public:
-	Match(fiftyoneDegreesDeviceOffsets *offsets);
+	Match(fiftyoneDegreesDataSet *dataSet, fiftyoneDegreesDeviceOffsets *offsets);
 	virtual ~Match();
 
 	vector<string> getValues(const char *propertyName);
@@ -64,6 +64,7 @@ public:
 protected:
 
 private:
+	fiftyoneDegreesDataSet *dataSet;
 	fiftyoneDegreesDeviceOffsets *offsets;
 	string userAgent;
 };
