@@ -25,8 +25,7 @@
  * Creates a new match instance for the offsets provided.
  * @param offsets for the devices the match relates to
  */
-Match::Match(fiftyoneDegreesDataSet *dataSet, fiftyoneDegreesDeviceOffsets *offsets) {
-	this->dataSet = dataSet;
+Match::Match(fiftyoneDegreesDeviceOffsets *offsets) {
 	this->offsets = offsets;
 }
 

@@ -374,6 +374,9 @@ void Provider::buildArray(int offset, map<string, vector<string> > *result) {
 	}
 }
 
+void Provider::initMatch(Match *match) {
+	match->dataSet = &dataSet;
+}
 /**
  * Completes device detection for the User-Agent provided.
  * @param User-Agent whose results need to be obtained
@@ -384,7 +387,9 @@ Match* Provider::getMatch(const char* userAgent) {
 	offsets->size = 1;
 	offsets->firstOffset = new fiftyoneDegreesDeviceOffset[1];
 	fiftyoneDegreesSetDeviceOffset(&dataSet, userAgent, 0, offsets->firstOffset);
-    return new Match(&dataSet, offsets);
+    Match *result = new Match(offsets);
+	initMatch(result);
+	return result;
 }
 
 /**
@@ -402,7 +407,9 @@ Match* Provider::getMatch(const string& userAgent) {
  * @returns new Match instance configured to provide access to the results
  */
 Match* Provider::getMatch(const map<string, string>& headers) {
-    return new Match(&dataSet, matchForHttpHeaders(&headers));
+    Match *result =  new Match(matchForHttpHeaders(&headers));
+	initMatch(result);
+	return result;
 }
 
 /**
