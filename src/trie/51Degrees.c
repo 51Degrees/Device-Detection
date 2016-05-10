@@ -202,10 +202,9 @@ void fiftyoneDegreesDestroy(fiftyoneDegreesDataSet *dataSet) {
 // Reads the version value from the start of the file and returns
 // 0 if the file is in a format that can be read by this code.
 fiftyoneDegreesDataSetInitStatus readVersion(fiftyoneDegreesDataSet *dataSet, FILE *inputFilePtr) {
-	uint16_t version;
 	//TODO read version to data set.
-	if (fread(&version, sizeof(uint16_t), 1, inputFilePtr) != -1) {
-		if (version != 32)
+	if (fread(&dataSet->version, sizeof(uint16_t), 1, inputFilePtr) != -1) {
+		if (dataSet->version != 32)
 			return DATA_SET_INIT_STATUS_INCORRECT_VERSION;
 		return DATA_SET_INIT_STATUS_SUCCESS;
 	}

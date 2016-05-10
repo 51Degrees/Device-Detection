@@ -122,27 +122,28 @@ typedef struct fiftyoneDegrees_property_t {
 
 #pragma pack(push, 1)
 typedef struct fiftyoneDegrees_dataset_t {
+	uint16_t version; /* The version of the data file. */
 	int32_t copyrightSize; /* The size of the copyright notice at the top of the data file. */
-	char *copyright = NULL; /* Pointer to the copyright notice held in the data file. */
+	char *copyright; /* Pointer to the copyright notice held in the data file. */
 	int32_t stringsSize; /* The size of the strings data array. */
-	char *strings = NULL; /* Pointer to the start of the strings data array. */
+	char *strings; /* Pointer to the start of the strings data array. */
 	int32_t httpHeadersSize; /* The size of the HTTP headers data array. */
 	int32_t *httpHeaders; /* Pointer to the start of the HTTP headers data array. */
 	int32_t uniqueHttpHeaderCount; /* The number of unique http headers. */
-	int32_t *uniqueHttpHeaders = NULL; /* Pointer to the unique list of HTTP headers. */
-	const char **prefixedUpperHttpHeaders = NULL; /* Pointer to an array of prefixed upper HTTP headers. */
+	int32_t *uniqueHttpHeaders; /* Pointer to the unique list of HTTP headers. */
+	const char **prefixedUpperHttpHeaders; /* Pointer to an array of prefixed upper HTTP headers. */
 	int32_t propertiesCount; /* The number of properties contained in the system. */
 	int32_t propertiesSize; /* The size of the properties data array. */
-	fiftyoneDegreesProperty *properties = NULL; /* Pointer to the start of the properties data array. */
-	int32_t *devices = NULL; /* Pointer to the start of the devices data array. */
+	fiftyoneDegreesProperty *properties; /* Pointer to the start of the properties data array. */
+	int32_t *devices; /* Pointer to the start of the devices data array. */
 	int32_t devicesSize; /* The size of the devices data array. */
 	int32_t lookupListSize; /* The size of the memory reserved for lookup lists. */
-	LOOKUP_HEADER *lookupList = NULL; /* Pointer to the start of the lookup lists. */
-	int32_t *rootNode = NULL; /* Offset in the device data file for the root node. */
+	LOOKUP_HEADER *lookupList; /* Pointer to the start of the lookup lists. */
+	int32_t *rootNode; /* Offset in the device data file for the root node. */
 	int64_t nodesSize; /* The size of the data array containing the nodes. */
 	int requiredPropertiesCount; /* The number of properties to be returned. */
-	uint32_t *requiredProperties = NULL; /* A list of required property indexes. */
-	const char **requiredPropertiesNames = NULL; /* A list of pointers to the names of the properties. */
+	uint32_t *requiredProperties; /* A list of required property indexes. */
+	const char **requiredPropertiesNames; /* A list of pointers to the names of the properties. */
 } fiftyoneDegreesDataSet;
 #pragma pack(pop)
 

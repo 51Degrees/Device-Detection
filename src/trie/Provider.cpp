@@ -249,7 +249,7 @@ string Provider::getDataSetName() {
  */
 string Provider::getDataSetFormat() {
     string result;
-    result.assign("3.2");
+    result.assign((&dataSet)->version);
     return result;
 }
 
