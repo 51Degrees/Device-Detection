@@ -99,6 +99,9 @@ class Provider {
 		void buildArray(int offset, map<string, vector<string> > *result);
 		fiftyoneDegreesDeviceOffsets* matchForHttpHeaders(
 			const map<string, string> *headers);
+		void initMatch(Match *match);
+
+		fiftyoneDegreesDataSet dataSet;
 };
 
 #endif // FIFTYONEDEGREESPROVIDER_HPP
