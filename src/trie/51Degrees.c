@@ -246,6 +246,10 @@ fiftyoneDegreesDataSetInitStatus readFile(char* fileName, fiftyoneDegreesDataSet
 	}
 	fclose(inputFilePtr);
 
+	// Initialise prefixed HTTP headers so they are
+	// freed correctly in debug mode.
+	dataSet->prefixedUpperHttpHeaders = NULL;
+
 	return status;
 }
 
