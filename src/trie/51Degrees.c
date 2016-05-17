@@ -36,6 +36,13 @@
 #define snprintf _snprintf
 #endif
 
+/**
+ * Memory allocation functions.
+ */
+void *(ALLOC_CALL_CONV *fiftyoneDegreesMalloc)(size_t __size) = malloc;
+void *(ALLOC_CALL_CONV *fiftyoneDegreesCalloc)(size_t __nmemb, size_t __size) = calloc;
+void (ALLOC_CALL_CONV *fiftyoneDegreesFree)(void *__ptr) = free;
+
 // Reads the strings from the file.
 fiftyoneDegreesDataSetInitStatus readStrings(fiftyoneDegreesDataSet *dataSet, FILE *inputFilePtr) {
 	if (fread(&dataSet->stringsSize, sizeof(int32_t), 1, inputFilePtr) != 1)

@@ -63,11 +63,9 @@ typedef struct {
     ngx_uint_t cacheSize;
     ngx_uint_t poolSize;
     fiftyoneDegreesProvider *provider;
-    fiftyoneDegreesWorkset *ws;
 #endif // FIFTYONEDEGREES_PATTERN
 #ifdef FIFTYONEDEGREES_TRIE
 	fiftyoneDegreesDataSet *dataSet;
-	fiftyoneDegreesDeviceOffsets *offsets;
 #endif // FIFTYONEDEGREES_TRIE
 } ngx_http_51D_main_conf_t;
 
@@ -413,7 +411,7 @@ ngx_http_51D_init_module(ngx_cycle_t *cycle)
 	if (status != DATA_SET_INIT_STATUS_SUCCESS) {
 		return reportDatasetInitStatus(cycle, status, (const char*)fdmcf->dataFile.data);
 	}
-	ngx_log_debug2(NGX_LOG_DEBUG_ALL, cycle->log, 0, "51Degrees initialised Provider from file '%s' with properties '%s'.", (char*)fdmcf->dataFile.data, fdmcf->properties);
+	ngx_log_debug2(NGX_LOG_DEBUG_ALL, cycle->log, 0, "51Degrees initialised from file '%s' with properties '%s'.", (char*)fdmcf->dataFile.data, fdmcf->properties);
 
 	return NGX_OK;
 }
@@ -614,7 +612,7 @@ void ngx_http_51D_get_match(fiftyoneDegreesDataSet *dataSet, ngx_http_request_t 
 		headerIndex = 0;
 		offsets->size = 0;
 		ngx_table_elt_t *httpHeaderValue;
-		const char *httpHeaderName = GET_HTTP_HEADER_NAME(dataSet, headerIndex);
+		const char *httpHeaderName = fiftyoneDegreesGetHttpHeaderNamePointer(dataSet, headerIndex);
 		while (httpHeaderName != NULL) {
 			httpHeaderValue = search_headers_in(r, (u_char*)httpHeaderName, ngx_strlen(httpHeaderName));
 			if (httpHeaderValue != NULL) {
@@ -626,7 +624,7 @@ void ngx_http_51D_get_match(fiftyoneDegreesDataSet *dataSet, ngx_http_request_t 
 				offsets->size++;
 			}
 			headerIndex++;
-			httpHeaderName = GET_HTTP_HEADER_NAME(dataSet, headerIndex);
+			httpHeaderName = fiftyoneDegreesGetHttpHeaderNamePointer(dataSet, headerIndex);
 		}
 	}
 }
@@ -692,16 +690,16 @@ void ngx_http_51D_get_value(fiftyoneDegreesDataSet *dataSet, char *values_string
 	if (requiredPropertyIndex >= 0 &&
 			requiredPropertyIndex <
 			fiftyoneDegreesGetRequiredPropertiesCount(dataSet)) {
-		const char *value = fiftyoneDegreesGetValuePtrFromOffsets(
+		char *value = fiftyoneDegreesGetValuePtrFromOffsets(
 			dataSet,
 			offsets,
 			requiredPropertyIndex);
 		if (value != NULL) {
 			add_value(value, values_string);
 		}
-		else {
-			add_value(FIFTYONEDEGREES_PROPERTY_NOT_AVAILABLE, values_string);
-		}
+	}
+	else {
+		add_value(FIFTYONEDEGREES_PROPERTY_NOT_AVAILABLE, values_string);
 	}
 }
 #endif // FIFTYONEDEGREES_TRIE
@@ -738,11 +736,12 @@ ngx_http_51D_handler(ngx_http_request_t *r)
 
 	// Get a workset from the pool.
 #ifdef FIFTYONEDEGREES_PATTERN
-	ws = fdmcf->ws;
+	ws = fiftyoneDegreesProviderWorksetGet(fdmcf->provider);
 #endif // FIFTYONEDEGREES_PATTERN
 #ifdef FIFTYONEDEGREES_TRIE
 	dataSet = fdmcf->dataSet;
-	offsets = fdmcf->offsets;
+	offsets = (fiftyoneDegreesDeviceOffsets*)ngx_palloc(r->pool, sizeof(fiftyoneDegreesDeviceOffsets));
+	offsets->firstOffset = (fiftyoneDegreesDeviceOffset*)ngx_palloc(r->pool, dataSet->uniqueHttpHeaderCount * sizeof(fiftyoneDegreesDeviceOffset));
 #endif // FIFTYONEDEGREES_TRIE
 
 	for (multi = 0; multi < 2; multi++) {
@@ -781,7 +780,9 @@ ngx_http_51D_handler(ngx_http_request_t *r)
 	}
 
 	// Release the workset back to the pool.
-	//fiftyoneDegreesWorksetRelease(ws);
+#ifdef FIFTYONEDEGREES_PATTERN
+	fiftyoneDegreesWorksetRelease(ws);
+#endif // FIFTYONEDEGREES_PATTERN
 	return NGX_DECLINED;
 }
 

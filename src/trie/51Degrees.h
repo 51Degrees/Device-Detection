@@ -33,6 +33,12 @@
 #define EXTERNAL
 #endif
 
+#ifdef _MSC_VER
+#define ALLOC_CALL_CONV __cdecl
+#else
+#define ALLOC_CALL_CONV
+#endif
+
 /* Used to provide the status of the data set initialisation */
 typedef enum e_fiftyoneDegreesDataSetInitStatus {
     DATA_SET_INIT_STATUS_SUCCESS,
@@ -227,5 +233,20 @@ EXTERNAL int fiftyoneDegreesProcessDeviceOffsetsJSON(fiftyoneDegreesDataSet *dat
 
 // Returns the number of characters which matched in the trie.
 EXTERNAL int fiftyoneDegreesGetMatchedUserAgentLength(fiftyoneDegreesDataSet *dataSet, char *userAgent);
+
+/**
+ * \ingroup FiftyOneDegreesFunctions
+ * Malloc function, defaults to malloc.
+ * @param __size the size of memory to allocate.
+ * @returns void* pointer to allocated memory.
+ */
+EXTERNAL void *(ALLOC_CALL_CONV *fiftyoneDegreesMalloc)(size_t __size);
+
+/**
+ * \ingroup FiftyOneDegreesFunctions
+ * Free function, defaults to free.
+ * @param __ptr the pointer to memory to be freed.
+ */
+EXTERNAL void (ALLOC_CALL_CONV *fiftyoneDegreesFree)(void *__ptr);
 
 #endif // 51DEGREES_H_INCLUDED
