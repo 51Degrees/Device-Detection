@@ -424,6 +424,9 @@ class FiftyOneDegreesPatternV3PINVOKE {
 
   [global::System.Runtime.InteropServices.DllImport("FiftyOne.Mobile.Detection.Provider.Pattern.dll", EntryPoint="CSharp_Provider_findProfiles__SWIG_1")]
   public static extern global::System.IntPtr Provider_findProfiles__SWIG_1(global::System.Runtime.InteropServices.HandleRef jarg1, string jarg2, string jarg3, global::System.Runtime.InteropServices.HandleRef jarg4);
+
+  [global::System.Runtime.InteropServices.DllImport("FiftyOne.Mobile.Detection.Provider.Pattern.dll", EntryPoint="CSharp_Provider_reloadFromFile")]
+  public static extern void Provider_reloadFromFile(global::System.Runtime.InteropServices.HandleRef jarg1);
 }
 
 }

@@ -63,21 +63,19 @@ namespace FiftyOne.Mobile.Detection.Provider.Interop
         IMatchResult MatchForDeviceId(string userAgent);
      
         /// <summary>
-        /// Returns a list of profiles for the property value pair provided.
+        /// Finds the profiles associated with the property name and value 
+        /// provided.
         /// </summary>
         /// <param name="propertyName"></param>
         /// <param name="valueName"></param>
-        /// <returns>Profiles object</returns>
+        /// <returns></returns>
         Pattern.Profiles FindProfiles(string propertyName, string valueName);
 
         /// <summary>
-        /// Returns a list of profiles for the property value pair provided.
+        /// Reloads the original file path and associated configuration. Used
+        /// to refresh the active data set being used at runtime after the
+        /// wrapper has been created.
         /// </summary>
-        /// <param name="propertyName"></param>
-        /// <param name="valueName"></param>
-        /// <param name="profilesList"></param>
-        /// <returns>Profiles object</returns>
-        Pattern.Profiles FindProfiles(string propertyName, string valueName, Pattern.Profiles profilesList);
-
+        void ReloadFromFile();
     }
 }

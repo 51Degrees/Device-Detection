@@ -1,0 +1,25 @@
+global
+    daemon
+    maxconn 256
+    51degrees-data-file ../Device-Detection/data/51Degrees-LiteV3.2.dat
+    51degrees-property-name-list IsTablet DeviceType IsMobile
+    51degrees-property-separator ,
+    51degrees-cache-size 10
+    defaults
+    mode http
+    timeout connect 5000ms
+    timeout client 50000ms
+    timeout server 50000ms
+
+frontend http-in
+    bind *:8081
+    default_backend servers
+    http-request set-header X-51D-All %[51d.all(DeviceType,IsMobile,IsTablet)]
+    http-request set-header X-51D-Single %[req.fhdr(User-Agent),51d.single(DeviceType,IsMobile,IsTablet)]
+    # http-request set-header X-51D-All-Stats %[51d.all(Method,Difference,Rank)]
+    # http-request set-header X-51D-Single-Stats %[req.fhdr(User-Agent),51d.single(Method,Difference,Rank)]
+
+backend servers
+    server server1 127.0.0.1:9000 maxconn 32
+    server server2 127.0.0.1:9001 maxconn 32
+    server server3 127.0.0.1:9002 maxconn 32

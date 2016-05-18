@@ -32,7 +32,7 @@ Match::Match() {}
  * to use.
  */
 Match::~Match() {
-    fiftyoneDegreesWorksetPoolRelease(pool, ws);
+    fiftyoneDegreesWorksetRelease(ws);
 }
 
 /**

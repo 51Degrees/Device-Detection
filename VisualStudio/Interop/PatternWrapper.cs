@@ -58,30 +58,28 @@ namespace FiftyOne.Mobile.Detection.Provider.Interop
         /// Construct the wrapper creating a workset for each CPU available.
         /// </summary>
         /// <param name="fileName">Path to the data set file.</param>
-        /// <param name="size">The size of the cache to be used with the wrapper</param>
-        public PatternWrapper(string fileName, int size = 10000) : this(fileName, new string[] { }, size) { }
+        /// <param name="cacheSize">The size of the cache to be used with the wrapper</param>
+        public PatternWrapper(string fileName, int cacheSize = 10000) : this(fileName, new string[] { }, cacheSize) { }
 
         /// <summary>
         /// Construct the wrapper creating a workset for each CPU available.
         /// </summary>
         /// <param name="fileName">Path to the data set file.</param>
         /// <param name="properties">Collection of properties to include in the results.</param>
-        /// <param name="size">The size of the cache to be used with the wrapper</param>
-        public PatternWrapper(string fileName, IEnumerable<string> properties, int size = 10000) 
-            : this(fileName, String.Join(",", properties), size) {}
+        /// <param name="cacheSize">The size of the cache to be used with the wrapper</param>
+        public PatternWrapper(string fileName, IEnumerable<string> properties, int cacheSize = 10000) 
+            : this(fileName, String.Join(",", properties), cacheSize) {}
 
         /// <summary>
-        /// Construct the wrapper creating a workset for each CPU available.
+        /// Construct the wrapper creating a workset for the number of CPUs multiplied by 4.
         /// </summary>
         /// <param name="fileName">Path to the data set file.</param>
         /// <param name="properties">Comma seperated list of properties to include in the results.
-        /// <param name="size">The size of the cache to be used with the wrapper</param>
+        /// <param name="cacheSize">The size of the cache to be used with the wrapper</param>
         /// </param>
-        public PatternWrapper(string fileName, string properties, int size = 10000)
+        public PatternWrapper(string fileName, string properties, int cacheSize = 10000)
         {
-            _provider = new Pattern.Provider(fileName, properties, size, Environment.ProcessorCount);
-            _httpHeaders = new List<string>(_provider.getHttpHeaders());
-            _availableProperties = new List<string>(_provider.getAvailableProperties());
+            _provider = new Pattern.Provider(fileName, properties, cacheSize, Environment.ProcessorCount * 4);
         }
         
         #endregion
@@ -93,18 +91,44 @@ namespace FiftyOne.Mobile.Detection.Provider.Interop
         /// </summary>
         public List<string> HttpHeaders
         {
-            get { return _httpHeaders; }
+            get 
+            { 
+                if (_httpHeaders == null)
+                {
+                    lock (this)
+                    {
+                        if (_httpHeaders == null)
+                        {
+                            _httpHeaders = new List<string>(_provider.getHttpHeaders());
+                        }
+                    }
+                }
+                return _httpHeaders; 
+            }
         }
-        private readonly List<string> _httpHeaders;
+        private List<string> _httpHeaders;
 
         /// <summary>
         /// A list of properties available from the provider.
         /// </summary>
         public IList<string> AvailableProperties
         {
-            get { return _availableProperties; }
+            get 
+            { 
+                if (_availableProperties == null)
+                {
+                    lock (this)
+                    {
+                        if (_availableProperties == null)
+                        {
+                            _availableProperties = new List<string>(_provider.getAvailableProperties());
+                        }
+                    }
+                }
+                return _availableProperties; 
+            }
         }
-        private readonly List<string> _availableProperties;
+        private List<string> _availableProperties;
 
         /// <summary>
         /// Returns a match result for the user agent provided.
@@ -150,27 +174,27 @@ namespace FiftyOne.Mobile.Detection.Provider.Interop
         }
 
         /// <summary>
-        /// Returns a list of profiles for the property value pair provided.
+        /// Finds the profiles associated with the property name and value 
+        /// provided.
         /// </summary>
         /// <param name="propertyName"></param>
         /// <param name="valueName"></param>
-        /// <returns>Profiles object</returns>
+        /// <returns></returns>
         public Pattern.Profiles FindProfiles(string propertyName, string valueName)
         {
             return (Pattern.Profiles)_provider.findProfiles(propertyName, valueName);
         }
-
+        
         /// <summary>
-        /// Returns a list of profiles for the property value pair provided.
-        /// Searching only the profiles provided.
+        /// Reloads the original file path and associated configuration. Used
+        /// to refresh the active data set being used at runtime after the
+        /// wrapper has been created.
         /// </summary>
-        /// <param name="propertyName"></param>
-        /// <param name="valueName"></param>
-        /// <param name="profilesList"></param>
-        /// <returns>Profiles object</returns>
-        public Pattern.Profiles FindProfiles(string propertyName, string valueName, Pattern.Profiles profilesList)
+        public void ReloadFromFile()
         {
-            return (Pattern.Profiles)_provider.findProfiles(propertyName, valueName, profilesList);
+            _provider.reloadFromFile();
+            _availableProperties = null;
+            _httpHeaders = null;
         }
 
         /// <summary>
