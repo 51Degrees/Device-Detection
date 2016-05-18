@@ -67,7 +67,6 @@ protected:
 
 private:
 	fiftyoneDegreesWorkset *ws;
-	fiftyoneDegreesWorksetPool *pool;
 };
 
 #endif // FIFTYONEDEGREESMATCH_HPP

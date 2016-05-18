@@ -35,6 +35,9 @@
 
 #define RANDOM_INDEX(r) rand() % r
 
+#define POOL_SIZE 4
+#define CACHE_SIZE 5000
+
 char *TARGET_USER_AGENTS[] = {
     // Internet explorer
     "Mozilla/5.0 (Windows NT 6.1; WOW64; Trident/7.0; rv:11.0) like Gecko",
@@ -133,10 +136,10 @@ void reportResults(fiftyoneDegreesWorkset *ws) {
 	}
 }
 
-void run(fiftyoneDegreesDataSet *dataSet) {
+void run(fiftyoneDegreesProvider *provider) {
     fiftyoneDegreesWorkset *ws = NULL;
-    fiftyoneDegreesResultsetCache *cache = NULL;
-	fiftyoneDegreesWorksetPool *pool = NULL;
+	const fiftyoneDegreesDataSet *dataSet = provider->activePool->dataSet;
+	fiftyoneDegreesResultsetCache *cache = provider->activePool->cache;
 	int32_t index, httpHeadersLength;
 	size_t httpHeadersSize;
 	const char *httpHeaderNames[2];
@@ -157,80 +160,71 @@ void run(fiftyoneDegreesDataSet *dataSet) {
     printf("Data set format:\t%s\r\n", &(fiftyoneDegreesGetString(dataSet, dataSet->header.formatOffset)->firstByte));
     printf("\r\n");
 
-	cache = fiftyoneDegreesResultsetCacheCreate(dataSet, 3);
-    if (cache != NULL) {
-		pool = fiftyoneDegreesWorksetPoolCreate(dataSet, cache, 10);
-		if (pool != NULL) {
-            for(index = 0; index < (sizeof(TARGET_USER_AGENTS) / sizeof(char*)); index++)
-            {
-				ws = fiftyoneDegreesWorksetPoolGet(pool);
-				fiftyoneDegreesMatch(ws, TARGET_USER_AGENTS[index]);
-				reportResults(ws);
-				fiftyoneDegreesWorksetPoolRelease(pool, ws);
-            }
-
-			for (index = 0; index < 5; index++) {
-
-				// Use multiple headers as arrays.
-				httpHeaderNames[0] = (ws->dataSet->httpHeaders + RANDOM_INDEX(ws->dataSet->httpHeadersCount))->headerName;
-				httpHeaderNames[1] = fiftyoneDegreesGetPrefixedUpperHttpHeaderName(ws->dataSet, RANDOM_INDEX(ws->dataSet->httpHeadersCount));
-				httpHeaderValues[0] = TARGET_USER_AGENTS[RANDOM_INDEX(TARGET_USER_AGENTS_LENGTH)];
-				httpHeaderValues[1] = TARGET_USER_AGENTS[RANDOM_INDEX(TARGET_USER_AGENTS_LENGTH)];
-				ws = fiftyoneDegreesWorksetPoolGet(pool);
-				fiftyoneDegreesMatchWithHeadersArray(ws, httpHeaderNames, httpHeaderValues, 2);
-				printf("\r\n\t\t\t*** HTTP Headers Array ***\r\n");
-				print50Columns("Header 1 Name:\t\t", httpHeaderNames[0], strlen(httpHeaderNames[0]));
-				print50Columns("Header 1 Value:\t\t", httpHeaderValues[0], strlen(httpHeaderValues[0]));
-				print50Columns("Header 2 Name:\t\t", httpHeaderNames[1], strlen(httpHeaderNames[1]));
-				print50Columns("Header 2 Value:\t\t", httpHeaderValues[1], strlen(httpHeaderValues[1]));
-				reportResults(ws);
-				fiftyoneDegreesWorksetPoolRelease(pool, ws);
-
-				// Use multiple headers as a single string.
-				httpHeadersSize = strlen(httpHeaderNames[0]) + 1 +
-					strlen(httpHeaderNames[1]) + 1 +
-					strlen(httpHeaderValues[0]) + 2 +
-					strlen(httpHeaderValues[1]) + 1;
-				httpHeaders = (char*)malloc(httpHeadersSize);
-				if (httpHeaders != NULL) {
-					httpHeadersLength = snprintf(httpHeaders, httpHeadersSize,
-						"%s %s\r\n%s %s",
-						httpHeaderNames[0],
-						httpHeaderValues[0],
-						httpHeaderNames[1],
-						httpHeaderValues[1]);
-					ws = fiftyoneDegreesWorksetPoolGet(pool);
-					fiftyoneDegreesMatchWithHeadersString(ws, httpHeaders, httpHeadersLength);
-					printf("\r\n\t\t\t*** HTTP Headers String ***\r\n");
-					printf("%s\r\n",httpHeaders);
-					free((void*)httpHeaders);
-				}
-				reportResults(ws);
-				fiftyoneDegreesWorksetPoolRelease(pool, ws);
-			}
-
-            if (cache != NULL) {
-                printf("\r\n\t\t\t*** Cache Results ***\r\n");
-                printf("Switches:\t%d\r\n", cache->switches);
-                printf("Hits:\t\t%d\r\n", cache->hits);
-                printf("Misses:\t\t%d\r\n", cache->misses);
-            }
-
-			fiftyoneDegreesWorksetPoolFree(pool);
-        }
-		fiftyoneDegreesResultsetCacheFree(cache);
+    for(index = 0; index < (sizeof(TARGET_USER_AGENTS) / sizeof(char*)); index++)
+    {
+		ws = fiftyoneDegreesProviderWorksetGet(provider);
+		fiftyoneDegreesMatch(ws, TARGET_USER_AGENTS[index]);
+		reportResults(ws);
+		fiftyoneDegreesWorksetRelease(ws);
     }
-    fiftyoneDegreesDataSetFree(dataSet);
+
+	for (index = 0; index < 5; index++) {
+
+		// Use multiple headers as arrays.
+		httpHeaderNames[0] = (ws->dataSet->httpHeaders + RANDOM_INDEX(ws->dataSet->httpHeadersCount))->headerName;
+		httpHeaderNames[1] = fiftyoneDegreesGetPrefixedUpperHttpHeaderName(ws->dataSet, RANDOM_INDEX(ws->dataSet->httpHeadersCount));
+		httpHeaderValues[0] = TARGET_USER_AGENTS[RANDOM_INDEX(TARGET_USER_AGENTS_LENGTH)];
+		httpHeaderValues[1] = TARGET_USER_AGENTS[RANDOM_INDEX(TARGET_USER_AGENTS_LENGTH)];
+		ws = fiftyoneDegreesProviderWorksetGet(provider);
+		fiftyoneDegreesMatchWithHeadersArray(ws, httpHeaderNames, httpHeaderValues, 2);
+		printf("\r\n\t\t\t*** HTTP Headers Array ***\r\n");
+		print50Columns("Header 1 Name:\t\t", httpHeaderNames[0], strlen(httpHeaderNames[0]));
+		print50Columns("Header 1 Value:\t\t", httpHeaderValues[0], strlen(httpHeaderValues[0]));
+		print50Columns("Header 2 Name:\t\t", httpHeaderNames[1], strlen(httpHeaderNames[1]));
+		print50Columns("Header 2 Value:\t\t", httpHeaderValues[1], strlen(httpHeaderValues[1]));
+		reportResults(ws);
+		fiftyoneDegreesWorksetRelease(ws);
+
+		// Use multiple headers as a single string.
+		httpHeadersSize = strlen(httpHeaderNames[0]) + 1 +
+			strlen(httpHeaderNames[1]) + 1 +
+			strlen(httpHeaderValues[0]) + 2 +
+			strlen(httpHeaderValues[1]) + 1;
+		httpHeaders = (char*)malloc(httpHeadersSize);
+		if (httpHeaders != NULL) {
+			httpHeadersLength = snprintf(httpHeaders, httpHeadersSize,
+				"%s %s\r\n%s %s",
+				httpHeaderNames[0],
+				httpHeaderValues[0],
+				httpHeaderNames[1],
+				httpHeaderValues[1]);
+			ws = fiftyoneDegreesProviderWorksetGet(provider);
+			fiftyoneDegreesMatchWithHeadersString(ws, httpHeaders, httpHeadersLength);
+			printf("\r\n\t\t\t*** HTTP Headers String ***\r\n");
+			printf("%s\r\n",httpHeaders);
+			free((void*)httpHeaders);
+		}
+		reportResults(ws);
+		fiftyoneDegreesWorksetRelease(ws);
+	}
+
+    if (cache != NULL) {
+        printf("\r\n\t\t\t*** Cache Results ***\r\n");
+        printf("Switches:\t%d\r\n", cache->switches);
+        printf("Hits:\t\t%d\r\n", cache->hits);
+        printf("Misses:\t\t%d\r\n", cache->misses);
+    }
 }
 
 int32_t main(int32_t argc, char* argv[]) {
-    fiftyoneDegreesDataSet dataSet;
+    fiftyoneDegreesProvider provider;
 
     if (argc > 1) {
-        switch(fiftyoneDegreesInitWithPropertyArray(argv[1], &dataSet, PROPERTIES, PROPERTIES_COUNT)) {
+		switch (fiftyoneDegreesInitProviderWithPropertyArray(argv[1], &provider, PROPERTIES, PROPERTIES_COUNT, POOL_SIZE, CACHE_SIZE)) {
             case DATA_SET_INIT_STATUS_INSUFFICIENT_MEMORY:
                 printf("Insufficient memory to load '%s'.", argv[1]);
                 break;
+            case DATA_SET_INIT_STATUS_POINTER_OUT_OF_BOUNDS:
             case DATA_SET_INIT_STATUS_CORRUPT_DATA:
                 printf("Device data file '%s' is corrupted.", argv[1]);
                 break;
@@ -243,8 +237,11 @@ int32_t main(int32_t argc, char* argv[]) {
 			case DATA_SET_INIT_STATUS_NOT_SET:
 				printf("Device data file '%s' could not be loaded.", argv[1]);
 				break;
+			case DATA_SET_INIT_STATUS_NULL_POINTER:
+				printf("Null pointer prevented loading of '%s'.", argv[1]);
             default:
-                run(&dataSet);
+				run(&provider);
+				fiftyoneDegreesProviderFree(&provider);
                 break;
         }
     }

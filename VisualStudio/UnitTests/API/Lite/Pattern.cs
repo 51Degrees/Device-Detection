@@ -42,6 +42,7 @@ namespace UnitTests.API.Lite
         }
 
         [TestMethod]
+        [TestCategory("API"), TestCategory("Lite")]
         public void LitePatternAPI_NullUserAgent()
         {
             using (var result = _wrapper.Match((string)null))
@@ -51,6 +52,7 @@ namespace UnitTests.API.Lite
         }
 
         [TestMethod]
+        [TestCategory("API"), TestCategory("Lite")]
         public void LitePatternAPI_EmptyUserAgent()
         {
             using (var result = _wrapper.Match(String.Empty))
@@ -60,6 +62,7 @@ namespace UnitTests.API.Lite
         }
 
         [TestMethod]
+        [TestCategory("API"), TestCategory("Lite")]
         public void LitePatternAPI_LongUserAgent()
         {
             var userAgent = String.Join(" ", UserAgentGenerator.GetEnumerable(10, 10));
@@ -70,6 +73,7 @@ namespace UnitTests.API.Lite
         }
 
         [TestMethod]
+        [TestCategory("API"), TestCategory("Lite")]
         public void LitePatternAPI_HttpHeaders()
         {
             var headers = new NameValueCollection();
@@ -87,6 +91,7 @@ namespace UnitTests.API.Lite
         }
 
         [TestMethod]
+        [TestCategory("API"), TestCategory("Lite")]
         public void LitePatternAPI_DeviceId()
         {
             using (var userAgentMatch = _wrapper.Match(UserAgentGenerator.GetRandomUserAgent(0)))
@@ -103,6 +108,7 @@ namespace UnitTests.API.Lite
         }
 
         [TestMethod]
+        [TestCategory("API"), TestCategory("Lite")]
         public void LitePatternAPI_FindProfiles()
         {
             string[] properties = new string[3] {"IsMobile", "BrowserName", "PlatformName"};
@@ -120,42 +126,6 @@ namespace UnitTests.API.Lite
                         Assert.IsTrue(profiles.getProfileId(k) >= 0);
                     }
                 }
-            }
-        }
-
-        [TestMethod]
-        public void LitePatternAPI_FindProfilesInvalidProperty() {
-            var profiles = _wrapper.FindProfiles("NOTAPROPERTY", "True");
-            Assert.AreEqual(profiles.getCount(), 0);
-        }
-
-        [TestMethod]
-        public void LitePatternAPI_FindProfilesInvalidValue()
-        {
-            foreach (var propertyName in _wrapper.AvailableProperties)
-            {
-                var profiles = _wrapper.FindProfiles(propertyName, "NOTAVALUE");
-                Assert.AreEqual(profiles.getCount(), 0);
-            }
-        }
-
-        [TestMethod]
-        public void LitePatternAPI_FindProfilesOverload()
-        {
-            var profilesBase = _wrapper.FindProfiles("PlatformName", "Android");
-            string[] androidVersions = {"4.4.4", "5.1"};
-            foreach (string valueName in androidVersions) {
-                Console.WriteLine("Testing Android " + valueName);
-                var profiles = _wrapper.FindProfiles("PlatformVersion", valueName, profilesBase);
-                Assert.IsTrue(profiles.getCount() > 0);
-            }
-            profilesBase = _wrapper.FindProfiles("PlatformName", "Windows");
-            string[] windowsVersions = { "8", "7" };
-            foreach (string valueName in windowsVersions)
-            {
-                Console.WriteLine("Testing Windows " + valueName);
-                var profiles = _wrapper.FindProfiles("PlatformVersion", valueName, profilesBase);
-                Assert.IsTrue(profiles.getCount() > 0);
             }
         }
 

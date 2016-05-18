@@ -49,42 +49,49 @@ namespace FiftyOne.UnitTests.Performance.Premium
         }
 
         [TestMethod]
+        [TestCategory("Premium"), TestCategory("Pattern"), TestCategory("Performance"), TestCategory("Initialize")]
         public void PremiumV32Pattern_Performance_InitializeTimeAll()
         {
             InitializeTime();
         }
         
         [TestMethod]
+        [TestCategory("Premium"), TestCategory("Pattern"), TestCategory("Performance"), TestCategory("Multi"), TestCategory("Bad"), TestCategory("All")]
         public void PremiumV32Pattern_Performance_BadUserAgentsMultiAll()
         {
             BadUserAgentsMulti(1);
         }
 
         [TestMethod]
+        [TestCategory("Premium"), TestCategory("Pattern"), TestCategory("Performance"), TestCategory("Single"), TestCategory("Bad"), TestCategory("All")]
         public void PremiumV32Pattern_Performance_BadUserAgentsSingleAll()
         {
             BadUserAgentsSingle(4);
         }
 
         [TestMethod]
+        [TestCategory("Premium"), TestCategory("Pattern"), TestCategory("Performance"), TestCategory("Multi"), TestCategory("Unique"), TestCategory("All")]
         public void PremiumV32Pattern_Performance_UniqueUserAgentsMultiAll()
         {
             UniqueUserAgentsMulti(1);
         }
 
         [TestMethod]
+        [TestCategory("Premium"), TestCategory("Pattern"), TestCategory("Performance"), TestCategory("Single"), TestCategory("Unique"), TestCategory("All")]
         public void PremiumV32Pattern_Performance_UniqueUserAgentsSingleAll()
         {
             UniqueUserAgentsSingle(1);
         }
 
         [TestMethod]
+        [TestCategory("Premium"), TestCategory("Pattern"), TestCategory("Performance"), TestCategory("Multi"), TestCategory("Random"), TestCategory("All")]
         public void PremiumV32Pattern_Performance_RandomUserAgentsMultiAll()
         {
             RandomUserAgentsMulti(1);
         }
 
         [TestMethod]
+        [TestCategory("Premium"), TestCategory("Pattern"), TestCategory("Performance"), TestCategory("Single"), TestCategory("Random"), TestCategory("All")]
         public void PremiumV32Pattern_Performance_RandomUserAgentsSingleAll()
         {
             RandomUserAgentsSingle(1);

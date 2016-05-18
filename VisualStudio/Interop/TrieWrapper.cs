@@ -253,12 +253,24 @@ namespace FiftyOne.Mobile.Detection.Provider.Interop
             throw new NotImplementedException();
         }
 
+        /// <summary>
+        /// Finds the profiles associated with the property name and value 
+        /// provided.
+        /// </summary>
+        /// <param name="propertyName"></param>
+        /// <param name="valueName"></param>
+        /// <returns></returns>
         public Pattern.Profiles FindProfiles(string propertyName, string valueName)
         {
             throw new NotImplementedException();
         }
 
-        public Pattern.Profiles FindProfiles(string propertyName, string valueName, Pattern.Profiles profilesList)
+        /// <summary>
+        /// Reloads the original file path and associated configuration. Used
+        /// to refresh the active data set being used at runtime after the
+        /// wrapper has been created.
+        /// </summary>
+        public void ReloadFromFile()
         {
             throw new NotImplementedException();
         }

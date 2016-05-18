@@ -215,6 +215,16 @@
 			<Option target="G++ Pattern Release" />
 			<Option target="MSVC++ Debug" />
 		</Unit>
+		<Unit filename="../src/pattern/Profiles.cpp">
+			<Option target="G++ Pattern Debug" />
+			<Option target="G++ Pattern Release" />
+			<Option target="MSVC++ Debug" />
+		</Unit>
+		<Unit filename="../src/pattern/Profiles.hpp">
+			<Option target="G++ Pattern Debug" />
+			<Option target="G++ Pattern Release" />
+			<Option target="MSVC++ Debug" />
+		</Unit>
 		<Unit filename="../src/pattern/Provider.cpp">
 			<Option target="G++ Pattern Debug" />
 			<Option target="G++ Pattern Release" />

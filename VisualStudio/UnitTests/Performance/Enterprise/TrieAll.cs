@@ -49,42 +49,49 @@ namespace FiftyOne.UnitTests.Performance.Enterprise
         }
 
         [TestMethod]
+        [TestCategory("Enterprise"), TestCategory("Trie"), TestCategory("Performance"), TestCategory("Initialize")]
         public void EnterpriseV32Trie_Performance_InitializeTimeAll()
         {
             InitializeTime();
         }
         
         [TestMethod]
+        [TestCategory("Enterprise"), TestCategory("Trie"), TestCategory("Performance"), TestCategory("Multi"), TestCategory("Bad"), TestCategory("All")]
         public void EnterpriseV32Trie_Performance_BadUserAgentsMultiAll()
         {
             BadUserAgentsMulti(2);
         }
 
         [TestMethod]
+        [TestCategory("Enterprise"), TestCategory("Trie"), TestCategory("Performance"), TestCategory("Single"), TestCategory("Bad"), TestCategory("All")]
         public void EnterpriseV32Trie_Performance_BadUserAgentsSingleAll()
         {
             BadUserAgentsSingle(4);
         }
 
         [TestMethod]
+        [TestCategory("Enterprise"), TestCategory("Trie"), TestCategory("Performance"), TestCategory("Multi"), TestCategory("Unique"), TestCategory("All")]
         public void EnterpriseV32Trie_Performance_UniqueUserAgentsMultiAll()
         {
             UniqueUserAgentsMulti(1);
         }
 
         [TestMethod]
+        [TestCategory("Enterprise"), TestCategory("Trie"), TestCategory("Performance"), TestCategory("Single"), TestCategory("Unique"), TestCategory("All")]
         public void EnterpriseV32Trie_Performance_UniqueUserAgentsSingleAll()
         {
             UniqueUserAgentsSingle(3);
         }
 
         [TestMethod]
+        [TestCategory("Enterprise"), TestCategory("Trie"), TestCategory("Performance"), TestCategory("Multi"), TestCategory("Random"), TestCategory("All")]
         public void EnterpriseV32Trie_Performance_RandomUserAgentsMultiAll()
         {
             RandomUserAgentsMulti(1);
         }
 
         [TestMethod]
+        [TestCategory("Enterprise"), TestCategory("Trie"), TestCategory("Performance"), TestCategory("Single"), TestCategory("Random"), TestCategory("All")]
         public void EnterpriseV32Trie_Performance_RandomUserAgentsSingleAll()
         {
             RandomUserAgentsSingle(3);

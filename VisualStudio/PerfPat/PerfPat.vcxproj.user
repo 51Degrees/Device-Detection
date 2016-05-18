@@ -8,4 +8,12 @@
     <LocalDebuggerCommandArguments>"$(SolutionDir)../data/51Degrees-LiteV3.2.dat" "$(SolutionDir)../data/20000 User Agents.csv" "IsMobile" 10000</LocalDebuggerCommandArguments>
     <DebuggerFlavor>WindowsLocalDebugger</DebuggerFlavor>
   </PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
+    <LocalDebuggerCommandArguments>"$(SolutionDir)../data/51Degrees-LiteV3.2.dat" "$(SolutionDir)../data/20000 User Agents.csv" "IsMobile" 100000</LocalDebuggerCommandArguments>
+    <DebuggerFlavor>WindowsLocalDebugger</DebuggerFlavor>
+  </PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
+    <LocalDebuggerCommandArguments>"$(SolutionDir)../data/51Degrees-LiteV3.2.dat" "$(SolutionDir)../data/20000 User Agents.csv" "IsMobile" 100000</LocalDebuggerCommandArguments>
+    <DebuggerFlavor>WindowsLocalDebugger</DebuggerFlavor>
+  </PropertyGroup>
 </Project>
