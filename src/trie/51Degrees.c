@@ -131,7 +131,7 @@ fiftyoneDegreesDataSetInitStatus readNodes(fiftyoneDegreesDataSet *dataSet, FILE
 	dataSet->rootNode = (int32_t*)fiftyoneDegreesMalloc((size_t)dataSet->nodesSize);
 	if (dataSet->rootNode == 0)
 		return DATA_SET_INIT_STATUS_INSUFFICIENT_MEMORY;
-	if (dataSet->rootNode > 0) {
+	if ((int64_t) dataSet->rootNode > 0) {
 		if (fread(dataSet->rootNode, sizeof(BYTE), (size_t)dataSet->nodesSize, inputFilePtr) != (size_t)dataSet->nodesSize) {
 			return DATA_SET_INIT_STATUS_CORRUPT_DATA;
 		}
@@ -210,7 +210,7 @@ void fiftyoneDegreesDestroy(fiftyoneDegreesDataSet *dataSet) {
 // 0 if the file is in a format that can be read by this code.
 fiftyoneDegreesDataSetInitStatus readVersion(fiftyoneDegreesDataSet *dataSet, FILE *inputFilePtr) {
 	//TODO read version to data set.
-	if (fread(&dataSet->version, sizeof(uint16_t), 1, inputFilePtr) != -1) {
+	if ((int) fread(&dataSet->version, sizeof(uint16_t), 1, inputFilePtr) != -1) {
 		if (dataSet->version != 32)
 			return DATA_SET_INIT_STATUS_INCORRECT_VERSION;
 		return DATA_SET_INIT_STATUS_SUCCESS;
@@ -731,7 +731,7 @@ int fiftyoneDegreesGetUniqueHttpHeaderIndex(fiftyoneDegreesDataSet *dataSet, cha
 	}
 
 	for (uniqueHeaderIndex = 0; uniqueHeaderIndex < dataSet->uniqueHttpHeaderCount; uniqueHeaderIndex++) {
-		if (strlen(dataSet->strings + dataSet->uniqueHttpHeaders[uniqueHeaderIndex]) == length &&
+		if ((int) strlen(dataSet->strings + dataSet->uniqueHttpHeaders[uniqueHeaderIndex]) == length &&
 			headerCompare(adjustedHttpHeaderName, dataSet->strings + dataSet->uniqueHttpHeaders[uniqueHeaderIndex], length) == 0) {
 			return uniqueHeaderIndex;
 		}
@@ -832,7 +832,7 @@ static void initPrefixedUpperHttpHeaderNames(fiftyoneDegreesDataSet *dataSet) {
 				dataSet->prefixedUpperHttpHeaders[httpHeaderIndex] = (const char*)prefixedUpperHttpHeader;
 				memcpy((void*)prefixedUpperHttpHeader, HTTP_PREFIX_UPPER, sizeof(HTTP_PREFIX_UPPER) - 1);
 				prefixedUpperHttpHeader += sizeof(HTTP_PREFIX_UPPER) - 1;
-				for (index = 0; index < length; index++) {
+				for (index = 0; index < (int) length; index++) {
 					*prefixedUpperHttpHeader = toupper(*httpHeaderName);
 					if (*prefixedUpperHttpHeader == '-') {
 						*prefixedUpperHttpHeader = '_';
@@ -1032,7 +1032,7 @@ int fiftyoneDegreesProcessDeviceCSV(fiftyoneDegreesDataSet *dataSet, int32_t dev
  * @return the number of characters that were escaped
  */
 static int escapeJSON(char *start, char *next, char *max) {
-	const static char charactersToChange[] = "\\\"\r\n\t";
+	static const char charactersToChange[] = "\\\"\r\n\t";
 	char *current = next - 1;
 	int changedCharacters = 0;
 	int currentShift;

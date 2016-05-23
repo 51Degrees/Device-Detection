@@ -1822,7 +1822,7 @@ int fiftyoneDegreesGetProviderSizeWithPropertyString(const char *fileName, const
 #else
 	/* If using Microsoft use the fopen_s method to avoid warning */
 	if (fopen_s(&inputFilePtr, fileName, "rb") != 0) {
-		return DATA_SET_INIT_STATUS_FILE_NOT_FOUND;
+		return -1;
 	}
 #endif
 
@@ -1874,12 +1874,14 @@ int fiftyoneDegreesGetProviderSizeWithPropertyCount(const char *fileName, int pr
 #else
 	/* If using Microsoft use the fopen_s method to avoid warning */
 	if (fopen_s(&inputFilePtr, fileName, "rb") != 0) {
-		return DATA_SET_INIT_STATUS_FILE_NOT_FOUND;
+		return -1;
 	}
 #endif
 
 	// Read in header.
-	fread(&header, sizeof(fiftyoneDegreesDataSetHeader), 1, inputFilePtr);
+	if (fread(&header, sizeof(fiftyoneDegreesDataSetHeader), 1, inputFilePtr) != 0) {
+		return -1;
+	}
 	fseek(inputFilePtr, 0, SEEK_END);
 
 	// Add file size.
@@ -1892,6 +1894,7 @@ int fiftyoneDegreesGetProviderSizeWithPropertyCount(const char *fileName, int pr
 	// Return the total size needed for the provider.
 	return getProviderSizeWithPropertyCount(sizeOfFile, header, propertyCount, poolSize, cacheSize);
 }
+
 /**
 * \cond
 * Finds the maximum string length of the values associated with the given
@@ -1906,7 +1909,7 @@ int fiftyoneDegreesGetMaxValueLength(const fiftyoneDegreesDataSet *dataSet, char
 {
 	const fiftyoneDegreesProperty *property;
 	const fiftyoneDegreesValue *value;
-	int32_t propertyIndex, valueIndex;
+	int32_t valueIndex;
 	const char* valueName;
 	int maxLength = 0;
 
@@ -1928,12 +1931,10 @@ int fiftyoneDegreesGetMaxValueLength(const fiftyoneDegreesDataSet *dataSet, char
 		return -1;
 	}
 
-	propertyIndex = getPropertyIndex(dataSet, property);
-
 	for (valueIndex = property->firstValueIndex; valueIndex <= property->lastValueIndex; valueIndex++) {
 		value = dataSet->values + valueIndex;
 		valueName = fiftyoneDegreesGetValueName(dataSet, value);
-		if (strlen(valueName) > maxLength) {
+		if ((int)strlen(valueName) > maxLength) {
 			maxLength = strlen(valueName);
 		}
 	}
@@ -3526,7 +3527,7 @@ static void resetNextCharacterPositionIndex(fiftyoneDegreesWorkset *ws) {
 static int32_t getNumber(const char *array, int32_t start, int32_t length) {
 	int32_t i, p;
 	int32_t value = 0;
-	for (i = start + length - 1, p = 0; i >= start && p < POWERS_COUNT; i--, p++)
+	for (i = start + length - 1, p = 0; i >= start && p < (int32_t)(POWERS_COUNT); i--, p++)
 	{
 		value += POWERS[p] * (array[i] - (byte)'0');
 	}
@@ -3574,7 +3575,7 @@ static int32_t getCurrentPositionAsNumeric(fiftyoneDegreesWorkset *ws, const fif
  */
 static const fiftyoneDegreesRange* getRange(int target) {
 	int32_t index;
-	for (index = 0; index < RANGES_COUNT; index++) {
+	for (index = 0; index < (int32_t)(RANGES_COUNT); index++) {
 		if (target >= RANGES[index].lower &&
 			target < RANGES[index].upper) {
 			return &RANGES[index];
@@ -4068,7 +4069,7 @@ static int32_t calculateNumericDifference(const fiftyoneDegreesAsciiString *char
 
 	// Find when the characters stop being numbers.
 	while (
-		nodeIndex >= 0 &&
+		(int64_t) nodeIndex >= 0 &&
 		getIsNumeric(ws->targetUserAgentArray + *targetIndex) &&
 		getIsNumeric(&(characters->firstByte) + *nodeIndex))
 	{
@@ -5303,7 +5304,7 @@ void fiftyoneDegreesJSONFree(void* json) {
  * \endcond
  */
 static int escapeJSON(char *start, char *next, char *max) {
-	const static char charactersToChange[] = "\\\"\r\n\t";
+	static const char charactersToChange[] = "\\\"\r\n\t";
 	char *current = next - 1;
 	int changedCharacters = 0;
 	int currentShift;

@@ -249,4 +249,6 @@ EXTERNAL void *(ALLOC_CALL_CONV *fiftyoneDegreesMalloc)(size_t __size);
  */
 EXTERNAL void (ALLOC_CALL_CONV *fiftyoneDegreesFree)(void *__ptr);
 
+EXTERNAL int fiftyoneDegreesGetDataSetSizeWithPropertyString(const char* fileName, const char* properties);
+
 #endif // 51DEGREES_H_INCLUDED
