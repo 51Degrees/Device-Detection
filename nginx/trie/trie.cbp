@@ -19,6 +19,8 @@
 				</Compiler>
 				<ExtraCommands>
 					<Add before='CFLAGS=&quot;-O0 -g -DFIFTYONEDEGREES_TRIE&quot; ./configure --prefix=$(PROJECTDIR)build --with-ld-opt=&quot;-lm&quot; --add-module=$(PROJECTDIR)51Degrees_module' />
+					<Add after="cp $(PROJECTDIR)/example.conf $(PROJECTDIR)/build/conf/nginx.conf" />
+					<Add after="cp $(PROJECTDIR)/51Degrees_module/ngx_http_51D_module.c $(PROJECTDIR)../src/" />
 					<Add after="cp $(PROJECTDIR)/51Degrees_module/src/trie/51Degrees.c $(PROJECTDIR)../../src/trie/" />
 					<Add after="cp $(PROJECTDIR)/51Degrees_module/src/trie/51Degrees.h $(PROJECTDIR)../../src/trie/" />
 				</ExtraCommands>
@@ -44,6 +46,8 @@
 				</Linker>
 				<ExtraCommands>
 					<Add before='CFLAGS=&quot;-O3 -DFIFTYONEDEGREES_TRIE&quot; ./configure --prefix=$(PROJECTDIR)build --with-ld-opt=&quot;-lm&quot; --add-module=$(PROJECTDIR)51Degrees_module' />
+					<Add after="cp $(PROJECTDIR)/example.conf $(PROJECTDIR)/build/conf/nginx.conf" />
+					<Add after="cp $(PROJECTDIR)/51Degrees_module/ngx_http_51D_module.c $(PROJECTDIR)../src/" />
 					<Add after="cp $(PROJECTDIR)/51Degrees_module/src/trie/51Degrees.c $(PROJECTDIR)../../src/trie/" />
 					<Add after="cp $(PROJECTDIR)/51Degrees_module/src/trie/51Degrees.h $(PROJECTDIR)../../src/trie/" />
 				</ExtraCommands>

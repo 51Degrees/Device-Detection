@@ -47,7 +47,7 @@ void (ALLOC_CALL_CONV *fiftyoneDegreesFree)(void *__ptr) = free;
 fiftyoneDegreesDataSetInitStatus readStrings(fiftyoneDegreesDataSet *dataSet, FILE *inputFilePtr) {
 	if (fread(&dataSet->stringsSize, sizeof(int32_t), 1, inputFilePtr) != 1)
 		return DATA_SET_INIT_STATUS_CORRUPT_DATA;
-	dataSet->strings = (char*)malloc(dataSet->stringsSize);
+	dataSet->strings = (char*)fiftyoneDegreesMalloc(dataSet->stringsSize);
 	if (dataSet->strings == NULL)
 		return DATA_SET_INIT_STATUS_INSUFFICIENT_MEMORY;
 	if (fread(dataSet->strings, sizeof(BYTE), (size_t)dataSet->stringsSize, inputFilePtr) != (size_t)dataSet->stringsSize)
@@ -60,11 +60,11 @@ fiftyoneDegreesDataSetInitStatus readHttpHeaders(fiftyoneDegreesDataSet *dataSet
 	int headerIndex, uniqueHeaderIndex;
 	if (fread(&dataSet->httpHeadersSize, sizeof(int32_t), 1, inputFilePtr) != 1)
 		return DATA_SET_INIT_STATUS_CORRUPT_DATA;
-	dataSet->httpHeaders = (int32_t*)malloc(dataSet->httpHeadersSize);
-	dataSet->uniqueHttpHeaders = (int32_t*)malloc(dataSet->httpHeadersSize);
+	dataSet->httpHeaders = (int32_t*)fiftyoneDegreesMalloc(dataSet->httpHeadersSize);
+	dataSet->uniqueHttpHeaders = (int32_t*)fiftyoneDegreesMalloc(dataSet->httpHeadersSize);
 	if (dataSet->httpHeaders == NULL || dataSet->uniqueHttpHeaders == NULL) {
-		if (dataSet->httpHeaders != NULL) { free(dataSet->httpHeaders); }
-		if (dataSet->uniqueHttpHeaders != NULL) { free(dataSet->uniqueHttpHeaders); }
+		if (dataSet->httpHeaders != NULL) { fiftyoneDegreesFree(dataSet->httpHeaders); }
+		if (dataSet->uniqueHttpHeaders != NULL) { fiftyoneDegreesFree(dataSet->uniqueHttpHeaders); }
 		return DATA_SET_INIT_STATUS_INSUFFICIENT_MEMORY;
 	}
 	if (fread(dataSet->httpHeaders, sizeof(BYTE), (size_t)dataSet->httpHeadersSize, inputFilePtr) != (size_t)dataSet->httpHeadersSize)
@@ -91,7 +91,7 @@ fiftyoneDegreesDataSetInitStatus readHttpHeaders(fiftyoneDegreesDataSet *dataSet
 fiftyoneDegreesDataSetInitStatus readProperties(fiftyoneDegreesDataSet *dataSet, FILE *inputFilePtr) {
 	if (fread(&dataSet->propertiesSize, sizeof(int32_t), 1, inputFilePtr) != 1)
 		return DATA_SET_INIT_STATUS_CORRUPT_DATA;
-	dataSet->properties = (fiftyoneDegreesProperty*)malloc(dataSet->propertiesSize);
+	dataSet->properties = (fiftyoneDegreesProperty*)fiftyoneDegreesMalloc(dataSet->propertiesSize);
 	if (dataSet->properties == NULL)
 		return DATA_SET_INIT_STATUS_INSUFFICIENT_MEMORY;
 	if (fread(dataSet->properties, sizeof(BYTE), (size_t)dataSet->propertiesSize, inputFilePtr) != (size_t)dataSet->propertiesSize)
@@ -104,7 +104,7 @@ fiftyoneDegreesDataSetInitStatus readProperties(fiftyoneDegreesDataSet *dataSet,
 fiftyoneDegreesDataSetInitStatus readDevices(fiftyoneDegreesDataSet *dataSet, FILE *inputFilePtr) {
 	if (fread(&dataSet->devicesSize, sizeof(int32_t), 1, inputFilePtr) != 1)
 		return DATA_SET_INIT_STATUS_CORRUPT_DATA;
-	dataSet->devices = (int32_t*)malloc(dataSet->devicesSize);
+	dataSet->devices = (int32_t*)fiftyoneDegreesMalloc(dataSet->devicesSize);
 	if (dataSet->devices == NULL)
 		return DATA_SET_INIT_STATUS_INSUFFICIENT_MEMORY;
 	if (fread(dataSet->devices, sizeof(BYTE), (size_t)dataSet->devicesSize, inputFilePtr) != (size_t)dataSet->devicesSize)
@@ -116,7 +116,7 @@ fiftyoneDegreesDataSetInitStatus readDevices(fiftyoneDegreesDataSet *dataSet, FI
 fiftyoneDegreesDataSetInitStatus readLookupList(fiftyoneDegreesDataSet *dataSet, FILE *inputFilePtr) {
 	if (fread(&dataSet->lookupListSize, sizeof(int32_t), 1, inputFilePtr) != 1)
 		return DATA_SET_INIT_STATUS_CORRUPT_DATA;
-	dataSet->lookupList = (LOOKUP_HEADER*)malloc(dataSet->lookupListSize);
+	dataSet->lookupList = (LOOKUP_HEADER*)fiftyoneDegreesMalloc(dataSet->lookupListSize);
 	if (dataSet->lookupList == NULL)
 		return DATA_SET_INIT_STATUS_INSUFFICIENT_MEMORY;
 	if (fread(dataSet->lookupList, sizeof(BYTE), dataSet->lookupListSize, inputFilePtr) != (size_t)dataSet->lookupListSize)
@@ -128,7 +128,7 @@ fiftyoneDegreesDataSetInitStatus readLookupList(fiftyoneDegreesDataSet *dataSet,
 fiftyoneDegreesDataSetInitStatus readNodes(fiftyoneDegreesDataSet *dataSet, FILE *inputFilePtr) {
 	if (fread(&dataSet->nodesSize, sizeof(int64_t), 1, inputFilePtr) != 1)
 		return DATA_SET_INIT_STATUS_CORRUPT_DATA;
-	dataSet->rootNode = (int32_t*)malloc((size_t)dataSet->nodesSize);
+	dataSet->rootNode = (int32_t*)fiftyoneDegreesMalloc((size_t)dataSet->nodesSize);
 	if (dataSet->rootNode == 0)
 		return DATA_SET_INIT_STATUS_INSUFFICIENT_MEMORY;
 	if (dataSet->rootNode > 0) {
@@ -144,7 +144,7 @@ fiftyoneDegreesDataSetInitStatus readNodes(fiftyoneDegreesDataSet *dataSet, FILE
 fiftyoneDegreesDataSetInitStatus readCopyright(fiftyoneDegreesDataSet *dataSet, FILE *inputFilePtr) {
 	if (fread(&dataSet->copyrightSize, sizeof(int32_t), 1, inputFilePtr) != 1)
 		return DATA_SET_INIT_STATUS_CORRUPT_DATA;
-	dataSet->copyright = (char*)malloc(dataSet->copyrightSize);
+	dataSet->copyright = (char*)fiftyoneDegreesMalloc(dataSet->copyrightSize);
 	if (dataSet->copyright == NULL)
 		return DATA_SET_INIT_STATUS_INSUFFICIENT_MEMORY;
 	if (fread(dataSet->copyright, sizeof(BYTE), (size_t)dataSet->copyrightSize, inputFilePtr) != (size_t)dataSet->copyrightSize)
@@ -156,52 +156,52 @@ fiftyoneDegreesDataSetInitStatus readCopyright(fiftyoneDegreesDataSet *dataSet, 
 void fiftyoneDegreesDestroy(fiftyoneDegreesDataSet *dataSet) {
 	int index;
 	if (dataSet->copyright != NULL) {
-		free(dataSet->copyright);
+		fiftyoneDegreesFree(dataSet->copyright);
 		dataSet->copyright = NULL;
 	}
 	if (dataSet->requiredProperties != NULL) {
-		free(dataSet->requiredProperties);
+		fiftyoneDegreesFree(dataSet->requiredProperties);
 		dataSet->requiredProperties = NULL;
 	}
 	if (dataSet->requiredPropertiesNames != NULL) {
-		free((void*)dataSet->requiredPropertiesNames);
+		fiftyoneDegreesFree((void*)dataSet->requiredPropertiesNames);
 		dataSet->requiredPropertiesNames = NULL;
 	}
 	if (dataSet->rootNode != NULL) {
-		free(dataSet->rootNode);
+		fiftyoneDegreesFree(dataSet->rootNode);
 		dataSet->rootNode = NULL;
 	}
 	if (dataSet->lookupList != NULL) {
-		free(dataSet->lookupList);
+		fiftyoneDegreesFree(dataSet->lookupList);
 		dataSet->lookupList = NULL;
 	}
 	if (dataSet->devices != NULL) {
-		free(dataSet->devices);
+		fiftyoneDegreesFree(dataSet->devices);
 		dataSet->devices = NULL;
 	}
 	if (dataSet->properties != NULL) {
-		free(dataSet->properties);
+		fiftyoneDegreesFree(dataSet->properties);
 		dataSet->properties = NULL;
 	}
 	if (dataSet->prefixedUpperHttpHeaders != NULL) {
 		for (index = 0; index < dataSet->uniqueHttpHeaderCount; index++) {
 			if (dataSet->prefixedUpperHttpHeaders[index] != NULL) {
-				free((void*)dataSet->prefixedUpperHttpHeaders[index]);
+				fiftyoneDegreesFree((void*)dataSet->prefixedUpperHttpHeaders[index]);
 				dataSet->prefixedUpperHttpHeaders[index] = NULL;
 			}
 		}
 		dataSet->prefixedUpperHttpHeaders = NULL;
 	}
 	if (dataSet->uniqueHttpHeaders != NULL) {
-		free(dataSet->uniqueHttpHeaders);
+		fiftyoneDegreesFree(dataSet->uniqueHttpHeaders);
 		dataSet->uniqueHttpHeaders = NULL;
 	}
 	if (dataSet->httpHeaders != NULL) {
-		free(dataSet->httpHeaders);
+		fiftyoneDegreesFree(dataSet->httpHeaders);
 		dataSet->httpHeaders = NULL;
 	}
 	if (dataSet->strings != NULL) {
-		free(dataSet->strings);
+		fiftyoneDegreesFree(dataSet->strings);
 		dataSet->strings = NULL;
 	}
 }
@@ -297,8 +297,8 @@ void initSpecificProperties(fiftyoneDegreesDataSet *dataSet, const char* propert
 
 	if (dataSet->requiredPropertiesCount > 0) {
 		// Create enough memory for the properties.
-		dataSet->requiredProperties = (uint32_t*)malloc(dataSet->requiredPropertiesCount * sizeof(int));
-		dataSet->requiredPropertiesNames = (const char**)malloc(dataSet->requiredPropertiesCount * sizeof(const char*));
+		dataSet->requiredProperties = (uint32_t*)fiftyoneDegreesMalloc(dataSet->requiredPropertiesCount * sizeof(int));
+		dataSet->requiredPropertiesNames = (const char**)fiftyoneDegreesMalloc(dataSet->requiredPropertiesCount * sizeof(const char*));
 
 		start = (char*)properties;
 		end = properties - 1;
@@ -337,8 +337,8 @@ void initSpecificPropertiesFromArray(fiftyoneDegreesDataSet *dataSet, const char
 
 	if (dataSet->requiredPropertiesCount > 0) {
 		// Create enough memory for the properties.
-		dataSet->requiredProperties = (uint32_t*)malloc(dataSet->requiredPropertiesCount * sizeof(int));
-		dataSet->requiredPropertiesNames = (const char**)malloc(dataSet->requiredPropertiesCount * sizeof(const char*));
+		dataSet->requiredProperties = (uint32_t*)fiftyoneDegreesMalloc(dataSet->requiredPropertiesCount * sizeof(int));
+		dataSet->requiredPropertiesNames = (const char**)fiftyoneDegreesMalloc(dataSet->requiredPropertiesCount * sizeof(const char*));
 
 		// Initialise the requiredProperties array.
 		for (i = 0; i < count; i++) {
@@ -364,8 +364,8 @@ void initAllProperties(fiftyoneDegreesDataSet *dataSet) {
 
 	if (dataSet->requiredPropertiesCount > 0) {
 		// Create enough memory for the properties.
-		dataSet->requiredProperties = (uint32_t*)malloc(dataSet->requiredPropertiesCount * sizeof(int));
-		dataSet->requiredPropertiesNames = (const char**)malloc(dataSet->requiredPropertiesCount * sizeof(const char*));
+		dataSet->requiredProperties = (uint32_t*)fiftyoneDegreesMalloc(dataSet->requiredPropertiesCount * sizeof(int));
+		dataSet->requiredPropertiesNames = (const char**)fiftyoneDegreesMalloc(dataSet->requiredPropertiesCount * sizeof(const char*));
 
 		// Add all the available properties.
 		for (i = 0; i < dataSet->propertiesCount; i++) {
@@ -399,6 +399,70 @@ fiftyoneDegreesDataSetInitStatus fiftyoneDegreesInitWithPropertyArray(const char
 	return status;
 }
 
+static int getSeparatorCount(const char* input) {
+	int index = 0, count = 0;
+	if (input != NULL && *input != 0) {
+		while (*(input + index) != 0) {
+			if (*(input + index) == ',' ||
+				*(input + index) == '|' ||
+				*(input + index) == ' ' ||
+				*(input + index) == '\t')
+				count++;
+			index++;
+		}
+		return count + 1;
+	}
+	return 0;
+}
+
+int getSizeOfFile(const char* fileName) {
+
+	int sizeOfFile;
+	FILE *inputFilePtr;
+
+	// Open the file and hold on to the pointer.
+#ifndef _MSC_FULL_VER
+	inputFilePtr = fopen(fileName, "rb");
+#else
+	/* If using Microsoft use the fopen_s method to avoid warning */
+	if (fopen_s(&inputFilePtr, fileName, "rb") != 0) {
+		return -1;
+	}
+#endif
+	fseek(inputFilePtr, 0, SEEK_END);
+
+	// Add file size.
+	sizeOfFile = ftell(inputFilePtr);
+	fclose(inputFilePtr);
+
+	return sizeOfFile;
+}
+
+int fiftyoneDegreesGetDataSetSizeWithPropertyString(const char* fileName, const char* properties) {
+
+	int requiredPropertyCount, size;
+
+	size = getSizeOfFile(fileName);
+	if (size > 0) {
+		size += 9 * sizeof(void*);
+		// Get property count.
+		requiredPropertyCount = getSeparatorCount(properties);
+		size += 2 * sizeof(void*) * requiredPropertyCount;
+	}
+	return size;
+}
+
+int fiftyoneDegreesGetDataSetSizeWithPropertyCount(const char* fileName, int propertyCount) {
+
+	int size;
+
+	size = getSizeOfFile(fileName);
+	if (size > 0) {
+		size += 9 * sizeof(void*);
+		size += 2 * sizeof(void*) * propertyCount;
+	}
+	return size;
+}
 // Returns the index of the property requested, or -1 if not available.
 int fiftyoneDegreesGetPropertyIndex(fiftyoneDegreesDataSet *dataSet, const char *value) {
 	int32_t i;
@@ -532,7 +596,7 @@ void fiftyoneDegreesSetDeviceOffset(fiftyoneDegreesDataSet *dataSet, const char*
 	offset->httpHeaderOffset = dataSet->uniqueHttpHeaders[httpHeaderIndex];
 	offset->deviceOffset = getDeviceIndexForNode(dataSet, &lastCharacter, dataSet->rootNode, -1) * dataSet->propertiesCount;
 	offset->length = lastCharacter - userAgent;
-	offset->userAgent = (char*)malloc(offset->length + 1 * sizeof(char));
+	offset->userAgent = (char*)fiftyoneDegreesMalloc(offset->length + 1 * sizeof(char));
 	memcpy((void*)offset->userAgent, userAgent, offset->length);
 	((char*)offset->userAgent)[offset->length] = 0;
 	offset->difference = (int)(strlen(userAgent) - offset->length);
@@ -540,9 +604,9 @@ void fiftyoneDegreesSetDeviceOffset(fiftyoneDegreesDataSet *dataSet, const char*
 
 // Creates a new device offsets structure with memory allocated.
 fiftyoneDegreesDeviceOffsets* fiftyoneDegreesCreateDeviceOffsets(fiftyoneDegreesDataSet *dataSet) {
-	fiftyoneDegreesDeviceOffsets* offsets = (fiftyoneDegreesDeviceOffsets*)malloc(sizeof(fiftyoneDegreesDeviceOffsets));
+	fiftyoneDegreesDeviceOffsets* offsets = (fiftyoneDegreesDeviceOffsets*)fiftyoneDegreesMalloc(sizeof(fiftyoneDegreesDeviceOffsets));
 	offsets->size = 0;
-	offsets->firstOffset = (fiftyoneDegreesDeviceOffset*)malloc(dataSet->uniqueHttpHeaderCount * sizeof(fiftyoneDegreesDeviceOffset));
+	offsets->firstOffset = (fiftyoneDegreesDeviceOffset*)fiftyoneDegreesMalloc(dataSet->uniqueHttpHeaderCount * sizeof(fiftyoneDegreesDeviceOffset));
 	return offsets;
 }
 
@@ -553,12 +617,12 @@ void fiftyoneDegreesFreeDeviceOffsets(fiftyoneDegreesDeviceOffsets* offsets) {
 		if (offsets->firstOffset != NULL) {
 			for (offsetIndex = 0; offsetIndex < offsets->size; offsetIndex++) {
 				if ((offsets->firstOffset + offsetIndex)->userAgent != NULL) {
-					free((void*)(offsets->firstOffset + offsetIndex)->userAgent);
+					fiftyoneDegreesFree((void*)(offsets->firstOffset + offsetIndex)->userAgent);
 				}
 			}
-			free(offsets->firstOffset);
+			fiftyoneDegreesFree(offsets->firstOffset);
 		}
-		free(offsets);
+		fiftyoneDegreesFree(offsets);
 	}
 }
 
@@ -757,12 +821,12 @@ static void initPrefixedUpperHttpHeaderNames(fiftyoneDegreesDataSet *dataSet) {
 	int index, httpHeaderIndex;
 	size_t length;
 	char *prefixedUpperHttpHeader, *httpHeaderName;
-	dataSet->prefixedUpperHttpHeaders = (const char**)malloc(dataSet->uniqueHttpHeaderCount * sizeof(char*));
+	dataSet->prefixedUpperHttpHeaders = (const char**)fiftyoneDegreesMalloc(dataSet->uniqueHttpHeaderCount * sizeof(char*));
 	if (dataSet->prefixedUpperHttpHeaders != NULL) {
 		for (httpHeaderIndex = 0; httpHeaderIndex < dataSet->uniqueHttpHeaderCount; httpHeaderIndex++) {
 			httpHeaderName = dataSet->strings + dataSet->uniqueHttpHeaders[httpHeaderIndex];
 			length = strlen(httpHeaderName);
-			prefixedUpperHttpHeader = (char*)malloc(
+			prefixedUpperHttpHeader = (char*)fiftyoneDegreesMalloc(
 				(length + sizeof(HTTP_PREFIX_UPPER)) * sizeof(char));
 			if (prefixedUpperHttpHeader != NULL) {
 				dataSet->prefixedUpperHttpHeaders[httpHeaderIndex] = (const char*)prefixedUpperHttpHeader;

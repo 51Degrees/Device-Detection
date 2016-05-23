@@ -1910,6 +1910,18 @@ int fiftyoneDegreesGetMaxValueLength(const fiftyoneDegreesDataSet *dataSet, char
 	const char* valueName;
 	int maxLength = 0;
 
+	if (strcmp(propertyName, "Method") == 0) {
+		return 7;
+	}
+	if (strcmp(propertyName, "Rank") == 0) {
+		return 6;
+	}
+	if (strcmp(propertyName, "Difference") == 0) {
+		return 6;
+	}
+	if (strcmp(propertyName, "DeviceId") == 0) {
+		return dataSet->header.components.count * (5 + 1);
+	}
 	property = getPropertyByName(dataSet, propertyName);
 
 	if (property == NULL) {
