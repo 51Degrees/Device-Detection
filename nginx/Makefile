@@ -15,7 +15,7 @@ clean:
 build-pattern: clean
 	mkdir -p 51Degrees_module/src/pattern
 	mkdir -p 51Degrees_module/src/cityhash
-	cp src/pattern_config 51Degrees_module/config
+	cp module_conf/pattern_config 51Degrees_module/config
 	cp ../src/pattern/51Degrees.c 51Degrees_module/src/pattern/
 	cp ../src/pattern/51Degrees.h 51Degrees_module/src/pattern/
 	cp -r ../src/cityhash/ 51Degrees_module/src/
@@ -23,7 +23,7 @@ build-pattern: clean
 
 build-trie: clean
 	mkdir -p 51Degrees_module/src/trie
-	cp src/trie_config 51Degrees_module/config
+	cp module_conf/trie_config 51Degrees_module/config
 	cp ../src/trie/51Degrees.c 51Degrees_module/src/trie/
 	cp ../src/trie/51Degrees.h 51Degrees_module/src/trie/
 
@@ -80,3 +80,11 @@ install-trie-debug: build-trie
 	--conf-path="trie_example.conf"
 	cd $(CURDIR)/vendor/nginx && make install
 	cp *example.conf build/
+get-source:
+	if [ -d "vendor" ]; then rm -r vendor; fi
+	mkdir -p vendor/nginx
+	curl -L -O "http://nginx.org/download/nginx-1.8.1.tar.gz"
+	tar xzf "nginx-1.8.1.tar.gz"
+	mv nginx-1.8.1.tar.gz vendor/
+	mv -f -u nginx-1.8.1/* vendor/nginx
+	rmdir nginx-1.8.1
