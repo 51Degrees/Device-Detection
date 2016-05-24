@@ -35,9 +35,9 @@ install-pattern: build-pattern
 	--add-module=$(CURDIR)/51Degrees_module \
 	--with-cc-opt="-DFIFTYONEDEGREES_PATTERN -Wno-ignored-qualifiers -Wno-unused-result" \
 	--sbin-path=$(CURDIR) \
-	--conf-path="pattern_example.conf"
+	--conf-path="pattern.conf"
 	cd $(CURDIR)/vendor/nginx && make install
-	cp *example.conf build/
+	cp example/pattern.conf build/
 
 install-pattern-debug: build-pattern
 	cd $(CURDIR)/vendor/nginx && \
@@ -48,9 +48,9 @@ install-pattern-debug: build-pattern
 	--add-module=$(CURDIR)/51Degrees_module \
 	--with-cc-opt="-DFIFTYONEDEGREES_PATTERN -Wno-ignored-qualifiers -Wno-unused-result -O0 -g" \
 	--sbin-path=$(CURDIR) \
-	--conf-path="pattern_example.conf"
+	--conf-path="pattern.conf"
 	cd $(CURDIR)/vendor/nginx && make install
-	cp *example.conf build/
+	cp example/pattern.conf build/
 
 install-trie: build-trie
 	cd $(CURDIR)/vendor/nginx && \
@@ -60,9 +60,9 @@ install-trie: build-trie
 	--add-module=$(CURDIR)/51Degrees_module \
 	--with-cc-opt=" -DFIFTYONEDEGREES_TRIE" \
 	--sbin-path=$(CURDIR) \
-	--conf-path="trie_example.conf"
+	--conf-path="trie.conf"
 	cd $(CURDIR)/vendor/nginx && make install
-	cp *example.conf build/
+	cp example/trie.conf build/
 
 install-trie-debug: build-trie
 	cd $(CURDIR)/vendor/nginx && \
@@ -73,9 +73,9 @@ install-trie-debug: build-trie
 	--add-module=$(CURDIR)/51Degrees_module \
 	--with-cc-opt=" -DFIFTYONEDEGREES_TRIE -O0 -g" \
 	--sbin-path=$(CURDIR) \
-	--conf-path="trie_example.conf"
+	--conf-path="trie.conf"
 	cd $(CURDIR)/vendor/nginx && make install
-	cp *example.conf build/
+	cp example/trie.conf build/
 get-source:
 	if [ -d "vendor" ]; then rm -r vendor; fi
 	mkdir -p vendor/nginx
