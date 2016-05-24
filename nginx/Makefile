@@ -28,6 +28,7 @@ build-trie: clean
 	cp ../src/trie/51Degrees.h 51Degrees_module/src/trie/
 
 install-pattern: build-pattern
+	if [ ! -d "vendor/nginx" ]; then $(MAKE) get-source; fi
 	cd $(CURDIR)/vendor/nginx && \
 	./configure \
 	--prefix=$(CURDIR)/build \
@@ -40,6 +41,7 @@ install-pattern: build-pattern
 	cp example/pattern.conf build/
 
 install-pattern-debug: build-pattern
+	if [ ! -d "vendor/nginx" ]; then $(MAKE) get-source; fi
 	cd $(CURDIR)/vendor/nginx && \
 	./configure \
 	--prefix=$(CURDIR)/build \
@@ -53,6 +55,7 @@ install-pattern-debug: build-pattern
 	cp example/pattern.conf build/
 
 install-trie: build-trie
+	if [ ! -d "vendor/nginx" ]; then $(MAKE) get-source; fi
 	cd $(CURDIR)/vendor/nginx && \
 	./configure \
 	--prefix=$(CURDIR)/build \
@@ -65,6 +68,7 @@ install-trie: build-trie
 	cp example/trie.conf build/
 
 install-trie-debug: build-trie
+	if [ ! -d "vendor/nginx" ]; then $(MAKE) get-source; fi
 	cd $(CURDIR)/vendor/nginx && \
 	./configure \
 	--prefix=$(CURDIR)/build \
