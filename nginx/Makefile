@@ -27,7 +27,6 @@ build-trie: clean
 	cp ../src/trie/51Degrees.c 51Degrees_module/src/trie/
 	cp ../src/trie/51Degrees.h 51Degrees_module/src/trie/
 
-.PHONY: install-pattern
 install-pattern: build-pattern
 	cd $(CURDIR)/vendor/nginx && \
 	./configure \
@@ -40,7 +39,6 @@ install-pattern: build-pattern
 	cd $(CURDIR)/vendor/nginx && make install
 	cp *example.conf build/
 
-.PHONY: install-pattern-debug
 install-pattern-debug: build-pattern
 	cd $(CURDIR)/vendor/nginx && \
 	./configure \
@@ -54,7 +52,6 @@ install-pattern-debug: build-pattern
 	cd $(CURDIR)/vendor/nginx && make install
 	cp *example.conf build/
 
-.PHONY: install-trie
 install-trie: build-trie
 	cd $(CURDIR)/vendor/nginx && \
 	./configure \
@@ -67,7 +64,6 @@ install-trie: build-trie
 	cd $(CURDIR)/vendor/nginx && make install
 	cp *example.conf build/
 
-.PHONY: install-trie-debug
 install-trie-debug: build-trie
 	cd $(CURDIR)/vendor/nginx && \
 	./configure \

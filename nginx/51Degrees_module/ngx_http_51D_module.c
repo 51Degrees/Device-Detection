@@ -93,6 +93,11 @@ ngx_http_51D_post_conf(ngx_conf_t *cf)
 		fdmcf->dataFile.data = FIFTYONEDEGREES_DEFAULTFILE;
 		fdmcf->dataFile.len = ngx_strlen(fdmcf->dataFile.data);
 	}
+#ifdef FIFTYONEDEGREES_PATTERN
+	if ((int)fdmcf->cacheSize < 0) {
+		fdmcf->cacheSize = 0;
+	}
+#endif // FIFTYONEDEGREES_PATTERN
 
 	name.data = (u_char*) "51Degrees Shared Memory";
 	name.len = ngx_strlen(name.data);
@@ -129,7 +134,7 @@ ngx_http_51D_create_main_conf(ngx_conf_t *cf)
     }
     ngx_log_debug0(NGX_LOG_DEBUG_ALL, cf->log, 0, "51Degrees create main");
 #ifdef FIFTYONEDEGREES_PATTERN
-	conf->cacheSize = 0;
+	conf->cacheSize = NGX_CONF_UNSET_UINT;
 #endif // FIFTYONEDEGREES_PATTERN
     return conf;
 }

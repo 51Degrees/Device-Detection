@@ -10,15 +10,10 @@ In nginx.config, use like...
 ```nginx
 http {
   51D_filePath path/to/51Degrees.dat;
-  51D_cache 10000;
   server {
     ...
-    location /location/to/match/with/User-Agent/ {
-      51D_single IsMobile,DeviceType;
-      ...
-    }
-    location /location/to/match/with/multiple/http/headers/ {
-      51D_multi IsMobile,DeviceType;
+    location / {
+      51D_match_all X-Mobile IsMobile;
       ...
     }
   }
@@ -32,13 +27,14 @@ Use this project to detect device properties using HTTP browser User-Agents as i
 
 ## Dependencies
 - gcc
+- make
 - Nginx source
 
 For Ubuntu based distributions gcc can be found on apt, use
 ```
-$ sudo apt-get install gcc
+$ sudo apt-get install gcc make
 ```
-and the Nginx source will be automatically downloaded by the ``bootstrap`` script.
+and the Nginx source will be automatically downloaded by the make file.
 
 ## Install
 <installation>
@@ -48,9 +44,13 @@ This is the quickest and easiest way to build Nginx in a local directory to try 
 ```
 $ git clone https://github.com/51Degrees/Device-Detection.git
 $ cd Device-Detection/nginx
-$ ./install
+$ make install-pattern
 ```
-To install to the build subdirectory.
+or 
+```
+$ make install-trie
+```
+To install to the local directory.
 #### For an existing Nginx deployment
 To compile the module into an existing Nginx deployment,
 first clone 51Degrees/Device-Detection repository with
@@ -61,19 +61,24 @@ Move to the Nginx directory with
 ```
 $ cd Device-Detection/nginx
 ```
-and put together the module directory with
+and put together the module directory with either
 ```
-$ ./bootstrap
+$ make build-pattern
+```
+or
+```
+$ make build-trie
 ```
 Copy the module to the Nginx modules directory with
 ```
 $ cp -r 51Degrees_module [MODULE DIRECTORY]
 ```
-In the Nginx source directory, run ``./configure`` as normal and add the module, the linker option ``-lm`` and the definitions ``FIFTYONEDEGREES_NGINX`` and ``FIFTYONEDEGREES_NO_THREADING``. A basic example is,
+In the Nginx source directory, run ``./configure`` as normal and add the module, the linker option ``-lm`` and the definitions ``FIFTYONEDEGREES_PATTERN`` and ``FIFTYONEDEGREES_NO_THREADING`` (or ``FIFTYONEDEGREES_TRIE`` fot the Trie module). A basic example is,
 ```
-$ CFLAGS="-DFIFTYONEDEGREES_NGINX -DFIFTYONEDEGREES_NO_THREADING" ./configure \
+$ ./configure \
     --prefix=[NGINX INSTALL DIRECTORY] \
     --with-ld-opt="-lm" \
+    --with-cc-opt="-DFIFTYONEDEGREES_PATTERN -DFIFTYONEDEGREES_NO_THREADING"
     --add-module=[MODULE DIRECTORY]/51Degrees_module
 ```
 Then install with
@@ -90,13 +95,13 @@ Before start matching user agents, you may wish to configure the solution to use
 These settings are valid in the main configuration block and should only be set once.
  - ``51D_filePath`` (defaults to ``'51Degrees.dat'``). Sets the location of the data file.
 
- - ``51D_cache`` (defaults to ``10000``). Sets the size of the workset cache.
+ - ``51D_cache`` (defaults to ``0``). Sets the size of the workset cache.
 
 #### Location Settings
 These settings are valid in a location configuration block and should only be set once per location.
- - ``51D_single`` (defaults to disabled). Gets device properties using a User-Agent. Takes a comma separated list of properties to return.
+ - ``51D_single`` (defaults to disabled). Gets device properties using a User-Agent. Takes the name the resultant header will be set as, and acomma separated list of properties to return.
 
- - ``51D_multi`` (defaults to disabled). Gets device properties using multiple HTTP headers. Takes a comma separated list of properties to return.
+ - ``51D_all`` (defaults to disabled). Gets device properties using multiple HTTP headers. Takes the name the resultant header will be set as, and a comma separated list of properties to return.
 
 ## Usage
 ### The Config File
@@ -116,7 +121,7 @@ Within a location block is where the match settings are set. They can be set in 
 To get properties using the device's User-Agent use:
 ```
 location / {
-  51D_single IsMobile,DeviceType,BrowserName;
+  51D_single x-user-agent-match IsMobile,DeviceType,BrowserName;
   ...
 }
 ```
@@ -124,20 +129,24 @@ location / {
 To get properties from all the relevant HTTP headers from the device use:
 ```
 location / {
-  51D_multi IsMobile,DeviceType,BrowserName;
+  51D_all x-all-headers-match IsMobile,DeviceType,BrowserName;
   ...
 }
 ```
 ##### Proxy Passing
-When using the ``proxy_pass`` directive in a location block where a match directive is used, the properties selected are passed as additional HTTP headers in the format ``51D-IsMobile``.
+When using the ``proxy_pass`` directive in a location block where a match directive is used, the properties selected are passed as additional HTTP headers with the name specified in the first argument of ``51D_match_single``/``51D_match_all``.
 ##### Fast-CGI
-Using ``include fastcgi_params;`` makes these additional headers available via the ``$_SERVER`` variable in the format ``$_SERVER[HTTP_51D_ISMOBILE]``.
+Using ``include fastcgi_params;`` makes these additional headers available via the ``$_SERVER`` variable.
 ### Example
-If installing to a local directory using ``./install``, the executable is set up to use the example configuration and can be easily tested. Take ``example.php``, which just print all request headers, and place it in apache's web directory (probably /var/www/html).
-Now accessing ``localhost:8888/example.php`` will display all request headers which will include the device properties:
+If installing to a local directory using ``make install-pattern``/``make install-trie``, the executable is set up to use the example configuration and can be easily tested. Take ``example.php``, which just prints all request headers, and place it in apache's web directory (probably /var/www/html).
+Now, once Nginx is started by running
 ```
-51D-IsMobile: False
-51D-IsTablet: False
-51D-BrowserVendor: Mozilla
-51D-PlatformName: Ubuntu
+$ ./nginx
+```
+in the ``Device-Detection/nginx`` directory, accessing ``localhost:8888/example.php`` will display all request headers which will include the device properties:
+```
+x-device: Desktop,Firefox,Ubuntu
+x-tablet: False
+x-smartphone: False
+x-metrics: 15364-18118-57666-18092,Exact,0,1538 
 ```
