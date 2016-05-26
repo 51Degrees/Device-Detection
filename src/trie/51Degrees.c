@@ -39,9 +39,8 @@
 /**
  * Memory allocation functions.
  */
-void *(ALLOC_CALL_CONV *fiftyoneDegreesMalloc)(size_t __size) = malloc;
-void *(ALLOC_CALL_CONV *fiftyoneDegreesCalloc)(size_t __nmemb, size_t __size) = calloc;
-void (ALLOC_CALL_CONV *fiftyoneDegreesFree)(void *__ptr) = free;
+void *(CALL_CONV *fiftyoneDegreesMalloc)(size_t __size) = malloc;
+void (CALL_CONV *fiftyoneDegreesFree)(void *__ptr) = free;
 
 // Reads the strings from the file.
 fiftyoneDegreesDataSetInitStatus readStrings(fiftyoneDegreesDataSet *dataSet, FILE *inputFilePtr) {
