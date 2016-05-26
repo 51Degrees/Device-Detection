@@ -493,3 +493,15 @@ string Provider::getMatchJson(const map<string, string>& headers) {
 	delete json;
 	return result;
 }
+
+/**
+* Initiates the data set reload process from the same file location that was
+* used to create the current dataset. New dataset will be initialised with
+* exactly the same set of properties, cache size and number of worksets in
+* the workset pool.
+*
+* Function is not thread safe.
+*/
+void Provider::reloadFromFile() {
+	fiftyoneDegreesProviderReloadFromFile(&provider);
+}

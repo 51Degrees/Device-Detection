@@ -79,6 +79,8 @@ class Provider {
         string getMatchJson(const string &userAgent);
         string getMatchJson(const map<string, string> &headers);
 
+		void reloadFromFile();
+
 	protected:
 
 	private:

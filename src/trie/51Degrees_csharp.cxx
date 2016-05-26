@@ -2572,6 +2572,28 @@ SWIGEXPORT char * SWIGSTDCALL CSharp_Provider_getMatchJson__SWIG_1(void * jarg1,
 }
 
 
+SWIGEXPORT void SWIGSTDCALL CSharp_Provider_reloadFromFile(void * jarg1) {
+  Provider *arg1 = (Provider *) 0 ;
+  
+  arg1 = (Provider *)jarg1; 
+  {
+    try {
+      (arg1)->reloadFromFile();;
+    }
+    catch(runtime_error& e) {
+      {
+        SWIG_CSharpException(SWIG_RuntimeError, e.what()); return ; 
+      };
+    }
+    catch(invalid_argument& e) {
+      {
+        SWIG_CSharpException(SWIG_ValueError, e.what()); return ; 
+      };
+    }
+  }
+}
+
+
 #ifdef __cplusplus
 }
 #endif
