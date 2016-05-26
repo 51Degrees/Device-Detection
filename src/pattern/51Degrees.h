@@ -1137,7 +1137,7 @@ EXTERNAL void (ALLOC_CALL_CONV *fiftyoneDegreesFree)(void *__ptr);
 * @return int the total size in bytes that is needed to initilaise the
 * provider with the given parameters.
 */
-EXTERNAL int fiftyoneDegreesGetProviderSizeWithPropertyString(
+EXTERNAL size_t fiftyoneDegreesGetProviderSizeWithPropertyString(
 	const char *fileName,
 	const char *properties,
 	int poolSize,
@@ -1157,7 +1157,7 @@ EXTERNAL int fiftyoneDegreesGetProviderSizeWithPropertyString(
 * @return int the total size in bytes that is needed to initialise the
 * provider with the given parameters.
 */
-EXTERNAL int fiftyoneDegreesGetProviderSizeWithPropertyCount(
+EXTERNAL size_t fiftyoneDegreesGetProviderSizeWithPropertyCount(
 	const char *fileName,
 	int propertyCount,
 	int poolSize,
@@ -1172,7 +1172,7 @@ EXTERNAL int fiftyoneDegreesGetProviderSizeWithPropertyCount(
 * @returns int the maximum string length of the values associated with the
 * given property.
 */
-EXTERNAL int fiftyoneDegreesGetMaxValueLength(const fiftyoneDegreesDataSet *dataSet, char *propertyName);
+EXTERNAL size_t fiftyoneDegreesGetMaxValueLength(const fiftyoneDegreesDataSet *dataSet, char *propertyName);
 
 /**
  * OBSOLETE METHODS - RETAINED FOR BACKWARDS COMPAITABILITY

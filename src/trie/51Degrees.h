@@ -251,10 +251,10 @@ EXTERNAL void *(CALL_CONV *fiftyoneDegreesMalloc)(size_t __size);
 EXTERNAL void (CALL_CONV *fiftyoneDegreesFree)(void *__ptr);
 
 // Return the size needed in memory to initialise the data set.
-EXTERNAL int fiftyoneDegreesGetDataSetSizeWithPropertyString(const char* fileName, const char* properties);
+EXTERNAL size_t fiftyoneDegreesGetDataSetSizeWithPropertyString(const char* fileName, const char* properties);
 
 // Return the size needed in memory to initialise the data set.
-EXTERNAL int fiftyoneDegreesGetDataSetSizeWithPropertyCount(const char* fileName, int propertyCount);
+EXTERNAL size_t fiftyoneDegreesGetDataSetSizeWithPropertyCount(const char* fileName, int propertyCount);
 
 EXTERNAL fiftyoneDegreesDataSetInitStatus fiftyoneDegreesInitProviderWithPropertyString(const char* fileName, fiftyoneDegreesProvider* provider, const char* properties);
 

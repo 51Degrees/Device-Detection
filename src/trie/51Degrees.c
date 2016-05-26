@@ -489,9 +489,9 @@ static int getSeparatorCount(const char* input) {
 	return 0;
 }
 
-int getSizeOfFile(const char* fileName) {
+size_t getSizeOfFile(const char* fileName) {
 
-	int sizeOfFile;
+	size_t sizeOfFile;
 	FILE *inputFilePtr;
 
 	// Open the file and hold on to the pointer.
@@ -512,9 +512,10 @@ int getSizeOfFile(const char* fileName) {
 	return sizeOfFile;
 }
 
-int fiftyoneDegreesGetDataSetSizeWithPropertyString(const char* fileName, const char* properties) {
+size_t fiftyoneDegreesGetDataSetSizeWithPropertyString(const char* fileName, const char* properties) {
 
-	int requiredPropertyCount, size;
+	int requiredPropertyCount;
+	size_t size;
 
 	size = getSizeOfFile(fileName);
 
@@ -530,9 +531,9 @@ int fiftyoneDegreesGetDataSetSizeWithPropertyString(const char* fileName, const 
 	return size;
 }
 
-int fiftyoneDegreesGetDataSetSizeWithPropertyCount(const char* fileName, int propertyCount) {
+size_t fiftyoneDegreesGetDataSetSizeWithPropertyCount(const char* fileName, int propertyCount) {
 
-	int size;
+	size_t size;
 
 	size = getSizeOfFile(fileName);
 	// Add size of file name.
