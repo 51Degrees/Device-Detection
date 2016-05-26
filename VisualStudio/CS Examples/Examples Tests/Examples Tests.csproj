@@ -60,6 +60,7 @@
   </Choose>
   <ItemGroup>
     <Compile Include="FindProfiles.cs" />
+    <Compile Include="GettingStartedTrie.cs" />
     <Compile Include="GettingStarted.cs" />
     <Compile Include="MatchForDeviceId.cs" />
     <Compile Include="MatchMetrics.cs" />
@@ -77,6 +78,10 @@
     <ProjectReference Include="..\Find Profiles\Find Profiles.csproj">
       <Project>{fd83a2a6-3a66-4f86-ba87-7577521913bb}</Project>
       <Name>Find Profiles</Name>
+    </ProjectReference>
+    <ProjectReference Include="..\Getting Started Trie\Getting Started Trie.csproj">
+      <Project>{bd9c0186-0952-487a-a0f9-90de7c8cba84}</Project>
+      <Name>Getting Started Trie</Name>
     </ProjectReference>
     <ProjectReference Include="..\Getting Started\Getting Started.csproj">
       <Project>{8f58e14b-0484-4d54-a885-d5e15a5595af}</Project>
@@ -120,7 +125,8 @@
   <Import Project="$(VSToolsPath)\TeamTest\Microsoft.TestTools.targets" Condition="Exists('$(VSToolsPath)\TeamTest\Microsoft.TestTools.targets')" />
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
   <PropertyGroup>
-    <PostBuildEvent>copy $(SolutionDir)$(Platform)\$(Configuration)\FiftyOne.Mobile.Detection.Provider.Pattern.* "$(TargetDir)"</PostBuildEvent>
+    <PostBuildEvent>copy $(SolutionDir)$(Platform)\$(Configuration)\FiftyOne.Mobile.Detection.Provider.Pattern.* "$(TargetDir)"
+copy $(SolutionDir)$(Platform)\$(Configuration)\FiftyOne.Mobile.Detection.Provider.Trie.* "$(TargetDir)"</PostBuildEvent>
   </PropertyGroup>
   <!-- To modify your build process, add your task inside one of the targets below and uncomment it. 
        Other similar extension points exist, see Microsoft.Common.targets.
