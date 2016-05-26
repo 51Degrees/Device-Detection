@@ -36,6 +36,9 @@
 #define snprintf _snprintf
 #endif
 
+/* Define the size in memory of the file name */
+#define SIZE_OF_FILE_NAME(fileName) sizeof(char) * (strlen(fileName) + 1)
+
 /**
  * Memory allocation functions.
  */
@@ -203,6 +206,10 @@ void fiftyoneDegreesDestroy(fiftyoneDegreesDataSet *dataSet) {
 		fiftyoneDegreesFree(dataSet->strings);
 		dataSet->strings = NULL;
 	}
+	if (dataSet->fileName != NULL) {
+		fiftyoneDegreesFree((void*)dataSet->fileName);
+		dataSet->fileName = NULL;
+	}
 }
 
 // Reads the version value from the start of the file and returns
@@ -215,6 +222,19 @@ fiftyoneDegreesDataSetInitStatus readVersion(fiftyoneDegreesDataSet *dataSet, FI
 		return DATA_SET_INIT_STATUS_SUCCESS;
 	}
 	return DATA_SET_INIT_STATUS_CORRUPT_DATA;
+}
+
+// Sets the data set file name by copying the file name string provided into
+// newly allocated memory in the data set.
+static fiftyoneDegreesDataSetInitStatus setDataSetFileName(
+	fiftyoneDegreesDataSet *dataSet,
+	const char *fileName) {
+	dataSet->fileName = (const char*)fiftyoneDegreesMalloc(SIZE_OF_FILE_NAME(fileName));
+	if (dataSet->fileName == NULL) {
+		return DATA_SET_INIT_STATUS_INSUFFICIENT_MEMORY;
+	}
+	memcpy((char*)dataSet->fileName, (char*)fileName, strlen(fileName) + 1);
+	return DATA_SET_INIT_STATUS_SUCCESS;
 }
 
 // Reads the input file into memory returning 1 if it
@@ -248,6 +268,13 @@ fiftyoneDegreesDataSetInitStatus readFile(char* fileName, fiftyoneDegreesDataSet
 	if (inputFilePtr == NULL) {
 		return DATA_SET_INIT_STATUS_FILE_NOT_FOUND;
 	}
+
+	// Set the file name for future reloads.
+	status = setDataSetFileName(dataSet, fileName);
+	if (status != DATA_SET_INIT_STATUS_SUCCESS) {
+		return status;
+	}
+
 	// Read the various data segments if the version is
 	// one we can read.
 	for (readMethod = 0; readMethod < READMETHODS; readMethod++) {
@@ -405,6 +432,47 @@ fiftyoneDegreesDataSetInitStatus fiftyoneDegreesInitWithPropertyArray(const char
 	return status;
 }
 
+fiftyoneDegreesDataSetInitStatus fiftyoneDegreesInitProviderWithPropertyString(const char* fileName, fiftyoneDegreesProvider* provider, const char* properties) {
+	fiftyoneDegreesDataSetInitStatus status;
+	provider->dataSet = (fiftyoneDegreesDataSet*)fiftyoneDegreesMalloc(sizeof(fiftyoneDegreesDataSet));
+	status = fiftyoneDegreesInitWithPropertyString(fileName, provider->dataSet, properties);
+	return status;
+}
+
+fiftyoneDegreesDataSetInitStatus fiftyoneDegreesInitProviderWithPropertyArray(const char* filename, fiftyoneDegreesProvider *provider, const char ** properties, int propertyCount) {
+	fiftyoneDegreesDataSetInitStatus status;
+	provider->dataSet = (fiftyoneDegreesDataSet*)fiftyoneDegreesMalloc(sizeof(fiftyoneDegreesDataSet));
+	status = fiftyoneDegreesInitWithPropertyArray(filename, provider->dataSet, properties, propertyCount);
+	return status;
+}
+
+fiftyoneDegreesDataSetInitStatus fiftyoneDegreesProviderReloadFromFile(fiftyoneDegreesProvider* provider) {
+	fiftyoneDegreesDataSet *newDataSet, *tmpDataSet;
+	fiftyoneDegreesDataSetInitStatus status;
+
+	// Allocate memory for a new data set.
+	newDataSet = (fiftyoneDegreesDataSet*)fiftyoneDegreesMalloc(sizeof(fiftyoneDegreesDataSet));
+
+	// Initialise the new data set with the properties of the current one.
+	status = fiftyoneDegreesInitWithPropertyArray(provider->dataSet->fileName, newDataSet, provider->dataSet->requiredPropertiesNames, provider->dataSet->requiredPropertiesCount);
+	if (status != DATA_SET_INIT_STATUS_SUCCESS) {
+		fiftyoneDegreesFree(newDataSet);
+		return status;
+	}
+
+	// Swap data sets.
+	tmpDataSet = provider->dataSet;
+	provider->dataSet = newDataSet;
+	fiftyoneDegreesDestroy(tmpDataSet);
+	fiftyoneDegreesFree(tmpDataSet);
+
+	return status;
+}
+
+void fiftyoneDegreesProviderFree(fiftyoneDegreesProvider* provider) {
+	fiftyoneDegreesDestroy(provider->dataSet);
+}
+
 static int getSeparatorCount(const char* input) {
 	int index = 0, count = 0;
 	if (input != NULL && *input != 0) {
@@ -449,6 +517,10 @@ int fiftyoneDegreesGetDataSetSizeWithPropertyString(const char* fileName, const 
 	int requiredPropertyCount, size;
 
 	size = getSizeOfFile(fileName);
+
+	// Add size of file name.
+	size += SIZE_OF_FILE_NAME(fileName);
+
 	if (size > 0) {
 		size += 9 * sizeof(void*);
 		// Get property count.
@@ -463,6 +535,9 @@ int fiftyoneDegreesGetDataSetSizeWithPropertyCount(const char* fileName, int pro
 	int size;
 
 	size = getSizeOfFile(fileName);
+	// Add size of file name.
+	size += SIZE_OF_FILE_NAME(fileName);
+
 	if (size > 0) {
 		size += 9 * sizeof(void*);
 		size += 2 * sizeof(void*) * propertyCount;

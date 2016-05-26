@@ -99,7 +99,7 @@ the maximum size of the workset pool.
 #include "../src/trie/51Degrees.h"
 
 // Global settings and properties.
-static fiftyoneDegreesDataSet dataSet;
+static fiftyoneDegreesProvider provider;
 
 // Function declarations.
 static void reportDatasetInitStatus(
@@ -121,18 +121,18 @@ int main(int argc, char* argv[]) {
 
 	// Create a pool of 4 worksets with a cache for 1000 items.
 	fiftyoneDegreesDataSetInitStatus status =
-		fiftyoneDegreesInitWithPropertyString(
-		fileName, &dataSet, properties);
+		fiftyoneDegreesInitProviderWithPropertyString(
+		fileName, &provider, properties);
 	if (status != DATA_SET_INIT_STATUS_SUCCESS) {
 		reportDatasetInitStatus(status, fileName);
 		fgetc(stdin);
 		return 1;
 	}
 
-	run(&dataSet);
+	run(provider.dataSet);
 
 	// Free the pool, dataset and cache.
-	fiftyoneDegreesDestroy(&dataSet);
+	fiftyoneDegreesProviderFree(&provider);
 
 #ifdef _DEBUG
 #ifdef _MSC_VER
