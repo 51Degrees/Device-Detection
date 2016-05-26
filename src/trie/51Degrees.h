@@ -169,6 +169,9 @@ EXTERNAL fiftyoneDegreesDeviceOffsets* fiftyoneDegreesGetDeviceOffsetsWithHeader
 // Creates a new device offsets structure with memory allocated.
 EXTERNAL fiftyoneDegreesDeviceOffsets* fiftyoneDegreesCreateDeviceOffsets(fiftyoneDegreesDataSet *dataSet);
 
+// Resets existing device offsets structure to the same state as when created by fiftyoneDegreesCreateDeviceOffsets.
+EXTERNAL void fiftyoneDegreesResetDeviceOffsets(fiftyoneDegreesDeviceOffsets* offsets);
+
 // Frees the memory used by the offsets.
 EXTERNAL void fiftyoneDegreesFreeDeviceOffsets(fiftyoneDegreesDeviceOffsets* offsets);
 

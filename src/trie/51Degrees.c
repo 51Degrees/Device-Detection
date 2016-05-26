@@ -236,7 +236,14 @@ fiftyoneDegreesDataSetInitStatus readFile(char* fileName, fiftyoneDegreesDataSet
 	m[7] = readNodes;
 
 	// Open the file and hold on to the pointer.
+#ifndef _MSC_FULL_VER
 	inputFilePtr = fopen(fileName, "rb");
+#else
+	/* If using Microsoft use the fopen_s method to avoid warning */
+	if (fopen_s(&inputFilePtr, fileName, "rb") != 0) {
+		return DATA_SET_INIT_STATUS_FILE_NOT_FOUND;
+	}
+#endif
 
 	// If the file didn't open return -1.
 	if (inputFilePtr == NULL) {
@@ -608,6 +615,20 @@ fiftyoneDegreesDeviceOffsets* fiftyoneDegreesCreateDeviceOffsets(fiftyoneDegrees
 	offsets->size = 0;
 	offsets->firstOffset = (fiftyoneDegreesDeviceOffset*)fiftyoneDegreesMalloc(dataSet->uniqueHttpHeaderCount * sizeof(fiftyoneDegreesDeviceOffset));
 	return offsets;
+}
+
+void fiftyoneDegreesResetDeviceOffsets(fiftyoneDegreesDeviceOffsets* offsets) {
+	int offsetIndex;
+	if (offsets != NULL) {
+		if (offsets->firstOffset != NULL) {
+			for (offsetIndex = 0; offsetIndex < offsets->size; offsetIndex++) {
+				if ((offsets->firstOffset + offsetIndex)->userAgent != NULL) {
+					fiftyoneDegreesFree((void*)(offsets->firstOffset + offsetIndex)->userAgent);
+				}
+			}
+		}
+	}
+	offsets->size = 0;
 }
 
 // Frees the memory used by the offsets.

@@ -151,9 +151,7 @@ int main(int argc, char* argv[]) {
 void run(fiftyoneDegreesDataSet* dataSet) {
 	const char* isMobile;
 	fiftyoneDegreesDeviceOffsets *offsets;
-	offsets = (fiftyoneDegreesDeviceOffsets*)malloc(sizeof(fiftyoneDegreesDeviceOffsets));
-	offsets->size = 1;
-	offsets->firstOffset = (fiftyoneDegreesDeviceOffset*)malloc(sizeof(fiftyoneDegreesDeviceOffset));
+
 	// User-Agent string of an iPhone mobile device.
 	const char* mobileUserAgent = ("Mozilla/5.0 (iPhone; CPU iPhone OS 7_1 like Mac OS X) "
 		"AppleWebKit/537.51.2 (KHTML, like Gecko) 'Version/7.0 Mobile/11D167 "
@@ -170,19 +168,25 @@ void run(fiftyoneDegreesDataSet* dataSet) {
 
 	printf("Starting Getting Started Example.\n");
 
-	printf("\nMobile User-Agent: %s\n", mobileUserAgent);
+	offsets = fiftyoneDegreesCreateDeviceOffsets(dataSet);
+	offsets->size = 1;
+
 	// Carries out a match for a mobile User-Agent.
-	
+	printf("\nMobile User-Agent: %s\n", mobileUserAgent);
 	fiftyoneDegreesSetDeviceOffset(dataSet, mobileUserAgent, 0, offsets->firstOffset);
 	isMobile = getIsMobile(dataSet, offsets);
 	printf("   IsMobile: %s\n", isMobile);
 
+	fiftyoneDegreesResetDeviceOffsets(offsets);
+	offsets->size = 1;
 	// Carries out a match for a desktop User-Agent.
 	printf("\n Desktop User-Agent: %s\n", desktopUserAgent);
 	fiftyoneDegreesSetDeviceOffset(dataSet, desktopUserAgent, 0, offsets->firstOffset);
 	isMobile = getIsMobile(dataSet, offsets);
 	printf("   IsMobile: %s\n", isMobile);
 
+	fiftyoneDegreesResetDeviceOffsets(offsets);
+	offsets->size = 1;
 	// Carries out a match for a MediaHub User-Agent.
 	printf("\n Media hub User-Agent: %s\n", mediaHubUserAgent);
 	fiftyoneDegreesSetDeviceOffset(dataSet, mediaHubUserAgent, 0, offsets->firstOffset);
