@@ -79,6 +79,8 @@ class Provider {
         string getMatchJson(const string &userAgent);
         string getMatchJson(const map<string, string> &headers);
 
+		void reloadFromFile();
+
 	protected:
 
 	private:
@@ -101,7 +103,7 @@ class Provider {
 			const map<string, string> *headers);
 		void initMatch(Match *match);
 
-		fiftyoneDegreesDataSet dataSet;
+		fiftyoneDegreesProvider provider;
 };
 
 #endif // FIFTYONEDEGREESPROVIDER_HPP

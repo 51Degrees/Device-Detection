@@ -129,6 +129,7 @@ typedef struct fiftyoneDegrees_property_t {
 #pragma pack(push, 1)
 typedef struct fiftyoneDegrees_dataset_t {
 	uint16_t version; /* The version of the data file. */
+	const char * fileName; /* The location of the file the data set has been loaded from. */
 	int32_t copyrightSize; /* The size of the copyright notice at the top of the data file. */
 	char *copyright; /* Pointer to the copyright notice held in the data file. */
 	int32_t stringsSize; /* The size of the strings data array. */
@@ -151,6 +152,12 @@ typedef struct fiftyoneDegrees_dataset_t {
 	uint32_t *requiredProperties; /* A list of required property indexes. */
 	const char **requiredPropertiesNames; /* A list of pointers to the names of the properties. */
 } fiftyoneDegreesDataSet;
+#pragma pack(pop)
+
+#pragma pack(push, 4)
+typedef struct fiftyoneDegrees_provider_t {
+	fiftyoneDegreesDataSet *dataSet;
+} fiftyoneDegreesProvider;
 #pragma pack(pop)
 
 // Initialises the memory using the file and properies provided.
@@ -243,6 +250,20 @@ EXTERNAL void *(CALL_CONV *fiftyoneDegreesMalloc)(size_t __size);
 // Pointer to free function.
 EXTERNAL void (CALL_CONV *fiftyoneDegreesFree)(void *__ptr);
 
-EXTERNAL int fiftyoneDegreesGetDataSetSizeWithPropertyString(const char* fileName, const char* properties);
+// Return the size needed in memory to initialise the data set.
+EXTERNAL size_t fiftyoneDegreesGetDataSetSizeWithPropertyString(const char* fileName, const char* properties);
+
+// Return the size needed in memory to initialise the data set.
+EXTERNAL size_t fiftyoneDegreesGetDataSetSizeWithPropertyCount(const char* fileName, int propertyCount);
+
+EXTERNAL fiftyoneDegreesDataSetInitStatus fiftyoneDegreesInitProviderWithPropertyString(const char* fileName, fiftyoneDegreesProvider* provider, const char* properties);
+
+EXTERNAL fiftyoneDegreesDataSetInitStatus fiftyoneDegreesInitProviderWithPropertyArray(const char* fileName, fiftyoneDegreesProvider* provider, const char** properties, int propertyCount);
+
+EXTERNAL void fiftyoneDegreesProviderFree(fiftyoneDegreesProvider* provider);
+
+// Reload the data set from its original file location.
+EXTERNAL fiftyoneDegreesDataSetInitStatus fiftyoneDegreesProviderReloadFromFile(fiftyoneDegreesProvider* provider);
+
 
 #endif // 51DEGREES_H_INCLUDED
