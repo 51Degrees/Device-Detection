@@ -33,8 +33,8 @@ install-pattern: build-pattern
 	./configure \
 	--prefix=$(CURDIR)/build \
 	--with-ld-opt="-lm" \
-	--add-module=$(CURDIR)/51Degrees_module \
-	--with-cc-opt="-DFIFTYONEDEGREES_PATTERN -Wno-ignored-qualifiers -Wno-unused-result" \
+	--add-dynamic-module=$(CURDIR)/51Degrees_module \
+	--with-cc-opt="-DFIFTYONEDEGREES_PATTERN -Wno-ignored-qualifiers -Wno-unused-result -Wno-unused-function" \
 	--sbin-path=$(CURDIR) \
 	--conf-path="pattern.conf"
 	cd $(CURDIR)/vendor/nginx && make install
@@ -60,10 +60,8 @@ install-trie: build-trie
 	./configure \
 	--prefix=$(CURDIR)/build \
 	--with-ld-opt="-lm" \
-	--add-module=$(CURDIR)/51Degrees_module \
-	--with-cc-opt=" -DFIFTYONEDEGREES_TRIE" \
-	--sbin-path=$(CURDIR) \
-	--conf-path="trie.conf"
+	--add-dynamic-module=$(CURDIR)/51Degrees_module \
+	--with-cc-opt=" -DFIFTYONEDEGREES_TRIE"
 	cd $(CURDIR)/vendor/nginx && make install
 	cp example/trie.conf build/
 
@@ -74,17 +72,18 @@ install-trie-debug: build-trie
 	--prefix=$(CURDIR)/build \
 	--with-ld-opt="-lm" \
 	--with-debug \
-	--add-module=$(CURDIR)/51Degrees_module \
+	--add-dynamic-module=$(CURDIR)/51Degrees_module \
 	--with-cc-opt=" -DFIFTYONEDEGREES_TRIE -O0 -g" \
 	--sbin-path=$(CURDIR) \
 	--conf-path="trie.conf"
 	cd $(CURDIR)/vendor/nginx && make install
 	cp example/trie.conf build/
+
 get-source:
 	if [ -d "vendor" ]; then rm -r vendor; fi
 	mkdir -p vendor/nginx
-	curl -L -O "http://nginx.org/download/nginx-1.8.1.tar.gz"
-	tar xzf "nginx-1.8.1.tar.gz"
-	mv nginx-1.8.1.tar.gz vendor/
-	mv -f -u nginx-1.8.1/* vendor/nginx
-	rmdir nginx-1.8.1
+	curl -L -O "http://nginx.org/download/nginx-1.10.0.tar.gz"
+	tar xzf "nginx-1.10.0.tar.gz"
+	mv nginx-1.10.0.tar.gz vendor/
+	mv -f -u nginx-1.10.0/* vendor/nginx
+	rmdir nginx-1.10.0

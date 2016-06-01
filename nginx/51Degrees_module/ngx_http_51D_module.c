@@ -42,6 +42,7 @@ static ngx_int_t ngx_http_51D_init_shm_dataSet(ngx_shm_zone_t *shm_zone, void *d
 static ngx_int_t ngx_http_51D_init_shm_cache(ngx_shm_zone_t *shm_zone, void *data);
 
 static int ngx_http_51D_total_headers_to_set = -1;
+static int ngx_http_51D_cacheSize;
 typedef struct ngx_http_51D_header_to_set_t {
     ngx_uint_t multi;
     ngx_uint_t propertyCount;
@@ -78,10 +79,18 @@ typedef struct {
 	fiftyoneDegreesDataSet *dataSet;
 } ngx_http_51D_main_conf_t;
 
+
+typedef struct {
+	ngx_rbtree_node_t node;
+	ngx_str_t name;
+	ngx_uint_t headersCount;
+	ngx_http_51D_matched_header_t** header;
+} ngx_http_51D_cache_node_t;
+
 typedef struct ngx_http_51D_cache_lru_list_s ngx_http_51D_cache_lru_list_t;
 
 struct ngx_http_51D_cache_lru_list_s {
-	void *elt;
+	ngx_http_51D_cache_node_t *node;
 	ngx_http_51D_cache_lru_list_t *prev;
 	ngx_http_51D_cache_lru_list_t *next;
 };
@@ -91,12 +100,18 @@ typedef struct {
 	ngx_rbtree_t *tree;
 } ngx_http_51D_cache_t;
 
-typedef struct {
-	ngx_rbtree_node_t node;
-	ngx_str_t name;
-	ngx_uint_t headersCount;
-	ngx_http_51D_matched_header_t header;
-} ngx_http_51D_cache_node_t;
+size_t ngx_http_51D_get_cache_shm_size(int cacheSize)
+{
+	size_t size = 0;
+	size += sizeof(ngx_shm_zone_t);
+	size += sizeof(ngx_http_51D_cache_t);
+	size += sizeof(ngx_http_51D_cache_lru_list_t) * cacheSize;
+	size += sizeof(ngx_rbtree_t);
+	size += sizeof(ngx_http_51D_cache_node_t) * cacheSize;
+	size += sizeof(u_char) * FIFTYONEDEGREES_MAX_STRING * 4 * cacheSize;
+
+	return size;
+}
 
 /**
  * Module post config. Adds the module to the HTTP access phase array and
@@ -130,6 +145,7 @@ ngx_http_51D_post_conf(ngx_conf_t *cf)
 	if ((int)fdmcf->cacheSize < 0) {
 		fdmcf->cacheSize = 0;
 	}
+	ngx_http_51D_cacheSize = (int)fdmcf->cacheSize;
 #endif // FIFTYONEDEGREES_PATTERN
 
 	dataSetName.data = (u_char*) "51Degrees Shared Data Set";
@@ -139,6 +155,7 @@ ngx_http_51D_post_conf(ngx_conf_t *cf)
 	tagOffset = ngx_atomic_fetch_add(&ngx_http_51D_shm_tag, (ngx_atomic_int_t)1);
 #ifdef FIFTYONEDEGREES_PATTERN
 	size_t size = (size_t)fiftyoneDegreesGetProviderSizeWithPropertyString((const char*)fdmcf->dataFile.data, (const char*)fdmcf->properties, 0, 0);
+	//size_t cacheSize= (size_t)ngx_http_51D_get_cache_shm_size(ngx_http_51D_cacheSize);
 #endif // FIFTYONEDEGREES_PATTERN
 #ifdef FIFTYONEDEGREES_TRIE
 	size_t size = (size_t)fiftyoneDegreesGetDataSetSizeWithPropertyString((const char*)fdmcf->dataFile.data, (const char*)fdmcf->properties);
@@ -150,7 +167,7 @@ ngx_http_51D_post_conf(ngx_conf_t *cf)
 	size *= 1.1;
 	ngx_http_51D_shm_dataSet = ngx_shared_memory_add(cf, &dataSetName, size, &ngx_http_51D_module + tagOffset);
 	ngx_http_51D_shm_dataSet->init = ngx_http_51D_init_shm_dataSet;
-	ngx_http_51D_shm_cache = ngx_shared_memory_add(cf, &cacheName, (size_t)fdmcf->cacheSize, &ngx_http_51D_module + tagOffset);
+	ngx_http_51D_shm_cache = ngx_shared_memory_add(cf, &cacheName, 10000000, &ngx_http_51D_module + tagOffset);
 	ngx_http_51D_shm_cache->init = ngx_http_51D_init_shm_cache;
 
 	return NGX_OK;
@@ -347,12 +364,12 @@ static ngx_int_t ngx_http_51D_init_shm_cache(ngx_shm_zone_t *shm_zone, void *dat
 	}
 
 	shpool = (ngx_slab_pool_t*) shm_zone->shm.addr;
-	tree = ngx_slab_alloc(shpool, sizeof(*tree));
+	tree = ngx_slab_alloc(shpool, sizeof(ngx_rbtree_t));
 	if (tree == NULL) {
 		return NGX_ERROR;
 	}
 
-	sentinel = ngx_slab_alloc(shpool, sizeof(*tree));
+	sentinel = ngx_slab_alloc(shpool, sizeof(ngx_rbtree_node_t));
 	if (sentinel == NULL) {
 		return NGX_ERROR;
 	}
@@ -365,9 +382,22 @@ static ngx_int_t ngx_http_51D_init_shm_cache(ngx_shm_zone_t *shm_zone, void *dat
 	cache = (ngx_http_51D_cache_t*)ngx_slab_alloc(shpool, sizeof(ngx_http_51D_cache_t));
 	cache->tree = tree;
 	cache->lru = (ngx_http_51D_cache_lru_list_t*)ngx_slab_alloc(shpool, sizeof(ngx_http_51D_cache_lru_list_t));
-	cache->lru.prev = NULL;
-	cache->lru.elt = NULL;
-	cache->lru.next = NULL;
+	cache->lru->node = NULL;
+
+	int i = 1;
+	ngx_http_51D_cache_lru_list_t *current;
+	current = cache->lru;
+	while (i < ngx_http_51D_cacheSize) {
+		current->next = (ngx_http_51D_cache_lru_list_t*)ngx_slab_alloc(shpool, sizeof(ngx_http_51D_cache_lru_list_t));
+		current->next->prev = current;
+		current->next->node = NULL;
+		current = current->next;
+		i++;
+	}
+	current->next = NULL;
+	cache->lru->prev = current;
+	//todo mutex.
+
 	shm_zone->data = cache;
 
 	return NGX_OK;
@@ -419,20 +449,27 @@ ngx_http_51D_cache_node_t *ngx_http_51D_lookup_node_lru(ngx_str_t *name, int32_t
 {
 	ngx_http_51D_cache_node_t *node;
 	ngx_http_51D_cache_lru_list_t *lruItem;
+	ngx_slab_pool_t *shpool = (ngx_slab_pool_t*)ngx_http_51D_shm_cache->shm.addr;
 	ngx_http_51D_cache_t *cache = (ngx_http_51D_cache_t*)ngx_http_51D_shm_cache->data;
 
 	node = ngx_http_51D_lookup_node(cache->tree, name, hash);
-	if (node != NULL && node != cache->lru.elt) {
+	if (node != NULL && node != cache->lru->node) {
+		// Node exists in the cache, and is not at the top of the lru.
 		lruItem = cache->lru;
 		while (lruItem->next != NULL) {
-			if (lruItem->elt == node) {
+			if (lruItem->node == node) {
+				// Found node in the lru, so move it to the top.
+				ngx_shmtx_lock(&shpool->mutex);
 				lruItem->next->prev = lruItem->prev;
 				lruItem->prev->next = lruItem->next;
-				lruItem->prev = NULL;
+				lruItem->prev = cache->lru->prev;
 				lruItem->next = cache->lru;
 				cache->lru->prev = lruItem;
+				cache->lru = lruItem;
+				ngx_shmtx_unlock(&shpool->mutex);
 				break;
 			}
+			lruItem = lruItem->next;
 		}
 	}
 	return node;
@@ -844,68 +881,106 @@ void ngx_http_51D_get_value(fiftyoneDegreesDataSet *dataSet, char *values_string
 }
 #endif // FIFTYONEDEGREES_TRIE
 
-void ngx_http_51D_add_header_to_node(ngx_http_51D_cache_node_t *node, ngx_table_elt_t *h)
+void ngx_http_51D_cache_clean(ngx_http_51D_cache_t *cache, int count)
+{
+	int i = 0, j;
+	ngx_http_51D_cache_node_t *node;
+	ngx_slab_pool_t *shpool = (ngx_slab_pool_t*)ngx_http_51D_shm_cache->shm.addr;
+	ngx_http_51D_cache_lru_list_t *lruItem = cache->lru->prev;
+
+	while (lruItem->node == NULL) {
+		lruItem = lruItem->prev;
+	}
+
+	while (i < count) {
+		node = lruItem->node;
+		ngx_rbtree_delete(cache->tree, (ngx_rbtree_node_t*)node);
+
+		// todo free all headers.
+		for (j = 0; j < (int)node->headersCount; j++) {
+			ngx_slab_free_locked(shpool, node->header[j]->lowerName);
+			ngx_slab_free_locked(shpool, node->header[j]->name.data);
+			ngx_slab_free_locked(shpool, node->header[j]->value.data);
+			ngx_slab_free_locked(shpool, node->header[j]);
+		}
+		ngx_slab_free_locked(shpool, node->name.data);
+		ngx_slab_free_locked(shpool, node->header);
+		ngx_slab_free_locked(shpool, node);
+		lruItem->node = NULL;
+		lruItem = lruItem->prev;
+		i++;
+	}
+}
+
+void *ngx_http_51D_cache_alloc(size_t __size)
 {
 	ngx_slab_pool_t *shpool = (ngx_slab_pool_t*)ngx_http_51D_shm_cache->shm.addr;
+	ngx_http_51D_cache_t *cache = (ngx_http_51D_cache_t*)ngx_http_51D_shm_cache->data;
+	void *ptr = ngx_slab_alloc(shpool, __size);
+	if (ptr == NULL) {
+		ngx_shmtx_lock(&shpool->mutex);
+		ngx_http_51D_cache_clean(cache, 10);
+		ngx_slab_alloc_locked(shpool, __size);
+		ngx_shmtx_unlock(&shpool->mutex);
+	}
+	return ptr;
+}
+
+void ngx_http_51D_add_header_to_node(ngx_http_51D_cache_node_t *node, ngx_table_elt_t *h)
+{
 	ngx_http_51D_matched_header_t *header;
-	header = &node->header + (sizeof(ngx_http_51D_matched_header_t) * node->headersCount);
-	header->name = h->key;
-	header->lowerName = h->lowcase_key;
+	header = node->header[(int)node->headersCount];
+	header->name.data = (u_char*)ngx_http_51D_cache_alloc(sizeof(u_char) *(h->key.len + 1));
+	ngx_cpystrn(header->name.data, h->key.data, h->key.len + 1);
+	header->name.len = h->key.len;
+	header->lowerName = (u_char*)ngx_http_51D_cache_alloc(sizeof(u_char) * (ngx_strlen(h->lowcase_key) + 1));
+	ngx_cpystrn(header->lowerName, h->lowcase_key, ngx_strlen(h->lowcase_key) + 1);
 	//todo clean cache if no space
-	header->value.data = (u_char*)ngx_slab_alloc(shpool, h->value.len);
+	header->value.data = (u_char*)ngx_http_51D_cache_alloc(h->value.len);
 	ngx_cpystrn(header->value.data, h->value.data, h->value.len +1);
 	header->value.len = h->value.len;
 	node->headersCount++;
 
 }
 
-void ngx_http_51D_cache_clean(ngx_http_51D_cache_t *cache)
+ngx_http_51D_cache_node_t *ngx_http_51D_create_node(ngx_str_t *name, uint32_t hash, int headerCount)
 {
-	int i = 0;
+	int i;
 	ngx_http_51D_cache_node_t *node;
-	ngx_slab_pool_t *shpool = (ngx_slab_pool_t*)ngx_http_51D_shm_cache->shm.addr;
-	ngx_shmtx_lock(cache->mutex);
-	ngx_http_51D_cache_lru_list_t *lruItem = cache->lru;
-	while (i < cache->size/2) {
-		lruItem = lruItem->next;
-		i++;
-	}
-
-	while (lruItem->next != NULL) {
-		node = lruItem->node;
-		ngx_slab_free(shpool, node->header.lowerName);
-		ngx_slab_free(shpool, node->header.name.data);
-		ngx_slab_free(shpool, node->header.value.data);
-		ngx_slab_free(shpool, node->name.data);
-		ngx_rbtree_delete(cache->tree, node);
-		ngx_slab_free(shpool, node);
-		lruItem = lruItem->next;
-	}
-}
-
-ngx_http_51D_cache_node_t *ngx_http_51D_create_node(void)
-{
-	ngx_slab_pool_t *shpool = (ngx_slab_pool_t*)ngx_http_51D_shm_cache->shm.addr;
-	ngx_http_51D_cache_t *cache = (ngx_http_51D_cache_t*)ngx_http_51D_shm_cache->data;
-	if (cache->free < cache->limit) {
-		ngx_http_51D_cache_clean(cache);
-	}
-	node = (ngx_http_51D_cache_node_t*)ngx_slab_alloc(shpool, sizeof(ngx_http_51D_cache_node_t) + sizeof(ngx_http_51D_matched_header_t) * fdlcf->headerCount);
-	if (node == NULL) {
-		return node;
-	}
+	node = (ngx_http_51D_cache_node_t*)ngx_http_51D_cache_alloc(sizeof(ngx_http_51D_cache_node_t));
 	node->node.key = hash;
 	node->headersCount = 0;
+	node->header = (ngx_http_51D_matched_header_t**)ngx_http_51D_cache_alloc(sizeof(ngx_http_51D_matched_header_t*)*headerCount);
+	for (i = 0; i < headerCount; i++) {
+		node->header[i] = (ngx_http_51D_matched_header_t*)ngx_http_51D_cache_alloc(sizeof(ngx_http_51D_matched_header_t));
+	}
+
+	node->name.data = (u_char*)ngx_http_51D_cache_alloc(name->len + 1);
+	ngx_cpystrn(node->name.data, name->data, name->len + 1);
+	node->name.len = name->len;
 	return node;
 }
 
-void ngx_http_51D_set_node_name(ngx_http_51D_cache_node_t *node, ngx_str_t *name)
+void ngx_http_51D_cache_insert(ngx_http_51D_cache_node_t *node)
 {
-	//todo clean cache if no space.
 	ngx_slab_pool_t *shpool = (ngx_slab_pool_t*)ngx_http_51D_shm_cache->shm.addr;
-	node->name.data = (u_char*)ngx_slab_alloc(shpool, name->len);
-	strcpy((char*)node->name.data, (const char*)name->data);
-	node->name.len = name->len;
+	ngx_http_51D_cache_t *cache = (ngx_http_51D_cache_t*)ngx_http_51D_shm_cache->data;
+
+	if (cache->lru->prev->node != NULL) {
+		// The cache is full, so purge the last 3 from the lru.
+		ngx_http_51D_cache_clean(cache, 3);
+	}
+	ngx_rbtree_insert(cache->tree, (ngx_rbtree_node_t*)node);
+
+//todo change does not hold.
+	// Add node to lru.
+	ngx_shmtx_lock(&shpool->mutex);
+	cache->lru->prev->next = cache->lru;
+	cache->lru->prev->node = node;
+	cache->lru->prev->prev->next = NULL;
+	cache->lru = cache->lru->prev;
+
+	ngx_shmtx_unlock(&shpool->mutex);
 }
 
 /**
@@ -966,7 +1041,7 @@ ngx_http_51D_handler(ngx_http_request_t *r)
 	node = ngx_http_51D_lookup_node_lru(&r->headers_in.user_agent[0].value, hash);
 
 	if (node == NULL) {
-		node = ngx_http_51D_create_node();
+		node = ngx_http_51D_create_node(&r->headers_in.user_agent[0].value, hash, (int)fdlcf->headerCount);
 
 		for (multi = 0; multi < 2; multi++) {
 			for (matchIndex=0;matchIndex<fdlcf->headerCount;matchIndex++)
@@ -1017,12 +1092,11 @@ ngx_http_51D_handler(ngx_http_request_t *r)
 			}
 			//todo add to queue
 		}
-		ngx_http_51D_set_node_name(node, &r->headers_in.user_agent[0].value);
-		ngx_rbtree_insert((ngx_rbtree_t*)ngx_http_51D_shm_cache->data, (ngx_rbtree_node_t*)node);
+		ngx_http_51D_cache_insert(node);
 	}
 	else {
 		for (matchIndex = 0; matchIndex < fdlcf->headerCount; matchIndex++) {
-			header = &node->header + sizeof(ngx_http_51D_matched_header_t)*matchIndex;
+			header = node->header[(int)matchIndex];
 			h[matchIndex] = ngx_list_push(&r->headers_in.headers);
 			h[matchIndex]->key = header->name;
 			h[matchIndex]->hash = ngx_hash_key(h[matchIndex]->key.data, h[matchIndex]->key.len);
