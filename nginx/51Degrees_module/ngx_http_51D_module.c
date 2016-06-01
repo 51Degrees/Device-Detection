@@ -79,15 +79,15 @@ typedef struct {
 	fiftyoneDegreesDataSet *dataSet;
 } ngx_http_51D_main_conf_t;
 
+typedef struct ngx_http_51D_cache_lru_list_s ngx_http_51D_cache_lru_list_t;
 
 typedef struct {
 	ngx_rbtree_node_t node;
+	ngx_http_51D_cache_lru_list_t *lruItem;
 	ngx_str_t name;
 	ngx_uint_t headersCount;
 	ngx_http_51D_matched_header_t** header;
 } ngx_http_51D_cache_node_t;
-
-typedef struct ngx_http_51D_cache_lru_list_s ngx_http_51D_cache_lru_list_t;
 
 struct ngx_http_51D_cache_lru_list_s {
 	ngx_http_51D_cache_node_t *node;
@@ -456,20 +456,15 @@ ngx_http_51D_cache_node_t *ngx_http_51D_lookup_node_lru(ngx_str_t *name, int32_t
 	if (node != NULL && node != cache->lru->node) {
 		ngx_shmtx_lock(&shpool->mutex);
 		// Node exists in the cache, and is not at the top of the lru.
-		lruItem = cache->lru;
-		while (lruItem->next != NULL) {
-			if (lruItem->node == node) {
-				// Found node in the lru, so move it to the top.
-				lruItem->next->prev = lruItem->prev;
-				lruItem->prev->next = lruItem->next;
-				lruItem->prev = cache->lru->prev;
-				lruItem->next = cache->lru;
-				cache->lru->prev = lruItem;
-				cache->lru = lruItem;
-				break;
-			}
-			lruItem = lruItem->next;
+		lruItem = node->lruItem;
+		if (lruItem->next != NULL) {
+			lruItem->next->prev = lruItem->prev;
+			lruItem->prev = cache->lru->prev;
+			cache->lru->prev = lruItem;
 		}
+		lruItem->prev->next = lruItem->next;
+		lruItem->next = cache->lru;
+		cache->lru = lruItem;
 		ngx_shmtx_unlock(&shpool->mutex);
 	}
 	return node;
@@ -978,6 +973,7 @@ void ngx_http_51D_cache_insert(ngx_http_51D_cache_node_t *node)
 	cache->lru->prev->node = node;
 	cache->lru->prev->prev->next = NULL;
 	cache->lru = cache->lru->prev;
+	node->lruItem = cache->lru;
 
 	ngx_shmtx_unlock(&shpool->mutex);
 }
