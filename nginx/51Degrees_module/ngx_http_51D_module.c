@@ -19,8 +19,9 @@
 #define FIFTYONEDEGREES_PROPERTY_NOT_AVAILABLE "NA"
 #endif // FIFTYONEDEGREES_PROPERTY_NOT_AVAILABLE
 #ifndef FIFTYONEDEGREES_MAX_STRING
-#define FIFTYONEDEGREES_MAX_STRING 100
+#define FIFTYONEDEGREES_MAX_STRING 500
 #endif // FIFTYONEDEGREES_MAX_STRING
+#define FIFTYONEDEGREES_IMPORTANT_HEADERS_COUNT 5
 
 // Module config functions to enable matching in selected locations.
 static char *ngx_http_51D_set(ngx_conf_t* cf, ngx_command_t *cmd, void *conf);
@@ -103,12 +104,17 @@ typedef struct {
 size_t ngx_http_51D_get_cache_shm_size(int cacheSize)
 {
 	size_t size = 0;
+	// Size of the shared memory zone.
 	size += sizeof(ngx_shm_zone_t);
+	// Size of the cache structure.
 	size += sizeof(ngx_http_51D_cache_t);
+	// Size of the lru elements.
 	size += sizeof(ngx_http_51D_cache_lru_list_t) * cacheSize;
+	// Size of the red black tree.
 	size += sizeof(ngx_rbtree_t);
+	// Size of the rbtree elements.
 	size += sizeof(ngx_http_51D_cache_node_t) * cacheSize;
-	size += sizeof(u_char) * FIFTYONEDEGREES_MAX_STRING * 4 * cacheSize;
+	size += sizeof(u_char) * FIFTYONEDEGREES_MAX_STRING * (1 + 3 * FIFTYONEDEGREES_IMPORTANT_HEADERS_COUNT) * cacheSize;
 
 	return size;
 }
@@ -155,7 +161,7 @@ ngx_http_51D_post_conf(ngx_conf_t *cf)
 	tagOffset = ngx_atomic_fetch_add(&ngx_http_51D_shm_tag, (ngx_atomic_int_t)1);
 #ifdef FIFTYONEDEGREES_PATTERN
 	size_t size = (size_t)fiftyoneDegreesGetProviderSizeWithPropertyString((const char*)fdmcf->dataFile.data, (const char*)fdmcf->properties, 0, 0);
-	//size_t cacheSize= (size_t)ngx_http_51D_get_cache_shm_size(ngx_http_51D_cacheSize);
+	size_t cacheSize= (size_t)ngx_http_51D_get_cache_shm_size(ngx_http_51D_cacheSize);
 #endif // FIFTYONEDEGREES_PATTERN
 #ifdef FIFTYONEDEGREES_TRIE
 	size_t size = (size_t)fiftyoneDegreesGetDataSetSizeWithPropertyString((const char*)fdmcf->dataFile.data, (const char*)fdmcf->properties);
@@ -167,7 +173,7 @@ ngx_http_51D_post_conf(ngx_conf_t *cf)
 	size *= 1.1;
 	ngx_http_51D_shm_dataSet = ngx_shared_memory_add(cf, &dataSetName, size, &ngx_http_51D_module + tagOffset);
 	ngx_http_51D_shm_dataSet->init = ngx_http_51D_init_shm_dataSet;
-	ngx_http_51D_shm_cache = ngx_shared_memory_add(cf, &cacheName, 10000000, &ngx_http_51D_module + tagOffset);
+	ngx_http_51D_shm_cache = ngx_shared_memory_add(cf, &cacheName, cacheSize, &ngx_http_51D_module + tagOffset);
 	ngx_http_51D_shm_cache->init = ngx_http_51D_init_shm_cache;
 
 	return NGX_OK;
@@ -467,6 +473,7 @@ ngx_http_51D_cache_node_t *ngx_http_51D_lookup_node_lru(ngx_str_t *name, int32_t
 		cache->lru = lruItem;
 		ngx_shmtx_unlock(&shpool->mutex);
 	}
+
 	return node;
 }
 
@@ -914,7 +921,7 @@ void *ngx_http_51D_cache_alloc(size_t __size)
 	void *ptr = ngx_slab_alloc(shpool, __size);
 	if (ptr == NULL) {
 		ngx_shmtx_lock(&shpool->mutex);
-		ngx_http_51D_cache_clean(cache, 10);
+		ngx_http_51D_cache_clean(cache, 3);
 		ngx_slab_alloc_locked(shpool, __size);
 		ngx_shmtx_unlock(&shpool->mutex);
 	}
@@ -925,13 +932,13 @@ void ngx_http_51D_add_header_to_node(ngx_http_51D_cache_node_t *node, ngx_table_
 {
 	ngx_http_51D_matched_header_t *header;
 	header = node->header[(int)node->headersCount];
-	header->name.data = (u_char*)ngx_http_51D_cache_alloc(sizeof(u_char) *(h->key.len + 1));
+	header->name.data = (u_char*)ngx_http_51D_cache_alloc(sizeof(u_char) * (h->key.len + 1));
 	ngx_cpystrn(header->name.data, h->key.data, h->key.len + 1);
 	header->name.len = h->key.len;
 	header->lowerName = (u_char*)ngx_http_51D_cache_alloc(sizeof(u_char) * (ngx_strlen(h->lowcase_key) + 1));
 	ngx_cpystrn(header->lowerName, h->lowcase_key, ngx_strlen(h->lowcase_key) + 1);
 	//todo clean cache if no space
-	header->value.data = (u_char*)ngx_http_51D_cache_alloc(h->value.len);
+	header->value.data = (u_char*)ngx_http_51D_cache_alloc(sizeof(u_char) * (h->value.len) + 1);
 	ngx_cpystrn(header->value.data, h->value.data, h->value.len +1);
 	header->value.len = h->value.len;
 	node->headersCount++;
