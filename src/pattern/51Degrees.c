@@ -1738,10 +1738,9 @@ fiftyoneDegreesDataSetInitStatus fiftyoneDegreesInitProviderWithPropertyArray(
 * @returns int the total size in bytes that the provider will need.
 * \endcond
 */
-static size_t getProviderSizeWithPropertyCount(size_t sizeOfFile, fiftyoneDegreesDataSetHeader header, int requiredPropertyCount, int poolSize, int cacheSize)
+static int getProviderSizeWithPropertyCount(int sizeOfFile, fiftyoneDegreesDataSetHeader header, int requiredPropertyCount, int poolSize, int cacheSize)
 {
-	int httpHeadersCount;
-	size_t size;
+	int size, httpHeadersCount;
 
 	// Start with the size taken by the file and the filename.
 	size = sizeOfFile;
@@ -1791,8 +1790,6 @@ static size_t getProviderSizeWithPropertyCount(size_t sizeOfFile, fiftyoneDegree
 	size += ((SIZE_OF_RESULTSET_TARGET_USERAGENT_ARRAY(header)) * poolSize);
 	size += ((SIZE_OF_WORKSET_IMPORTANT_HEADERS(httpHeadersCount)) * poolSize);
 
-	fiftyoneDegreesFree(&header);
-
 	// Return the total size needed for the provider.
 	return size;
 }
@@ -1813,12 +1810,11 @@ static size_t getProviderSizeWithPropertyCount(size_t sizeOfFile, fiftyoneDegree
 * provider with the given parameters.
 * \endcond
 */
-size_t fiftyoneDegreesGetProviderSizeWithPropertyString(const char *fileName, const char *properties, int poolSize, int cacheSize)
+int fiftyoneDegreesGetProviderSizeWithPropertyString(const char *fileName, const char *properties, int poolSize, int cacheSize)
 {
-	int requiredPropertyCount;
-	size_t sizeOfFile;
+	int requiredPropertyCount, sizeOfFile;
 	FILE *inputFilePtr;
-	fiftyoneDegreesDataSetHeader *header = (fiftyoneDegreesDataSetHeader*)fiftyoneDegreesMalloc(sizeof(fiftyoneDegreesDataSetHeader));
+	fiftyoneDegreesDataSetHeader header;
 
 	// Open the file and hold on to the pointer.
 #ifndef _MSC_FULL_VER
@@ -1831,7 +1827,7 @@ size_t fiftyoneDegreesGetProviderSizeWithPropertyString(const char *fileName, co
 #endif
 
 	// Read in header.
-	fread(header, sizeof(fiftyoneDegreesDataSetHeader), 1, inputFilePtr);
+	fread(&header, sizeof(fiftyoneDegreesDataSetHeader), 1, inputFilePtr);
 	fseek(inputFilePtr, 0, SEEK_END);
 
 	// Add file size.
@@ -1848,7 +1844,7 @@ size_t fiftyoneDegreesGetProviderSizeWithPropertyString(const char *fileName, co
 	sizeOfFile += (SIZE_OF_REQUIRED_PROPERTIES_ARRAY(header));
 
 	// Return the total size needed for the provider.
-	return getProviderSizeWithPropertyCount(sizeOfFile, *header, requiredPropertyCount, poolSize, cacheSize);
+	return getProviderSizeWithPropertyCount(sizeOfFile, header, requiredPropertyCount, poolSize, cacheSize);
 }
 
 /**
@@ -1866,11 +1862,11 @@ size_t fiftyoneDegreesGetProviderSizeWithPropertyString(const char *fileName, co
 * provider with the given parameters.
 * \endcond
 */
-size_t fiftyoneDegreesGetProviderSizeWithPropertyCount(const char *fileName, int propertyCount, int poolSize, int cacheSize)
+int fiftyoneDegreesGetProviderSizeWithPropertyCount(const char *fileName, int propertyCount, int poolSize, int cacheSize)
 {
-	size_t sizeOfFile;
+	int sizeOfFile;
 	FILE *inputFilePtr;
-	fiftyoneDegreesDataSetHeader *header = (fiftyoneDegreesDataSetHeader*)fiftyoneDegreesMalloc(sizeof(fiftyoneDegreesDataSetHeader));
+	fiftyoneDegreesDataSetHeader header;
 
 	// Open the file and hold on to the pointer.
 #ifndef _MSC_FULL_VER
@@ -1883,7 +1879,7 @@ size_t fiftyoneDegreesGetProviderSizeWithPropertyCount(const char *fileName, int
 #endif
 
 	// Read in header.
-	if (fread(header, sizeof(fiftyoneDegreesDataSetHeader), 1, inputFilePtr) != 0) {
+	if (fread(&header, sizeof(fiftyoneDegreesDataSetHeader), 1, inputFilePtr) != 0) {
 		return -1;
 	}
 	fseek(inputFilePtr, 0, SEEK_END);
@@ -1896,7 +1892,7 @@ size_t fiftyoneDegreesGetProviderSizeWithPropertyCount(const char *fileName, int
 	sizeOfFile += (SIZE_OF_FILE_NAME(fileName));
 
 	// Return the total size needed for the provider.
-	return getProviderSizeWithPropertyCount(sizeOfFile, *header, propertyCount, poolSize, cacheSize);
+	return getProviderSizeWithPropertyCount(sizeOfFile, header, propertyCount, poolSize, cacheSize);
 }
 
 /**
@@ -1909,13 +1905,13 @@ size_t fiftyoneDegreesGetProviderSizeWithPropertyCount(const char *fileName, int
 * given property.
 * \endcond
 */
-size_t fiftyoneDegreesGetMaxValueLength(const fiftyoneDegreesDataSet *dataSet, char *propertyName)
+int fiftyoneDegreesGetMaxValueLength(const fiftyoneDegreesDataSet *dataSet, char *propertyName)
 {
 	const fiftyoneDegreesProperty *property;
 	const fiftyoneDegreesValue *value;
 	int32_t valueIndex;
 	const char* valueName;
-	size_t maxLength = 0;
+	int maxLength = 0;
 
 	if (strcmp(propertyName, "Method") == 0) {
 		return 7;
