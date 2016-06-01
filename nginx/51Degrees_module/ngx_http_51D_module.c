@@ -454,23 +454,23 @@ ngx_http_51D_cache_node_t *ngx_http_51D_lookup_node_lru(ngx_str_t *name, int32_t
 
 	node = ngx_http_51D_lookup_node(cache->tree, name, hash);
 	if (node != NULL && node != cache->lru->node) {
+		ngx_shmtx_lock(&shpool->mutex);
 		// Node exists in the cache, and is not at the top of the lru.
 		lruItem = cache->lru;
 		while (lruItem->next != NULL) {
 			if (lruItem->node == node) {
 				// Found node in the lru, so move it to the top.
-				ngx_shmtx_lock(&shpool->mutex);
 				lruItem->next->prev = lruItem->prev;
 				lruItem->prev->next = lruItem->next;
 				lruItem->prev = cache->lru->prev;
 				lruItem->next = cache->lru;
 				cache->lru->prev = lruItem;
 				cache->lru = lruItem;
-				ngx_shmtx_unlock(&shpool->mutex);
 				break;
 			}
 			lruItem = lruItem->next;
 		}
+		ngx_shmtx_unlock(&shpool->mutex);
 	}
 	return node;
 }
@@ -965,6 +965,7 @@ void ngx_http_51D_cache_insert(ngx_http_51D_cache_node_t *node)
 {
 	ngx_slab_pool_t *shpool = (ngx_slab_pool_t*)ngx_http_51D_shm_cache->shm.addr;
 	ngx_http_51D_cache_t *cache = (ngx_http_51D_cache_t*)ngx_http_51D_shm_cache->data;
+	ngx_shmtx_lock(&shpool->mutex);
 
 	if (cache->lru->prev->node != NULL) {
 		// The cache is full, so purge the last 3 from the lru.
@@ -972,9 +973,7 @@ void ngx_http_51D_cache_insert(ngx_http_51D_cache_node_t *node)
 	}
 	ngx_rbtree_insert(cache->tree, (ngx_rbtree_node_t*)node);
 
-//todo change does not hold.
 	// Add node to lru.
-	ngx_shmtx_lock(&shpool->mutex);
 	cache->lru->prev->next = cache->lru;
 	cache->lru->prev->node = node;
 	cache->lru->prev->prev->next = NULL;
