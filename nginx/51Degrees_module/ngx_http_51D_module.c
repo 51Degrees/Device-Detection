@@ -1151,7 +1151,7 @@ void ngx_http_51D_get_value(fiftyoneDegreesWorkset *ws, char *values_string, con
 	char *methodName, *propertyName;
 	char buffer[24];
 	int i, found = 0;
-	if (strcmp("Method", requiredPropertyName) == 0) {
+	if (ngx_strcmp("Method", requiredPropertyName) == 0) {
 		switch(ws->method) {
 			case EXACT: methodName = "Exact"; break;
 			case NUMERIC: methodName = "Numeric"; break;
@@ -1163,17 +1163,17 @@ void ngx_http_51D_get_value(fiftyoneDegreesWorkset *ws, char *values_string, con
 		add_value(methodName, values_string);
 		found = 1;
 	}
-	else if (strcmp("Difference", requiredPropertyName) == 0) {
+	else if (ngx_strcmp("Difference", requiredPropertyName) == 0) {
 		sprintf(buffer, "%d", ws->difference);
 		add_value(buffer, values_string);
 		found = 1;
 	}
-	else if (strcmp("Rank", requiredPropertyName) == 0) {
+	else if (ngx_strcmp("Rank", requiredPropertyName) == 0) {
 		sprintf(buffer, "%d", fiftyoneDegreesGetSignatureRank(ws));
 		add_value(buffer, values_string);
 		found = 1;
 	}
-	else if (strcmp("DeviceId", requiredPropertyName) == 0) {
+	else if (ngx_strcmp("DeviceId", requiredPropertyName) == 0) {
 			fiftyoneDegreesGetDeviceId(ws, buffer, 24);
 			add_value(buffer, values_string);
 			found = 1;
@@ -1182,7 +1182,7 @@ void ngx_http_51D_get_value(fiftyoneDegreesWorkset *ws, char *values_string, con
 	else {
 		for (i = 0; i < ws->dataSet->requiredPropertyCount; i++) {
 			propertyName = (char*)fiftyoneDegreesGetPropertyName(ws->dataSet, ws->dataSet->requiredProperties[i]);
-			if (strcmp(propertyName, requiredPropertyName) == 0) {
+			if (ngx_strcmp(propertyName, requiredPropertyName) == 0) {
 				fiftyoneDegreesSetValues(ws, i);
 				add_value((char*)fiftyoneDegreesGetValueName(ws->dataSet, *ws->values), values_string);
 				found = 1;
