@@ -310,7 +310,7 @@ static void ngx_http_51D_count_matches(ngx_conf_t *cf)
 	header = strstr(buffer, searchString);
 	while (header != NULL) {
 		ngx_http_51D_total_headers_to_set++;
-		header = strstr((const char*)header + strlen(searchString), searchString);
+		header = strstr((const char*)header + ngx_strlen(searchString), searchString);
 	}
 }
 
@@ -1078,7 +1078,7 @@ void ngx_http_51D_get_match(fiftyoneDegreesWorkset *ws, ngx_http_request_t *r, i
 	else if (multi == 1) {
 		ws->importantHeadersCount = 0;
 		for (headerIndex = 0; headerIndex < ws->dataSet->httpHeadersCount; headerIndex++) {
-			searchResult = search_headers_in(r, (u_char*)ws->dataSet->httpHeaders[headerIndex].headerName, strlen(ws->dataSet->httpHeaders[headerIndex].headerName));
+			searchResult = search_headers_in(r, (u_char*)ws->dataSet->httpHeaders[headerIndex].headerName, ngx_strlen(ws->dataSet->httpHeaders[headerIndex].headerName));
 			if (searchResult) {
 				ws->importantHeaders[ws->importantHeadersCount].header = ws->dataSet->httpHeaders + headerIndex;
 				ws->importantHeaders[ws->importantHeadersCount].headerValue = (const char*) searchResult->value.data;
@@ -1266,7 +1266,7 @@ ngx_http_51D_handler(ngx_http_request_t *r)
 	// Get the hash for this location and request headers.
 	hash = ngx_hash(fdlcf->key, ngx_hash_key(r->headers_in.user_agent[0].value.data, r->headers_in.user_agent[0].value.len));
 	for (headerIndex = 0; headerIndex < fdmcf->dataSet->httpHeadersCount; headerIndex++) {
-		searchResult = search_headers_in(r, (u_char*)fdmcf->dataSet->httpHeaders[headerIndex].headerName, strlen(fdmcf->dataSet->httpHeaders[headerIndex].headerName));
+		searchResult = search_headers_in(r, (u_char*)fdmcf->dataSet->httpHeaders[headerIndex].headerName, ngx_strlen(fdmcf->dataSet->httpHeaders[headerIndex].headerName));
 		if (searchResult != NULL) {
 			hash = ngx_hash(hash, ngx_hash_key(searchResult->value.data, searchResult->value.len));
 		}
