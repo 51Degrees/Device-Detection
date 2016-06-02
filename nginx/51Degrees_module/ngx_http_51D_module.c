@@ -1,5 +1,4 @@
 #include <nginx.h>
-//#define FIFTYONEDEGREES_PATTERN
 #include <ngx_config.h>
 #include <ngx_core.h>
 #include <ngx_http.h>
@@ -23,9 +22,6 @@
 #endif // FIFTYONEDEGREES_MAX_STRING
 #define FIFTYONEDEGREES_IMPORTANT_HEADERS_COUNT 5
 
-// Module config functions to enable matching in selected locations.
-static char *ngx_http_51D_set(ngx_conf_t* cf, ngx_command_t *cmd, void *conf);
-
 // Module declaration.
 ngx_module_t ngx_http_51D_module;
 
@@ -34,73 +30,116 @@ static void *ngx_http_51D_create_main_conf(ngx_conf_t *cf);
 static void *ngx_http_51D_create_loc_conf(ngx_conf_t *cf);
 static char *ngx_http_51D_merge_loc_conf(ngx_conf_t *cf, void *parent, void *child);
 
-// Handler declaration.
+// Set function declaration.
+static char *ngx_http_51D_set(ngx_conf_t* cf, ngx_command_t *cmd, void *conf);
+
+
+// Request handler declaration.
 static ngx_int_t ngx_http_51D_handler(ngx_http_request_t *r);
-static ngx_shm_zone_t *ngx_http_51D_shm_dataSet, *ngx_http_51D_shm_cache;
+
+// Declaration of shared memory zones.
+static ngx_shm_zone_t *ngx_http_51D_shm_dataSet;
+static ngx_int_t ngx_http_51D_init_shm_dataSet(ngx_shm_zone_t *shm_zone, void *data);
+#ifdef FIFTYONEDEGREES_PATTERN
+static ngx_shm_zone_t *ngx_http_51D_shm_cache;
+static ngx_int_t ngx_http_51D_init_shm_cache(ngx_shm_zone_t *shm_zone, void *data);
+// Cache size integer accessible by init_shm_cache.
+static int ngx_http_51D_cacheSize;
+#endif // FIFTYONEDEGREES_PATTERN
+// Atomic integer used to ensure a new data set memory zone on each reload.
 ngx_atomic_t ngx_http_51D_shm_tag = 1;
 
-static ngx_int_t ngx_http_51D_init_shm_dataSet(ngx_shm_zone_t *shm_zone, void *data);
-static ngx_int_t ngx_http_51D_init_shm_cache(ngx_shm_zone_t *shm_zone, void *data);
-
+// Initialise the number of headers to set to -1 (unset).
 static int ngx_http_51D_total_headers_to_set = -1;
-static int ngx_http_51D_cacheSize;
+
+// Structure containing details of a specific header to be set as per the
+// config file.
 typedef struct ngx_http_51D_header_to_set_t {
-    ngx_uint_t multi;
-    ngx_uint_t propertyCount;
-    ngx_str_t **property;
-    ngx_str_t name;
-    ngx_str_t lowerName;
-#ifdef FIFTYONEDEGREES_PATTERN
-    size_t maxString;
-#endif // FIFTYONEDEGREES_PATTERN
+    ngx_uint_t multi;          /* 0 for single User-Agent match, 1 for multiple
+	                              HTTP header match. */
+    ngx_uint_t propertyCount;  /* The number of properties in the property
+	                              array. */
+    ngx_str_t **property;      /* Array of properties to set. */
+    ngx_str_t name;            /* The header name to set. */
+    ngx_str_t lowerName;       /* The header name in lower case. */
+    size_t maxString;          /* The max string length the header value can
+	                              take. */
 } ngx_http_51D_header_to_set;
 
+// Values of a prematched header, this is stored in the cache.
 typedef struct {
-	ngx_str_t name;
-	u_char* lowerName;
-	ngx_str_t value;
+	ngx_str_t name;      /* The header name */
+	u_char* lowerName;   /* The header name in lower case. */
+	ngx_str_t value;     /* The value of the header (a comma separated list of
+	                        property values). */
 } ngx_http_51D_matched_header_t;
 
 // Module location config.
 typedef struct {
-	uint32_t key;
-	ngx_uint_t hasMulti;
-    ngx_uint_t headerCount;
-    ngx_http_51D_header_to_set **header;
+#ifdef FIFTYONEDEGREES_PATTERN
+	uint32_t key;                        /* Location key, a hash of all the
+	                                        properties to be found and header
+	                                        names. */
+#endif // FIFTYONEDEGREES_PATTERN
+	ngx_uint_t hasMulti;                 /* Indicated whether there is a
+	                                        multiple HTTP header match in this
+	                                        location. */
+    ngx_uint_t headerCount;              /* The number of headers to set. */
+    ngx_http_51D_header_to_set **header; /* Array of headers to set. */
 } ngx_http_51D_loc_conf_t;
 
 // Module main config.
 typedef struct {
-	char properties[FIFTYONEDEGREES_MAX_STRING];
-    ngx_str_t dataFile;
+	char properties[FIFTYONEDEGREES_MAX_STRING]; /* Properties string to
+	                                                initialise the data
+	                                                set with. */
+    ngx_str_t dataFile;                          /* 51Degrees data file. */
 #ifdef FIFTYONEDEGREES_PATTERN
-    ngx_uint_t cacheSize;
-    fiftyoneDegreesWorkset *ws;
+    ngx_uint_t cacheSize;                        /* Size of the cache. */
+    fiftyoneDegreesWorkset *ws;                  /* 51Degrees workset, local
+                                                    to each process. */
 #endif // FIFTYONEDEGREES_PATTERN
-	fiftyoneDegreesDataSet *dataSet;
+	fiftyoneDegreesDataSet *dataSet;             /* 51Degrees data set, shared
+	                                                across all process'. */
 } ngx_http_51D_main_conf_t;
 
+#ifdef FIFTYONEDEGREES_PATTERN
+// 51Degrees LRU element declaration.
 typedef struct ngx_http_51D_cache_lru_list_s ngx_http_51D_cache_lru_list_t;
 
+// 51Degrees cache node.
 typedef struct {
-	ngx_rbtree_node_t node;
-	ngx_http_51D_cache_lru_list_t *lruItem;
-	ngx_str_t name;
-	ngx_uint_t headersCount;
-	ngx_http_51D_matched_header_t** header;
+	ngx_rbtree_node_t node;                /* rbtree node (contains hash
+	                                          key. */
+	ngx_http_51D_cache_lru_list_t *lruItem;/* Pointer to element in the LRU. */
+	ngx_str_t name;                        /* Name of the node, this is set to
+	                                          the User-Agent. */
+	ngx_uint_t headersCount;               /* Number of headers stored. */
+	ngx_http_51D_matched_header_t** header;/* Array of headers stored. */
 } ngx_http_51D_cache_node_t;
 
+// 51Degrees LRU element.
 struct ngx_http_51D_cache_lru_list_s {
-	ngx_http_51D_cache_node_t *node;
-	ngx_http_51D_cache_lru_list_t *prev;
-	ngx_http_51D_cache_lru_list_t *next;
+	ngx_http_51D_cache_node_t *node;     /* Pointer to the node in the tree. */
+	ngx_http_51D_cache_lru_list_t *prev; /* Pointer to previous element (for
+	                                        first element, will point to
+	                                        last element). */
+	ngx_http_51D_cache_lru_list_t *next; /* Pointer to next element (for last
+	                                        element, will be NULL). */
 };
 
+// 51Degrees cache.
 typedef struct {
-	ngx_http_51D_cache_lru_list_t *lru;
-	ngx_rbtree_t *tree;
+	ngx_http_51D_cache_lru_list_t *lru; /* Pointer to LRU linked list. */
+	ngx_rbtree_t *tree;                 /* Pointer to nginx standard rbtree. */
 } ngx_http_51D_cache_t;
 
+/**
+ * Get cache size function. Calculates the size in memory needed for a given
+ * number of cache elements. Used to set the size of the shared memory.
+ * @param cacheSize the number of elements in the cache.
+ * @return size_t the size needed for the cache.
+ */
 size_t ngx_http_51D_get_cache_shm_size(int cacheSize)
 {
 	size_t size = 0;
@@ -118,148 +157,15 @@ size_t ngx_http_51D_get_cache_shm_size(int cacheSize)
 
 	return size;
 }
-
-/**
- * Module post config. Adds the module to the HTTP access phase array and
- * and allocates a fresh shared memory zone to store the provider in.
- */
-static ngx_int_t
-ngx_http_51D_post_conf(ngx_conf_t *cf)
-{
-	ngx_http_handler_pt *h;
-	ngx_http_core_main_conf_t *cmcf;
-	ngx_http_51D_main_conf_t *fdmcf;
-	ngx_atomic_int_t tagOffset;
-	ngx_str_t dataSetName, cacheName;
-
-	cmcf = ngx_http_conf_get_module_main_conf(cf, ngx_http_core_module);
-	fdmcf = ngx_http_conf_get_module_main_conf(cf, ngx_http_51D_module);
-
-	h = ngx_array_push(&cmcf->phases[NGX_HTTP_ACCESS_PHASE].handlers);
-	if (h == NULL) {
-		return NGX_ERROR;
-	}
-
-	*h = ngx_http_51D_handler;
-
-	// Set default data file if necessary.
-	if ((int)fdmcf->dataFile.len < 0) {
-		fdmcf->dataFile.data = FIFTYONEDEGREES_DEFAULTFILE;
-		fdmcf->dataFile.len = ngx_strlen(fdmcf->dataFile.data);
-	}
-#ifdef FIFTYONEDEGREES_PATTERN
-	if ((int)fdmcf->cacheSize < 0) {
-		fdmcf->cacheSize = 0;
-	}
-	ngx_http_51D_cacheSize = (int)fdmcf->cacheSize;
 #endif // FIFTYONEDEGREES_PATTERN
-
-	dataSetName.data = (u_char*) "51Degrees Shared Data Set";
-	dataSetName.len = ngx_strlen(dataSetName.data);
-	cacheName.data = (u_char*) "51Degrees Shared Cache";
-	cacheName.len = ngx_strlen(cacheName.data);
-	tagOffset = ngx_atomic_fetch_add(&ngx_http_51D_shm_tag, (ngx_atomic_int_t)1);
-#ifdef FIFTYONEDEGREES_PATTERN
-	size_t size = (size_t)fiftyoneDegreesGetProviderSizeWithPropertyString((const char*)fdmcf->dataFile.data, (const char*)fdmcf->properties, 0, 0);
-	size_t cacheSize= (size_t)ngx_http_51D_get_cache_shm_size(ngx_http_51D_cacheSize);
-#endif // FIFTYONEDEGREES_PATTERN
-#ifdef FIFTYONEDEGREES_TRIE
-	size_t size = (size_t)fiftyoneDegreesGetDataSetSizeWithPropertyString((const char*)fdmcf->dataFile.data, (const char*)fdmcf->properties);
-#endif // FIFTYONEDEGREES_TRIE
-	if ((int)size < 1) {
-		ngx_log_stderr(NGX_ERROR_ERR, "no data file");
-		return NGX_ERROR;
-	}
-	size *= 1.1;
-	ngx_http_51D_shm_dataSet = ngx_shared_memory_add(cf, &dataSetName, size, &ngx_http_51D_module + tagOffset);
-	ngx_http_51D_shm_dataSet->init = ngx_http_51D_init_shm_dataSet;
-	ngx_http_51D_shm_cache = ngx_shared_memory_add(cf, &cacheName, cacheSize, &ngx_http_51D_module + tagOffset);
-	ngx_http_51D_shm_cache->init = ngx_http_51D_init_shm_cache;
-
-	return NGX_OK;
-}
-
-/**
- * Create main config. Allocates memory to the configuration and initialises
- * cacheSize and poolSize to -1 (unset).
- */
-static void *
-ngx_http_51D_create_main_conf(ngx_conf_t *cf)
-{
-    ngx_http_51D_main_conf_t  *conf;
-
-    conf = ngx_pcalloc(cf->pool, sizeof(ngx_http_51D_main_conf_t));
-    if (conf == NULL) {
-        return NULL;
-    }
-    ngx_log_debug0(NGX_LOG_DEBUG_ALL, cf->log, 0, "51Degrees create main");
-#ifdef FIFTYONEDEGREES_PATTERN
-	conf->cacheSize = NGX_CONF_UNSET_UINT;
-#endif // FIFTYONEDEGREES_PATTERN
-    return conf;
-}
-
-/**
- * Count matches function. Counts the number of matches defined in the config
- * file. This is used in create location conf to determine how many match
- * structures to allocate.
- */
-static void ngx_http_51D_count_matches(ngx_conf_t *cf)
-{
-	const char *buffer = (char*)cf->conf_file->buffer->start;
-	const char* searchString = "51D_match";
-	char *header;
-
-	ngx_http_51D_total_headers_to_set = 0;
-	header = strstr(buffer, searchString);
-	while (header != NULL) {
-		ngx_http_51D_total_headers_to_set++;
-		header = strstr((const char*)header + strlen(searchString), searchString);
-	}
-}
-
-/**
- * Create location config. Allocates memory to the configuration and each header
- * structure. Initialises count to -1 (unset).
- */
-static void *
-ngx_http_51D_create_loc_conf(ngx_conf_t *cf)
-{
-    ngx_http_51D_loc_conf_t *conf;
-
-    conf = ngx_pcalloc(cf->pool, sizeof(ngx_http_51D_loc_conf_t));
-    if (conf == NULL) {
-        return NULL;
-    }
-    if (ngx_http_51D_total_headers_to_set < 0) {
-		ngx_http_51D_count_matches(cf);
-    }
-    conf->key = 0;
-    conf->hasMulti = 0;
-	conf->headerCount = 0;
-	conf->header = (ngx_http_51D_header_to_set**)ngx_palloc(cf->pool, sizeof(ngx_http_51D_header_to_set*) * ngx_http_51D_total_headers_to_set);
-
-    return conf;
-}
-
-/**
- * Merge location config. Either gets the value of count that is set, or sets
- * to the default of 0.
- */
-static char *
-ngx_http_51D_merge_loc_conf(ngx_conf_t *cf, void *parent, void *child)
-{
-	ngx_http_51D_loc_conf_t  *prev = parent;
-	ngx_http_51D_loc_conf_t  *conf = child;
-
-	ngx_conf_merge_uint_value(conf->headerCount, prev->headerCount, 0);
-
-	return NGX_CONF_OK;
-}
 
 /**
  * Throws an error if data set initialisation fails. Used by the init module
  * function.
+ * @param cycle the current nginx cycle.
+ * @param status 51Degrees data set init status.
+ * @param fileName the file being loaded.
+ * @return NGX_ERROR.
  */
 static ngx_int_t reportDatasetInitStatus(ngx_cycle_t *cycle, fiftyoneDegreesDataSetInitStatus status,
 										const char* fileName) {
@@ -294,8 +200,174 @@ static ngx_int_t reportDatasetInitStatus(ngx_cycle_t *cycle, fiftyoneDegreesData
 }
 
 /**
- * Init shared memory zone. Allocates space for the provider in the shared
+ * Module post config. Adds the module to the HTTP access phase array, sets the
+ * defaults if necessary, and sets the shared memory zones.
+ * @param cf nginx config.
+ * @return ngx_int_t nginx conf status.
+ */
+static ngx_int_t
+ngx_http_51D_post_conf(ngx_conf_t *cf)
+{
+	ngx_http_handler_pt *h;
+	ngx_http_core_main_conf_t *cmcf;
+	ngx_http_51D_main_conf_t *fdmcf;
+	ngx_atomic_int_t tagOffset;
+	ngx_str_t dataSetName;
+	size_t size;
+#ifdef FIFTYONEDEGREES_PATTERN
+	ngx_str_t cacheName;
+	size_t cacheSize;
+#endif // FIFTYONEDEGREES_PATTERN
+
+	cmcf = ngx_http_conf_get_module_main_conf(cf, ngx_http_core_module);
+	fdmcf = ngx_http_conf_get_module_main_conf(cf, ngx_http_51D_module);
+
+	h = ngx_array_push(&cmcf->phases[NGX_HTTP_ACCESS_PHASE].handlers);
+	if (h == NULL) {
+		return NGX_ERROR;
+	}
+
+	*h = ngx_http_51D_handler;
+
+	// Set default data file if necessary.
+	if ((int)fdmcf->dataFile.len < 0) {
+		fdmcf->dataFile.data = FIFTYONEDEGREES_DEFAULTFILE;
+		fdmcf->dataFile.len = ngx_strlen(fdmcf->dataFile.data);
+	}
+#ifdef FIFTYONEDEGREES_PATTERN
+	// Set the cache size to 0 if not set.
+	if ((int)fdmcf->cacheSize < 0) {
+		fdmcf->cacheSize = 0;
+	}
+	ngx_http_51D_cacheSize = (int)fdmcf->cacheSize;
+#endif // FIFTYONEDEGREES_PATTERN
+
+	// Initialise the shared memory zone for the data set.
+	dataSetName.data = (u_char*) "51Degrees Shared Data Set";
+	dataSetName.len = ngx_strlen(dataSetName.data);
+	tagOffset = ngx_atomic_fetch_add(&ngx_http_51D_shm_tag, (ngx_atomic_int_t)1);
+#ifdef FIFTYONEDEGREES_PATTERN
+// todo change return type to size_t
+	size = (size_t)fiftyoneDegreesGetProviderSizeWithPropertyString((const char*)fdmcf->dataFile.data, (const char*)fdmcf->properties, 0, 0);
+#endif // FIFTYONEDEGREES_PATTERN
+#ifdef FIFTYONEDEGREES_TRIE
+	size = fiftyoneDegreesGetDataSetSizeWithPropertyString((const char*)fdmcf->dataFile.data, (const char*)fdmcf->properties);
+#endif // FIFTYONEDEGREES_TRIE
+	if ((int)size < 1) {
+		// If there was a problem, throw an error.
+		return reportDatasetInitStatus(cf->cycle, 0, (const char*)fdmcf->dataFile.data);
+	}
+	size *= 1.1;
+	ngx_http_51D_shm_dataSet = ngx_shared_memory_add(cf, &dataSetName, size, &ngx_http_51D_module + tagOffset);
+	ngx_http_51D_shm_dataSet->init = ngx_http_51D_init_shm_dataSet;
+
+#ifdef FIFTYONEDEGREES_PATTERN
+	// Initialise the shared memory zone for the cache.
+	cacheName.data = (u_char*) "51Degrees Shared Cache";
+	cacheName.len = ngx_strlen(cacheName.data);
+	cacheSize = ngx_http_51D_get_cache_shm_size(ngx_http_51D_cacheSize);
+	ngx_http_51D_shm_cache = ngx_shared_memory_add(cf, &cacheName, cacheSize, &ngx_http_51D_module);
+	ngx_http_51D_shm_cache->init = ngx_http_51D_init_shm_cache;
+#endif // FIFTYONEDEGREES_PATTERN
+	return NGX_OK;
+}
+
+/**
+ * Create main config. Allocates memory to the configuration and initialises
+ * cacheSize and poolSize to -1 (unset).
+ * @param cf nginx config.
+ * @return Pointer to module main config.
+ */
+static void *
+ngx_http_51D_create_main_conf(ngx_conf_t *cf)
+{
+    ngx_http_51D_main_conf_t  *conf;
+
+    conf = ngx_pcalloc(cf->pool, sizeof(ngx_http_51D_main_conf_t));
+    if (conf == NULL) {
+        return NULL;
+    }
+    ngx_log_debug0(NGX_LOG_DEBUG_ALL, cf->log, 0, "51Degrees creating main config.");
+#ifdef FIFTYONEDEGREES_PATTERN
+	conf->cacheSize = NGX_CONF_UNSET_UINT;
+#endif // FIFTYONEDEGREES_PATTERN
+    return conf;
+}
+
+/**
+ * Count matches function. Counts the number of matches defined in the config
+ * file. This is used in create location conf to determine how many match
+ * structures to allocate.
+ * @param cf nginx config.
+ */
+static void ngx_http_51D_count_matches(ngx_conf_t *cf)
+{
+	const char *buffer = (char*)cf->conf_file->buffer->start;
+	const char* searchString = "51D_match";
+	char *header;
+
+	ngx_http_51D_total_headers_to_set = 0;
+	header = strstr(buffer, searchString);
+	while (header != NULL) {
+		ngx_http_51D_total_headers_to_set++;
+		header = strstr((const char*)header + strlen(searchString), searchString);
+	}
+}
+
+/**
+ * Create location config. Allocates memory to the configuration and each header
+ * structure. Initialises uints to -1 (unset).
+ * @param cf nginx config.
+ * @return Pointer to module location config.
+ */
+static void *
+ngx_http_51D_create_loc_conf(ngx_conf_t *cf)
+{
+    ngx_http_51D_loc_conf_t *conf;
+
+    conf = ngx_pcalloc(cf->pool, sizeof(ngx_http_51D_loc_conf_t));
+    if (conf == NULL) {
+        return NULL;
+    }
+    if (ngx_http_51D_total_headers_to_set < 0) {
+		ngx_http_51D_count_matches(cf);
+    }
+#ifdef FIFTYONEDEGREES_PATTERN
+    conf->key = 0;
+#endif // FIFTYONEDEGREES_PATTERN
+    conf->hasMulti = 0;
+	conf->headerCount = 0;
+	conf->header = (ngx_http_51D_header_to_set**)ngx_palloc(cf->pool, sizeof(ngx_http_51D_header_to_set*) * ngx_http_51D_total_headers_to_set);
+	if (conf->header == NULL) {
+		ngx_pfree(cf->pool, conf);
+		return NULL;
+	}
+
+    return conf;
+}
+
+/**
+ * Merge location config. Either gets the value of count that is set, or sets
+ * to the default of 0.
+ */
+static char *
+ngx_http_51D_merge_loc_conf(ngx_conf_t *cf, void *parent, void *child)
+{
+	ngx_http_51D_loc_conf_t  *prev = parent;
+	ngx_http_51D_loc_conf_t  *conf = child;
+
+	ngx_conf_merge_uint_value(conf->headerCount, prev->headerCount, 0);
+
+	return NGX_CONF_OK;
+}
+
+/**
+ * Init data set memory zone. Allocates space for the provider in the shared
  * memory zone.
+ * @param shm_zone the shared memory zone.
+ * @param data if the zone has been carried over from a reload, this is the
+ *        old data.
+ * @return ngx_int_t nginx conf status.
  */
 static ngx_int_t ngx_http_51D_init_shm_dataSet(ngx_shm_zone_t *shm_zone, void *data)
 {
@@ -303,11 +375,14 @@ static ngx_int_t ngx_http_51D_init_shm_dataSet(ngx_shm_zone_t *shm_zone, void *d
 	fiftyoneDegreesDataSet *dataSet;
 	shpool = (ngx_slab_pool_t *) ngx_http_51D_shm_dataSet->shm.addr;
 	if (data) {
-		shm_zone->data = data;
+		// The zone exists, throw an error.
 		ngx_log_error(NGX_LOG_ERR, shm_zone->shm.log, 0, "51Degrees shared memory exists and has not been reinitialised correctly.");
 		return NGX_ERROR;
 	}
+
+	// Allocate space for the data set.
 	dataSet = (fiftyoneDegreesDataSet*)ngx_slab_alloc(shpool, sizeof(fiftyoneDegreesDataSet));
+	// Set the data set as the shared data for this zone.
 	shm_zone->data = dataSet;
 	if (dataSet == NULL) {
 		ngx_log_error(NGX_LOG_ERR, shm_zone->shm.log, 0, "51Degrees shared memory could not be allocated.");
@@ -318,6 +393,14 @@ static ngx_int_t ngx_http_51D_init_shm_dataSet(ngx_shm_zone_t *shm_zone, void *d
 	return NGX_OK;
 }
 
+#ifdef FIFTYONEDEGREES_PATTERN
+/**
+ * Insert node function. Is used by ngx_rbtree_insert to find where the node
+ * belongs in the tree.
+ * @param temp the current node in the tree.
+ * @param node the node to insert.
+ * @param sentinel the end of a branch.
+ */
 void
 ngx_http_51D_insert_node(ngx_rbtree_node_t *temp,
     ngx_rbtree_node_t *node, ngx_rbtree_node_t *sentinel)
@@ -330,26 +413,34 @@ ngx_http_51D_insert_node(ngx_rbtree_node_t *temp,
         n = (ngx_http_51D_cache_node_t *) node;
         t = (ngx_http_51D_cache_node_t *) temp;
 
+		// Compare the nodes hashes.
         if (node->key != temp->key) {
 
             p = (node->key < temp->key) ? &temp->left : &temp->right;
 
-        } else if (n->name.len != t->name.len) {
+        }
+        // If hashes are equal, compare the nodes name lengths.
+        else if (n->name.len != t->name.len) {
 
             p = (n->name.len < t->name.len) ? &temp->left : &temp->right;
 
-        } else {
+        }
+        // If name lengths are equal, compare the names.
+        else {
             p = (ngx_memcmp(n->name.data, t->name.data, n->name.len) < 0)
                  ? &temp->left : &temp->right;
         }
 
+		// If the node is at the end of a branch, stop comparing.
         if (*p == sentinel) {
             break;
         }
 
+		// Move to the next node.
         temp = *p;
     }
 
+	// Set node.
     *p = node;
     node->parent = temp;
     node->left = sentinel;
@@ -357,6 +448,13 @@ ngx_http_51D_insert_node(ngx_rbtree_node_t *temp,
     ngx_rbt_red(node);
 }
 
+/**
+ * Init cache memory zone. If a cache does not already exist from a reload,
+ * Initialise one with an rbtree and an LRU linked list.
+ * @param shm_zone the shared memory zone to use.
+ * @param data the existing cache if reloading (and the cache size is the same).
+ * @return ngx_int_t nginx status.
+ */
 static ngx_int_t ngx_http_51D_init_shm_cache(ngx_shm_zone_t *shm_zone, void *data)
 {
 	ngx_slab_pool_t *shpool;
@@ -364,37 +462,59 @@ static ngx_int_t ngx_http_51D_init_shm_cache(ngx_shm_zone_t *shm_zone, void *dat
 	ngx_rbtree_node_t *sentinel;
 	ngx_http_51D_cache_t *cache;
 
+	// A cache already exists, so keep it.
 	if (data) {
 		shm_zone->data = data;
 		return NGX_OK;
 	}
 
 	shpool = (ngx_slab_pool_t*) shm_zone->shm.addr;
+
+	// Allocate the rbtree.
 	tree = ngx_slab_alloc(shpool, sizeof(ngx_rbtree_t));
 	if (tree == NULL) {
 		return NGX_ERROR;
 	}
 
+	// Allocate the trees sentinel node.
 	sentinel = ngx_slab_alloc(shpool, sizeof(ngx_rbtree_node_t));
 	if (sentinel == NULL) {
+		ngx_slab_free(shpool, tree);
 		return NGX_ERROR;
 	}
 
+	// Initialise the rbtree.
 	ngx_rbtree_sentinel_init(sentinel);
 	tree->root = sentinel;
 	tree->sentinel = sentinel;
 	tree->insert = ngx_http_51D_insert_node;
 
+	// Allocate the cache structure initialise it.
 	cache = (ngx_http_51D_cache_t*)ngx_slab_alloc(shpool, sizeof(ngx_http_51D_cache_t));
+	if (cache == NULL) {
+		ngx_slab_free(shpool, sentinel);
+		ngx_slab_free(shpool, tree);
+		return NGX_ERROR;
+	}
 	cache->tree = tree;
 	cache->lru = (ngx_http_51D_cache_lru_list_t*)ngx_slab_alloc(shpool, sizeof(ngx_http_51D_cache_lru_list_t));
+	if (cache->lru == NULL) {
+		ngx_slab_free(shpool, sentinel);
+		ngx_slab_free(shpool, tree);
+		ngx_slab_free(shpool, cache);
+		return NGX_ERROR;
+	}
 	cache->lru->node = NULL;
 
+	// Allocate all the LRU elements.
 	int i = 1;
 	ngx_http_51D_cache_lru_list_t *current;
 	current = cache->lru;
 	while (i < ngx_http_51D_cacheSize) {
 		current->next = (ngx_http_51D_cache_lru_list_t*)ngx_slab_alloc(shpool, sizeof(ngx_http_51D_cache_lru_list_t));
+		if (current->next == NULL) {
+			//todo free all previous allocs.
+		}
 		current->next->prev = current;
 		current->next->node = NULL;
 		current = current->next;
@@ -402,13 +522,22 @@ static ngx_int_t ngx_http_51D_init_shm_cache(ngx_shm_zone_t *shm_zone, void *dat
 	}
 	current->next = NULL;
 	cache->lru->prev = current;
-	//todo mutex.
 
+	// Set the cache structure as the shared data.
 	shm_zone->data = cache;
 
 	return NGX_OK;
 }
 
+/**
+ * Lookup node function. Searches for a node in the rbtree using first
+ * its hash, then the name.
+ * @param rbtree the tree to search in.
+ * @param name the name of the node (set as the User-Agent).
+ * @param hash the hash to search for in the tree.
+ * @return ngx_http_51D_cache_node_t* the node that was found in the tree,
+ *                                    or NULL if it was not found.
+ */
 static ngx_http_51D_cache_node_t *
 ngx_http_51D_lookup_node(ngx_rbtree_t *rbtree, ngx_str_t *name, uint32_t hash)
 {
@@ -451,6 +580,14 @@ ngx_http_51D_lookup_node(ngx_rbtree_t *rbtree, ngx_str_t *name, uint32_t hash)
     return NULL;
 }
 
+/**
+ * LRU lookup function. Searches the rbtree, and if found updates the LRU and
+ * returns the node.
+ * @param name the name of the node (set to the User-Agent).
+ * @param hash the hash to search for.
+ * @return ngx_http_51D_cache_node_t* the node that was found, or NULL if it was
+ *                                    not found.
+ */
 ngx_http_51D_cache_node_t *ngx_http_51D_lookup_node_lru(ngx_str_t *name, int32_t hash)
 {
 	ngx_http_51D_cache_node_t *node;
@@ -458,10 +595,12 @@ ngx_http_51D_cache_node_t *ngx_http_51D_lookup_node_lru(ngx_str_t *name, int32_t
 	ngx_slab_pool_t *shpool = (ngx_slab_pool_t*)ngx_http_51D_shm_cache->shm.addr;
 	ngx_http_51D_cache_t *cache = (ngx_http_51D_cache_t*)ngx_http_51D_shm_cache->data;
 
+	// Look for the node in the rbtree.
 	node = ngx_http_51D_lookup_node(cache->tree, name, hash);
 	if (node != NULL && node != cache->lru->node) {
+		// Node exists in the cache, and is not at the top of the lru,
+		// so move it to the top.
 		ngx_shmtx_lock(&shpool->mutex);
-		// Node exists in the cache, and is not at the top of the lru.
 		lruItem = node->lruItem;
 		if (lruItem->next != NULL) {
 			lruItem->next->prev = lruItem->prev;
@@ -478,15 +617,170 @@ ngx_http_51D_cache_node_t *ngx_http_51D_lookup_node_lru(ngx_str_t *name, int32_t
 }
 
 /**
+ * Cache purge function. Removes the last n entries in the LRU.
+ * Note the shared memory zone must be locked before calling this
+ * function.
+ * @param cache a 51Degrees cache structure.
+ * @param count the number of entries to purge.
+ */
+void ngx_http_51D_cache_clean(ngx_http_51D_cache_t *cache, int count)
+{
+	int i = 0, j;
+	ngx_http_51D_cache_node_t *node;
+	ngx_slab_pool_t *shpool = (ngx_slab_pool_t*)ngx_http_51D_shm_cache->shm.addr;
+	ngx_http_51D_cache_lru_list_t *lruItem = cache->lru->prev;
+
+	// If the cache is not full, skip past the empty elements.
+	while (lruItem->node == NULL) {
+		lruItem = lruItem->prev;
+	}
+
+	while (i < count) {
+		// Remove the node from the rbtree.
+		node = lruItem->node;
+		ngx_rbtree_delete(cache->tree, (ngx_rbtree_node_t*)node);
+
+		// Free everything in the node.
+		for (j = 0; j < (int)node->headersCount; j++) {
+			ngx_slab_free_locked(shpool, node->header[j]->lowerName);
+			ngx_slab_free_locked(shpool, node->header[j]->name.data);
+			ngx_slab_free_locked(shpool, node->header[j]->value.data);
+			ngx_slab_free_locked(shpool, node->header[j]);
+		}
+		ngx_slab_free_locked(shpool, node->name.data);
+		ngx_slab_free_locked(shpool, node->header);
+		ngx_slab_free_locked(shpool, node);
+
+		// Empty the element in the LRU.
+		lruItem->node = NULL;
+
+		// Move to the next element.
+		lruItem = lruItem->prev;
+		i++;
+	}
+}
+
+/**
+ * Cache alloc function. Allocates memory in the caches shared memory zone.
+ * If there is no space, purge the cache.
+ * @param __size the size of memory to allocate.
+ * @return void* pointer to the memory allocated.
+ */
+void *ngx_http_51D_cache_alloc(size_t __size)
+{
+	ngx_slab_pool_t *shpool = (ngx_slab_pool_t*)ngx_http_51D_shm_cache->shm.addr;
+	ngx_http_51D_cache_t *cache = (ngx_http_51D_cache_t*)ngx_http_51D_shm_cache->data;
+	void *ptr = ngx_slab_alloc(shpool, __size);
+	if (ptr == NULL) {
+		ngx_shmtx_lock(&shpool->mutex);
+		ngx_http_51D_cache_clean(cache, 3);
+		ngx_slab_alloc_locked(shpool, __size);
+		ngx_shmtx_unlock(&shpool->mutex);
+	}
+	return ptr;
+}
+
+/**
+ * Add header to node function. Adds a header to the cache node structure.
+ * @param node the 51Degrees cache node to add the header to.
+ * @param h the nginx header structure to copy.
+ */
+void ngx_http_51D_add_header_to_node(ngx_http_51D_cache_node_t *node, ngx_table_elt_t *h)
+{
+	ngx_http_51D_matched_header_t *header;
+	header = node->header[(int)node->headersCount];
+	// Copy the header name.
+	header->name.data = (u_char*)ngx_http_51D_cache_alloc(sizeof(u_char) * (h->key.len + 1));
+	ngx_cpystrn(header->name.data, h->key.data, h->key.len + 1);
+	header->name.len = h->key.len;
+	// Copy the header lower case name.
+	header->lowerName = (u_char*)ngx_http_51D_cache_alloc(sizeof(u_char) * (ngx_strlen(h->lowcase_key) + 1));
+	ngx_cpystrn(header->lowerName, h->lowcase_key, ngx_strlen(h->lowcase_key) + 1);
+	// Copy the header value.
+	header->value.data = (u_char*)ngx_http_51D_cache_alloc(sizeof(u_char) * (h->value.len) + 1);
+	ngx_cpystrn(header->value.data, h->value.data, h->value.len +1);
+	header->value.len = h->value.len;
+	// Increment the header count.
+	node->headersCount++;
+}
+
+/**
+ * Create cache node function. Allocates a new node in the cache with space for
+ * the specified number of headers and sets the hash.
+ * @param name the name of the header (should be set to the User-Agent).
+ * @param hash the hash to use as the nodes key.
+ * @param headerCount the number of headers the node will store.
+ * @return ngx_http_51D_cache_node_t* the newly created cache node. Note
+ *                                    this is not yet in the cache, just
+ *                                    stored in the same shared memory.
+ */
+ngx_http_51D_cache_node_t *ngx_http_51D_create_node(ngx_str_t *name, uint32_t hash, int headerCount)
+{
+	int i;
+	ngx_http_51D_cache_node_t *node;
+
+	// Create the node.
+	node = (ngx_http_51D_cache_node_t*)ngx_http_51D_cache_alloc(sizeof(ngx_http_51D_cache_node_t));
+	node->node.key = hash;
+	node->headersCount = 0;
+	node->header = (ngx_http_51D_matched_header_t**)ngx_http_51D_cache_alloc(sizeof(ngx_http_51D_matched_header_t*)*headerCount);
+	// Add the headers.
+	for (i = 0; i < headerCount; i++) {
+		node->header[i] = (ngx_http_51D_matched_header_t*)ngx_http_51D_cache_alloc(sizeof(ngx_http_51D_matched_header_t));
+	}
+	// Set the name.
+	node->name.data = (u_char*)ngx_http_51D_cache_alloc(name->len + 1);
+	ngx_cpystrn(node->name.data, name->data, name->len + 1);
+	node->name.len = name->len;
+
+	return node;
+}
+
+/**
+ * Cache insert function. Inserts the supplied node in caches rbtree and LRU.
+ * Note the cache must not be locked before calling this function.
+ * @param node the node to insert.
+ */
+void ngx_http_51D_cache_insert(ngx_http_51D_cache_node_t *node)
+{
+	ngx_slab_pool_t *shpool = (ngx_slab_pool_t*)ngx_http_51D_shm_cache->shm.addr;
+	ngx_http_51D_cache_t *cache = (ngx_http_51D_cache_t*)ngx_http_51D_shm_cache->data;
+
+	// Lock the cache
+	ngx_shmtx_lock(&shpool->mutex);
+
+	if (cache->lru->prev->node != NULL) {
+		// The cache is full, so purge the last 3 from the lru.
+		ngx_http_51D_cache_clean(cache, 3);
+	}
+
+	// Add node to the rbtree.
+	ngx_rbtree_insert(cache->tree, (ngx_rbtree_node_t*)node);
+
+	// Add node to the LRU.
+	cache->lru->prev->next = cache->lru;
+	cache->lru->prev->node = node;
+	cache->lru->prev->prev->next = NULL;
+	cache->lru = cache->lru->prev;
+	node->lruItem = cache->lru;
+
+	// Unlock the cache.
+	ngx_shmtx_unlock(&shpool->mutex);
+}
+#endif // FIFTYONEDEGREES_PATTERN
+
+/**
  * Shared memory alloc function. Replaces fiftyoneDegreesMalloc to store
  * the data set in the shared memory zone.
+ * @param __size the size of memory to allocate.
+ * @return void* a pointer to the allocated memory.
  */
 void *ngx_http_51D_shm_alloc(size_t __size)
 {
 	void *ptr = NULL;
 	ngx_slab_pool_t *shpool;
 	shpool = (ngx_slab_pool_t *) ngx_http_51D_shm_dataSet->shm.addr;
-	ptr = ngx_slab_alloc_locked(shpool, __size);
+	ptr = ngx_slab_alloc(shpool, __size);
 	ngx_log_debug2(NGX_LOG_DEBUG_ALL, ngx_cycle->log, 0, "51Degrees shm alloc %d %p", __size, ptr);
 	if (ptr == NULL) {
 		ngx_log_error(NGX_LOG_ERR, ngx_cycle->log, 0, "51Degrees shm failed to allocate memory, not enough shared memory.");
@@ -497,25 +791,30 @@ void *ngx_http_51D_shm_alloc(size_t __size)
 /**
  * Shared memory free function. Replaces fiftyoneDegreesFree to free pointers
  * to the shared memory zone.
+ * @param __ptr pointer to the memory to be freed.
  */
 void ngx_http_51D_shm_free(void *__ptr)
 {
 	ngx_slab_pool_t *shpool;
 	shpool = (ngx_slab_pool_t *) ngx_http_51D_shm_dataSet->shm.addr;
-	ngx_log_debug1(NGX_LOG_DEBUG_ALL, ngx_cycle->log, 0, "51Degrees shm free %p", __ptr);
 	if ((u_char *) __ptr < shpool->start || (u_char *) __ptr > shpool->end) {
+		// The memory is not in the shared memory pool, so free with standard
+		// free function.
 	ngx_log_debug1(NGX_LOG_DEBUG_ALL, ngx_cycle->log, 0, "51Degrees shm free (non shared) %p", __ptr);
 		free(__ptr);
 	}
 	else {
-		ngx_slab_free_locked(shpool, __ptr);
+		ngx_log_debug1(NGX_LOG_DEBUG_ALL, ngx_cycle->log, 0, "51Degrees shm free %p", __ptr);
+		ngx_slab_free(shpool, __ptr);
 	}
 }
 
 #ifdef FIFTYONEDEGREES_PATTERN
 /**
- * Allocate string function. Gets the maximum possible length of the returned
+ * Set max string function. Gets the maximum possible length of the returned
  * list of values for specified header structure and allocates space for it.
+ * @param dataSet pointer to a 51Degrees data set.
+ * @param header pointer to the header to set the max length for.
  */
 static void
 ngx_http_51D_set_max_string(const fiftyoneDegreesDataSet *dataSet, ngx_http_51D_header_to_set *header)
@@ -526,7 +825,7 @@ ngx_http_51D_set_max_string(const fiftyoneDegreesDataSet *dataSet, ngx_http_51D_
 			length++;
 		}
 		tmpLength = fiftyoneDegreesGetMaxValueLength(dataSet, (char*)header->property[i]->data);
-	tmpLength = 20;
+//todo trie check
 		if ((int)tmpLength > 0) {
 			length += (int)tmpLength;
 		}
@@ -541,6 +840,8 @@ ngx_http_51D_set_max_string(const fiftyoneDegreesDataSet *dataSet, ngx_http_51D_
 /**
  * Init module function. Initialises the provider with the given initialisation
  * parameters. Throws an error if the data set could not be initialised.
+ * @param cycle the current nginx cycle.
+ * @return ngx_int_t nginx conf status.
  */
 static ngx_int_t
 ngx_http_51D_init_module(ngx_cycle_t *cycle)
@@ -557,14 +858,15 @@ ngx_http_51D_init_module(ngx_cycle_t *cycle)
 	fiftyoneDegreesMalloc = ngx_http_51D_shm_alloc;
 	fiftyoneDegreesFree = ngx_http_51D_shm_free;
 
-	// Initialise the provider.
-	//fdmcf->cache = fiftyoneDegreesResultsetCacheCreate(fdmcf->dataSet, (int)fdmcf->cacheSize);
+	// Initialise the data set.
 	status = fiftyoneDegreesInitWithPropertyString((const char*)fdmcf->dataFile.data, fdmcf->dataSet, (const char*)fdmcf->properties);
 	if (status != DATA_SET_INIT_STATUS_SUCCESS) {
 		return reportDatasetInitStatus(cycle, status, (const char*)fdmcf->dataFile.data);
 	}
 	ngx_log_debug2(NGX_LOG_DEBUG_ALL, cycle->log, 0, "51Degrees initialised from file '%s' with properties '%s'.", (char*)fdmcf->dataFile.data, fdmcf->properties);
 
+	// Reset the malloc and free functions as nothing else should be allocated
+	// in the shared memory zone.
 	fiftyoneDegreesMalloc = malloc;
 	fiftyoneDegreesFree = free;
 
@@ -583,8 +885,6 @@ ngx_http_51D_init_module(ngx_cycle_t *cycle)
  * 51Degrees data file. Is called within server block.
  * --51D_cache takes one integer argument, the size of the
  * 51Degrees cache.
- * --51D_pool takes one integer argument, the size of the
- * 51Degrees pool.
  */
 static ngx_command_t  ngx_http_51D_commands[] = {
 
@@ -639,6 +939,12 @@ static ngx_http_module_t ngx_http_51D_module_ctx = {
 };
 
 #ifdef FIFTYONEDEGREES_PATTERN
+/**
+ * Init process function. Creates a work set from the shared data set.
+ * This work set is local to the process.
+ * @param cycle the current nginx cycle.
+ * @return ngx_int_t nginx status.
+ */
 static ngx_int_t
 ngx_http_51D_init_process(ngx_cycle_t *cycle)
 {
@@ -650,6 +956,11 @@ ngx_http_51D_init_process(ngx_cycle_t *cycle)
 	return NGX_OK;
 }
 
+/**
+ * Exit process function. Frees the work set that was created on process
+ * init.
+ * @param cycle the current nginx cycle.
+ */
 void
 ngx_http_51D_exit_process(ngx_cycle_t *cycle)
 {
@@ -692,6 +1003,7 @@ ngx_module_t ngx_http_51D_module = {
  * See:
  * https://www.nginx.com/resources/wiki/start/topics/examples/headers_management
  */
+ //todo replace with hash search.
 static ngx_table_elt_t *
 search_headers_in(ngx_http_request_t *r, u_char *name, size_t len) {
     ngx_list_part_t            *part;;
@@ -724,18 +1036,26 @@ search_headers_in(ngx_http_request_t *r, u_char *name, size_t len) {
 
 /**
  * Add value function. Appends a string to a comma separated list.
+ * @param val the string to add to the buffer.
+ * @param buffer the string to append the val to.
  */
 static void add_value(char *val, char *buffer)
 {
+	// If the buffer already contains characters, append a comma.
 	if (buffer[0] != '\0') {
 		strcat(buffer, ",");
 	}
+	// Append the value.
 	strcat(buffer, val);
 }
 
 /**
- * Get match function. Gets a match from the workset for either a single
+ * Get match function. Gets a match from the work set for either a single
  * User-Agent or all request headers.
+ * @param ws a 51Degrees work set.
+ * @param r the current HTTP request.
+ * @param multi 0 for a single User-Agent match, 1 for a multiple HTTP
+ *              header match.
  */
 #ifdef FIFTYONEDEGREES_PATTERN
 void ngx_http_51D_get_match(fiftyoneDegreesWorkset *ws, ngx_http_request_t *r, int multi)
@@ -750,9 +1070,9 @@ void ngx_http_51D_get_match(fiftyoneDegreesWorkset *ws, ngx_http_request_t *r, i
 			fiftyoneDegreesMatch(ws, (const char*)r->headers_in.user_agent[0].value.data);
 		}
 		else {
+			// If there is no User-Agent, match with an empty string.
 			fiftyoneDegreesMatch(ws, "");
 		}
-		ngx_log_debug1(NGX_LOG_DEBUG_ALL, ngx_cycle->log, 0, "51Degrees match got %p", ws);
 	}
 	// If multi requested, match for multiple http headers.
 	else if (multi == 1) {
@@ -772,6 +1092,15 @@ void ngx_http_51D_get_match(fiftyoneDegreesWorkset *ws, ngx_http_request_t *r, i
 #endif // FIFTYONEDEGREES_PATTERN
 
 #ifdef FIFTYONEDEGREES_TRIE
+
+/**
+ * Get match function. Gets a match from the work set for either a single
+ * User-Agent or all request headers.
+ * @param ws a 51Degrees work set.
+ * @param r the current HTTP request.
+ * @param multi 0 for a single User-Agent match, 1 for a multiple HTTP
+ *              header match.
+ */
 void ngx_http_51D_get_match(fiftyoneDegreesDataSet *dataSet, ngx_http_request_t *r, int multi, fiftyoneDegreesDeviceOffsets *offsets)
 {
 	int headerIndex;
@@ -808,11 +1137,15 @@ void ngx_http_51D_get_match(fiftyoneDegreesDataSet *dataSet, ngx_http_request_t 
 	}
 }
 #endif // FIFTYONEDEGREES_TRIE
+
+#ifdef FIFTYONEDEGREES_PATTERN
 /**
  * Get value function. Gets the requested value for the current match and
  * appends the value to the comma separated list of values.
+ * @param ws a 51Degrees work set.
+ * @param values_string the string to append the returned value to.
+ * @param requiredPropertyName the name of the property to get the value for.
  */
- #ifdef FIFTYONEDEGREES_PATTERN
 void ngx_http_51D_get_value(fiftyoneDegreesWorkset *ws, char *values_string, const char *requiredPropertyName)
 {
 	char *methodName, *propertyName;
@@ -863,6 +1196,13 @@ void ngx_http_51D_get_value(fiftyoneDegreesWorkset *ws, char *values_string, con
 }
 #endif // FIFTYONEDEGREES_PATTERN
 #ifdef FIFTYONEDEGREES_TRIE
+/**
+ * Get value function. Gets the requested value for the current match and
+ * appends the value to the comma separated list of values.
+ * @param dataSet a 51Degrees data set.
+ * @param values_string the string to append the returned value to.
+ * @param requiredPropertyName the name of the property to get the value for.
+ */
 void ngx_http_51D_get_value(fiftyoneDegreesDataSet *dataSet, char *values_string, const char *requiredPropertyName, fiftyoneDegreesDeviceOffsets *offsets)
 {
 	int requiredPropertyIndex = fiftyoneDegreesGetRequiredPropertyIndex(dataSet, requiredPropertyName);
@@ -883,111 +1223,11 @@ void ngx_http_51D_get_value(fiftyoneDegreesDataSet *dataSet, char *values_string
 }
 #endif // FIFTYONEDEGREES_TRIE
 
-void ngx_http_51D_cache_clean(ngx_http_51D_cache_t *cache, int count)
-{
-	int i = 0, j;
-	ngx_http_51D_cache_node_t *node;
-	ngx_slab_pool_t *shpool = (ngx_slab_pool_t*)ngx_http_51D_shm_cache->shm.addr;
-	ngx_http_51D_cache_lru_list_t *lruItem = cache->lru->prev;
-
-	while (lruItem->node == NULL) {
-		lruItem = lruItem->prev;
-	}
-
-	while (i < count) {
-		node = lruItem->node;
-		ngx_rbtree_delete(cache->tree, (ngx_rbtree_node_t*)node);
-
-		// todo free all headers.
-		for (j = 0; j < (int)node->headersCount; j++) {
-			ngx_slab_free_locked(shpool, node->header[j]->lowerName);
-			ngx_slab_free_locked(shpool, node->header[j]->name.data);
-			ngx_slab_free_locked(shpool, node->header[j]->value.data);
-			ngx_slab_free_locked(shpool, node->header[j]);
-		}
-		ngx_slab_free_locked(shpool, node->name.data);
-		ngx_slab_free_locked(shpool, node->header);
-		ngx_slab_free_locked(shpool, node);
-		lruItem->node = NULL;
-		lruItem = lruItem->prev;
-		i++;
-	}
-}
-
-void *ngx_http_51D_cache_alloc(size_t __size)
-{
-	ngx_slab_pool_t *shpool = (ngx_slab_pool_t*)ngx_http_51D_shm_cache->shm.addr;
-	ngx_http_51D_cache_t *cache = (ngx_http_51D_cache_t*)ngx_http_51D_shm_cache->data;
-	void *ptr = ngx_slab_alloc(shpool, __size);
-	if (ptr == NULL) {
-		ngx_shmtx_lock(&shpool->mutex);
-		ngx_http_51D_cache_clean(cache, 3);
-		ngx_slab_alloc_locked(shpool, __size);
-		ngx_shmtx_unlock(&shpool->mutex);
-	}
-	return ptr;
-}
-
-void ngx_http_51D_add_header_to_node(ngx_http_51D_cache_node_t *node, ngx_table_elt_t *h)
-{
-	ngx_http_51D_matched_header_t *header;
-	header = node->header[(int)node->headersCount];
-	header->name.data = (u_char*)ngx_http_51D_cache_alloc(sizeof(u_char) * (h->key.len + 1));
-	ngx_cpystrn(header->name.data, h->key.data, h->key.len + 1);
-	header->name.len = h->key.len;
-	header->lowerName = (u_char*)ngx_http_51D_cache_alloc(sizeof(u_char) * (ngx_strlen(h->lowcase_key) + 1));
-	ngx_cpystrn(header->lowerName, h->lowcase_key, ngx_strlen(h->lowcase_key) + 1);
-	//todo clean cache if no space
-	header->value.data = (u_char*)ngx_http_51D_cache_alloc(sizeof(u_char) * (h->value.len) + 1);
-	ngx_cpystrn(header->value.data, h->value.data, h->value.len +1);
-	header->value.len = h->value.len;
-	node->headersCount++;
-
-}
-
-ngx_http_51D_cache_node_t *ngx_http_51D_create_node(ngx_str_t *name, uint32_t hash, int headerCount)
-{
-	int i;
-	ngx_http_51D_cache_node_t *node;
-	node = (ngx_http_51D_cache_node_t*)ngx_http_51D_cache_alloc(sizeof(ngx_http_51D_cache_node_t));
-	node->node.key = hash;
-	node->headersCount = 0;
-	node->header = (ngx_http_51D_matched_header_t**)ngx_http_51D_cache_alloc(sizeof(ngx_http_51D_matched_header_t*)*headerCount);
-	for (i = 0; i < headerCount; i++) {
-		node->header[i] = (ngx_http_51D_matched_header_t*)ngx_http_51D_cache_alloc(sizeof(ngx_http_51D_matched_header_t));
-	}
-
-	node->name.data = (u_char*)ngx_http_51D_cache_alloc(name->len + 1);
-	ngx_cpystrn(node->name.data, name->data, name->len + 1);
-	node->name.len = name->len;
-	return node;
-}
-
-void ngx_http_51D_cache_insert(ngx_http_51D_cache_node_t *node)
-{
-	ngx_slab_pool_t *shpool = (ngx_slab_pool_t*)ngx_http_51D_shm_cache->shm.addr;
-	ngx_http_51D_cache_t *cache = (ngx_http_51D_cache_t*)ngx_http_51D_shm_cache->data;
-	ngx_shmtx_lock(&shpool->mutex);
-
-	if (cache->lru->prev->node != NULL) {
-		// The cache is full, so purge the last 3 from the lru.
-		ngx_http_51D_cache_clean(cache, 3);
-	}
-	ngx_rbtree_insert(cache->tree, (ngx_rbtree_node_t*)node);
-
-	// Add node to lru.
-	cache->lru->prev->next = cache->lru;
-	cache->lru->prev->node = node;
-	cache->lru->prev->prev->next = NULL;
-	cache->lru = cache->lru->prev;
-	node->lruItem = cache->lru;
-
-	ngx_shmtx_unlock(&shpool->mutex);
-}
-
 /**
  * Module handler, gets a match using either the User-Agent or multiple http
  * headers, then sets properties as headers.
+ * @param r the HTTP request.
+ * @return ngx_int_t nginx status.
  */
 static ngx_int_t
 ngx_http_51D_handler(ngx_http_request_t *r)
@@ -995,87 +1235,79 @@ ngx_http_51D_handler(ngx_http_request_t *r)
 
 	ngx_http_51D_main_conf_t *fdmcf;
 	ngx_http_51D_loc_conf_t *fdlcf;
-
-#ifdef FIFTYONEDEGREES_PATTERN
-	fiftyoneDegreesWorkset *ws;
-#endif // FIFTYONEDEGREES_PATTERN
+	ngx_uint_t matchIndex, multi;
 #ifdef FIFTYONEDEGREES_TRIE
-	fiftyoneDegreesDataSet *dataSet;
 	fiftyoneDegreesDeviceOffsets *offsets;
 #endif // FIFTYONEDEGREES_TRIE
-	ngx_uint_t matchIndex, multi;
+#ifdef FIFTYONEDEGREES_PATTERN
+	ngx_http_51D_matched_header_t *header;
+	ngx_http_51D_cache_node_t *node;
+	uint32_t hash;
+	int headerIndex;
+	ngx_table_elt_t *searchResult;
+#endif // FIFTYONEDEGREES_PATTERN
 
 	if (r->main->internal) {
 		return NGX_DECLINED;
 	}
 	r->main->internal = 1;
 
-	// Get 51Degrees location config.
+	// Get 51Degrees configs.
 	fdlcf = ngx_http_get_module_loc_conf(r, ngx_http_51D_module);
-	// Get 51Degrees main config.
 	fdmcf = ngx_http_get_module_main_conf(r, ngx_http_51D_module);
+	ngx_table_elt_t *h[fdlcf->headerCount];
 
+	// If no headers are specified in this location, tell nginx
+	// this handler is done.
 	if ((int)fdlcf->headerCount == 0) {
 		return NGX_DECLINED;
 	}
-	ngx_table_elt_t *h[fdlcf->headerCount];
-
-	// Get a workset from the pool.
 #ifdef FIFTYONEDEGREES_PATTERN
-	ws = fdmcf->ws;
-#endif // FIFTYONEDEGREES_PATTERN
-#ifdef FIFTYONEDEGREES_TRIE
-	dataSet = fdmcf->dataSet;
-#endif // FIFTYONEDEGREES_TRIE
-	ngx_http_51D_matched_header_t *header;
-
-	ngx_http_51D_cache_node_t *node;
-	uint32_t hash;
-	ngx_table_elt_t *searchResult;
-	int headerIndex;
+	// Get the hash for this location and request headers.
 	hash = ngx_hash(fdlcf->key, ngx_hash_key(r->headers_in.user_agent[0].value.data, r->headers_in.user_agent[0].value.len));
-	for (headerIndex = 0; headerIndex < ws->dataSet->httpHeadersCount; headerIndex++) {
-		searchResult = search_headers_in(r, (u_char*)ws->dataSet->httpHeaders[headerIndex].headerName, strlen(ws->dataSet->httpHeaders[headerIndex].headerName));
+	for (headerIndex = 0; headerIndex < fdmcf->dataSet->httpHeadersCount; headerIndex++) {
+		searchResult = search_headers_in(r, (u_char*)fdmcf->dataSet->httpHeaders[headerIndex].headerName, strlen(fdmcf->dataSet->httpHeaders[headerIndex].headerName));
 		if (searchResult != NULL) {
 			hash = ngx_hash(hash, ngx_hash_key(searchResult->value.data, searchResult->value.len));
 		}
 	}
+	// Look in the cache for a match with the hash.
 	node = ngx_http_51D_lookup_node_lru(&r->headers_in.user_agent[0].value, hash);
 
+	// If a match is not found in the cache, carry out a match.
 	if (node == NULL) {
+		// Create a new node so the match can be added to the cache.
 		node = ngx_http_51D_create_node(&r->headers_in.user_agent[0].value, hash, (int)fdlcf->headerCount);
-
+#endif // FIFTYONEDEGREES_PATTERN
 		for (multi = 0; multi < 2; multi++) {
 			for (matchIndex=0;matchIndex<fdlcf->headerCount;matchIndex++)
 			{
 				if (fdlcf->header[matchIndex]->multi == multi) {
-	#ifdef FIFTYONEDEGREES_PATTERN
+#ifdef FIFTYONEDEGREES_PATTERN
 					if ((int)fdlcf->header[matchIndex]->maxString < 0) {
 						ngx_http_51D_set_max_string(fdmcf->dataSet, fdlcf->header[matchIndex]);
 					}
+#endif // FIFTYONEDEGREES_PATTERN
+					// Allocate the value string in the request pool.
 					char *valueString = (char*)ngx_palloc(r->pool, fdlcf->header[matchIndex]->maxString);
-	#endif // FIFTYONEDEGREES_PATTERN
-	#ifdef FIFTYONEDEGREES_TRIE
-					char *valueString = (char*)ngx_palloc(r->pool, FIFTYONEDEGREES_MAX_STRING);
-	#endif // FIFTYONEDEGREES_TRIE
 					valueString[0] = '\0';
 					// Get a match.
-	#ifdef FIFTYONEDEGREES_PATTERN
-					ngx_http_51D_get_match(ws, r, fdlcf->header[matchIndex]->multi);
-	#endif // FIFTYONEDEGREES_PATTERN
-	#ifdef FIFTYONEDEGREES_TRIE
-					offsets = fiftyoneDegreesCreateDeviceOffsets(dataSet);
-					ngx_http_51D_get_match(dataSet, r, fdlcf->header[matchIndex]->multi, offsets);
-	#endif // FIFTYONEDEGREES_TRIE
+#ifdef FIFTYONEDEGREES_PATTERN
+					ngx_http_51D_get_match(fdmcf->ws, r, fdlcf->header[matchIndex]->multi);
+#endif // FIFTYONEDEGREES_PATTERN
+#ifdef FIFTYONEDEGREES_TRIE
+					offsets = fiftyoneDegreesCreateDeviceOffsets(fdmcf->dataSet);
+					ngx_http_51D_get_match(fdmcf->dataSet, r, fdlcf->header[matchIndex]->multi, offsets);
+#endif // FIFTYONEDEGREES_TRIE
 					// For each property, set the value in values_string_array.
-					ngx_uint_t property_index;
-					for (property_index=0; property_index < fdlcf->header[matchIndex]->propertyCount; property_index++) {
-	#ifdef FIFTYONEDEGREES_PATTERN
-						ngx_http_51D_get_value(ws, valueString, (const char*) fdlcf->header[matchIndex]->property[property_index]->data);
-	#endif // FIFTYONEDEGREES_PATTERN
-	#ifdef FIFTYONEDEGREES_TRIE
-						ngx_http_51D_get_value(dataSet, valueString, (const char*)fdlcf->header[matchIndex]->property[property_index]->data, offsets);
-	#endif // FIFTYONEDEGREES_TRIE
+					int property_index;
+					for (property_index=0; property_index < (int)fdlcf->header[matchIndex]->propertyCount; property_index++) {
+#ifdef FIFTYONEDEGREES_PATTERN
+						ngx_http_51D_get_value(fdmcf->ws, valueString, (const char*) fdlcf->header[matchIndex]->property[property_index]->data);
+#endif // FIFTYONEDEGREES_PATTERN
+#ifdef FIFTYONEDEGREES_TRIE
+						ngx_http_51D_get_value(fdmcf->dataSet, valueString, (const char*)fdlcf->header[matchIndex]->property[property_index]->data, offsets);
+#endif // FIFTYONEDEGREES_TRIE
 					}
 					// For each property value pair, set a new header name and value.
 					h[matchIndex] = ngx_list_push(&r->headers_in.headers);
@@ -1085,18 +1317,24 @@ ngx_http_51D_handler(ngx_http_request_t *r)
 					h[matchIndex]->value.data = (u_char*)valueString;
 					h[matchIndex]->value.len = ngx_strlen(h[matchIndex]->value.data);
 					h[matchIndex]->lowcase_key = (u_char*)fdlcf->header[matchIndex]->lowerName.data;
+#ifdef FIFTYONEDEGREES_PATTERN
+					// Add the current header to the cache node.
 					ngx_http_51D_add_header_to_node(node, h[matchIndex]);
-
-	#ifdef FIFTYONEDEGREES_TRIE
+#endif // FIFTYONEDEGREES_PATTERN
+#ifdef FIFTYONEDEGREES_TRIE
+		// Free the match offsets.
 		fiftyoneDegreesFreeDeviceOffsets(offsets);
-	#endif // FIFTYONEDEGREES_TRIE
+#endif // FIFTYONEDEGREES_TRIE
 				}
 			}
-			//todo add to queue
 		}
+#ifdef FIFTYONEDEGREES_PATTERN
+		// Add the match to the cache.
 		ngx_http_51D_cache_insert(node);
 	}
 	else {
+		// The match already exists in the cache, so set the headers from
+		// the node.
 		for (matchIndex = 0; matchIndex < fdlcf->headerCount; matchIndex++) {
 			header = node->header[(int)matchIndex];
 			h[matchIndex] = ngx_list_push(&r->headers_in.headers);
@@ -1106,23 +1344,38 @@ ngx_http_51D_handler(ngx_http_request_t *r)
 			h[matchIndex]->lowcase_key = header->lowerName;
 		}
 	}
+#endif // FIFTYONEDEGREES_PATTERN
+
+	// Tell nginx to continue with other module handlers.
 	return NGX_DECLINED;
 }
 
 /**
- * Set match function. Initialises the header structure for a given occurrence
+ * Set header function. Initialises the header structure for a given occurrence
  * of "51D_match_single" or "51D_match_all" in the config file. Allocates
  * space required and sets the name and properties.
+ * @param cf the nginx config.
+ * @param header the header to be set.
+ * @param value the values passed from the config file.
+ * @param fdmcf 51Degrees main config.
  */
 void
 ngx_http_51D_set_header(ngx_conf_t *cf, ngx_http_51D_header_to_set *header, ngx_str_t *value, ngx_http_51D_main_conf_t *fdmcf)
 {
 	char *tok;
 	int propertiesCount, charPos;
+	char *propertiesString;
+
+	// Initialise the property count.
 	header->propertyCount = 0;
 #ifdef FIFTYONEDEGREES_PATTERN
+	// Initialise the max string.
 	header->maxString = NGX_CONF_UNSET_SIZE;
 #endif // FIFTYONEDEGREES_PATTERN
+#ifdef FIFTYONEDEGREES_TRIE
+	// Set the max string.
+	header->maxString = (size_t)FIFTYONEDEGREES_MAX_STRING;
+#endif // FIFTYONEDEGREES_TRIE
 
 	// Set the name of the header.
 	header->name.data = (u_char*)ngx_palloc(cf->pool, sizeof(value[1]));
@@ -1132,16 +1385,20 @@ ngx_http_51D_set_header(ngx_conf_t *cf, ngx_http_51D_header_to_set *header, ngx_
 	ngx_strlow(header->lowerName.data, header->name.data, header->name.len);
 	header->lowerName.len = header->name.len;
 
-    char *propertiesString = (char*)value[2].data;
+	// Set the properties string to the second argument in the config file.
+    propertiesString = (char*)value[2].data;
 
+	// Count the properties in the string.
 	propertiesCount = 1;
 	for (charPos = 0; charPos < (int)value[2].len; charPos++) {
 		if (propertiesString[charPos] == ',') {
 			propertiesCount++;
 		}
 	}
+	// Allocate space for the properties array.
 	header->property = (ngx_str_t**)ngx_palloc(cf->pool, sizeof(ngx_str_t*)*propertiesCount);
 
+	// Allocate and set all the properties.
 	tok = strtok((char*)propertiesString, (const char*)",");
 	while (tok != NULL) {
 		header->property[header->propertyCount] = (ngx_str_t*)ngx_palloc(cf->pool, sizeof(ngx_str_t));
@@ -1160,23 +1417,32 @@ ngx_http_51D_set_header(ngx_conf_t *cf, ngx_http_51D_header_to_set *header, ngx_
  * Set function. Is called for each occurrence of "51D_match_single" or
  * "51D_match_all". Allocates space for the header structure and initialises
  * it with the set header function.
+ * @param cf the nginx conf.
+ * @param cmd the name of the command called from the config file.
+ * @param conf the module config.
+ * @return char* nginx conf status.
  */
 static char *ngx_http_51D_set(ngx_conf_t* cf, ngx_command_t *cmd, void *conf)
 {
 	ngx_http_51D_main_conf_t *fdmcf;
 	ngx_http_51D_loc_conf_t *fdlcf;
 	ngx_str_t *value;
+
+	// Get the arguments from the config.
 	value = cf->args->elts;
+
 	// Get the modules location and main config.
 	fdmcf = ngx_http_conf_get_module_main_conf(cf, ngx_http_51D_module);
 	fdlcf = ngx_http_conf_get_module_loc_conf(cf, ngx_http_51D_module);
 
+	// Allocate the space for the new header in the current location config.
 	fdlcf->header[fdlcf->headerCount] = (ngx_http_51D_header_to_set*)ngx_palloc(cf->pool, sizeof(ngx_http_51D_header_to_set));
 
 	// Enable single User-Agent matching.
 	if (ngx_strcmp(cmd->name.data, "51D_match_single") == 0) {
 		fdlcf->header[fdlcf->headerCount]->multi = 0;
 	}
+	// Enable multiple HTTP header matching.
 	else if (ngx_strcmp(cmd->name.data, "51D_match_all") == 0) {
 		fdlcf->header[fdlcf->headerCount]->multi = 1;
 		fdlcf->hasMulti = 1;
@@ -1185,7 +1451,12 @@ static char *ngx_http_51D_set(ngx_conf_t* cf, ngx_command_t *cmd, void *conf)
 	// Set the properties for the selected location.
 	ngx_http_51D_set_header(cf, fdlcf->header[fdlcf->headerCount], value, fdmcf);
 
-	fdlcf->key = ngx_hash(fdlcf->key, (ngx_uint_t)value->data);
+#ifdef FIFTYONEDEGREES_PATTERN
+	// Add the arguments to the locations hash key, this is used to
+	// differentiate locations in the cache.
+	fdlcf->key = ngx_hash(fdlcf->key, ngx_hash_key(value[1].data, value[1].len));
+	fdlcf->key = ngx_hash(fdlcf->key, ngx_hash_key(value[2].data, value[2].len));
+#endif // FIFTYONEDEGREES_PATTERN
 
 	fdlcf->headerCount++;
 
