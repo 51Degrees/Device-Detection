@@ -22,15 +22,10 @@
 <tutorial>
 Reload from file example that shows how to:
 <ol>
-<li>Only maintain a reference to the fiftyoneDegreesWorksetPool and use the
-reference to access dataset and cache.
 <li>Use the fiftyoneDegreesDatasetReloadFromFile function to reload the
-dataset, cache and workset pool from the same location and with the same
-set of properties.
-<li>Retrieve a workset from the pool and return it back into the pool when
-done with detecting current User-Agent.
+dataset, from the same location and with the same set of properties.
+<li>Run detections on the current User-Agent.
 <li>Use the reload functionality in a single threaded environment.
-<li>Use the reload functionality in a multi threaded environment.
 </ol>
 <p>
 This example illustrates how to use a single reference to the provider
@@ -42,15 +37,14 @@ fiftyoneDegreesProvider provider;
 </pre></p>
 </p>
 <p>
-Example assumes that the initial pool, dataset and cache were created using
+Example assumes that the initial dataset was created using
 either the fiftyoneDegreesInitProviderWithPropertyString function,
 or the fiftyoneDegreesInitProviderWithPropertyArray function.
 </p>
 <p>
 The fiftyoneDegreesProviderReloadFromFile function requires an existing
-pool with the initialized dataset and cache. Function reloads the dataset
-from the same location and with the same parameters as the original dataset.
-New cache and pool is created.
+initialized dataset. Function reloads the dataset from the same location
+and with the same parameters as the original dataset.
 </p>
 <p>
 Please keep in mind that even if the current dataset was constructed with
@@ -66,32 +60,6 @@ Each successful data file reload should be accompanied by the integrity
 check to verify that the properties you want have indeed been loaded. This
 can be achieved by simply comparing the number of properties before and
 after the reload as the number can not go up but it can go down.
-</p>
-<p>
-Example also demonstrates the concept of a workset pool. A workset pool is
-a thread safe collection of workset structures. To retrieve a workset use:
-<p><pre class="prettyprint lang-c">
-fiftyoneDegreesWorkset *ws = NULL;
-fiftyoneDegreesProviderWorksetGet(&provider);
-</pre></p>
-And to return a workset to the pool use:
-<p><pre class="prettyprint lang-c">
-fiftyoneDegreesWorksetRelease(ws);
-</pre></p>
-</p>
-<p>
-The benefit of the workset pool is that it eliminates the overheads of
-creating a new workset structure for every new request, instead an existing
-workset is used. Be sure to initialize the workset of the appropriate size
-as an insufficiently small workset could cause delay with processing the
-device detection requests as the thread is waiting for a the next available
-workset in the pool.
-</p>
-<p>
-The reload functionality works both with the single threaded as well as the
-multi threaded modes. To try the reload functionality in single threaded
-mode build with FIFTYONEDEGREES_NO_THREADING defined. Or build without
-FIFTYONEDEGREES_NO_THREADING for multi threaded example.
 </p>
 <p>
 In a single threaded environment the reload function is executed as part of
@@ -166,7 +134,7 @@ int main(int argc, char* argv[]) {
 
 	numberOfReloads = runRequest(inputFile);
 
-	// Free the dataset.
+	// Free the provider.
 	fiftyoneDegreesProviderFree(&provider);
 
 	// Finish execution.
