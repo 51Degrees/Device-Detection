@@ -33,8 +33,8 @@ install-pattern: build-pattern
 	./configure \
 	--prefix=$(CURDIR)/build \
 	--with-ld-opt="-lm" \
-	--add-dynamic-module=$(CURDIR)/51Degrees_module \
-	--with-cc-opt="-DFIFTYONEDEGREES_PATTERN -Wno-ignored-qualifiers -Wno-unused-result -Wno-unused-function" \
+	--add-module=$(CURDIR)/51Degrees_module \
+	--with-cc-opt="-DFIFTYONEDEGREES_PATTERN -DFIFTYONEDEGREES_NO_THREADING -Wno-ignored-qualifiers -Wno-unused-result -Wno-unused-function" \
 	--sbin-path=$(CURDIR) \
 	--conf-path="pattern.conf"
 	cd $(CURDIR)/vendor/nginx && make install
@@ -48,7 +48,7 @@ install-pattern-debug: build-pattern
 	--with-ld-opt="-lm" \
 	--with-debug \
 	--add-module=$(CURDIR)/51Degrees_module \
-	--with-cc-opt="-DFIFTYONEDEGREES_PATTERN -Wno-ignored-qualifiers -Wno-unused-result -O0 -g" \
+	--with-cc-opt="-DFIFTYONEDEGREES_PATTERN -DFIFTYONEDEGREES_NO_THREADING -Wno-ignored-qualifiers -Wno-unused-result -O0 -g" \
 	--sbin-path=$(CURDIR) \
 	--conf-path="pattern.conf"
 	cd $(CURDIR)/vendor/nginx && make install
@@ -60,7 +60,7 @@ install-trie: build-trie
 	./configure \
 	--prefix=$(CURDIR)/build \
 	--with-ld-opt="-lm" \
-	--add-dynamic-module=$(CURDIR)/51Degrees_module \
+	--add-module=$(CURDIR)/51Degrees_module \
 	--with-cc-opt=" -DFIFTYONEDEGREES_TRIE"
 	cd $(CURDIR)/vendor/nginx && make install
 	cp example/trie.conf build/
@@ -72,7 +72,7 @@ install-trie-debug: build-trie
 	--prefix=$(CURDIR)/build \
 	--with-ld-opt="-lm" \
 	--with-debug \
-	--add-dynamic-module=$(CURDIR)/51Degrees_module \
+	--add-module=$(CURDIR)/51Degrees_module \
 	--with-cc-opt=" -DFIFTYONEDEGREES_TRIE -O0 -g" \
 	--sbin-path=$(CURDIR) \
 	--conf-path="trie.conf"
