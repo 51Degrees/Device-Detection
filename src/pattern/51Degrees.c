@@ -40,14 +40,6 @@
 #define strdup _strdup
 #endif
 
-/* Indicates that a method will be used by qsort */
-#ifdef _MSC_VER
-/* Needs to be set to __cdecl to prevent optimiser problems */
-#define QSORT_COMPARER __cdecl
-#else
-#define QSORT_COMPARER
-#endif
-
  /**
  * \cond
  * DATA STRUCTURES USED ONLY BY FUNCTIONS IN THIS FILE
@@ -80,9 +72,9 @@ const int16_t POWERS[] = { 1, 10, 100, 1000, 10000 };
 /**
  * Memory allocation functions.
  */
-void *(ALLOC_CALL_CONV *fiftyoneDegreesMalloc)(size_t __size) = malloc;
-void *(ALLOC_CALL_CONV *fiftyoneDegreesCalloc)(size_t __nmemb, size_t __size) = calloc;
-void (ALLOC_CALL_CONV *fiftyoneDegreesFree)(void *__ptr) = free;
+void *(CALL_CONV *fiftyoneDegreesMalloc)(size_t __size) = malloc;
+void *(CALL_CONV *fiftyoneDegreesCalloc)(size_t __nmemb, size_t __size) = calloc;
+void (CALL_CONV *fiftyoneDegreesFree)(void *__ptr) = free;
 
 /**
  * DATASET MEMORY ALLOCATION SIZE MACROS
@@ -2140,7 +2132,7 @@ void fiftyoneDegreesFreeProfilesStruct(fiftyoneDegreesProfilesStruct *profiles) 
  * @param b pointer to an integer.
  * \endcond
  */
-static int QSORT_COMPARER intcmp(const void *a, const void *b) {
+static int CALL_CONV intcmp(const void *a, const void *b) {
 	return (*(int32_t*)a - *(int32_t*)b);
 }
 
@@ -3960,7 +3952,7 @@ static void setClosestSignaturesFinal(fiftyoneDegreesWorkset *ws, int32_t count)
  * @return the difference between the nodes
  * \endcond
  */
-static int QSORT_COMPARER nodeSignatureCountCompare(const void *a, const void *b) {
+static int CALL_CONV nodeSignatureCountCompare(const void *a, const void *b) {
 	fiftyoneDegreesNode* c1 = (*(fiftyoneDegreesNode**)a);
 	fiftyoneDegreesNode* c2 = (*(fiftyoneDegreesNode**)b);
 	int difference = c1->signatureCount - c2->signatureCount;

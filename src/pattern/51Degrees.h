@@ -43,9 +43,10 @@
 #endif
 
 #ifdef _MSC_VER
-#define ALLOC_CALL_CONV __cdecl
+/* Needs to be set to __cdecl to prevent optimiser problems */
+#define CALL_CONV __cdecl
 #else
-#define ALLOC_CALL_CONV
+#define CALL_CONV
 #endif
 
 #include <stdint.h>
@@ -1104,7 +1105,7 @@ EXTERNAL void fiftyoneDegreesFreeProfilesStruct(
  * @param __size the size of memory to allocate.
  * @returns void* pointer to allocated memory.
  */
-EXTERNAL void *(ALLOC_CALL_CONV *fiftyoneDegreesMalloc)(size_t __size);
+EXTERNAL void *(CALL_CONV *fiftyoneDegreesMalloc)(size_t __size);
 
 /**
  * \ingroup FiftyOneDegreesFunctions
@@ -1113,14 +1114,14 @@ EXTERNAL void *(ALLOC_CALL_CONV *fiftyoneDegreesMalloc)(size_t __size);
  * @param __size the size of memory to allocate for each element.
  * @returns void* pointer to allocated memory.
  */
-EXTERNAL void *(ALLOC_CALL_CONV *fiftyoneDegreesCalloc)(size_t __nmemb, size_t __size);
+EXTERNAL void *(CALL_CONV *fiftyoneDegreesCalloc)(size_t __nmemb, size_t __size);
 
 /**
  * \ingroup FiftyOneDegreesFunctions
  * Free function, defaults to free.
  * @param __ptr the pointer to memory to be freed.
  */
-EXTERNAL void (ALLOC_CALL_CONV *fiftyoneDegreesFree)(void *__ptr);
+EXTERNAL void (CALL_CONV *fiftyoneDegreesFree)(void *__ptr);
 
 /**
 * \ingroup FiftyOneDegreesFunctions
