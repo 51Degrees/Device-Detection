@@ -1,29 +1,26 @@
 #!/bin/bash
+
+LIMIT=0.500
+RELOADSTODO=5
+
 RED='\033[0;31m'
 GREEN='\033[0;32m'
 NC='\033[0m'
 PASS="${GREEN}[Pass]${NC}\t"
 FAIL="${RED}[Fail]${NC}\t"
 FAILED=0
-LIMIT=0.500
-
 if [ ! -e "nginx" ]; then
 	printf "nginx is not installed in this directory. Install with \"make install-pattern\" or \"make install-trie\"\n"
 	exit
 fi
 
 printf "\n---------------------\n| Starting new nginx process.\n---------------------\n"
-killall nginx
-RUNNING='1'
 SLEEPCOUNT='0'
-while [ $RUNNING = '1' ]; do
-	if [ "$(pidof process_name)" ]; then
-		SLEEPCOUNT=$(($SLEPCOUNT + 1))
-	else
-		RUNNING='0'
-	fi
+while [ "$(pidof nginx)" ]; do
+	killall nginx
+	SLEEPCOUNT=$(($SLEEPCOUNT + 1))	
 	if [ $SLEEPCOUNT -gt 5 ]; then
-		printf "Failed to stop running nginx process\n"
+		printf "Failed to stop currently running nginx process\n"
 		exit
 	fi
 	sleep 1
@@ -32,8 +29,8 @@ done
 
 printf "\n---------------------\n| Testing Server response.\n--------------------\n"
 
-DESKTOPUA="Ubuntu"
-MOBILEUA="Samsung Galaxy"
+DESKTOPUA="Mozilla/5.0 (Windows NT 6.3; WOW64; rv:41.0) Gecko/20100101 Firefox/41.0"
+MOBILEUA="Mozilla/5.0 (iPhone; CPU iPhone OS 7_1 like Mac OS X) AppleWebKit/537.51.2 (KHTML, like Gecko) 'Version/7.0 Mobile/11D167 Safari/9537.53"
 TRUE='test: True'
 FALSE='test: False'
 
@@ -65,7 +62,7 @@ else
 fi
 
 printf "\n---------------------\n| Testing ApacheBench stress with no cache.\n--------------------\n"
-TIME=`../ApacheBench/ab -c 10 -n 10000 -q -U ../data/20000\ User\ Agents.csv localhost:8888/ | grep "(mean, across all concurrent requests)" | sed -r 's/.*_([0-9]*)\..*/\1/g' | grep -E -o '\<[0-9]{1,2}\.[0-9]{2,5}\>'`
+TIME=`../ApacheBench/ab -c 10 -i -n 5000 -q -U ../data/20000\ User\ Agents.csv localhost:8888/ | grep "(mean, across all concurrent requests)" | sed -r 's/.*_([0-9]*)\..*/\1/g' | grep -E -o '\<[0-9]{1,2}\.[0-9]{2,5}\>'`
 if [ $TIME ]; then
 	if [ $(echo "$TIME < $LIMIT" | bc -l) -eq 1 ]; then
 		printf "${PASS}Stress test: $TIME ms per detection is within limit of $LIMIT.\n"
@@ -81,7 +78,7 @@ fi
 
 if [ -e "build/pattern.conf" ]; then
 	printf "\n---------------------\n| Testing ApacheBench stress with cache.\n--------------------\n"
-	TIME=`../ApacheBench/ab -c 10 -n 10000 -q -U ../data/20000\ User\ Agents.csv localhost:8888/ | grep "(mean, across all concurrent requests)" | sed -r 's/.*_([0-9]*)\..*/\1/g' | grep -E -o '\<[0-9]{1,2}\.[0-9]{2,5}\>'`
+	TIME=`../ApacheBench/ab -c 10 -i -n 5000 -q -U ../data/20000\ User\ Agents.csv localhost:8888/ | grep "(mean, across all concurrent requests)" | sed -r 's/.*_([0-9]*)\..*/\1/g' | grep -E -o '\<[0-9]{1,2}\.[0-9]{2,5}\>'`
 	if [ $TIME ]; then
 		if [ $(echo "$TIME < $LIMIT" | bc -l) -eq 1 ]; then
 			printf "${PASS}Stress test: $TIME ms per detection is within limit of $LIMIT.\n"
@@ -96,18 +93,23 @@ if [ -e "build/pattern.conf" ]; then
 fi
 
 printf "\n---------------------\n| Testing ApacheBench stress with reload.\n--------------------\n"
-TIME="UNSET"
 RELOADCOUNT=0
-
-while [ $RELOADCOUNT -lt 5 ]; do
-	sleep 1	
+RELOADPASS=1
+TOTALTIME=0
+while [ $RELOADCOUNT -lt $RELOADSTODO ]; do
+	sleep 3
+	printf "Doing nginx reload number $((RELOADCOUNT + 1)) of ${RELOADSTODO}\n"
 	./nginx -s reload
 	RELOADCOUNT=$(($RELOADCOUNT + 1))
-	printf "Doing nginx reload number ${RELOADCOUNT}\n"
-done &
-TIME=`../ApacheBench/ab -c 10 -n 200000 -q -U ../data/20000\ User\ Agents.csv localhost:8888/ | grep "(mean, across all concurrent requests)" | sed -r 's/.*_([0-9]*)\..*/\1/g' | grep -E -o '\<[0-9]{1,2}\.[0-9]{2,5}\>'`
-wait
-if [ $TIME ]; then
+	TIME=`../ApacheBench/ab -c 10 -i -n 5000 -q -U ../data/20000\ User\ Agents.csv localhost:8888/ | grep "(mean, across all concurrent requests)" | sed -r 's/.*_([0-9]*)\..*/\1/g' | grep -E -o '\<[0-9]{1,2}\.[0-9]{2,5}\>'`
+	if [ ! "$TIME" ]; then
+		break
+	fi
+	TOTALTIME=$(echo "$TOTALTIME + $TIME" | bc -l)
+done
+
+if [ "$TIME" ]; then
+	TOTALTIME=$( echo "$TOTALTIME / $RELOADSTODO" | bc -l)
 	if [ $(echo "$TIME < $LIMIT" | bc -l) -eq 1 ]; then
 		printf "${PASS}Stress test reload: $TIME ms per detection is within limit of $LIMIT.\n"
 	else
@@ -124,4 +126,4 @@ if [ $FAILED -gt '0' ]; then
 else
 	TESTCOLOUR=${GREEN}
 fi
-printf "${TESTCOLOUR}Finished tests with ${FAILED} failures.${NC}\n"
+printf "${TESTCOLOUR}Finished tests with ${FAILED} failure(s).${NC}\n"
