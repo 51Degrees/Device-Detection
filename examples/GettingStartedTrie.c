@@ -30,34 +30,34 @@ const char* fileName = argv[1];
 const char* properties = "IsMobile";
 </pre></p>
 <li>Instantiate the 51Degrees provider from the specified data file with
-the required properties, number of worksets in the pool and cache of the
-specific size.
+the required properties.
 <p><pre class="prettyprint lang-c">
 fiftyoneDegreesInitProviderWithPropertyString(
-fileName, &provider, properties, 4, 1000);
+fileName, &provider, properties);
 </pre></p>
-<li>Retrieve a workset from the pool and use it for a single match.
+<li>Create a new device offsets structure and use it for a single match.
 <p><pre class="prettyprint lang-c">
-fiftyoneDegreesWorkset *ws = NULL;
-ws = fiftyoneDegreesProviderWorksetGet(&provider);
+fiftyoneDegreesDeviceOffsets *offsets = NULL;
+offsets = fiftyoneDegreesCreateDeviceOffsets;
 </pre></p>
 <li>Match a single HTTP User-Agent string to retrieve the values
 associated with the User-Agent for the selected properties.
 <p><pre class="prettyprint lang-c">
-fiftyoneDegreesMatch(ws, userAgent);
+fiftyoneDegreesSetDeviceOffsets(&provider->dataSet, offsets, userAgent);
 </pre></p>
 <li>Extract the value of the IsMobile property.
 <p><pre class="prettyprint lang-c">
-requiredPropertyIndex =
-fiftyoneDegreesGetRequiredPropertyIndex(ws->dataSet,"IsMobile");
-fiftyoneDegreesSetValues(ws, requiredPropertyIndex);
-valueName = fiftyoneDegreesGetString(ws->dataSet, ws->values[0]->nameOffset);
-isMobile = &(valueName->firstByte);
-</pre></p>
-<li>Release the workset back into the pool of worksets to be reused in one
-of the next matches.
+requiredPropertyIndex = fiftyoneDegreesGetRequiredPropertyIndex(
+	dataSet,
+	"IsMobile");
+isMobile = fiftyoneDegreesGetValuePtrFromOffsets(
+	dataSet,
+	offsets,
+	requiredPropertyIndex);
+}</pre></p>
+<li>Free the offsets used for the match.
 <p><pre class="prettyprint lang-c">
-fiftyoneDegreesWorksetRelease(ws);
+fiftyoneDefreesFreeDeviceOffsets(offsets);
 </pre></p>
 <li>Finally release the memory taken by the provider.
 <p><pre class="prettyprint lang-c">
@@ -65,20 +65,11 @@ fiftyoneDegreesProviderFree(&provider);
 </pre></p>
 </ol>
 <p>
-This example assumes you have compiled with 51Degrees.c and city.c.
+This example assumes you have compiled with 51Degrees.c.
 This will happen automatically if you are compiling as part of the
 Visual Studio solution. Additionally, when running the program, the
 location of a 51Degrees data file must be passed as a command line
 argument if you wish to use Premium or Enterprise data files.
-</p>
-<p>
-The size of the worksets pool parameter should be set to the maximum
-(expected) number of concurrent detections to avoid delays related to
-waiting for free worksets. Workset pool is thread safe. Initially the
-number of created worksets in the pool is zero. When a workset is
-retrieved from the pool a new workset is created if no worksets are
-currently free and the number of worksets already created is less than
-the maximum size of the workset pool.
 </p>
 </tutorial>
 */
@@ -199,7 +190,8 @@ void run(fiftyoneDegreesDataSet* dataSet) {
 /**
 * Returns a string representation of the value associated with the IsMobile
 * property.
-* @param initialised workset of type fiftyoneDegreesWorkset
+* @param dataSet initialised data set.
+* @param offsets the offsets set by a match.
 * @returns a string representation of the value for IsMobile
 */
 const char* getIsMobile(fiftyoneDegreesDataSet* dataSet, fiftyoneDegreesDeviceOffsets *offsets) {

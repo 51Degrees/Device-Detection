@@ -1135,10 +1135,10 @@ EXTERNAL void (CALL_CONV *fiftyoneDegreesFree)(void *__ptr);
 * initialised.
 * @param poolSize the number of worksets the pool will contain.
 * @param cacheSize the size of the resultset cache.
-* @return int the total size in bytes that is needed to initilaise the
+* @return size_t the total size in bytes that is needed to initilaise the
 * provider with the given parameters.
 */
-EXTERNAL int fiftyoneDegreesGetProviderSizeWithPropertyString(
+EXTERNAL size_t fiftyoneDegreesGetProviderSizeWithPropertyString(
 	const char *fileName,
 	const char *properties,
 	int poolSize,
@@ -1155,10 +1155,10 @@ EXTERNAL int fiftyoneDegreesGetProviderSizeWithPropertyString(
 * @param propertyCount the number of properties in the properties array.
 * @param poolSize the number of worksets the pool will contain.
 * @param cacheSize the size of the resultset cache.
-* @return int the total size in bytes that is needed to initialise the
+* @return size_t the total size in bytes that is needed to initialise the
 * provider with the given parameters.
 */
-EXTERNAL int fiftyoneDegreesGetProviderSizeWithPropertyCount(
+EXTERNAL size_t fiftyoneDegreesGetProviderSizeWithPropertyCount(
 	const char *fileName,
 	int propertyCount,
 	int poolSize,
@@ -1170,10 +1170,10 @@ EXTERNAL int fiftyoneDegreesGetProviderSizeWithPropertyCount(
 * property name.
 * @param dataSet pointer to a fiftyoneDegreesDataSet.
 * @param propertyName the name of the property to find the value length for.
-* @returns int the maximum string length of the values associated with the
+* @returns size_t the maximum string length of the values associated with the
 * given property.
 */
-EXTERNAL int fiftyoneDegreesGetMaxValueLength(const fiftyoneDegreesDataSet *dataSet, char *propertyName);
+EXTERNAL size_t fiftyoneDegreesGetMaxValueLength(const fiftyoneDegreesDataSet *dataSet, char *propertyName);
 
 /**
  * OBSOLETE METHODS - RETAINED FOR BACKWARDS COMPAITABILITY
