@@ -1,6 +1,8 @@
 #!/bin/bash
 
+REQUESTS=100000
 LIMIT=0.500
+RELOADLIMIT=1000
 RELOADSTODO=5
 
 RED='\033[0;31m'
@@ -62,7 +64,7 @@ else
 fi
 
 printf "\n---------------------\n| Testing ApacheBench stress with no cache.\n--------------------\n"
-TIME=`../ApacheBench/ab -c 10 -i -n 5000 -q -U ../data/20000\ User\ Agents.csv localhost:8888/ | grep "(mean, across all concurrent requests)" | sed -r 's/.*_([0-9]*)\..*/\1/g' | grep -E -o '\<[0-9]{1,2}\.[0-9]{2,5}\>'`
+TIME=`../ApacheBench/ab -c 10 -i -n $REQUESTS -U ../data/20000\ User\ Agents.csv localhost:8888/ | grep "(mean, across all concurrent requests)" | sed -r 's/.*_([0-9]*)\..*/\1/g' | grep -E -o '\<[0-9]{1,2}\.[0-9]{2,5}\>'`
 if [ $TIME ]; then
 	if [ $(echo "$TIME < $LIMIT" | bc -l) -eq 1 ]; then
 		printf "${PASS}Stress test: $TIME ms per detection is within limit of $LIMIT.\n"
@@ -70,6 +72,7 @@ if [ $TIME ]; then
 		printf "${FAIL}Stress test: $TIME ms per detection excedes limit of $LIMIT.\n"
 		FAILED=$(($FAILED + 1))
 	fi
+BASETIME=$TIME
 else
 	printf "${FAIL}Stress test reload: ApacheBench could not complete tests.\n"
 	FAILED=$(($FAILED + 1))
@@ -78,7 +81,7 @@ fi
 
 if [ -e "build/pattern.conf" ]; then
 	printf "\n---------------------\n| Testing ApacheBench stress with cache.\n--------------------\n"
-	TIME=`../ApacheBench/ab -c 10 -i -n 5000 -q -U ../data/20000\ User\ Agents.csv localhost:8888/ | grep "(mean, across all concurrent requests)" | sed -r 's/.*_([0-9]*)\..*/\1/g' | grep -E -o '\<[0-9]{1,2}\.[0-9]{2,5}\>'`
+	TIME=`../ApacheBench/ab -c 10 -i -n $REQUESTS -U ../data/20000\ User\ Agents.csv localhost:8888/ | grep "(mean, across all concurrent requests)" | sed -r 's/.*_([0-9]*)\..*/\1/g' | grep -E -o '\<[0-9]{1,2}\.[0-9]{2,5}\>'`
 	if [ $TIME ]; then
 		if [ $(echo "$TIME < $LIMIT" | bc -l) -eq 1 ]; then
 			printf "${PASS}Stress test: $TIME ms per detection is within limit of $LIMIT.\n"
@@ -97,11 +100,10 @@ RELOADCOUNT=0
 RELOADPASS=1
 TOTALTIME=0
 while [ $RELOADCOUNT -lt $RELOADSTODO ]; do
-	sleep 3
-	printf "Doing nginx reload number $((RELOADCOUNT + 1)) of ${RELOADSTODO}\n"
+	printf "Doing nginx reload test $((RELOADCOUNT + 1)) of ${RELOADSTODO}\n"
 	./nginx -s reload
 	RELOADCOUNT=$(($RELOADCOUNT + 1))
-	TIME=`../ApacheBench/ab -c 10 -i -n 5000 -q -U ../data/20000\ User\ Agents.csv localhost:8888/ | grep "(mean, across all concurrent requests)" | sed -r 's/.*_([0-9]*)\..*/\1/g' | grep -E -o '\<[0-9]{1,2}\.[0-9]{2,5}\>'`
+	TIME=`../ApacheBench/ab -c 10 -i -n $(echo "$REQUESTS / $RELOADSTODO" | bc -l) -q -U ../data/20000\ User\ Agents.csv localhost:8888/ | grep "(mean, across all concurrent requests)" | sed -r 's/.*_([0-9]*)\..*/\1/g' | grep -E -o '\<[0-9]{1,2}\.[0-9]{2,5}\>'`
 	if [ ! "$TIME" ]; then
 		break
 	fi
@@ -109,11 +111,18 @@ while [ $RELOADCOUNT -lt $RELOADSTODO ]; do
 done
 
 if [ "$TIME" ]; then
-	TOTALTIME=$( echo "$TOTALTIME / $RELOADSTODO" | bc -l)
-	if [ $(echo "$TIME < $LIMIT" | bc -l) -eq 1 ]; then
-		printf "${PASS}Stress test reload: $TIME ms per detection is within limit of $LIMIT.\n"
+	TOTALTIME=0$(echo "scale=3; $TOTALTIME / $RELOADSTODO" | bc -l)
+	RELOADTIME=$(echo "scale=0; ( $TOTALTIME - $BASETIME ) * $REQUESTS" | bc -l)
+	if [ $(echo "$RELOADTIME < $RELOADLIMIT" | bc -l) -eq 1 ]; then
+		printf "${PASS}Reload penalty: $RELOADTIME ms penalty on reloading is within limit of $RELOADLIMIT.\n"
 	else
-		printf "${FAIL}Stress test reload: $TIME ms per detection excedes limit of $LIMIT.\n"
+		printf "${FAIL}Reload penalty: $RELOADTIME ms penalty on reloading excedes limit of $RELOADLIMIT.\n"
+		FAILED=$(($FAILED + 1))
+	fi
+	if [ $(echo "$TOTALTIME < $LIMIT" | bc -l) -eq 1 ]; then
+		printf "${PASS}Stress test reload: $TOTALTIME ms per detection is within limit of $LIMIT.\n"
+	else
+		printf "${FAIL}Stress test reload: $TOTALTIME ms per detection excedes limit of $LIMIT.\n"
 		FAILED=$(($FAILED + 1))
 	fi
 else
