@@ -61,7 +61,9 @@ install-trie: build-trie
 	--prefix=$(CURDIR)/build \
 	--with-ld-opt="-lm" \
 	--add-module=$(CURDIR)/51Degrees_module \
-	--with-cc-opt=" -DFIFTYONEDEGREES_TRIE"
+	--with-cc-opt=" -DFIFTYONEDEGREES_TRIE" \
+	--sbin-path=$(CURDIR) \
+	--conf-path="trie.conf"
 	cd $(CURDIR)/vendor/nginx && make install
 	cp example/trie.conf build/
 
@@ -87,3 +89,13 @@ get-source:
 	mv nginx-1.10.0.tar.gz vendor/
 	mv -f -u nginx-1.10.0/* vendor/nginx
 	rmdir nginx-1.10.0
+
+test-pattern:
+	if [ ! -e "nginx" ] || [ ! -e "build/pattern.conf" ]; then $(MAKE) install-pattern; fi
+	cp example/test_pattern.conf build/pattern.conf
+	./test.sh
+
+test-trie:
+	if [ ! -e "nginx" ] || [ ! -e "build/trie.conf" ]; then $(MAKE) install-trie; fi
+	cp example/test_trie.conf build/trie.conf
+	./test.sh
