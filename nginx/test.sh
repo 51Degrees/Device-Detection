@@ -68,10 +68,11 @@ while [ "$(pidof nginx)" ]; do
 	killall nginx
 	SLEEPCOUNT=$(($SLEEPCOUNT + 1))	
 	if [ $SLEEPCOUNT -gt 5 ]; then
-printf "\n--------------------\n| Restoring previous config file.\n--------------------\n"
-		printf "Failed to stop currently running nginx process\n"
+		printf "\n--------------------\n| Restoring previous config file.\n--------------------\n"
 		rm build/nginx.conf
 		mv build/nginx.conf.bkp build/nginx.conf
+		printf "Removed test config \"build/nginx.conf\" and restored \"build/nginx.conf.bkp\".\n"
+		printf "Failed to stop currently running nginx process\n"
 		exit
 	fi
 	sleep 2
@@ -98,8 +99,7 @@ fi
 printf "\n---------------------\n| Testing mobile/non-mobile User-Agents.\n--------------------\n"
 
 CORRECTHEADER=`curl -A "$DESKTOPUA" -I localhost:8888 | grep -c "$FALSE"`
-if [ $CORRECTHEADER -gt '0' ];
-then
+if [ $CORRECTHEADER -gt '0' ]; then
 	printf "${PASS}Desktop User-Agent matched correctly\n"
 else
 	printf "${FAIL}Desktop User-Agent matched incorrectly\n"
