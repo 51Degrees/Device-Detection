@@ -1,19 +1,23 @@
 #!/bin/bash
 
+## Set test constants. ##
 REQUESTS=100000
 LIMIT=0.150
 RELOADLIMIT=1000
 RELOADSTODO=5
+FAILED=0
 
-PATTERN=`2>&1 ./nginx -V | grep -c "FIFTYONEDEGREES_PATTERN"`
-TRIE=`2>&1 ./nginx -V | grep -c "FIFTYONEDEGREES_TRIE"`
-
+## Set text macros. ##
 RED='\033[0;31m'
 GREEN='\033[0;32m'
 NC='\033[0m'
 PASS="${GREEN}[Pass]${NC}\t"
 FAIL="${RED}[Fail]${NC}\t"
-FAILED=0
+
+## Check if nginx is compiled with pattern or trie. ##
+PATTERN=`2>&1 ./nginx -V | grep -c "FIFTYONEDEGREES_PATTERN"`
+TRIE=`2>&1 ./nginx -V | grep -c "FIFTYONEDEGREES_TRIE"`
+
 if [ ! -e "nginx" ]; then
 	printf "nginx is not installed in this directory. Install with \"make install-pattern\" or \"make install-trie\"\n"
 	exit
@@ -24,6 +28,7 @@ if [ $PATTERN == '0' ] && [ $TRIE == '0' ]; then
 	exit
 fi
 
+## Write the config file to use for testing. ##
 printf "\n---------------------\n| Writing config file.\n--------------------\n"
 
 mv build/nginx.conf build/nginx.conf.bkp
@@ -58,11 +63,14 @@ echo "}" >> build/nginx.conf
 
 printf "Written test config to \"build/nginx.conf\" and stored current one in \"build/nginx.conf.bkp\".\n"
 
+## Make a directory for core dumps if one does not already exist. ##
 if [ ! -e "coredumps" ]; then
 	mkdir coredumps
 fi
 
+## Kill any current Nginx processes and start a new one. ##
 printf "\n---------------------\n| Starting new nginx process.\n---------------------\n"
+
 SLEEPCOUNT='0'
 while [ "$(pidof nginx)" ]; do
 	killall nginx
@@ -78,15 +86,10 @@ while [ "$(pidof nginx)" ]; do
 	sleep 2
 done
 ./nginx
-
 printf "Nginx process started.\n"
 
+## Test the server gives a valid response. ##
 printf "\n---------------------\n| Testing Server response.\n--------------------\n"
-
-DESKTOPUA="Mozilla/5.0 (Windows NT 6.3; WOW64; rv:41.0) Gecko/20100101 Firefox/41.0"
-MOBILEUA="Mozilla/5.0 (iPhone; CPU iPhone OS 7_1 like Mac OS X) AppleWebKit/537.51.2 (KHTML, like Gecko) 'Version/7.0 Mobile/11D167 Safari/9537.53"
-TRUE='test: True'
-FALSE='test: False'
 
 RESPONSE=`curl -I localhost:8888 | grep -c "200 OK"`
 if [ $RESPONSE -gt '0' ]; then
@@ -96,25 +99,33 @@ else
 	FAILED=$(($FAILED + 1))
 fi
 
+## Test the server matches desktop and mobile User-Agents correctly. ##
 printf "\n---------------------\n| Testing mobile/non-mobile User-Agents.\n--------------------\n"
+
+DESKTOPUA="Mozilla/5.0 (Windows NT 6.3; WOW64; rv:41.0) Gecko/20100101 Firefox/41.0"
+MOBILEUA="Mozilla/5.0 (iPhone; CPU iPhone OS 7_1 like Mac OS X) AppleWebKit/537.51.2 (KHTML, like Gecko) 'Version/7.0 Mobile/11D167 Safari/9537.53"
+TRUE='test: True'
+FALSE='test: False'
 
 CORRECTHEADER=`curl -A "$DESKTOPUA" -I localhost:8888 | grep -c "$FALSE"`
 if [ $CORRECTHEADER -gt '0' ]; then
-	printf "${PASS}Desktop User-Agent matched correctly\n"
+	printf "${PASS}Desktop User-Agent: matched correctly\n"
 else
-	printf "${FAIL}Desktop User-Agent matched incorrectly\n"
+	printf "${FAIL}Desktop User-Agent: matched incorrectly\n"
 	FAILED=$(($FAILED + 1))
 fi
 
 CORRECTHEADER=`curl -A "$MOBILEUA" -I localhost:8888/ | grep -c "$TRUE"`
 if [ $CORRECTHEADER -gt '0' ]; then
-	printf "${PASS}Mobile User-Agent matched correctly\n"
+	printf "${PASS}Mobile User-Agent: matched correctly\n"
 else
-	printf "${FAIL}Mobile User-Agent matched incorrectly\n"
+	printf "${FAIL}Mobile User-Agent: matched incorrectly\n"
 	FAILED=$(($FAILED + 1))
 fi
 
+## Test the time per response when none of the User-Agents are stored in the cache. ##
 printf "\n---------------------\n| Testing ApacheBench stress with no cache.\n--------------------\n"
+
 TIME=`../ApacheBench/ab -c 10 -i -n $REQUESTS -U ../data/20000\ User\ Agents.csv localhost:8888/ | grep "(mean, across all concurrent requests)" | sed -r 's/.*_([0-9]*)\..*/\1/g' | grep -E -o '\<[0-9]{1,2}\.[0-9]{2,5}\>'`
 if [ $TIME ]; then
 	if [ $(echo "$TIME < $LIMIT" | bc -l) -eq 1 ]; then
@@ -129,9 +140,10 @@ else
 	FAILED=$(($FAILED + 1))
 fi
 
-
+## For pattern only, test the time per response when all of the User-Agents are stored in the cache. ##
 if [ $PATTERN == '1' ]; then
 	printf "\n---------------------\n| Testing ApacheBench stress with cache.\n--------------------\n"
+
 	TIME=`../ApacheBench/ab -c 10 -i -n $REQUESTS -U ../data/20000\ User\ Agents.csv localhost:8888/ | grep "(mean, across all concurrent requests)" | sed -r 's/.*_([0-9]*)\..*/\1/g' | grep -E -o '\<[0-9]{1,2}\.[0-9]{2,5}\>'`
 	if [ $TIME ]; then
 		if [ $(echo "$TIME < $LIMIT" | bc -l) -eq 1 ]; then
@@ -147,7 +159,11 @@ if [ $PATTERN == '1' ]; then
 	fi
 fi
 
+## Test the time per response when periodically reloading Nginx, and the time ##
+## penalty involved with reloading (this should be around 0 unless there is a ##
+## problem). ##
 printf "\n---------------------\n| Testing ApacheBench stress with reload.\n--------------------\n"
+
 RELOADCOUNT=0
 RELOADPASS=1
 TOTALTIME=0
@@ -182,7 +198,9 @@ else
 	FAILED=$(($FAILED + 1))
 fi
 
+## Revert to the config file which was backed up earlier. ##
 printf "\n--------------------\n| Restoring previous config file.\n--------------------\n"
+
 rm build/nginx.conf
 mv build/nginx.conf.bkp build/nginx.conf
 
@@ -193,7 +211,11 @@ if [ $FAILED -gt '0' ]; then
 else
 	TESTCOLOUR=${GREEN}
 fi
-printf "${TESTCOLOUR}Finished tests with ${FAILED} failure(s).${NC}\n"
+
+## Print the outcome of the tests. ##
+printf "\n${TESTCOLOUR}Finished tests with ${FAILED} failure(s).${NC}\n"
+
+## If there were no core dumps, remove the directory. ##
 if [ ! "$(find coredumps -type f)" ]; then
 	rmdir coredumps
 fi
