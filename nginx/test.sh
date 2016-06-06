@@ -19,12 +19,12 @@ PATTERN=`2>&1 ./nginx -V | grep -c "FIFTYONEDEGREES_PATTERN"`
 TRIE=`2>&1 ./nginx -V | grep -c "FIFTYONEDEGREES_TRIE"`
 
 if [ ! -e "nginx" ]; then
-	printf "nginx is not installed in this directory. Install with \"make install-pattern\" or \"make install-trie\"\n"
+	printf "nginx is not installed in this directory. Install with \"make install pattern\" or \"make install trie\"\n"
 	exit
 fi
 
 if [ $PATTERN == '0' ] && [ $TRIE == '0' ]; then
-	printf "Error: nginx executable was not compiled with either pattern or trie 51Degrees modules. Install with \"make install-pattern\" of \"make install-trie\".\n"
+	printf "Error: nginx executable was not compiled with either pattern or trie 51Degrees modules. Install with \"make install pattern\" of \"make install trie\".\n"
 	exit
 fi
 
