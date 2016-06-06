@@ -1,9 +1,12 @@
 #!/bin/bash
 
 REQUESTS=100000
-LIMIT=0.500
+LIMIT=0.150
 RELOADLIMIT=1000
 RELOADSTODO=5
+
+PATTERN=`2>&1 ./nginx -V | grep -c "FIFTYONEDEGREES_PATTERN"`
+TRIE=`2>&1 ./nginx -V | grep -c "FIFTYONEDEGREES_TRIE"`
 
 RED='\033[0;31m'
 GREEN='\033[0;32m'
@@ -16,18 +19,66 @@ if [ ! -e "nginx" ]; then
 	exit
 fi
 
+if [ $PATTERN == '0' ] && [ $TRIE == '0' ]; then
+	printf "Error: nginx executable was not compiled with either pattern or trie 51Degrees modules. Install with \"make install-pattern\" of \"make install-trie\".\n"
+	exit
+fi
+
+printf "\n---------------------\n| Writing config file.\n--------------------\n"
+
+mv build/nginx.conf build/nginx.conf.bkp
+echo "worker_processes 4;" >> build/nginx.conf
+echo "worker_rlimit_core  500M;" >> build/nginx.conf
+echo "working_directory   coredumps/;" >> build/nginx.conf
+echo "" >> build/nginx.conf
+echo "events {" >> build/nginx.conf
+echo "	worker_connections 1024;" >> build/nginx.conf
+echo "}" >> build/nginx.conf
+echo "" >> build/nginx.conf
+echo "http {" >> build/nginx.conf
+echo "	## set the datafile ##" >> build/nginx.conf
+if [ $PATTERN == '1' ]; then
+	echo "	51D_filePath ../data/51Degrees-LiteV3.2.dat;" >> build/nginx.conf
+	echo "" >> build/nginx.conf
+	echo "	## enable cacheing ##" >> build/nginx.conf
+	echo "	51D_cache ${REQUESTS};" >> build/nginx.conf
+else
+	echo "	51D_filePath ../data/51Degrees-LiteV3.2.trie;" >> build/nginx.conf
+fi
+echo "" >> build/nginx.conf
+echo "	server {" >> build/nginx.conf
+echo "		listen 8888;" >> build/nginx.conf
+echo "" >> build/nginx.conf
+echo "		location / {" >> build/nginx.conf
+echo "		51D_match_all x-mobile IsMobile;" >> build/nginx.conf
+echo "		add_header test \$http_x_mobile;" >> build/nginx.conf
+echo "		}" >> build/nginx.conf
+echo "	}" >> build/nginx.conf
+echo "}" >> build/nginx.conf
+
+printf "Written test config to \"build/nginx.conf\" and stored current one in \"build/nginx.conf.bkp\".\n"
+
+if [ ! -e "coredumps" ]; then
+	mkdir coredumps
+fi
+
 printf "\n---------------------\n| Starting new nginx process.\n---------------------\n"
 SLEEPCOUNT='0'
 while [ "$(pidof nginx)" ]; do
 	killall nginx
 	SLEEPCOUNT=$(($SLEEPCOUNT + 1))	
 	if [ $SLEEPCOUNT -gt 5 ]; then
+printf "\n--------------------\n| Restoring previous config file.\n--------------------\n"
 		printf "Failed to stop currently running nginx process\n"
+		rm build/nginx.conf
+		mv build/nginx.conf.bkp build/nginx.conf
 		exit
 	fi
-	sleep 1
+	sleep 2
 done
 ./nginx
+
+printf "Nginx process started.\n"
 
 printf "\n---------------------\n| Testing Server response.\n--------------------\n"
 
@@ -72,14 +123,14 @@ if [ $TIME ]; then
 		printf "${FAIL}Stress test: $TIME ms per detection excedes limit of $LIMIT.\n"
 		FAILED=$(($FAILED + 1))
 	fi
-BASETIME=$TIME
+	BASETIME=$TIME
 else
 	printf "${FAIL}Stress test reload: ApacheBench could not complete tests.\n"
 	FAILED=$(($FAILED + 1))
 fi
 
 
-if [ -e "build/pattern.conf" ]; then
+if [ $PATTERN == '1' ]; then
 	printf "\n---------------------\n| Testing ApacheBench stress with cache.\n--------------------\n"
 	TIME=`../ApacheBench/ab -c 10 -i -n $REQUESTS -U ../data/20000\ User\ Agents.csv localhost:8888/ | grep "(mean, across all concurrent requests)" | sed -r 's/.*_([0-9]*)\..*/\1/g' | grep -E -o '\<[0-9]{1,2}\.[0-9]{2,5}\>'`
 	if [ $TIME ]; then
@@ -89,6 +140,7 @@ if [ -e "build/pattern.conf" ]; then
 			printf "${FAIL}Stress test: $TIME ms per detection excedes limit of $LIMIT.\n"
 		FAILED=$(($FAILED + 1))
 		fi
+	BASETIME=$TIME
 	else
 		printf "${FAIL}Stress test reload: ApacheBench could not complete tests.\n"
 		FAILED=$(($FAILED + 1))
@@ -130,9 +182,18 @@ else
 	FAILED=$(($FAILED + 1))
 fi
 
+printf "\n--------------------\n| Restoring previous config file.\n--------------------\n"
+rm build/nginx.conf
+mv build/nginx.conf.bkp build/nginx.conf
+
+printf "Removed test config \"build/nginx.conf\" and restored \"build/nginx.conf.bkp\".\n"
+
 if [ $FAILED -gt '0' ]; then
 	TESTCOLOUR=${RED}
 else
 	TESTCOLOUR=${GREEN}
 fi
 printf "${TESTCOLOUR}Finished tests with ${FAILED} failure(s).${NC}\n"
+if [ ! "$(find coredumps -type f)" ]; then
+	rmdir coredumps
+fi

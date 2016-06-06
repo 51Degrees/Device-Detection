@@ -36,9 +36,9 @@ install-pattern: build-pattern
 	--add-module=$(CURDIR)/51Degrees_module \
 	--with-cc-opt="-DFIFTYONEDEGREES_PATTERN -DFIFTYONEDEGREES_NO_THREADING -Wno-ignored-qualifiers -Wno-unused-result -Wno-unused-function" \
 	--sbin-path=$(CURDIR) \
-	--conf-path="pattern.conf"
+	--conf-path="nginx.conf"
 	cd $(CURDIR)/vendor/nginx && make install
-	cp example/pattern.conf build/
+	cp example/pattern.conf build/nginx.conf
 
 install-pattern-debug: build-pattern
 	if [ ! -d "vendor/nginx" ]; then $(MAKE) get-source; fi
@@ -50,9 +50,9 @@ install-pattern-debug: build-pattern
 	--add-module=$(CURDIR)/51Degrees_module \
 	--with-cc-opt="-DFIFTYONEDEGREES_PATTERN -DFIFTYONEDEGREES_NO_THREADING -Wno-ignored-qualifiers -Wno-unused-result -O0 -g" \
 	--sbin-path=$(CURDIR) \
-	--conf-path="pattern.conf"
+	--conf-path="nginx.conf"
 	cd $(CURDIR)/vendor/nginx && make install
-	cp example/pattern.conf build/
+	cp example/pattern.conf build/nginx.conf
 
 install-trie: build-trie
 	if [ ! -d "vendor/nginx" ]; then $(MAKE) get-source; fi
@@ -63,9 +63,9 @@ install-trie: build-trie
 	--add-module=$(CURDIR)/51Degrees_module \
 	--with-cc-opt=" -DFIFTYONEDEGREES_TRIE" \
 	--sbin-path=$(CURDIR) \
-	--conf-path="trie.conf"
+	--conf-path="nginx.conf"
 	cd $(CURDIR)/vendor/nginx && make install
-	cp example/trie.conf build/
+	cp example/trie.conf build/nginx.conf
 
 install-trie-debug: build-trie
 	if [ ! -d "vendor/nginx" ]; then $(MAKE) get-source; fi
@@ -77,9 +77,9 @@ install-trie-debug: build-trie
 	--add-module=$(CURDIR)/51Degrees_module \
 	--with-cc-opt=" -DFIFTYONEDEGREES_TRIE -O0 -g" \
 	--sbin-path=$(CURDIR) \
-	--conf-path="trie.conf"
+	--conf-path="nginx.conf"
 	cd $(CURDIR)/vendor/nginx && make install
-	cp example/trie.conf build/
+	cp example/trie.conf build/nginx.conf
 
 get-source:
 	if [ -d "vendor" ]; then rm -r vendor; fi
@@ -90,12 +90,6 @@ get-source:
 	mv -f -u nginx-1.10.0/* vendor/nginx
 	rmdir nginx-1.10.0
 
-test-pattern:
-	if [ ! -e "nginx" ] || [ ! -e "build/pattern.conf" ]; then $(MAKE) install-pattern; fi
-	cp example/test_pattern.conf build/pattern.conf
-	./test.sh
 
-test-trie:
-	if [ ! -e "nginx" ] || [ ! -e "build/trie.conf" ]; then $(MAKE) install-trie; fi
-	cp example/test_trie.conf build/trie.conf
+test:
 	./test.sh
