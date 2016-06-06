@@ -23,7 +23,13 @@ http {
 
 Use this project to detect device properties using HTTP browser User-Agents as input using the patented pattern detection method.
 
-**Pattern:**  Searches for device signatures in a User-Agent returning metrics about the validity of the results. Does NOT use regular expressions. Uses an external data file which can easily be updated.
+Two detection methods are supported.
+
+**Pattern:**  Searches for device signatures in a useragent returning metrics about the validity of the results. Does NOT use regular expressions.
+
+**Trie:** A large binary Trie (pronounced Try) populated with User-Agent signatures. Very fast.
+
+All methods use an external data file which can easilly be updated.
 
 ## Dependencies
 - gcc
@@ -44,14 +50,22 @@ This is the quickest and easiest way to build Nginx in a local directory to try 
 ```
 $ git clone https://github.com/51Degrees/Device-Detection.git
 $ cd Device-Detection/nginx
-$ make install-pattern
+$ make install pattern
 ```
 or 
 ```
-$ make install-trie
+$ make install trie
 ```
 To install to the local directory.
+
+Then run the included tests with:
+```
+$ make test
+```
+which will all pass if the local installation was successful.
+
 #### For an existing Nginx deployment
+##### Static Module
 To compile the module into an existing Nginx deployment,
 first clone 51Degrees/Device-Detection repository with
 ```
@@ -63,17 +77,17 @@ $ cd Device-Detection/nginx
 ```
 and put together the module directory with either
 ```
-$ make build-pattern
+$ make build pattern
 ```
 or
 ```
-$ make build-trie
+$ make build trie
 ```
 Copy the module to the Nginx modules directory with
 ```
 $ cp -r 51Degrees_module [MODULE DIRECTORY]
 ```
-In the Nginx source directory, run ``./configure`` as normal and add the module, the linker option ``-lm`` and the definitions ``FIFTYONEDEGREES_PATTERN`` and ``FIFTYONEDEGREES_NO_THREADING`` (or ``FIFTYONEDEGREES_TRIE`` fot the Trie module). A basic example is,
+In the Nginx source directory, run ``./configure`` as normal and add the module, the linker option ``-lm`` and the definitions ``FIFTYONEDEGREES_PATTERN`` and ``FIFTYONEDEGREES_NO_THREADING`` (or ``FIFTYONEDEGREES_TRIE`` for the Trie module). A basic example is,
 ```
 $ ./configure \
     --prefix=[NGINX INSTALL DIRECTORY] \
@@ -81,12 +95,21 @@ $ ./configure \
     --with-cc-opt="-DFIFTYONEDEGREES_PATTERN -DFIFTYONEDEGREES_NO_THREADING"
     --add-module=[MODULE DIRECTORY]/51Degrees_module
 ```
+NOTE: with Pattern the arguments ``-Wno-ignored-qualifiers -Wno-unused-result`` are also needed.
+
 Then install with
 ```
 $ sudo make install
 ```
+##### Dynamic Module
+51Degrees can also be build as a dynamic module for Nginx version 1.9 or later.
+
+To build the module as ngx_http_51D_module.so, follow the same instructions as the static build above, but replace the ``add_module`` argument with ``add_dynamic_module``. By default, the module will be built to Nginx's module directory. The only extra thing which will need to be added to the config file is the line
+```
+load_module modules/ngx_http_51D_module.so;
+```
+NOTE: Nginx insists on the same compile arguments being used in both the Nginx executable and the dynamic module.
 </installation>
-When you're done installing, check it's set up correctly by recreating the output in the Usage section below.
 ## Configure
 <configuration>
 Before start matching user agents, you may wish to configure the solution to use a different database for example.
@@ -129,7 +152,7 @@ location / {
 To get properties from all the relevant HTTP headers from the device use:
 ```
 location / {
-  51D_all x-all-headers-match IsMobile,DeviceType,BrowserName;
+  51D_all x-all-headers-match HardwareName,BrowserName,PlatformName;
   ...
 }
 ```
@@ -138,7 +161,7 @@ When using the ``proxy_pass`` directive in a location block where a match direct
 ##### Fast-CGI
 Using ``include fastcgi_params;`` makes these additional headers available via the ``$_SERVER`` variable.
 ### Example
-If installing to a local directory using ``make install-pattern``/``make install-trie``, the executable is set up to use the example configuration and can be easily tested. Take ``example.php``, which just prints all request headers, and place it in apache's web directory (probably /var/www/html).
+If installing to a local directory using ``make install pattern``/``make install trie``, the executable is set up to use the example configuration and can be easily tested. Take ``example.php``, which just prints all request headers, and place it in apache's web directory (probably /var/www/html).
 Now, once Nginx is started by running
 ```
 $ ./nginx
@@ -149,4 +172,19 @@ x-device: Desktop,Firefox,Ubuntu
 x-tablet: False
 x-smartphone: False
 x-metrics: 15364-18118-57666-18092,Exact,0,1538 
+```
+Alternatively, the line ``add_header x-mobile http_x_mobile`` is included in the example config. This adds the header to the response headers, so can be viewed in the response without a PHP server set up. In a Linux environment, these can be viewed with the command:
+```
+$ curl -I localhost:8888
+```
+which will give the following response:
+```
+HTTP/1.1 200 OK
+Server: nginx/1.10.0
+...
+x-device: Desktop,Unknown,Unknown
+x-mobile: False
+x-tablet: False
+x-smartphone: False
+x-metrics: 15364-17017-17470-18092,Exact,0,625
 ```
