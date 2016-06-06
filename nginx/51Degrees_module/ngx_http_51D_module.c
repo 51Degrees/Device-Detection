@@ -266,7 +266,7 @@ ngx_http_51D_post_conf(ngx_conf_t *cf)
 		cacheName.data = (u_char*) "51Degrees Shared Cache";
 		cacheName.len = ngx_strlen(cacheName.data);
 		cacheSize = ngx_http_51D_get_cache_shm_size(ngx_http_51D_cacheSize);
-		ngx_http_51D_shm_cache = ngx_shared_memory_add(cf, &cacheName, cacheSize, &ngx_http_51D_module + tagOffset);
+		ngx_http_51D_shm_cache = ngx_shared_memory_add(cf, &cacheName, cacheSize, &ngx_http_51D_module);
 		ngx_http_51D_shm_cache->init = ngx_http_51D_init_shm_cache;
 	}
 #endif // FIFTYONEDEGREES_PATTERN
@@ -744,11 +744,28 @@ ngx_http_51D_cache_node_t *ngx_http_51D_create_node(ngx_str_t *name, uint32_t ha
  */
 void ngx_http_51D_cache_insert(ngx_http_51D_cache_node_t *node)
 {
+	int i;
 	ngx_slab_pool_t *shpool = (ngx_slab_pool_t*)ngx_http_51D_shm_cache->shm.addr;
 	ngx_http_51D_cache_t *cache = (ngx_http_51D_cache_t*)ngx_http_51D_shm_cache->data;
 
 	// Lock the cache
 	ngx_shmtx_lock(&shpool->mutex);
+
+	// Check if an identical node has been inserted by another process while this
+	// node was created.
+	if (ngx_http_51D_lookup_node(cache->tree, &node->name, node->node.key) != NULL) {
+		// Free everything in the node.
+		for (i = 0; i < (int)node->headersCount; i++) {
+			ngx_slab_free_locked(shpool, node->header[i]->lowerName);
+			ngx_slab_free_locked(shpool, node->header[i]->name.data);
+			ngx_slab_free_locked(shpool, node->header[i]->value.data);
+			ngx_slab_free_locked(shpool, node->header[i]);
+		}
+		ngx_slab_free_locked(shpool, node->name.data);
+		ngx_slab_free_locked(shpool, node->header);
+		ngx_slab_free_locked(shpool, node);
+		return;
+	}
 
 	if (cache->lru->prev->node != NULL) {
 		// The cache is full, so purge the last 3 from the lru.
@@ -1356,6 +1373,7 @@ ngx_http_51D_handler(ngx_http_request_t *r)
 		}
 	}
 #endif // FIFTYONEDEGREES_PATTERN
+
 	// Tell nginx to continue with other module handlers.
 	return NGX_DECLINED;
 }
