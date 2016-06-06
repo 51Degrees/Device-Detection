@@ -639,6 +639,13 @@ void ngx_http_51D_cache_clean(ngx_http_51D_cache_t *cache, int count)
 	while (i < count) {
 		// Remove the node from the rbtree.
 		node = lruItem->node;
+
+		// Make sure the node is not NULL.
+		if (node == NULL) {
+			lruItem = lruItem->prev;
+			i++;
+			continue;
+		}
 		ngx_rbtree_delete(cache->tree, (ngx_rbtree_node_t*)node);
 
 		// Free everything in the node.
