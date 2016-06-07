@@ -1,10 +1,14 @@
 #!/bin/bash
 
 ## Set test constants. ##
+if [ "$REQUESTS" == "" ]; then
 REQUESTS=100000
+fi
 LIMIT=0.150
 RELOADLIMIT=1000
+if [ "$RELOADSTODO" == "" ]; then
 RELOADSTODO=5
+fi
 FAILED=0
 
 ## Set text macros. ##
