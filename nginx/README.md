@@ -144,7 +144,7 @@ Within a location block is where the match settings are set. They can be set in 
 To get properties using the device's User-Agent use:
 ```
 location / {
-  51D_single x-user-agent-match IsMobile,DeviceType,BrowserName;
+  51D_single x-user-agent-match HardwareName,DeviceType,BrowserName;
   ...
 }
 ```
@@ -160,6 +160,20 @@ location / {
 When using the ``proxy_pass`` directive in a location block where a match directive is used, the properties selected are passed as additional HTTP headers with the name specified in the first argument of ``51D_match_single``/``51D_match_all``.
 ##### Fast-CGI
 Using ``include fastcgi_params;`` makes these additional headers available via the ``$_SERVER`` variable.
+
+##### Output Format
+The value of the header is set to a comma separated list of values, these are in the same order the properties are listed in the config file. So setting a header with the line:
+```
+51D_all x-device HardwareName,BrowserName,PlatformName;
+```
+will give a header named ``x-device`` with a value like ``Desktop,Firefox,Ubuntu``. Alternatively, headers can be set individually like:
+```
+51D_all x-hardware HardwareName;
+51D_all x-browser BrowserName;
+51D_all x-platform PlatformName;
+```
+giving three seperate headers.
+
 ### Example
 If installing to a local directory using ``make install pattern``/``make install trie``, the executable is set up to use the example configuration and can be easily tested. Take ``example.php``, which just prints all request headers, and place it in apache's web directory (probably /var/www/html).
 Now, once Nginx is started by running
