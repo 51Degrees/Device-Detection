@@ -3,7 +3,6 @@
 #include <ngx_core.h>
 #include <ngx_http.h>
 #include <ngx_rbtree.h>
-#include <ngx_resolver.h>
 #include <ngx_string.h>
 #ifdef FIFTYONEDEGREES_PATTERN
 #include "src/pattern/51Degrees.h"
@@ -1300,6 +1299,7 @@ ngx_http_51D_handler(ngx_http_request_t *r)
 		return NGX_DECLINED;
 	}
 #ifdef FIFTYONEDEGREES_PATTERN
+	hash = 0;	
 	if (ngx_http_51D_cacheSize > 0) {
 		// Get the hash for this location and request headers.
 		hash = ngx_hash(fdlcf->key, ngx_hash_key(r->headers_in.user_agent[0].value.data, r->headers_in.user_agent[0].value.len));
