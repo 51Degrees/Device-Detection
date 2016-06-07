@@ -40,7 +40,7 @@ build: clean
 	mkdir -p 51Degrees_module/src/$(API)
 	if [ -d "51Degrees_module/src/pattern" ]; then \
 		mkdir -p 51Degrees_module/src/cityhash && \
-		cp -r ../src/cityhash/ 51Degrees_module/src/ && \
+		cp -r ../src/cityhash/ 51Degrees_module/src/cityhash/ && \
 		cp ../src/threading.* 51Degrees_module/src/ ; \
 	fi
 	exit
