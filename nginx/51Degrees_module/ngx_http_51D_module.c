@@ -1260,7 +1260,7 @@ ngx_http_51D_handler(ngx_http_request_t *r)
 
 	ngx_http_51D_main_conf_t *fdmcf;
 	ngx_http_51D_loc_conf_t *fdlcf;
-	ngx_uint_t matchIndex, multi;
+	ngx_uint_t matchIndex, multi, haveMatch;
 #ifdef FIFTYONEDEGREES_TRIE
 	fiftyoneDegreesDeviceOffsets *offsets;
 #endif // FIFTYONEDEGREES_TRIE
@@ -1311,6 +1311,10 @@ ngx_http_51D_handler(ngx_http_request_t *r)
 		}
 #endif // FIFTYONEDEGREES_PATTERN
 		for (multi = 0; multi < 2; multi++) {
+			haveMatch = 0;
+#ifdef FIFTYONEDEGREES_TRIE
+			offsets = fiftyoneDegreesCreateDeviceOffsets(fdmcf->dataSet);
+#endif // FIFTYONEDEGREES_TRIE
 			for (matchIndex=0;matchIndex<fdlcf->headerCount;matchIndex++)
 			{
 				if (fdlcf->header[matchIndex]->multi == multi) {
@@ -1324,11 +1328,16 @@ ngx_http_51D_handler(ngx_http_request_t *r)
 					valueString[0] = '\0';
 					// Get a match.
 #ifdef FIFTYONEDEGREES_PATTERN
-					ngx_http_51D_get_match(fdmcf->ws, r, fdlcf->header[matchIndex]->multi);
+					if (haveMatch == 0) {
+						ngx_http_51D_get_match(fdmcf->ws, r, fdlcf->header[matchIndex]->multi);
+						haveMatch = 1;
+					}
 #endif // FIFTYONEDEGREES_PATTERN
 #ifdef FIFTYONEDEGREES_TRIE
-					offsets = fiftyoneDegreesCreateDeviceOffsets(fdmcf->dataSet);
-					ngx_http_51D_get_match(fdmcf->dataSet, r, fdlcf->header[matchIndex]->multi, offsets);
+					if (haveMatch == 0) {
+						ngx_http_51D_get_match(fdmcf->dataSet, r, fdlcf->header[matchIndex]->multi, offsets);
+						haveMatch = 1;
+					}
 #endif // FIFTYONEDEGREES_TRIE
 					// For each property, set the value in values_string_array.
 					int property_index;
@@ -1354,12 +1363,13 @@ ngx_http_51D_handler(ngx_http_request_t *r)
 						ngx_http_51D_add_header_to_node(node, h[matchIndex]);
 					}
 #endif // FIFTYONEDEGREES_PATTERN
+				}
+			}
 #ifdef FIFTYONEDEGREES_TRIE
 		// Free the match offsets.
 		fiftyoneDegreesFreeDeviceOffsets(offsets);
 #endif // FIFTYONEDEGREES_TRIE
-				}
-			}
+
 		}
 #ifdef FIFTYONEDEGREES_PATTERN
 		// Add the match to the cache.
