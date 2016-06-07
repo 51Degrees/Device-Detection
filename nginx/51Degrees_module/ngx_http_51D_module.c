@@ -519,7 +519,16 @@ static ngx_int_t ngx_http_51D_init_shm_cache(ngx_shm_zone_t *shm_zone, void *dat
 	while (i < ngx_http_51D_cacheSize) {
 		current->next = (ngx_http_51D_cache_lru_list_t*)ngx_slab_alloc(shpool, sizeof(ngx_http_51D_cache_lru_list_t));
 		if (current->next == NULL) {
-			//todo free all previous allocs.
+			current = current->prev;
+			while ( current != cache->lru ) {
+				ngx_slab_free(shpool, current->next);
+				current = current->prev;
+			}
+			ngx_slab_free(shpool, cache->lru);
+			ngx_slab_free(shpool, sentinel);
+			ngx_slab_free(shpool, tree);
+			ngx_slab_free(shpool, cache);
+			return NGX_ERROR;
 		}
 		current->next->prev = current;
 		current->next->node = NULL;
@@ -855,7 +864,6 @@ ngx_http_51D_set_max_string(const fiftyoneDegreesDataSet *dataSet, ngx_http_51D_
 			length++;
 		}
 		tmpLength = fiftyoneDegreesGetMaxValueLength(dataSet, (char*)header->property[i]->data);
-//todo trie check
 		if ((int)tmpLength > 0) {
 			length += (int)tmpLength;
 		}
@@ -1033,7 +1041,6 @@ ngx_module_t ngx_http_51D_module = {
  * See:
  * https://www.nginx.com/resources/wiki/start/topics/examples/headers_management
  */
- //todo replace with hash search.
 static ngx_table_elt_t *
 search_headers_in(ngx_http_request_t *r, u_char *name, size_t len) {
     ngx_list_part_t            *part;;
