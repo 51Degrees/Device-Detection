@@ -130,7 +130,7 @@ fi
 ## Test the time per response when none of the User-Agents are stored in the cache. ##
 printf "\n---------------------\n| Testing ApacheBench stress with no cache.\n--------------------\n"
 
-TIME=`../ApacheBench/ab -c 10 -i -n $REQUESTS -U ../data/20000\ User\ Agents.csv localhost:8888/ | grep "(mean, across all concurrent requests)" | sed -r 's/.*_([0-9]*)\..*/\1/g' | grep -E -o '\<[0-9]{1,2}\.[0-9]{2,5}\>'`
+TIME=`../ApacheBench/ab -c 10 -i -n $REQUESTS -U ../data/20000\ User\ Agents.csv localhost:8888/ | grep "(mean, across all concurrent requests)" | egrep -o '\<[0-9]{1,2}\.[0-9]{2,5}\>'`
 if [ $TIME ]; then
 	if [ $(echo "$TIME < $LIMIT" | bc -l) -eq 1 ]; then
 		printf "${PASS}Stress test: $TIME ms per detection is within limit of $LIMIT.\n"
@@ -148,7 +148,7 @@ fi
 if [ $PATTERN == '1' ]; then
 	printf "\n---------------------\n| Testing ApacheBench stress with cache.\n--------------------\n"
 
-	TIME=`../ApacheBench/ab -c 10 -i -n $REQUESTS -U ../data/20000\ User\ Agents.csv localhost:8888/ | grep "(mean, across all concurrent requests)" | sed -r 's/.*_([0-9]*)\..*/\1/g' | grep -E -o '\<[0-9]{1,2}\.[0-9]{2,5}\>'`
+	TIME=`../ApacheBench/ab -c 10 -i -n $REQUESTS -U ../data/20000\ User\ Agents.csv localhost:8888/ | grep "(mean, across all concurrent requests)" | egrep -o '\<[0-9]{1,2}\.[0-9]{2,5}\>'`
 	if [ $TIME ]; then
 		if [ $(echo "$TIME < $LIMIT" | bc -l) -eq 1 ]; then
 			printf "${PASS}Stress test: $TIME ms per detection is within limit of $LIMIT.\n"
@@ -175,7 +175,7 @@ while [ $RELOADCOUNT -lt $RELOADSTODO ]; do
 	printf "Doing nginx reload test $((RELOADCOUNT + 1)) of ${RELOADSTODO}\n"
 	./nginx -s reload
 	RELOADCOUNT=$(($RELOADCOUNT + 1))
-	TIME=`../ApacheBench/ab -c 10 -i -n $(echo "$REQUESTS / $RELOADSTODO" | bc -l) -q -U ../data/20000\ User\ Agents.csv localhost:8888/ | grep "(mean, across all concurrent requests)" | sed -r 's/.*_([0-9]*)\..*/\1/g' | grep -E -o '\<[0-9]{1,2}\.[0-9]{2,5}\>'`
+	TIME=`../ApacheBench/ab -c 10 -i -n $(echo "$REQUESTS / $RELOADSTODO" | bc -l) -q -U ../data/20000\ User\ Agents.csv localhost:8888/ | grep "mean, across all concurrent requests" | egrep -o '\<[0-9]{1,2}\.[0-9]{2,5}\>'`
 	if [ ! "$TIME" ]; then
 		break
 	fi
