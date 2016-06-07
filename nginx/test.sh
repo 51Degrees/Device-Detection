@@ -203,9 +203,9 @@ printf "\n--------------------\n| Restoring previous config file.\n-------------
 
 rm build/nginx.conf
 mv build/nginx.conf.bkp build/nginx.conf
-
 printf "Removed test config \"build/nginx.conf\" and restored \"build/nginx.conf.bkp\".\n"
-
+killall nginx
+printf "Killed running nginx processes.\n"
 if [ $FAILED -gt '0' ]; then
 	TESTCOLOUR=${RED}
 else
