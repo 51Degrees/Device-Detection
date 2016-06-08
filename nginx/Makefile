@@ -55,7 +55,7 @@ get-source:
 	curl -L -O "http://nginx.org/download/nginx-1.10.0.tar.gz"
 	tar xzf "nginx-1.10.0.tar.gz"
 	mv nginx-1.10.0.tar.gz vendor/
-	mv -f -u nginx-1.10.0/* vendor/nginx
+	mv -f nginx-1.10.0/* vendor/nginx
 	rmdir nginx-1.10.0
 
 install: build
