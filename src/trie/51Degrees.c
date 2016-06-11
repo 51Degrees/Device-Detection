@@ -412,6 +412,8 @@ fiftyoneDegreesDataSetInitStatus readFile(char* fileName, fiftyoneDegreesDataSet
 	// freed correctly in debug mode.
 	dataSet->prefixedUpperHttpHeaders = NULL;
 
+	// Set the full data set pointer to NULL to indicate that when this
+	// new data set is release the memory shouldn't be freed by 51Degrees.
 	dataSet->memoryToFree = NULL;
 
 	return status;
@@ -719,7 +721,7 @@ static fiftyoneDegreesDataSetInitStatus readDataSetFromMemoryLocation(
 	const byte *lastByte = (byte*)source + length;
 
 	// Copy the dataset version.
-	if (memcpy((void*)(&dataSet->version), current, sizeof(uint16_t)) != dataSet) {
+	if (memcpy((void*)(&dataSet->version), current, sizeof(uint16_t)) != &dataSet->version) {
 		return DATA_SET_INIT_STATUS_CORRUPT_DATA;
 	}
 	status = advancePointer(&current, lastByte, sizeof(uint16_t));
@@ -731,7 +733,7 @@ static fiftyoneDegreesDataSetInitStatus readDataSetFromMemoryLocation(
 	}
 
 	// Read the copyright.
-	if (memcpy((void*)(&dataSet->copyrightSize), current, sizeof(uint32_t)) != dataSet) {
+	if (memcpy((void*)(&dataSet->copyrightSize), current, sizeof(uint32_t)) != &dataSet->copyrightSize) {
 		return DATA_SET_INIT_STATUS_CORRUPT_DATA;
 	}
 	status = advancePointer(&current, lastByte, sizeof(int32_t));
@@ -741,7 +743,7 @@ static fiftyoneDegreesDataSetInitStatus readDataSetFromMemoryLocation(
 	if (status != DATA_SET_INIT_STATUS_SUCCESS) return status;
 
 	// Read the strings.
-	if (memcpy((void*)(&dataSet->stringsSize), current, sizeof(uint32_t)) != dataSet) {
+	if (memcpy((void*)(&dataSet->stringsSize), current, sizeof(uint32_t)) != &dataSet->stringsSize) {
 		return DATA_SET_INIT_STATUS_CORRUPT_DATA;
 	}
 	status = advancePointer(&current, lastByte, sizeof(int32_t));
@@ -751,7 +753,7 @@ static fiftyoneDegreesDataSetInitStatus readDataSetFromMemoryLocation(
 	if (status != DATA_SET_INIT_STATUS_SUCCESS) return status;
 
 	// Read the HTTP headers.
-	if (memcpy((void*)(&dataSet->httpHeadersSize), current, sizeof(uint32_t)) != dataSet) {
+	if (memcpy((void*)(&dataSet->httpHeadersSize), current, sizeof(uint32_t)) != &dataSet->httpHeadersSize) {
 		return DATA_SET_INIT_STATUS_CORRUPT_DATA;
 	}
 	status = advancePointer(&current, lastByte, sizeof(int32_t));
@@ -761,7 +763,7 @@ static fiftyoneDegreesDataSetInitStatus readDataSetFromMemoryLocation(
 	if (status != DATA_SET_INIT_STATUS_SUCCESS) return status;
 
 	// Read the properties.
-	if (memcpy((void*)(&dataSet->propertiesSize), current, sizeof(uint32_t)) != dataSet) {
+	if (memcpy((void*)(&dataSet->propertiesSize), current, sizeof(uint32_t)) != &dataSet->propertiesSize) {
 		return DATA_SET_INIT_STATUS_CORRUPT_DATA;
 	}
 	status = advancePointer(&current, lastByte, sizeof(int32_t));
@@ -772,7 +774,7 @@ static fiftyoneDegreesDataSetInitStatus readDataSetFromMemoryLocation(
 	dataSet->propertiesCount = dataSet->propertiesSize / sizeof(fiftyoneDegreesProperty);
 
 	// Read the devices.
-	if (memcpy((void*)(&dataSet->devicesSize), current, sizeof(uint32_t)) != dataSet) {
+	if (memcpy((void*)(&dataSet->devicesSize), current, sizeof(uint32_t)) != &dataSet->devicesSize) {
 		return DATA_SET_INIT_STATUS_CORRUPT_DATA;
 	}
 	status = advancePointer(&current, lastByte, sizeof(int32_t));
@@ -782,7 +784,7 @@ static fiftyoneDegreesDataSetInitStatus readDataSetFromMemoryLocation(
 	if (status != DATA_SET_INIT_STATUS_SUCCESS) return status;
 
 	// Read the lookup list.
-	if (memcpy((void*)(&dataSet->lookupListSize), current, sizeof(uint32_t)) != dataSet) {
+	if (memcpy((void*)(&dataSet->lookupListSize), current, sizeof(uint32_t)) != &dataSet->lookupListSize) {
 		return DATA_SET_INIT_STATUS_CORRUPT_DATA;
 	}
 	status = advancePointer(&current, lastByte, sizeof(int32_t));
@@ -792,7 +794,7 @@ static fiftyoneDegreesDataSetInitStatus readDataSetFromMemoryLocation(
 	if (status != DATA_SET_INIT_STATUS_SUCCESS) return status;
 
 	// Read the nodes.
-	if (memcpy((void*)(&dataSet->nodesSize), current, sizeof(uint64_t)) != dataSet) {
+	if (memcpy((void*)(&dataSet->nodesSize), current, sizeof(uint64_t)) != &dataSet->nodesSize) {
 		return DATA_SET_INIT_STATUS_CORRUPT_DATA;
 	}
 	status = advancePointer(&current, lastByte, sizeof(int64_t));
