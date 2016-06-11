@@ -32,7 +32,7 @@ add_executable(ReloadFromFile
         ${THREADING}
         ${PATTERN})
 
-target_link_libraries(ReloadFromFile dmalloc pthread m)
+target_link_libraries(ReloadFromFile dmallocth pthread m)
 target_compile_options(ReloadFromFile PRIVATE -D_DEBUG)
 
 add_executable(ReloadFromFileTrie
@@ -40,7 +40,7 @@ add_executable(ReloadFromFileTrie
         ${TRIE}
         ${THREADING})
 
-target_link_libraries(ReloadFromFileTrie dmalloc pthread)
+target_link_libraries(ReloadFromFileTrie dmallocth pthread)
 target_compile_options(ReloadFromFileTrie PRIVATE -D_DEBUG)
 
 add_executable(ReloadFromMemory
