@@ -718,8 +718,7 @@ static fiftyoneDegreesDataSetInitStatus readDataSetFromMemoryLocation(
 	byte *current = (byte*)source;
 	const byte *lastByte = (byte*)source + length;
 
-	// Copy the bytes that form the header from the start of the file to the
-	// data set pointer provided.
+	// Copy the dataset version.
 	if (memcpy((void*)(&dataSet->version), current, sizeof(uint16_t)) != dataSet) {
 		return DATA_SET_INIT_STATUS_CORRUPT_DATA;
 	}
@@ -732,7 +731,9 @@ static fiftyoneDegreesDataSetInitStatus readDataSetFromMemoryLocation(
 	}
 
 	// Read the copyright.
-	dataSet->copyrightSize = (int32_t)current;
+	if (memcpy((void*)(&dataSet->copyrightSize), current, sizeof(uint32_t)) != dataSet) {
+		return DATA_SET_INIT_STATUS_CORRUPT_DATA;
+	}
 	status = advancePointer(&current, lastByte, sizeof(int32_t));
 	if (status != DATA_SET_INIT_STATUS_SUCCESS) return status;
 	dataSet->copyright = (char*)current;
@@ -740,7 +741,9 @@ static fiftyoneDegreesDataSetInitStatus readDataSetFromMemoryLocation(
 	if (status != DATA_SET_INIT_STATUS_SUCCESS) return status;
 
 	// Read the strings.
-	dataSet->stringsSize = (int32_t)current;
+	if (memcpy((void*)(&dataSet->stringsSize), current, sizeof(uint32_t)) != dataSet) {
+		return DATA_SET_INIT_STATUS_CORRUPT_DATA;
+	}
 	status = advancePointer(&current, lastByte, sizeof(int32_t));
 	if (status != DATA_SET_INIT_STATUS_SUCCESS) return status;
 	dataSet->strings = (char*)current;
@@ -748,7 +751,9 @@ static fiftyoneDegreesDataSetInitStatus readDataSetFromMemoryLocation(
 	if (status != DATA_SET_INIT_STATUS_SUCCESS) return status;
 
 	// Read the HTTP headers.
-	dataSet->httpHeadersSize = (int32_t)current;
+	if (memcpy((void*)(&dataSet->httpHeadersSize), current, sizeof(uint32_t)) != dataSet) {
+		return DATA_SET_INIT_STATUS_CORRUPT_DATA;
+	}
 	status = advancePointer(&current, lastByte, sizeof(int32_t));
 	if (status != DATA_SET_INIT_STATUS_SUCCESS) return status;
 	dataSet->httpHeaders = (int32_t*)current;
@@ -756,7 +761,9 @@ static fiftyoneDegreesDataSetInitStatus readDataSetFromMemoryLocation(
 	if (status != DATA_SET_INIT_STATUS_SUCCESS) return status;
 
 	// Read the properties.
-	dataSet->propertiesSize = (int32_t)current;
+	if (memcpy((void*)(&dataSet->propertiesSize), current, sizeof(uint32_t)) != dataSet) {
+		return DATA_SET_INIT_STATUS_CORRUPT_DATA;
+	}
 	status = advancePointer(&current, lastByte, sizeof(int32_t));
 	if (status != DATA_SET_INIT_STATUS_SUCCESS) return status;
 	dataSet->properties = (fiftyoneDegreesProperty*)current;
@@ -765,7 +772,9 @@ static fiftyoneDegreesDataSetInitStatus readDataSetFromMemoryLocation(
 	dataSet->propertiesCount = dataSet->propertiesSize / sizeof(fiftyoneDegreesProperty);
 
 	// Read the devices.
-	dataSet->devicesSize = (int32_t)current;
+	if (memcpy((void*)(&dataSet->devicesSize), current, sizeof(uint32_t)) != dataSet) {
+		return DATA_SET_INIT_STATUS_CORRUPT_DATA;
+	}
 	status = advancePointer(&current, lastByte, sizeof(int32_t));
 	if (status != DATA_SET_INIT_STATUS_SUCCESS) return status;
 	dataSet->devices = (int32_t*)current;
@@ -773,7 +782,9 @@ static fiftyoneDegreesDataSetInitStatus readDataSetFromMemoryLocation(
 	if (status != DATA_SET_INIT_STATUS_SUCCESS) return status;
 
 	// Read the lookup list.
-	dataSet->lookupListSize = (int32_t)current;
+	if (memcpy((void*)(&dataSet->lookupListSize), current, sizeof(uint32_t)) != dataSet) {
+		return DATA_SET_INIT_STATUS_CORRUPT_DATA;
+	}
 	status = advancePointer(&current, lastByte, sizeof(int32_t));
 	if (status != DATA_SET_INIT_STATUS_SUCCESS) return status;
 	dataSet->lookupList = (FIFTYONEDEGREES_LOOKUP_HEADER*)current;
@@ -781,8 +792,10 @@ static fiftyoneDegreesDataSetInitStatus readDataSetFromMemoryLocation(
 	if (status != DATA_SET_INIT_STATUS_SUCCESS) return status;
 
 	// Read the nodes.
-	dataSet->nodesSize = (int32_t)current;
-	status = advancePointer(&current, lastByte, sizeof(int32_t));
+	if (memcpy((void*)(&dataSet->nodesSize), current, sizeof(uint64_t)) != dataSet) {
+		return DATA_SET_INIT_STATUS_CORRUPT_DATA;
+	}
+	status = advancePointer(&current, lastByte, sizeof(int64_t));
 	if (status != DATA_SET_INIT_STATUS_SUCCESS) return status;
 	dataSet->rootNode = (int32_t*)current;
 	status = advancePointer(&current, lastByte, (long)dataSet->nodesSize);
@@ -796,7 +809,7 @@ static fiftyoneDegreesDataSetInitStatus readDataSetFromMemoryLocation(
 
 	return DATA_SET_INIT_STATUS_SUCCESS;
 }
-
+#
 /**
 * \cond
 * Initialises the provided dataset with data from the provided pointer to the

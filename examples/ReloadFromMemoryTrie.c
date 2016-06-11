@@ -56,7 +56,7 @@ are deallocated or if you wish to retain the allocated memory for later
 use. To instruct the API to free the continuous memory space set the
 memoryToFree pointer equal to the pointer of the file in memory.
 <p><pre class="prettyprint lang-c">
-fiftyoneDegreesDataSet *ds = (fiftyoneDegreesDataSet*)provider->activePool->dataSet;
+fiftyoneDegreesDataSet *ds = (fiftyoneDegreesDataSet*)provider->active->dataSet;
 ds->memoryToFree = (void*)fileInMemory;
 </pre></p>
 </p>
@@ -76,26 +76,6 @@ can be achieved by simply comparing the number of properties before and
 after the reload as the number can not go up but it can go down.
 </p>
 <p>
-Example also demonstrates the concept of a workset pool. A workset pool is
-a thread safe collection of workset structures. To retrieve a workset use:
-<p><pre class="prettyprint lang-c">
-fiftyoneDegreesWorkset *ws = NULL;
-ws = fiftyoneDegreesProviderWorksetGet(provider);
-</pre></p>
-And to return a workset to the pool use:
-<p><pre class="prettyprint lang-c">
-fiftyoneDegreesWorksetRelease(ws);
-</pre></p>
-</p>
-<p>
-The benefit of the workset pool is that it eliminates the overheads of
-creating a new workset structure for every new request, instead an existing
-workset is used. Be sure to initialize the workset of the appropriate size
-as an insufficiently small workset could cause delay with processing the
-device detection requests as the thread is waiting for a the next available
-workset in the pool.
-</p>
-<p>
 The reload functionality works both with the single threaded as well as the
 multi threaded modes. To try the reload functionality in single threaded
 mode build with FIFTYONEDEGREES_NO_THREADING defined. Or build without
@@ -111,6 +91,8 @@ https://51degrees.com/Support/Documentation/APIs/C-V32/Benchmarks
 </tutorial>
 */
 
+#include <stdio.h>
+#include <stdlib.h>
 #ifdef _DEBUG
 #ifdef _MSC_VER
 #define _CRTDBG_MAP_ALLOC
@@ -122,16 +104,12 @@ https://51degrees.com/Support/Documentation/APIs/C-V32/Benchmarks
 #endif
 
 // Snippet Start
-#include <stdio.h>
-#include <stdlib.h>
-#include <string.h>
 #ifdef _MSC_VER
 #include <Windows.h>
 #else
 #include <unistd.h>
 #endif
 #include "../src/trie/51Degrees.h"
-#include "../src/threading.h"
 
 // Global settings and properties.
 static fiftyoneDegreesProvider *provider;

@@ -32,7 +32,7 @@ add_executable(ReloadFromFile
         ${THREADING}
         ${PATTERN})
 
-target_link_libraries(ReloadFromFile dmalloc)
+target_link_libraries(ReloadFromFile dmalloc pthread m)
 target_compile_options(ReloadFromFile PRIVATE -D_DEBUG)
 
 add_executable(ReloadFromFileTrie
@@ -40,7 +40,7 @@ add_executable(ReloadFromFileTrie
         ${TRIE}
         ${THREADING})
 
-target_link_libraries(ReloadFromFileTrie dmalloc)
+target_link_libraries(ReloadFromFileTrie dmalloc pthread)
 target_compile_options(ReloadFromFileTrie PRIVATE -D_DEBUG)
 
 add_executable(ReloadFromMemory
@@ -48,7 +48,7 @@ add_executable(ReloadFromMemory
         ${PATTERN}
         ${THREADING})
 
-target_link_libraries(ReloadFromMemory dmalloc)
+target_link_libraries(ReloadFromMemory dmallocth pthread m)
 target_compile_options(ReloadFromMemory PRIVATE -D_DEBUG)
 
 add_executable(ReloadFromMemoryTrie
@@ -56,7 +56,7 @@ add_executable(ReloadFromMemoryTrie
         ${TRIE}
         ${THREADING})
 
-target_link_libraries(ReloadFromMemoryTrie dmalloc)
+target_link_libraries(ReloadFromMemoryTrie dmallocth pthread)
 target_compile_options(ReloadFromMemoryTrie PRIVATE -D_DEBUG)
 
 add_executable(GettingStarted
@@ -64,7 +64,7 @@ add_executable(GettingStarted
         ${PATTERN}
         ${THREADING})
 
-target_link_libraries(GettingStarted dmalloc)
+target_link_libraries(GettingStarted dmalloc m)
 target_compile_options(GettingStarted PRIVATE -D_DEBUG)
 
 add_executable(GettingStartedTrie
@@ -80,7 +80,7 @@ add_executable(MatchForDeviceId
         ${PATTERN}
         ${THREADING})
 
-target_link_libraries(MatchForDeviceId dmalloc)
+target_link_libraries(MatchForDeviceId dmalloc m)
 target_compile_options(MatchForDeviceId PRIVATE -D_DEBUG)
 
 add_executable(MatchMetrics
@@ -88,7 +88,7 @@ add_executable(MatchMetrics
         ${PATTERN}
         ${THREADING})
 
-target_link_libraries(MatchMetrics dmalloc)
+target_link_libraries(MatchMetrics dmalloc m)
 target_compile_options(MatchMetrics PRIVATE -D_DEBUG)
 
 add_executable(OfflineProcessing
@@ -96,7 +96,7 @@ add_executable(OfflineProcessing
         ${PATTERN}
         ${THREADING})
 
-target_link_libraries(OfflineProcessing dmalloc)
+target_link_libraries(OfflineProcessing dmalloc m)
 target_compile_options(OfflineProcessing PRIVATE -D_DEBUG)
 
 add_executable(FindProfiles
@@ -104,7 +104,7 @@ add_executable(FindProfiles
         ${PATTERN}
         ${THREADING})
 
-target_link_libraries(FindProfiles dmalloc)
+target_link_libraries(FindProfiles dmalloc m)
 target_compile_options(FindProfiles PRIVATE -D_DEBUG)
 
 add_executable(StronglyTyped
@@ -112,7 +112,7 @@ add_executable(StronglyTyped
         ${PATTERN}
         ${THREADING})
 
-target_link_libraries(StronglyTyped dmalloc)
+target_link_libraries(StronglyTyped dmalloc m)
 target_compile_options(StronglyTyped PRIVATE -D_DEBUG)
 
 add_executable(PerfPat
@@ -120,16 +120,22 @@ add_executable(PerfPat
         ${THREADING}
         ${PATTERN}
         )
+target_link_libraries(PerfPat m pthread)
+
 add_executable(ProcPat
         src/pattern/ProcPat.c
         ${THREADING}
         ${PATTERN}
         )
+target_link_libraries(ProcPat m)
+
 add_executable(PerfTrie
         src/trie/PerfTrie.c
         ${THREADING}
         ${TRIE}
         )
+target_link_libraries(PerfTrie pthread)
+
 add_executable(ProcTrie
         src/trie/ProcTrie.c
         ${THREADING}

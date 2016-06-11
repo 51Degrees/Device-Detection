@@ -86,7 +86,6 @@ argument if you wish to use Premium or Enterprise data files.
 
 // Snippet Start
 #include <stdio.h>
-#include <string.h>
 #include "../src/trie/51Degrees.h"
 
 // Global settings and properties.
