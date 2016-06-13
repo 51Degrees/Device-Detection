@@ -24,12 +24,12 @@
 					<Add before='if [ -d &quot;51Degrees_module/src&quot; ]; then cp -rf 51Degrees_module/src/* ../src; fi' />
 				</ExtraCommands>
 				<MakeCommands>
-					<Build command="$make -f $makefile install-$target" />
+					<Build command="$make -f $makefile install pattern" />
 					<CompileFile command="" />
 					<Clean command="" />
 					<DistClean command="$make -f $makefile distclean$target" />
 					<AskRebuildNeeded command="" />
-					<SilentBuild command="$make -f $makefile install-$target &gt; $(CMD_NULL)" />
+					<SilentBuild command="$make -f $makefile install pattern &gt; $(CMD_NULL)" />
 				</MakeCommands>
 			</Target>
 			<Target title="trie">
@@ -40,12 +40,12 @@
 					<Add before='if [ -d &quot;51Degrees_module/src&quot; ]; then cp -rf 51Degrees_module/src/* ../src; fi' />
 				</ExtraCommands>
 				<MakeCommands>
-					<Build command="$make -f $makefile install-$target" />
+					<Build command="$make -f $makefile install trie" />
 					<CompileFile command="" />
 					<Clean command="" />
 					<DistClean command="$make -f $makefile distclean$target" />
 					<AskRebuildNeeded command="" />
-					<SilentBuild command="$make -f $makefile install-$target &gt; $(CMD_NULL)" />
+					<SilentBuild command="$make -f $makefile install trie &gt; $(CMD_NULL)" />
 				</MakeCommands>
 			</Target>
 			<Target title="pattern-debug">
@@ -54,14 +54,15 @@
 				<Option compiler="gcc" />
 				<ExtraCommands>
 					<Add before='if [ -d &quot;51Degrees_module/src&quot; ]; then cp -rf 51Degrees_module/src/* ../src; fi' />
+					<Add before='CFLAGS=&quot;-O0&quot;' />
 				</ExtraCommands>
 				<MakeCommands>
-					<Build command="$make -f $makefile install-$target" />
+					<Build command="$make -f $makefile install pattern" />
 					<CompileFile command="" />
 					<Clean command="" />
 					<DistClean command="$make -f $makefile distclean$target" />
 					<AskRebuildNeeded command="" />
-					<SilentBuild command="$make -f $makefile install-$target &gt; $(CMD_NULL)" />
+					<SilentBuild command="$make -f $makefile install pattern &gt; $(CMD_NULL)" />
 				</MakeCommands>
 			</Target>
 			<Target title="trie-debug">
@@ -70,14 +71,15 @@
 				<Option compiler="gcc" />
 				<ExtraCommands>
 					<Add before='if [ -d &quot;51Degrees_module/src&quot; ]; then cp -rf 51Degrees_module/src/* ../src; fi' />
+					<Add before='CFLAGS=&quot;-O0&quot;' />
 				</ExtraCommands>
 				<MakeCommands>
-					<Build command="$make -f $makefile install-$target" />
+					<Build command="$make -f $makefile install trie" />
 					<CompileFile command="" />
 					<Clean command="" />
 					<DistClean command="$make -f $makefile distclean$target" />
 					<AskRebuildNeeded command="" />
-					<SilentBuild command="$make -f $makefile install-$target &gt; $(CMD_NULL)" />
+					<SilentBuild command="$make -f $makefile install trie &gt; $(CMD_NULL)" />
 				</MakeCommands>
 			</Target>
 		</Build>

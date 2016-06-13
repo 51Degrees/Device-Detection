@@ -71,6 +71,12 @@ https://51degrees.com/Support/Documentation/APIs/C-V32/Benchmarks
 </tutorial>
 */
 
+#ifdef _MSC_VER
+#include <Windows.h>
+#else
+#include <unistd.h>
+#endif
+
 #include <stdio.h>
 #include <stdlib.h>
 #ifdef _DEBUG
@@ -82,11 +88,6 @@ https://51degrees.com/Support/Documentation/APIs/C-V32/Benchmarks
 #endif
 #endif
 
-#ifdef _MSC_VER
-#include <Windows.h>
-#else
-#include <unistd.h>
-#endif
 // Snippet Start
 #include "../src/trie/51Degrees.h"
 

@@ -1927,7 +1927,7 @@ size_t fiftyoneDegreesGetMaxValueLength(const fiftyoneDegreesDataSet *dataSet, c
 	for (valueIndex = property->firstValueIndex; valueIndex <= property->lastValueIndex; valueIndex++) {
 		value = dataSet->values + valueIndex;
 		valueName = fiftyoneDegreesGetValueName(dataSet, value);
-		if ((int)strlen(valueName) > maxLength) {
+		if (strlen(valueName) > maxLength) {
 			maxLength = strlen(valueName);
 		}
 	}

@@ -1,3 +1,27 @@
+ifeq (build,$(firstword $(MAKECMDGOALS)))
+	API := $(word 2,$(words $(MAKECMDGOALS)),$(MAKECMDGOALS))
+	ARGNEEDED := 1
+endif
+ifeq (install,$(firstword $(MAKECMDGOALS)))
+	API := $(word 2,$(words $(MAKECMDGOALS)),$(MAKECMDGOALS))
+	ARGNEEDED := 1
+endif
+$(eval $(API):;@:)
+
+ifdef ARGNEEDED
+ifeq ($(API),pattern)
+	ARGS := "-DFIFTYONEDEGREES_PATTERN -DFIFTYONEDEGREES_NO_THREADING -Wno-ignored-qualifiers -Wno-unused-result"
+else ifeq ($(API),trie)
+	ARGS := "-DFIFTYONEDEGREES_TRIE"
+else
+$(error $(API) is not a valid argument, must be pattern or trie)
+endif
+endif
+
+.PHONY pattern:
+
+.PHONY trie:
+
 clean:
 	if [ -d "51Degrees_module/src" ]; then \
 		rm -rf 51Degrees_module/src; \
@@ -12,72 +36,18 @@ clean:
 		cd $(CURDIR)/vendor/nginx && make clean; \
 	fi
 
-build-pattern: clean
-	mkdir -p 51Degrees_module/src/pattern
-	mkdir -p 51Degrees_module/src/cityhash
-	cp module_conf/pattern_config 51Degrees_module/config
-	cp ../src/pattern/51Degrees.c 51Degrees_module/src/pattern/
-	cp ../src/pattern/51Degrees.h 51Degrees_module/src/pattern/
-	cp -r ../src/cityhash/ 51Degrees_module/src/
-	cp ../src/threading.* 51Degrees_module/src/
-
-build-trie: clean
-	mkdir -p 51Degrees_module/src/trie
-	cp module_conf/trie_config 51Degrees_module/config
-	cp ../src/trie/51Degrees.c 51Degrees_module/src/trie/
-	cp ../src/trie/51Degrees.h 51Degrees_module/src/trie/
-
-install-pattern: build-pattern
-	if [ ! -d "vendor/nginx" ]; then $(MAKE) get-source; fi
-	cd $(CURDIR)/vendor/nginx && \
-	./configure \
-	--prefix=$(CURDIR)/build \
-	--with-ld-opt="-lm" \
-	--add-module=$(CURDIR)/51Degrees_module \
-	--with-cc-opt="-DFIFTYONEDEGREES_PATTERN -DFIFTYONEDEGREES_NO_THREADING -Wno-ignored-qualifiers -Wno-unused-result -Wno-unused-function" \
-	--sbin-path=$(CURDIR) \
-	--conf-path="pattern.conf"
-	cd $(CURDIR)/vendor/nginx && make install
-	cp example/pattern.conf build/
-
-install-pattern-debug: build-pattern
-	if [ ! -d "vendor/nginx" ]; then $(MAKE) get-source; fi
-	cd $(CURDIR)/vendor/nginx && \
-	./configure \
-	--prefix=$(CURDIR)/build \
-	--with-ld-opt="-lm" \
-	--with-debug \
-	--add-module=$(CURDIR)/51Degrees_module \
-	--with-cc-opt="-DFIFTYONEDEGREES_PATTERN -DFIFTYONEDEGREES_NO_THREADING -Wno-ignored-qualifiers -Wno-unused-result -O0 -g" \
-	--sbin-path=$(CURDIR) \
-	--conf-path="pattern.conf"
-	cd $(CURDIR)/vendor/nginx && make install
-	cp example/pattern.conf build/
-
-install-trie: build-trie
-	if [ ! -d "vendor/nginx" ]; then $(MAKE) get-source; fi
-	cd $(CURDIR)/vendor/nginx && \
-	./configure \
-	--prefix=$(CURDIR)/build \
-	--with-ld-opt="-lm" \
-	--add-module=$(CURDIR)/51Degrees_module \
-	--with-cc-opt=" -DFIFTYONEDEGREES_TRIE"
-	cd $(CURDIR)/vendor/nginx && make install
-	cp example/trie.conf build/
-
-install-trie-debug: build-trie
-	if [ ! -d "vendor/nginx" ]; then $(MAKE) get-source; fi
-	cd $(CURDIR)/vendor/nginx && \
-	./configure \
-	--prefix=$(CURDIR)/build \
-	--with-ld-opt="-lm" \
-	--with-debug \
-	--add-module=$(CURDIR)/51Degrees_module \
-	--with-cc-opt=" -DFIFTYONEDEGREES_TRIE -O0 -g" \
-	--sbin-path=$(CURDIR) \
-	--conf-path="trie.conf"
-	cd $(CURDIR)/vendor/nginx && make install
-	cp example/trie.conf build/
+build: clean
+	mkdir -p 51Degrees_module/src/$(API)
+	if [ -d "51Degrees_module/src/pattern" ]; then \
+		mkdir -p 51Degrees_module/src/cityhash && \
+		cp ../src/cityhash/* 51Degrees_module/src/cityhash/ && \
+		cp ../src/threading.* 51Degrees_module/src/ ; \
+	fi
+	exit
+	cp module_conf/$(API)_config 51Degrees_module/config
+	cp ../src/$(API)/51Degrees.c 51Degrees_module/src/$(API)/
+	cp ../src/$(API)/51Degrees.h 51Degrees_module/src/$(API)/
+	
 
 get-source:
 	if [ -d "vendor" ]; then rm -r vendor; fi
@@ -85,5 +55,21 @@ get-source:
 	curl -L -O "http://nginx.org/download/nginx-1.10.0.tar.gz"
 	tar xzf "nginx-1.10.0.tar.gz"
 	mv nginx-1.10.0.tar.gz vendor/
-	mv -f -u nginx-1.10.0/* vendor/nginx
+	mv -f nginx-1.10.0/* vendor/nginx
 	rmdir nginx-1.10.0
+
+install: build
+	if [ ! -d "vendor/nginx" ]; then $(MAKE) get-source; fi
+	cd $(CURDIR)/vendor/nginx && \
+	./configure \
+	--prefix=$(CURDIR)/build \
+	--with-ld-opt="-lm" \
+	--add-module=$(CURDIR)/51Degrees_module \
+	--with-cc-opt=$(ARGS) \
+	--sbin-path=$(CURDIR) \
+	--conf-path="nginx.conf"
+	cd $(CURDIR)/vendor/nginx && make install
+	cp example/$(API).conf build/nginx.conf
+
+test:
+	./test.sh
