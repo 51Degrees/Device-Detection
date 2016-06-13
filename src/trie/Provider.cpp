@@ -192,11 +192,11 @@ void Provider::initComplete(
  */
 void Provider::initHttpHeaders() {
 	for (int httpHeaderIndex = 0;
-		httpHeaderIndex < fiftyoneDegreesGetHttpHeaderCount(provider.dataSet);
+		httpHeaderIndex < fiftyoneDegreesGetHttpHeaderCount(provider.activeDataSet->dataSet);
 		httpHeaderIndex++) {
         httpHeaders.insert(
             httpHeaders.end(),
-			string(GET_HTTP_HEADER_NAME(provider.dataSet, httpHeaderIndex)));
+			string(GET_HTTP_HEADER_NAME(provider.activeDataSet->dataSet, httpHeaderIndex)));
 	}
 }
 
@@ -209,9 +209,9 @@ void Provider::initHttpHeaders() {
 void Provider::initAvailableProperites() {
 	const char *propertyName;
     for (int requiredPropetyIndex = 0;
-        requiredPropetyIndex < fiftyoneDegreesGetRequiredPropertiesCount(provider.dataSet);
+        requiredPropetyIndex < fiftyoneDegreesGetRequiredPropertiesCount(provider.activeDataSet->dataSet);
         requiredPropetyIndex++) {
-        propertyName = fiftyoneDegreesGetRequiredPropertiesNames(provider.dataSet)[
+        propertyName = fiftyoneDegreesGetRequiredPropertiesNames(provider.activeDataSet->dataSet)[
         	requiredPropetyIndex];
         availableProperties.insert(
             availableProperties.end(),
@@ -249,7 +249,7 @@ string Provider::getDataSetName() {
  */
 string Provider::getDataSetFormat() {
 	stringstream stream;
-	stream << provider.dataSet->version;
+	stream << provider.activeDataSet->dataSet->version;
 	return stream.str();
 }
 
@@ -300,21 +300,21 @@ int Provider::getDataSetDeviceCombinations() {
 fiftyoneDegreesDeviceOffsets* Provider::matchForHttpHeaders(
 		const map<string, string> *headers) {
 	int headerIndex = 0;
-	fiftyoneDegreesDeviceOffsets* offsets = fiftyoneDegreesCreateDeviceOffsets(provider.dataSet);
-	const char *httpHeaderName = GET_HTTP_HEADER_NAME(provider.dataSet, headerIndex);
+	fiftyoneDegreesDeviceOffsets* offsets = fiftyoneDegreesCreateDeviceOffsets(provider.activeDataSet->dataSet);
+	const char *httpHeaderName = GET_HTTP_HEADER_NAME(provider.activeDataSet->dataSet, headerIndex);
 	while (httpHeaderName != NULL) {
 		map<string, string>::const_iterator httpHeaderValue =
 			headers->find(string(httpHeaderName));
 		if (httpHeaderValue != headers->end()) {
 			fiftyoneDegreesSetDeviceOffset(
-				provider.dataSet,
+				provider.activeDataSet->dataSet,
 				httpHeaderValue->second.c_str(),
 				headerIndex,
 				&offsets->firstOffset[offsets->size]);
             offsets->size++;
 		}
 		headerIndex++;
-		httpHeaderName = GET_HTTP_HEADER_NAME(provider.dataSet, headerIndex);
+		httpHeaderName = GET_HTTP_HEADER_NAME(provider.activeDataSet->dataSet, headerIndex);
 	}
 	return offsets;
 }
@@ -332,15 +332,15 @@ void Provider::buildArray(
 	int requiredPropertyIndex;
 	string *propertyName;
 	for (requiredPropertyIndex = 0;
-        requiredPropertyIndex < fiftyoneDegreesGetRequiredPropertiesCount(provider.dataSet);
+        requiredPropertyIndex < fiftyoneDegreesGetRequiredPropertiesCount(provider.activeDataSet->dataSet);
         requiredPropertyIndex++) {
         const char *value = fiftyoneDegreesGetValuePtrFromOffsets(
-			provider.dataSet,
+			provider.activeDataSet->dataSet,
         	offsets,
         	requiredPropertyIndex);
         if (value != NULL) {
             propertyName = new string(
-            	fiftyoneDegreesGetRequiredPropertiesNames(provider.dataSet)[
+            	fiftyoneDegreesGetRequiredPropertiesNames(provider.activeDataSet->dataSet)[
             		requiredPropertyIndex]);
             vector<string> *values = &(result->operator[](*propertyName));
             values->insert(values->begin(), string(value));
@@ -358,15 +358,15 @@ void Provider::buildArray(int offset, map<string, vector<string> > *result) {
 	int requiredPropertyIndex;
 	string *propertyName;
 	for (requiredPropertyIndex = 0;
-        requiredPropertyIndex < fiftyoneDegreesGetRequiredPropertiesCount(provider.dataSet);
+        requiredPropertyIndex < fiftyoneDegreesGetRequiredPropertiesCount(provider.activeDataSet->dataSet);
         requiredPropertyIndex++) {
         const char *value = fiftyoneDegreesGetValue(
-			provider.dataSet,
+			provider.activeDataSet->dataSet,
         	offset,
         	requiredPropertyIndex);
         if (value != NULL) {
             propertyName = new string(
-            	fiftyoneDegreesGetRequiredPropertiesNames(provider.dataSet)[
+            	fiftyoneDegreesGetRequiredPropertiesNames(provider.activeDataSet->dataSet)[
             		requiredPropertyIndex]);
             vector<string> *values = &(result->operator[](*propertyName));
             values->insert(values->begin(), string(value));
@@ -375,7 +375,7 @@ void Provider::buildArray(int offset, map<string, vector<string> > *result) {
 }
 
 void Provider::initMatch(Match *match) {
-	match->dataSet = provider.dataSet;
+	match->dataSet = provider.activeDataSet->dataSet;
 }
 /**
  * Completes device detection for the User-Agent provided.
@@ -386,7 +386,7 @@ Match* Provider::getMatch(const char* userAgent) {
 	fiftyoneDegreesDeviceOffsets* offsets = new fiftyoneDegreesDeviceOffsets();
 	offsets->size = 1;
 	offsets->firstOffset = new fiftyoneDegreesDeviceOffset[1];
-	fiftyoneDegreesSetDeviceOffset(provider.dataSet, userAgent, 0, offsets->firstOffset);
+	fiftyoneDegreesSetDeviceOffset(provider.activeDataSet->dataSet, userAgent, 0, offsets->firstOffset);
     Match *result = new Match(offsets);
 	initMatch(result);
 	return result;
@@ -419,7 +419,7 @@ Match* Provider::getMatch(const map<string, string>& headers) {
  */
 map<string, vector<string> >& Provider::getMatchMap(const char *userAgent) {
 	map<string, vector<string> > *result = new map<string, vector<string> >();
-	buildArray(fiftyoneDegreesGetDeviceOffset(provider.dataSet, userAgent), result);
+	buildArray(fiftyoneDegreesGetDeviceOffset(provider.activeDataSet->dataSet, userAgent), result);
 	return *result;
 }
 
@@ -456,8 +456,8 @@ string Provider::getMatchJson(const char* userAgent) {
     string result;
     char *json = new char[JSON_BUFFER_LENGTH];
     fiftyoneDegreesProcessDeviceJSON(
-		provider.dataSet,
-        fiftyoneDegreesGetDeviceOffset(provider.dataSet, userAgent),
+		provider.activeDataSet->dataSet,
+        fiftyoneDegreesGetDeviceOffset(provider.activeDataSet->dataSet, userAgent),
         json,
         JSON_BUFFER_LENGTH);
     result.assign(json);
@@ -485,7 +485,7 @@ string Provider::getMatchJson(const map<string, string>& headers) {
 	char *json = new char[JSON_BUFFER_LENGTH];
     fiftyoneDegreesDeviceOffsets *offsets = matchForHttpHeaders(&headers);
     fiftyoneDegreesProcessDeviceOffsetsJSON(
-		provider.dataSet,
+		provider.activeDataSet->dataSet,
         offsets,
         json,
         JSON_BUFFER_LENGTH);

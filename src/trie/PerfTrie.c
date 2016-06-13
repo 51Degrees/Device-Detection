@@ -3,7 +3,6 @@
 #include <time.h>
 #include <string.h>
 #include <limits.h>
-#include "../threading.h"
 #include "51Degrees.h"
 
 /* *********************************************************************

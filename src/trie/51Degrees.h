@@ -26,6 +26,9 @@
 #endif
 
 #include <stdint.h>
+#ifndef FIFTYONEDEGREES_NO_THREADING
+#include "../threading.h"
+#endif
 
 #ifdef __cplusplus
 #define EXTERNAL extern "C"
@@ -41,12 +44,15 @@
 
 /* Used to provide the status of the data set initialisation */
 typedef enum e_fiftyoneDegreesDataSetInitStatus {
-    DATA_SET_INIT_STATUS_SUCCESS,
-    DATA_SET_INIT_STATUS_INSUFFICIENT_MEMORY,
-    DATA_SET_INIT_STATUS_CORRUPT_DATA,
-    DATA_SET_INIT_STATUS_INCORRECT_VERSION,
-    DATA_SET_INIT_STATUS_FILE_NOT_FOUND,
-	DATA_SET_INIT_STATUS_NOT_SET
+	DATA_SET_INIT_STATUS_SUCCESS, // All okay
+	DATA_SET_INIT_STATUS_INSUFFICIENT_MEMORY, // Lack of memory
+	DATA_SET_INIT_STATUS_CORRUPT_DATA, // Data structure not readable
+	DATA_SET_INIT_STATUS_INCORRECT_VERSION, // Data not the required version
+	DATA_SET_INIT_STATUS_FILE_NOT_FOUND, // The data file couldn't be found
+	DATA_SET_INIT_STATUS_NOT_SET, // Should never be returned to the caller
+	/* Working pointer exceeded the amount of memory containing the data */
+	DATA_SET_INIT_STATUS_POINTER_OUT_OF_BOUNDS,
+	DATA_SET_INIT_STATUS_NULL_POINTER // A key pointer was not set
 } fiftyoneDegreesDataSetInitStatus;
 
 /* Relates a http header index to to a device offset */
@@ -117,6 +123,7 @@ typedef struct t_lookup_header {
 } LOOKUP_HEADER;
 #pragma pack(pop)
 
+
 // A property including references to HTTP headers.
 #pragma pack(push, 4)
 typedef struct fiftyoneDegrees_property_t {
@@ -129,6 +136,7 @@ typedef struct fiftyoneDegrees_property_t {
 #pragma pack(push, 1)
 typedef struct fiftyoneDegrees_dataset_t {
 	uint16_t version; /* The version of the data file. */
+	const void* memoryToFree
 	const char * fileName; /* The location of the file the data set has been loaded from. */
 	int32_t copyrightSize; /* The size of the copyright notice at the top of the data file. */
 	char *copyright; /* Pointer to the copyright notice held in the data file. */
@@ -151,12 +159,22 @@ typedef struct fiftyoneDegrees_dataset_t {
 	int requiredPropertiesCount; /* The number of properties to be returned. */
 	uint32_t *requiredProperties; /* A list of required property indexes. */
 	const char **requiredPropertiesNames; /* A list of pointers to the names of the properties. */
+	void
 } fiftyoneDegreesDataSet;
 #pragma pack(pop)
 
+typedef struct fiftyoneDegrees_active_dataset_t {
+	fiftyoneDegreesDataSet *dataSet; /* Pointer to an initialised data set. */
+} fiftyoneDegreesActiveDataSet;
+
 #pragma pack(push, 4)
 typedef struct fiftyoneDegrees_provider_t {
-	fiftyoneDegreesDataSet *dataSet;
+#ifndef FIFTYONEDEGREES_NO_THREADING
+	volatile fiftyoneDegreesActiveDataSet *active; /* Volatile wrapper for the providers data set. */
+	FIFTYONEDEGREES_MUTEX lock; /* Used to lock critical regions where mutable variables are written to */
+#else
+	fiftyoneDegreesActiveDataSet *active; /* Non volatile wrapper for the providers data set. */
+#endif
 } fiftyoneDegreesProvider;
 #pragma pack(pop)
 
@@ -265,5 +283,7 @@ EXTERNAL void fiftyoneDegreesProviderFree(fiftyoneDegreesProvider* provider);
 // Reload the data set from its original file location.
 EXTERNAL fiftyoneDegreesDataSetInitStatus fiftyoneDegreesProviderReloadFromFile(fiftyoneDegreesProvider* provider);
 
+// Reload the data set from a data file loaded into memory.
+EXTERNAL fiftyoneDegreesDataSetInitStatus fiftyoneDegreesProviderReloadFromMemory(fiftyoneDegreesProvider *provider, void *source, long length);
 
 #endif // 51DEGREES_H_INCLUDED

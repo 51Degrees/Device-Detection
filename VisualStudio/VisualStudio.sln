@@ -114,6 +114,8 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Getting Started Trie", "CS 
 EndProject
 Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "Reload From File Trie", "Examples\Reload From File Trie\Reload From File Trie.vcxproj", "{174B912F-4CB9-4EE9-A6E5-65BB94948B6E}"
 EndProject
+Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "Reload From Memory Trie", "Examples\Reload From Memory Trie\Reload From Memory Trie.vcxproj", "{890B74F4-D72A-4F93-A500-4EF2196CB3EB}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -546,6 +548,18 @@ Global
 		{174B912F-4CB9-4EE9-A6E5-65BB94948B6E}.Release|Win32.ActiveCfg = Release|Win32
 		{174B912F-4CB9-4EE9-A6E5-65BB94948B6E}.Release|Win32.Build.0 = Release|Win32
 		{174B912F-4CB9-4EE9-A6E5-65BB94948B6E}.Release|x64.ActiveCfg = Release|Win32
+		{890B74F4-D72A-4F93-A500-4EF2196CB3EB}.Debug|Any CPU.ActiveCfg = Debug|Win32
+		{890B74F4-D72A-4F93-A500-4EF2196CB3EB}.Debug|Mixed Platforms.ActiveCfg = Debug|Win32
+		{890B74F4-D72A-4F93-A500-4EF2196CB3EB}.Debug|Mixed Platforms.Build.0 = Debug|Win32
+		{890B74F4-D72A-4F93-A500-4EF2196CB3EB}.Debug|Win32.ActiveCfg = Debug|Win32
+		{890B74F4-D72A-4F93-A500-4EF2196CB3EB}.Debug|Win32.Build.0 = Debug|Win32
+		{890B74F4-D72A-4F93-A500-4EF2196CB3EB}.Debug|x64.ActiveCfg = Debug|Win32
+		{890B74F4-D72A-4F93-A500-4EF2196CB3EB}.Release|Any CPU.ActiveCfg = Release|Win32
+		{890B74F4-D72A-4F93-A500-4EF2196CB3EB}.Release|Mixed Platforms.ActiveCfg = Release|Win32
+		{890B74F4-D72A-4F93-A500-4EF2196CB3EB}.Release|Mixed Platforms.Build.0 = Release|Win32
+		{890B74F4-D72A-4F93-A500-4EF2196CB3EB}.Release|Win32.ActiveCfg = Release|Win32
+		{890B74F4-D72A-4F93-A500-4EF2196CB3EB}.Release|Win32.Build.0 = Release|Win32
+		{890B74F4-D72A-4F93-A500-4EF2196CB3EB}.Release|x64.ActiveCfg = Release|Win32
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
@@ -587,5 +601,6 @@ Global
 		{B3E9FE89-CD37-4E20-973B-B091EA079076} = {DF20EFCE-8171-4272-A5A2-44E75A07B3C5}
 		{BD9C0186-0952-487A-A0F9-90DE7C8CBA84} = {265E957D-344C-4140-9A1F-EE18B729F462}
 		{174B912F-4CB9-4EE9-A6E5-65BB94948B6E} = {DF20EFCE-8171-4272-A5A2-44E75A07B3C5}
+		{890B74F4-D72A-4F93-A500-4EF2196CB3EB} = {DF20EFCE-8171-4272-A5A2-44E75A07B3C5}
 	EndGlobalSection
 EndGlobal

@@ -120,7 +120,7 @@ int main(int argc, char* argv[]) {
 		return 1;
 	}
 
-	run(provider.dataSet);
+	run(provider.activeDataSet->dataSet);
 
 	// Free the pool, dataset and cache.
 	fiftyoneDegreesProviderFree(&provider);

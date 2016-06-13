@@ -434,43 +434,252 @@ fiftyoneDegreesDataSetInitStatus fiftyoneDegreesInitWithPropertyArray(const char
 
 fiftyoneDegreesDataSetInitStatus fiftyoneDegreesInitProviderWithPropertyString(const char* fileName, fiftyoneDegreesProvider* provider, const char* properties) {
 	fiftyoneDegreesDataSetInitStatus status;
-	provider->dataSet = (fiftyoneDegreesDataSet*)fiftyoneDegreesMalloc(sizeof(fiftyoneDegreesDataSet));
-	status = fiftyoneDegreesInitWithPropertyString(fileName, provider->dataSet, properties);
+	provider->active = (fiftyoneDegreesActiveDataSet*)fiftyoneDegreesMalloc(sizeof(fiftyoneDegreesActiveDataSet));
+	provider->active->dataSet = (fiftyoneDegreesDataSet*)fiftyoneDegreesMalloc(sizeof(fiftyoneDegreesDataSet));
+#ifndef FIFTYONEDEGREES_NO_THREADING
+	FIFTYONEDEGREES_MUTEX_CREATE(provider->lock);
+#endif
+	status = fiftyoneDegreesInitWithPropertyString(fileName, (fiftyoneDegreesDataSet*) provider->active->dataSet, properties);
 	return status;
 }
 
 fiftyoneDegreesDataSetInitStatus fiftyoneDegreesInitProviderWithPropertyArray(const char* filename, fiftyoneDegreesProvider *provider, const char ** properties, int propertyCount) {
 	fiftyoneDegreesDataSetInitStatus status;
-	provider->dataSet = (fiftyoneDegreesDataSet*)fiftyoneDegreesMalloc(sizeof(fiftyoneDegreesDataSet));
-	status = fiftyoneDegreesInitWithPropertyArray(filename, provider->dataSet, properties, propertyCount);
+	provider->active = (fiftyoneDegreesActiveDataSet*)fiftyoneDegreesMalloc(sizeof(fiftyoneDegreesActiveDataSet));
+	provider->active->dataSet = (fiftyoneDegreesDataSet*)fiftyoneDegreesMalloc(sizeof(fiftyoneDegreesDataSet));
+#ifndef FIFTYONEDEGREES_NO_THREADING
+	FIFTYONEDEGREES_MUTEX_CREATE(provider->lock);
+#endif
+	status = fiftyoneDegreesInitWithPropertyArray(filename, (fiftyoneDegreesDataSet*) provider->active->dataSet, properties, propertyCount);
 	return status;
 }
 
-fiftyoneDegreesDataSetInitStatus fiftyoneDegreesProviderReloadFromFile(fiftyoneDegreesProvider* provider) {
-	fiftyoneDegreesDataSet *newDataSet, *tmpDataSet;
+/**
+* \cond
+* Provides a safe way to advance a pointer by the specified amount of bytes.
+* Designed for a continuous allocated memory space where pointer is advanced
+* consecutively. Requires the maximum number of bytes in the continuous
+* memory space to be provided to carry out of bounds check.
+*
+* If -1 is supplied as the maximum number of bytes in the continuous memory
+* space the check is ignored.
+*
+* Prior to calling this function for the first time make sure the pointer is
+* set to the first byte of the allocated continuous memory space.
+*
+* @param pointer is the pointer to the current byte. Gets incremented by the
+number of bytes provided in advanceBy.
+* @param lastByte pointer to the last valid byte in the memory space. A
+corrupt memory response is return if this is exceeded.
+* @param advanceBy number of bytes to advance the pointer by.
+* @return fiftyoneDegreesDataSetInitStatus stating the result of the
+*		   current advance operation. Codes other than
+*		   DATA_SET_INIT_STATUS_SUCCESS indicate there is a problem.
+* \endcond
+*/
+static fiftyoneDegreesDataSetInitStatus advancePointer(byte **pointer,
+	const byte *lastByte,
+	long advanceBy) {
+	if (pointer == NULL || *pointer == NULL) {
+		return DATA_SET_INIT_STATUS_CORRUPT_DATA;
+	}
+	*pointer += advanceBy;
+	if (*pointer > lastByte) {
+		return DATA_SET_INIT_STATUS_POINTER_OUT_OF_BOUNDS;
+	}
+	return DATA_SET_INIT_STATUS_SUCCESS;
+}
+
+static fiftyoneDegreesDataSetInitStatus readDataSetFromMemoryLocation(
+	const void *source,
+	fiftyoneDegreesDataSet *dataSet,
+	long length) {
+	fiftyoneDegreesDataSetInitStatus status = DATA_SET_INIT_STATUS_SUCCESS;
+	byte *current = (byte*)source;
+	const byte *lastByte = (byte*)source + length;
+
+	// Copy the bytes that form the header from the start of the file to the
+	// data set pointer provided.
+	if (memcpy((void*)(&dataSet->version), current, sizeof(uint16_t)) != dataSet) {
+		return DATA_SET_INIT_STATUS_CORRUPT_DATA;
+	}
+	status = advancePointer(&current, lastByte, sizeof(uint16_t));
+	if (status != DATA_SET_INIT_STATUS_SUCCESS) return status;
+
+	/* Check the version of the data file */
+	if (dataSet->version != 32 ) {
+		return DATA_SET_INIT_STATUS_INCORRECT_VERSION;
+	}
+
+	// Read the copyright.
+	dataSet->copyrightSize = (int32_t)current;
+	status = advancePointer(&current, lastByte, sizeof(int32_t));
+	if (status != DATA_SET_INIT_STATUS_SUCCESS) return status;
+	dataSet->copyright = (char*)current;
+	status = advancePointer(&current, lastByte, dataSet->copyrightSize);
+	if (status != DATA_SET_INIT_STATUS_SUCCESS) return status;
+
+	// Read the strings.
+	dataSet->stringsSize = (int32_t)current;
+	status = advancePointer(&current, lastByte, sizeof(int32_t));
+	if (status != DATA_SET_INIT_STATUS_SUCCESS) return status;
+	dataSet->strings = (char*)current;
+	status = advancePointer(&current, lastByte, dataSet->stringsSize);
+	if (status != DATA_SET_INIT_STATUS_SUCCESS) return status;
+
+	// Read the HTTP headers.
+	dataSet->httpHeadersSize = (int32_t)current;
+	status = advancePointer(&current, lastByte, sizeof(int32_t));
+	if (status != DATA_SET_INIT_STATUS_SUCCESS) return status;
+	dataSet->httpHeaders = (int32_t*)current;
+	status = advancePointer(&current, lastByte, dataSet->httpHeadersSize);
+	if (status != DATA_SET_INIT_STATUS_SUCCESS) return status;
+
+	// Read the properties.
+	dataSet->propertiesSize = (int32_t)current;
+	status = advancePointer(&current, lastByte, sizeof(int32_t));
+	if (status != DATA_SET_INIT_STATUS_SUCCESS) return status;
+	dataSet->properties = (fiftyoneDegreesProperty*)current;
+	status = advancePointer(&current, lastByte, dataSet->propertiesSize);
+	if (status != DATA_SET_INIT_STATUS_SUCCESS) return status;
+	dataSet->propertiesCount = dataSet->propertiesSize / sizeof(fiftyoneDegreesProperty);
+
+	// Read the devices.
+	dataSet->devicesSize = (int32_t)current;
+	status = advancePointer(&current, lastByte, sizeof(int32_t));
+	if (status != DATA_SET_INIT_STATUS_SUCCESS) return status;
+	dataSet->devices = (int32_t*)current;
+	status = advancePointer(&current, lastByte, dataSet->devicesSize);
+	if (status != DATA_SET_INIT_STATUS_SUCCESS) return status;
+
+	// Read the lookup list.
+	dataSet->lookupListSize = (int32_t)current;
+	status = advancePointer(&current, lastByte, sizeof(int32_t));
+	if (status != DATA_SET_INIT_STATUS_SUCCESS) return status;
+	dataSet->lookupList = (LOOKUP_HEADER*)current;
+	status = advancePointer(&current, lastByte, dataSet->lookupListSize);
+	if (status != DATA_SET_INIT_STATUS_SUCCESS) return status;
+
+	// Read the nodes.
+	dataSet->nodesSize = (int32_t)current;
+	status = advancePointer(&current, lastByte, sizeof(int32_t));
+	if (status != DATA_SET_INIT_STATUS_SUCCESS) return status;
+	dataSet->rootNode = (int32_t*)current;
+	status = advancePointer(&current, lastByte, (long)dataSet->nodesSize);
+	if (status != DATA_SET_INIT_STATUS_SUCCESS) return status;
+
+	
+	/* Check that the current pointer equals the last byte */
+	if (current != lastByte) {
+		return DATA_SET_INIT_STATUS_POINTER_OUT_OF_BOUNDS;
+	}
+
+	return DATA_SET_INIT_STATUS_SUCCESS;
+}
+
+
+static fiftyoneDegreesDataSetInitStatus initFromMemory(
+	fiftyoneDegreesDataSet *dataSet,
+	const void *source,
+	long length) {
 	fiftyoneDegreesDataSetInitStatus status;
 
-	// Allocate memory for a new data set.
-	newDataSet = (fiftyoneDegreesDataSet*)fiftyoneDegreesMalloc(sizeof(fiftyoneDegreesDataSet));
+	if (source == NULL) {
+		return DATA_SET_INIT_STATUS_NULL_POINTER;
+	}
 
-	// Initialise the new data set with the properties of the current one.
-	status = fiftyoneDegreesInitWithPropertyArray(provider->dataSet->fileName, newDataSet, provider->dataSet->requiredPropertiesNames, provider->dataSet->requiredPropertiesCount);
+	// Read the data set from the memory source.
+	status = readDataSetFromMemoryLocation(source, dataSet, length);
+	if (status != DATA_SET_INIT_STATUS_SUCCESS) {
+		return status;
+	}
+
+	// For memory resident data files there is no path to file on disk.
+	dataSet->fileName = NULL;
+
+	// Set the prefixed upper headers to NULL as they may not be
+	// needed. If they are initialised later then the memory can
+	// be freed when the data set is destroyed.
+	dataSet->prefixedUpperHttpHeaders = NULL;
+
+	return status;
+}
+
+
+fiftyoneDegreesDataSetInitStatus reloadCommon(fiftyoneDegreesProvider *provider, fiftyoneDegreesDataSet *dataSet) {
+	fiftyoneDegreesDataSet *tmpDataSet;
+	// Swap data sets.
+#ifndef FIFTYONEDEGREES_NO_THREADING
+	FIFTYONEDEGREES_MUTEX_LOCK(&provider->lock);
+#endif
+	tmpDataSet = (fiftyoneDegreesDataSet*)provider->active->dataSet;
+	provider->active->dataSet = dataSet;
+	fiftyoneDegreesDestroy(tmpDataSet);
+	fiftyoneDegreesFree(tmpDataSet);
+#ifndef FIFTYONEDEGREES_NO_THREADING
+	FIFTYONEDEGREES_MUTEX_UNLOCK(&provider->lock);
+#endif
+
+	return DATA_SET_INIT_STATUS_SUCCESS;
+
+}
+
+fiftyoneDegreesDataSetInitStatus fiftyoneDegreesProviderReloadFromMemory(fiftyoneDegreesProvider *provider, void *source, long length) {
+	fiftyoneDegreesDataSetInitStatus status;
+	fiftyoneDegreesDataSet *newDataSet = NULL;
+
+	newDataSet = (fiftyoneDegreesDataSet*)fiftyoneDegreesMalloc(sizeof(fiftyoneDegreesDataSet));
+	if (newDataSet == NULL) {
+		return DATA_SET_INIT_STATUS_INSUFFICIENT_MEMORY;
+	}
+
+	status = readDataSetFromMemoryLocation(source, newDataSet, length);
 	if (status != DATA_SET_INIT_STATUS_SUCCESS) {
 		fiftyoneDegreesFree(newDataSet);
 		return status;
 	}
 
-	// Swap data sets.
-	tmpDataSet = provider->dataSet;
-	provider->dataSet = newDataSet;
-	fiftyoneDegreesDestroy(tmpDataSet);
-	fiftyoneDegreesFree(tmpDataSet);
+	// Reload common components.
+	status = reloadCommon(provider, newDataSet);
+	if (status != DATA_SET_INIT_STATUS_SUCCESS) {
+		fiftyoneDegreesDestroy(newDataSet);
+	}
+
+	return status;
+
+}
+
+fiftyoneDegreesDataSetInitStatus fiftyoneDegreesProviderReloadFromFile(fiftyoneDegreesProvider* provider) {
+	fiftyoneDegreesDataSetInitStatus status;
+	fiftyoneDegreesDataSet *newDataSet = NULL;
+
+	// Allocate memory for a new data set.
+	newDataSet = (fiftyoneDegreesDataSet*)fiftyoneDegreesMalloc(sizeof(fiftyoneDegreesDataSet));
+	if (newDataSet == NULL) {
+		return DATA_SET_INIT_STATUS_INSUFFICIENT_MEMORY;
+	}
+
+	// Initialise the new data set with the properties of the current one.
+	status = fiftyoneDegreesInitWithPropertyArray(provider->active->dataSet->fileName, newDataSet, provider->active->dataSet->requiredPropertiesNames, provider->active->dataSet->requiredPropertiesCount);
+	if (status != DATA_SET_INIT_STATUS_SUCCESS) {
+		fiftyoneDegreesFree(newDataSet);
+		return status;
+	}
+
+	// Reload common components.
+	status = reloadCommon(provider, newDataSet);
+	if (status != DATA_SET_INIT_STATUS_SUCCESS) {
+		fiftyoneDegreesDestroy(newDataSet);
+	}
 
 	return status;
 }
 
 void fiftyoneDegreesProviderFree(fiftyoneDegreesProvider* provider) {
-	fiftyoneDegreesDestroy(provider->dataSet);
+	fiftyoneDegreesDestroy((fiftyoneDegreesDataSet*) provider->active->dataSet);
+#ifndef FIFTYONEDEGREES_NO_THREADING
+	FIFTYONEDEGREES_MUTEX_CLOSE(provider->lock);
+#endif
 }
 
 static int getSeparatorCount(const char* input) {

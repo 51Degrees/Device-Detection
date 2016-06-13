@@ -175,9 +175,9 @@ static int runRequest(const char *inputFile) {
 	FILE* fin = fopen((const char*)inputFile, "r");
 
 	while (fgets(userAgent, sizeof(userAgent), fin) != NULL) {
-		offsets = fiftyoneDegreesCreateDeviceOffsets(provider.dataSet);
+		offsets = fiftyoneDegreesCreateDeviceOffsets(provider.active->dataSet);
 		offsets->size = 1;
-		fiftyoneDegreesSetDeviceOffset(provider.dataSet, userAgent, 0, offsets->firstOffset);
+		fiftyoneDegreesSetDeviceOffset(provider.active->dataSet, userAgent, 0, offsets->firstOffset);
 		hashCode ^= getHashCode(offsets);
 		fiftyoneDegreesFreeDeviceOffsets(offsets);
 		count++;
@@ -208,8 +208,7 @@ unsigned long hash(unsigned char *value) {
 
 
 /**
-* Returns the hash code for the values of properties contained in the work
-* set.
+* Returns the hash code for the values of properties contained in the offsets.
 * @param offsets containing the results of a match
 */
 static unsigned long getHashCode(fiftyoneDegreesDeviceOffsets *offsets) {
@@ -217,9 +216,9 @@ static unsigned long getHashCode(fiftyoneDegreesDeviceOffsets *offsets) {
 	int32_t requiredPropertyIndex;
 	const char *valueName;
 	for (requiredPropertyIndex = 0;
-		requiredPropertyIndex < provider.dataSet->requiredPropertiesCount;
+		requiredPropertyIndex < provider.active->dataSet->requiredPropertiesCount;
 		requiredPropertyIndex++) {
-		valueName = fiftyoneDegreesGetValuePtrFromOffsets(provider.dataSet, offsets, requiredPropertyIndex);
+		valueName = fiftyoneDegreesGetValuePtrFromOffsets(provider.active->dataSet, offsets, requiredPropertyIndex);
 		hashCode ^= hash((unsigned char*)&(valueName));
 	}
 	return hashCode;

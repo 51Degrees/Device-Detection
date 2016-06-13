@@ -77,9 +77,11 @@
   </ItemDefinitionGroup>
   <ItemGroup>
     <ClCompile Include="..\..\..\examples\GettingStartedTrie.c" />
+    <ClCompile Include="..\..\..\src\threading.c" />
     <ClCompile Include="..\..\..\src\trie\51Degrees.c" />
   </ItemGroup>
   <ItemGroup>
+    <ClInclude Include="..\..\..\src\threading.h" />
     <ClInclude Include="..\..\..\src\trie\51Degrees.h" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
