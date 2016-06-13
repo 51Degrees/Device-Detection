@@ -72,9 +72,9 @@ const int16_t POWERS[] = { 1, 10, 100, 1000, 10000 };
 /**
  * Memory allocation functions.
  */
-void *(CALL_CONV *fiftyoneDegreesMalloc)(size_t __size) = malloc;
-void *(CALL_CONV *fiftyoneDegreesCalloc)(size_t __nmemb, size_t __size) = calloc;
-void (CALL_CONV *fiftyoneDegreesFree)(void *__ptr) = free;
+void *(FIFTYONEDEGREES_CALL_CONV *fiftyoneDegreesMalloc)(size_t __size) = malloc;
+void *(FIFTYONEDEGREES_CALL_CONV *fiftyoneDegreesCalloc)(size_t __nmemb, size_t __size) = calloc;
+void (FIFTYONEDEGREES_CALL_CONV *fiftyoneDegreesFree)(void *__ptr) = free;
 
 /**
  * DATASET MEMORY ALLOCATION SIZE MACROS
@@ -2133,7 +2133,7 @@ void fiftyoneDegreesFreeProfilesStruct(fiftyoneDegreesProfilesStruct *profiles) 
  * @param b pointer to an integer.
  * \endcond
  */
-static int CALL_CONV intcmp(const void *a, const void *b) {
+static int FIFTYONEDEGREES_CALL_CONV intcmp(const void *a, const void *b) {
 	return (*(int32_t*)a - *(int32_t*)b);
 }
 
@@ -3953,7 +3953,7 @@ static void setClosestSignaturesFinal(fiftyoneDegreesWorkset *ws, int32_t count)
  * @return the difference between the nodes
  * \endcond
  */
-static int CALL_CONV nodeSignatureCountCompare(const void *a, const void *b) {
+static int FIFTYONEDEGREES_CALL_CONV nodeSignatureCountCompare(const void *a, const void *b) {
 	fiftyoneDegreesNode* c1 = (*(fiftyoneDegreesNode**)a);
 	fiftyoneDegreesNode* c2 = (*(fiftyoneDegreesNode**)b);
 	int difference = c1->signatureCount - c2->signatureCount;

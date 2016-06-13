@@ -37,9 +37,9 @@
 #endif
 
 #ifdef _MSC_VER
-#define CALL_CONV __cdecl
+#define FIFTYONEDEGREES_CALL_CONV __cdecl
 #else
-#define CALL_CONV
+#define FIFTYONEDEGREES_CALL_CONV
 #endif
 
 /* Used to provide the status of the data set initialisation */
@@ -71,28 +71,28 @@ typedef struct fiftyoneDegrees_device_offsets_t {
 } fiftyoneDegreesDeviceOffsets;
 
 // Used to map a byte from the data file.
-#define BYTE unsigned char
+typedef unsigned char byte;
 
 // The maximum value of a byte.
-#define BYTE_MAX 255
+#define FIFTYONEDEGREES_BYTE_MAX 255
 
 // The values of the possible offset types.
-#define BITS16 (BYTE)0
-#define BITS32 (BYTE)1
-#define BITS64 (BYTE)2
+#define FIFTYONEDEGREES_BITS16 (byte)0
+#define FIFTYONEDEGREES_BITS32 (byte)1
+#define FIFTYONEDEGREES_BITS64 (byte)2
 
-#define HTTP_PREFIX_UPPER "HTTP_"
+#define FIFTYONEDEGREES_HTTP_PREFIX_UPPER "HTTP_"
 
 #pragma pack(push, 1)
 typedef struct t_node_children {
-	BYTE numberOfChildren;
-	BYTE offsetType;
+	byte numberOfChildren;
+	byte offsetType;
 	union {
 		uint16_t b16;
 		uint32_t b32;
 		int64_t b64;
 	} childrenOffsets;
-} NODE_CHILDREN;
+} FIFTYONEDEGREES_NODE_CHILDREN;
 #pragma pack(pop)
 
 // Type used to represent a full node that
@@ -101,8 +101,8 @@ typedef struct t_node_children {
 typedef struct t_node_full {
 	int lookupListOffset;
 	int deviceIndex;
-	NODE_CHILDREN children;
-} NODE_FULL;
+	FIFTYONEDEGREES_NODE_CHILDREN children;
+} FIFTYONEDEGREES_NODE_FULL;
 #pragma pack(pop)
 
 // Type used to represent a node that does not
@@ -110,17 +110,17 @@ typedef struct t_node_full {
 #pragma pack(push, 1)
 typedef struct t_node_no_device_index {
 	int lookupListOffset;
-	NODE_CHILDREN children;
-} NODE_NO_DEVICE_INDEX;
+	FIFTYONEDEGREES_NODE_CHILDREN children;
+} FIFTYONEDEGREES_NODE_NO_DEVICE_INDEX;
 #pragma pack(pop)
 
 // Type used to represent a look up list header.
 #pragma pack(push, 1)
 typedef struct t_lookup_header {
-	BYTE lowest;
-	BYTE highest;
-	BYTE start;
-} LOOKUP_HEADER;
+	byte lowest;
+	byte highest;
+	byte start;
+} FIFTYONEDEGREES_LOOKUP_HEADER;
 #pragma pack(pop)
 
 
@@ -136,8 +136,8 @@ typedef struct fiftyoneDegrees_property_t {
 #pragma pack(push, 1)
 typedef struct fiftyoneDegrees_dataset_t {
 	uint16_t version; /* The version of the data file. */
-	const void* memoryToFree
-	const char * fileName; /* The location of the file the data set has been loaded from. */
+	const void *memoryToFree;
+	const char *fileName; /* The location of the file the data set has been loaded from. */
 	int32_t copyrightSize; /* The size of the copyright notice at the top of the data file. */
 	char *copyright; /* Pointer to the copyright notice held in the data file. */
 	int32_t stringsSize; /* The size of the strings data array. */
@@ -153,13 +153,12 @@ typedef struct fiftyoneDegrees_dataset_t {
 	int32_t *devices; /* Pointer to the start of the devices data array. */
 	int32_t devicesSize; /* The size of the devices data array. */
 	int32_t lookupListSize; /* The size of the memory reserved for lookup lists. */
-	LOOKUP_HEADER *lookupList; /* Pointer to the start of the lookup lists. */
+	FIFTYONEDEGREES_LOOKUP_HEADER *lookupList; /* Pointer to the start of the lookup lists. */
 	int32_t *rootNode; /* Offset in the device data file for the root node. */
 	int64_t nodesSize; /* The size of the data array containing the nodes. */
 	int requiredPropertiesCount; /* The number of properties to be returned. */
 	uint32_t *requiredProperties; /* A list of required property indexes. */
 	const char **requiredPropertiesNames; /* A list of pointers to the names of the properties. */
-	void
 } fiftyoneDegreesDataSet;
 #pragma pack(pop)
 
@@ -263,10 +262,10 @@ EXTERNAL int fiftyoneDegreesProcessDeviceOffsetsJSON(fiftyoneDegreesDataSet *dat
 EXTERNAL int fiftyoneDegreesGetMatchedUserAgentLength(fiftyoneDegreesDataSet *dataSet, char *userAgent);
 
 // Pointer to malloc function.
-EXTERNAL void *(CALL_CONV *fiftyoneDegreesMalloc)(size_t __size);
+EXTERNAL void *(FIFTYONEDEGREES_CALL_CONV *fiftyoneDegreesMalloc)(size_t __size);
 
 // Pointer to free function.
-EXTERNAL void (CALL_CONV *fiftyoneDegreesFree)(void *__ptr);
+EXTERNAL void (FIFTYONEDEGREES_CALL_CONV *fiftyoneDegreesFree)(void *__ptr);
 
 // Return the size needed in memory to initialise the data set.
 EXTERNAL size_t fiftyoneDegreesGetDataSetSizeWithPropertyString(const char* fileName, const char* properties);
