@@ -143,4 +143,6 @@ class Provider {
 
     std::string getMatchJson(const std::string &userAgent);
     std::string getMatchJson(const std::map<std::string, std::string> &headers);
+
+	void reloadFromFile();
 };

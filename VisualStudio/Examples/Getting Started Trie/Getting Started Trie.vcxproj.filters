@@ -21,9 +21,15 @@
     <ClCompile Include="..\..\..\examples\GettingStartedTrie.c">
       <Filter>Source Files</Filter>
     </ClCompile>
+    <ClCompile Include="..\..\..\src\threading.c">
+      <Filter>Source Files</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="..\..\..\src\trie\51Degrees.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\src\threading.h">
       <Filter>Header Files</Filter>
     </ClInclude>
   </ItemGroup>

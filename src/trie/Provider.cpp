@@ -77,7 +77,7 @@ Provider::Provider(const string &fileName, vector<string> &propertiesArray) {
  */
 Provider::~Provider()
 {
-    fiftyoneDegreesDestroy(&dataSet);
+    fiftyoneDegreesProviderFree(&provider);
 }
 
 /**
@@ -121,9 +121,9 @@ void Provider::initExecption(
  * @param fileName of the data source
  */
 void Provider::init(const string &fileName) {
-	initComplete(fiftyoneDegreesInitWithPropertyString(
+	initComplete(fiftyoneDegreesInitProviderWithPropertyString(
         fileName.c_str(),
-		&dataSet,
+		&provider,
         NULL),
         fileName);
 }
@@ -135,9 +135,9 @@ void Provider::init(const string &fileName) {
  * to query from associated match results.
  */
 void Provider::init(const string &fileName, const string &propertyString) {
-	initComplete(fiftyoneDegreesInitWithPropertyString(
+	initComplete(fiftyoneDegreesInitProviderWithPropertyString(
         fileName.c_str(),
-		&dataSet,
+		&provider,
 		propertyString.c_str()),
         fileName);
 }
@@ -155,9 +155,9 @@ void Provider::init(const string &fileName, vector<string> &propertiesArray) {
         for (unsigned int index = 0; index < propertiesArray.size(); index++) {
             properties[index] = propertiesArray[index].c_str();
         }
-        initStatus = fiftyoneDegreesInitWithPropertyArray(
+        initStatus = fiftyoneDegreesInitProviderWithPropertyArray(
             fileName.c_str(),
-			&dataSet,
+			&provider,
 			properties,
             (int)propertiesArray.size());
         delete properties;
@@ -175,7 +175,7 @@ void Provider::initComplete(
 		fiftyoneDegreesDataSetInitStatus initStatus,
 		const string &fileName) {
 	if (initStatus != DATA_SET_INIT_STATUS_SUCCESS)	{
-		fiftyoneDegreesDestroy(&dataSet);
+		fiftyoneDegreesProviderFree(&provider);
 		initExecption(initStatus, fileName);
 	}
 	else {
@@ -192,11 +192,11 @@ void Provider::initComplete(
  */
 void Provider::initHttpHeaders() {
 	for (int httpHeaderIndex = 0;
-		httpHeaderIndex < fiftyoneDegreesGetHttpHeaderCount(&dataSet);
+		httpHeaderIndex < fiftyoneDegreesGetHttpHeaderCount(provider.activeDataSet->dataSet);
 		httpHeaderIndex++) {
         httpHeaders.insert(
             httpHeaders.end(),
-			string(GET_HTTP_HEADER_NAME(&dataSet, httpHeaderIndex)));
+			string(GET_HTTP_HEADER_NAME(provider.activeDataSet->dataSet, httpHeaderIndex)));
 	}
 }
 
@@ -209,9 +209,9 @@ void Provider::initHttpHeaders() {
 void Provider::initAvailableProperites() {
 	const char *propertyName;
     for (int requiredPropetyIndex = 0;
-        requiredPropetyIndex < fiftyoneDegreesGetRequiredPropertiesCount(&dataSet);
+        requiredPropetyIndex < fiftyoneDegreesGetRequiredPropertiesCount(provider.activeDataSet->dataSet);
         requiredPropetyIndex++) {
-        propertyName = fiftyoneDegreesGetRequiredPropertiesNames(&dataSet)[
+        propertyName = fiftyoneDegreesGetRequiredPropertiesNames(provider.activeDataSet->dataSet)[
         	requiredPropetyIndex];
         availableProperties.insert(
             availableProperties.end(),
@@ -249,7 +249,7 @@ string Provider::getDataSetName() {
  */
 string Provider::getDataSetFormat() {
 	stringstream stream;
-	stream << dataSet.version;
+	stream << provider.activeDataSet->dataSet->version;
 	return stream.str();
 }
 
@@ -300,21 +300,21 @@ int Provider::getDataSetDeviceCombinations() {
 fiftyoneDegreesDeviceOffsets* Provider::matchForHttpHeaders(
 		const map<string, string> *headers) {
 	int headerIndex = 0;
-	fiftyoneDegreesDeviceOffsets* offsets = fiftyoneDegreesCreateDeviceOffsets(&dataSet);
-	const char *httpHeaderName = GET_HTTP_HEADER_NAME(&dataSet, headerIndex);
+	fiftyoneDegreesDeviceOffsets* offsets = fiftyoneDegreesCreateDeviceOffsets(provider.activeDataSet->dataSet);
+	const char *httpHeaderName = GET_HTTP_HEADER_NAME(provider.activeDataSet->dataSet, headerIndex);
 	while (httpHeaderName != NULL) {
 		map<string, string>::const_iterator httpHeaderValue =
 			headers->find(string(httpHeaderName));
 		if (httpHeaderValue != headers->end()) {
 			fiftyoneDegreesSetDeviceOffset(
-				&dataSet,
+				provider.activeDataSet->dataSet,
 				httpHeaderValue->second.c_str(),
 				headerIndex,
 				&offsets->firstOffset[offsets->size]);
             offsets->size++;
 		}
 		headerIndex++;
-		httpHeaderName = GET_HTTP_HEADER_NAME(&dataSet, headerIndex);
+		httpHeaderName = GET_HTTP_HEADER_NAME(provider.activeDataSet->dataSet, headerIndex);
 	}
 	return offsets;
 }
@@ -332,15 +332,15 @@ void Provider::buildArray(
 	int requiredPropertyIndex;
 	string *propertyName;
 	for (requiredPropertyIndex = 0;
-        requiredPropertyIndex < fiftyoneDegreesGetRequiredPropertiesCount(&dataSet);
+        requiredPropertyIndex < fiftyoneDegreesGetRequiredPropertiesCount(provider.activeDataSet->dataSet);
         requiredPropertyIndex++) {
         const char *value = fiftyoneDegreesGetValuePtrFromOffsets(
-			&dataSet,
+			provider.activeDataSet->dataSet,
         	offsets,
         	requiredPropertyIndex);
         if (value != NULL) {
             propertyName = new string(
-            	fiftyoneDegreesGetRequiredPropertiesNames(&dataSet)[
+            	fiftyoneDegreesGetRequiredPropertiesNames(provider.activeDataSet->dataSet)[
             		requiredPropertyIndex]);
             vector<string> *values = &(result->operator[](*propertyName));
             values->insert(values->begin(), string(value));
@@ -358,15 +358,15 @@ void Provider::buildArray(int offset, map<string, vector<string> > *result) {
 	int requiredPropertyIndex;
 	string *propertyName;
 	for (requiredPropertyIndex = 0;
-        requiredPropertyIndex < fiftyoneDegreesGetRequiredPropertiesCount(&dataSet);
+        requiredPropertyIndex < fiftyoneDegreesGetRequiredPropertiesCount(provider.activeDataSet->dataSet);
         requiredPropertyIndex++) {
         const char *value = fiftyoneDegreesGetValue(
-			&dataSet,
+			provider.activeDataSet->dataSet,
         	offset,
         	requiredPropertyIndex);
         if (value != NULL) {
             propertyName = new string(
-            	fiftyoneDegreesGetRequiredPropertiesNames(&dataSet)[
+            	fiftyoneDegreesGetRequiredPropertiesNames(provider.activeDataSet->dataSet)[
             		requiredPropertyIndex]);
             vector<string> *values = &(result->operator[](*propertyName));
             values->insert(values->begin(), string(value));
@@ -375,7 +375,7 @@ void Provider::buildArray(int offset, map<string, vector<string> > *result) {
 }
 
 void Provider::initMatch(Match *match) {
-	match->dataSet = &dataSet;
+	match->dataSet = provider.activeDataSet->dataSet;
 }
 /**
  * Completes device detection for the User-Agent provided.
@@ -386,7 +386,7 @@ Match* Provider::getMatch(const char* userAgent) {
 	fiftyoneDegreesDeviceOffsets* offsets = new fiftyoneDegreesDeviceOffsets();
 	offsets->size = 1;
 	offsets->firstOffset = new fiftyoneDegreesDeviceOffset[1];
-	fiftyoneDegreesSetDeviceOffset(&dataSet, userAgent, 0, offsets->firstOffset);
+	fiftyoneDegreesSetDeviceOffset(provider.activeDataSet->dataSet, userAgent, 0, offsets->firstOffset);
     Match *result = new Match(offsets);
 	initMatch(result);
 	return result;
@@ -419,7 +419,7 @@ Match* Provider::getMatch(const map<string, string>& headers) {
  */
 map<string, vector<string> >& Provider::getMatchMap(const char *userAgent) {
 	map<string, vector<string> > *result = new map<string, vector<string> >();
-	buildArray(fiftyoneDegreesGetDeviceOffset(&dataSet, userAgent), result);
+	buildArray(fiftyoneDegreesGetDeviceOffset(provider.activeDataSet->dataSet, userAgent), result);
 	return *result;
 }
 
@@ -456,8 +456,8 @@ string Provider::getMatchJson(const char* userAgent) {
     string result;
     char *json = new char[JSON_BUFFER_LENGTH];
     fiftyoneDegreesProcessDeviceJSON(
-		&dataSet,
-        fiftyoneDegreesGetDeviceOffset(&dataSet, userAgent),
+		provider.activeDataSet->dataSet,
+        fiftyoneDegreesGetDeviceOffset(provider.activeDataSet->dataSet, userAgent),
         json,
         JSON_BUFFER_LENGTH);
     result.assign(json);
@@ -485,11 +485,23 @@ string Provider::getMatchJson(const map<string, string>& headers) {
 	char *json = new char[JSON_BUFFER_LENGTH];
     fiftyoneDegreesDeviceOffsets *offsets = matchForHttpHeaders(&headers);
     fiftyoneDegreesProcessDeviceOffsetsJSON(
-		&dataSet,
+		provider.activeDataSet->dataSet,
         offsets,
         json,
         JSON_BUFFER_LENGTH);
 	result.assign(json);
 	delete json;
 	return result;
+}
+
+/**
+* Initiates the data set reload process from the same file location that was
+* used to create the current dataset. New dataset will be initialised with
+* exactly the same set of properties, cache size and number of worksets in
+* the workset pool.
+*
+* Function is not thread safe.
+*/
+void Provider::reloadFromFile() {
+	fiftyoneDegreesProviderReloadFromFile(&provider);
 }

@@ -391,6 +391,9 @@ class FiftyOneDegreesTrieV3PINVOKE {
 
   [global::System.Runtime.InteropServices.DllImport("FiftyOne.Mobile.Detection.Provider.Trie.dll", EntryPoint="CSharp_Provider_getMatchJson__SWIG_1")]
   public static extern string Provider_getMatchJson__SWIG_1(global::System.Runtime.InteropServices.HandleRef jarg1, global::System.Runtime.InteropServices.HandleRef jarg2);
+
+  [global::System.Runtime.InteropServices.DllImport("FiftyOne.Mobile.Detection.Provider.Trie.dll", EntryPoint="CSharp_Provider_reloadFromFile")]
+  public static extern void Provider_reloadFromFile(global::System.Runtime.InteropServices.HandleRef jarg1);
 }
 
 }

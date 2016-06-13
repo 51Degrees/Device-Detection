@@ -27,6 +27,7 @@
   <PropertyGroup Label="UserMacros" />
   <PropertyGroup />
   <ItemGroup>
+    <ClCompile Include="..\..\src\threading.c" />
     <ClCompile Include="..\..\src\trie\51Degrees.c" />
     <ClCompile Include="..\..\src\trie\PerfTrie.c" />
   </ItemGroup>

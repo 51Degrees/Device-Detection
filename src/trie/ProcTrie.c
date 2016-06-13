@@ -4,13 +4,14 @@
 #include "51Degrees.h"
 
 int main(int argc, char* argv[]) {
+	fiftyoneDegreesDataSet dataSet;
 	char input[50000], output[50000];
 	char *result;
 
     if (argc > 1) {
       char *fileName = argc > 1 ? argv[1] : NULL;
       char *requiredProperties = argc > 2 ? argv[2] : NULL;
-      switch(fiftyoneDegreesInitWithPropertyString(fileName, requiredProperties)) {
+      switch(fiftyoneDegreesInitWithPropertyString(fileName, &dataSet, requiredProperties)) {
         case DATA_SET_INIT_STATUS_INSUFFICIENT_MEMORY:
           printf("Insufficient memory to load '%s'.", argv[1]);
           break;
@@ -26,7 +27,7 @@ int main(int argc, char* argv[]) {
         default: {
           result = fgets(input, 50000, stdin);
           while(result != 0) {
-            fiftyoneDegreesProcessDeviceCSV(fiftyoneDegreesGetDeviceOffset(input), output, 50000);
+            fiftyoneDegreesProcessDeviceCSV(&dataSet, fiftyoneDegreesGetDeviceOffset(&dataSet, input), output, 50000);
             printf("%s", output);
 
             // Flush buffers.
@@ -36,7 +37,7 @@ int main(int argc, char* argv[]) {
             // Get the next useragent.
             result = fgets(input, 50000, stdin);
           }
-          fiftyoneDegreesDestroy();
+          fiftyoneDegreesDestroy(&dataSet);
           break;
         }
       }

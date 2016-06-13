@@ -103,25 +103,23 @@ Reload from file example that shows how to:
 </tutorial>
 */
 
+#include <stdio.h>
+#include <stdlib.h>
 #ifdef _DEBUG
 #ifdef _MSC_VER
 #define _CRTDBG_MAP_ALLOC
-#include <stdlib.h>
 #include <crtdbg.h>
 #else
 #include "dmalloc.h"
 #endif
 #endif
 
-// Snippet Start
-#include <stdio.h>
-#include <stdlib.h>
-#include <string.h>
 #ifdef _MSC_VER
 #include <Windows.h>
 #else
 #include <unistd.h>
 #endif
+// Snippet Start
 #include "../src/pattern/51Degrees.h"
 #include "../src/threading.h"
 

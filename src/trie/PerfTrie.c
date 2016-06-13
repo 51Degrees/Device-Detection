@@ -3,7 +3,6 @@
 #include <time.h>
 #include <string.h>
 #include <limits.h>
-#include "../threading.h"
 #include "51Degrees.h"
 
 /* *********************************************************************
@@ -59,6 +58,8 @@ typedef struct t_performance_state {
 	int numberOfThreads;
 } PERFORMANCE_STATE;
 
+fiftyoneDegreesDataSet dataSet;
+
 // Prints a progress bar
 void printLoadBar(PERFORMANCE_STATE *state) {
 	int i;
@@ -92,7 +93,7 @@ void reportProgress(PERFORMANCE_STATE *perfState, int count, int device, int pro
 	// If in real detection mode then print the id of the device found
 	// to prove it's actually doing something!
 	if (perfState->calibrate == 0) {
-		printf(" %s  ", fiftyoneDegreesGetValue(device, propertyIndex));
+		printf(" %s  ", fiftyoneDegreesGetValue(&dataSet, device, propertyIndex));
 	}
 
 #ifndef FIFTYONEDEGREES_NO_THREADING
@@ -106,7 +107,7 @@ void runPerformanceTest(void* state) {
 	const char *result;
 	char userAgent[BUFFER];
 	int device = INT_MAX;
-	int propertyIndex = fiftyoneDegreesGetPropertyIndex("Id");
+	int propertyIndex = fiftyoneDegreesGetPropertyIndex(&dataSet, "Id");
 	FILE *inputFilePtr = fopen(perfState->fileName, "r");
 	int count = 0;
 
@@ -118,7 +119,7 @@ void runPerformanceTest(void* state) {
 		// If we're not calibrating then get the device for the
 		// useragent that has just been read.
 		if (strlen(userAgent) < 1024 && perfState->calibrate == 0) {
-			device = fiftyoneDegreesGetDeviceOffset(userAgent);
+			device = fiftyoneDegreesGetDeviceOffset(&dataSet, userAgent);
 		}
 
 		// Increase the local counter.
@@ -276,7 +277,7 @@ int main(int argc, char* argv[]) {
 		char *requiredProperties = argc > 3 ? argv[3] : NULL;
 
 		fiftyoneDegreesDataSetInitStatus status = DATA_SET_INIT_STATUS_SUCCESS;
-		status = fiftyoneDegreesInitWithPropertyString(fileName, requiredProperties);
+		status = fiftyoneDegreesInitWithPropertyString(fileName, &dataSet, requiredProperties);
 		switch (status) {
 		case DATA_SET_INIT_STATUS_INSUFFICIENT_MEMORY:
 			printf("Insufficient memory to load '%s'.", argv[1]);
@@ -306,7 +307,7 @@ int main(int argc, char* argv[]) {
 		}
 
 		// Free the memory used by the trie detector.
-		fiftyoneDegreesDestroy();
+		fiftyoneDegreesDestroy(&dataSet);
 
 		// Wait for a character to be pressed.
 		fgetc(stdin);

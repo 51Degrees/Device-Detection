@@ -42,6 +42,13 @@
 #define EXTERNAL
 #endif
 
+#ifdef _MSC_VER
+/* Needs to be set to __cdecl to prevent optimiser problems */
+#define CALL_CONV __cdecl
+#else
+#define CALL_CONV
+#endif
+
 #include <stdint.h>
 #include <limits.h>
 #include <time.h>
@@ -338,7 +345,7 @@ typedef struct fiftyoneDegrees_dataset_t {
 	const int32_t *nodeRankedSignatureIndexes;
 	const int32_t *rankedSignatureIndexes;
 	const byte *nodes;
-	const fiftyoneDegreesNode **rootNodes;
+	const fiftyoneDegreesNode **rootNodes; /* Array of root nodes equal to the size of the max user agent length */
 	const fiftyoneDegreesProfileOffset *profileOffsets;
 	int32_t httpHeadersCount; /* Number of unique HTTP headers in the array */
 	fiftyoneDegreesHttpHeader *httpHeaders; /* Array of HTTP headers the data set can process */
@@ -571,9 +578,9 @@ EXTERNAL fiftyoneDegreesDataSetInitStatus fiftyoneDegreesInitProviderWithPropert
 /**
  * \ingroup FiftyOneDegreesFunctions
  * Creates a new dataset, pool and cache using the same configuration options
- * as the current data set, pool and cache associated with the provider. The 
- * original file location is used to create the new data set. 
- * The exisitng data set, pool and cache are marked to be freed if worksets are 
+ * as the current data set, pool and cache associated with the provider. The
+ * original file location is used to create the new data set.
+ * The exisitng data set, pool and cache are marked to be freed if worksets are
  * being used by other threads, or if no work sets are in use they are freed
  * immediately.
  * @param provider pointer to the provider whose data set should be reloaded
@@ -609,9 +616,9 @@ EXTERNAL fiftyoneDegreesDataSetInitStatus fiftyoneDegreesProviderReloadFromMemor
 	void *source,
 	long length);
 
-/** 
+/**
  * \ingroup FiftyOneDegreesFunctions
- * Releases all the resources used by the provider. The provider can not be 
+ * Releases all the resources used by the provider. The provider can not be
  * used without being reinitialised after calling this method.
  * @param provider pointer to the provider to be freed
  */
@@ -620,7 +627,7 @@ EXTERNAL void fiftyoneDegreesProviderFree(fiftyoneDegreesProvider *provider);
 /**
  * \ingroup FiftyOneDegreesFunctions
  * Retrieves a work set from the pool associated with the provider. In multi
- * threaded operation will always return a work set. In single threaded 
+ * threaded operation will always return a work set. In single threaded
  * operation may return NULL if no work sets are available in the pool.
  * The work set returned must be released back to the provider by calling
  * fiftyoneDegreesWorksetRelease when finished with.
@@ -1093,6 +1100,82 @@ EXTERNAL void fiftyoneDegreesFreeProfilesStruct(
 	fiftyoneDegreesProfilesStruct *profiles);
 
 /**
+ * \ingroup FiftyOneDegreesFunctions
+ * Malloc function, defaults to malloc.
+ * @param __size the size of memory to allocate.
+ * @returns void* pointer to allocated memory.
+ */
+EXTERNAL void *(CALL_CONV *fiftyoneDegreesMalloc)(size_t __size);
+
+/**
+ * \ingroup FiftyOneDegreesFunctions
+ * Calloc function, defaults to calloc.
+ * @param __nmemb the number of elements to allocate.
+ * @param __size the size of memory to allocate for each element.
+ * @returns void* pointer to allocated memory.
+ */
+EXTERNAL void *(CALL_CONV *fiftyoneDegreesCalloc)(size_t __nmemb, size_t __size);
+
+/**
+ * \ingroup FiftyOneDegreesFunctions
+ * Free function, defaults to free.
+ * @param __ptr the pointer to memory to be freed.
+ */
+EXTERNAL void (CALL_CONV *fiftyoneDegreesFree)(void *__ptr);
+
+/**
+* \ingroup FiftyOneDegreesFunctions
+* Calculates the amount of memory that the provider will need to allocate for
+* the given data file and initialisation parameters. This should be used with
+* the fiftyoneDegreesInitProviderWithPropertyString function.
+* NOTE: This function will over estimate by about 10 bytes to account for a
+* possible increase in http headers.
+* @param fileName the file path of the data file.
+* @param properties the comma separated string of properties that will be
+* initialised.
+* @param poolSize the number of worksets the pool will contain.
+* @param cacheSize the size of the resultset cache.
+* @return size_t the total size in bytes that is needed to initilaise the
+* provider with the given parameters.
+*/
+EXTERNAL size_t fiftyoneDegreesGetProviderSizeWithPropertyString(
+	const char *fileName,
+	const char *properties,
+	int poolSize,
+	int cacheSize);
+
+/**
+* \ingroup FiftyOneDegreesFunctions
+* Calculates the amount of memory that the provider will need to allocate for
+* the given data file and initialisation parameters. This should be used with
+* the fiftyoneDegreesInitProviderWithPropertyArray function.
+* NOTE: This function will over estimate by about 10 bytes to account for a
+* possible increase in http headers.
+* @param fileName the file path of the data file.
+* @param propertyCount the number of properties in the properties array.
+* @param poolSize the number of worksets the pool will contain.
+* @param cacheSize the size of the resultset cache.
+* @return size_t the total size in bytes that is needed to initialise the
+* provider with the given parameters.
+*/
+EXTERNAL size_t fiftyoneDegreesGetProviderSizeWithPropertyCount(
+	const char *fileName,
+	int propertyCount,
+	int poolSize,
+	int cacheSize);
+
+/**
+* \ingroup FiftyOneDegreesFunctions
+* Finds the maximum string length of the values associated with the given
+* property name.
+* @param dataSet pointer to a fiftyoneDegreesDataSet.
+* @param propertyName the name of the property to find the value length for.
+* @returns size_t the maximum string length of the values associated with the
+* given property.
+*/
+EXTERNAL size_t fiftyoneDegreesGetMaxValueLength(const fiftyoneDegreesDataSet *dataSet, char *propertyName);
+
+/**
  * OBSOLETE METHODS - RETAINED FOR BACKWARDS COMPAITABILITY
  */
 
@@ -1116,4 +1199,3 @@ EXTERNAL void fiftyoneDegreesDestroy(const fiftyoneDegreesDataSet *dataSet);
 EXTERNAL void fiftyoneDegreesWorksetPoolRelease(fiftyoneDegreesWorksetPool *pool, fiftyoneDegreesWorkset *ws);
 
 #endif // 51DEGREES_H_INCLUDED
-

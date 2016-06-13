@@ -15,21 +15,21 @@
     </Filter>
   </ItemGroup>
   <ItemGroup>
-    <ClCompile Include="..\..\src\trie\51Degrees.c">
+    <ClCompile Include="..\..\..\src\threading.c">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="..\..\src\trie\PerfTrie.c">
+    <ClCompile Include="..\..\..\src\trie\51Degrees.c">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="..\..\src\threading.c">
+    <ClCompile Include="..\..\..\examples\ReloadFromMemoryTrie.c">
       <Filter>Source Files</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>
-    <ClInclude Include="..\..\src\trie\51Degrees.h">
+    <ClInclude Include="..\..\..\src\threading.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="..\..\src\threading.h">
+    <ClInclude Include="..\..\..\src\trie\51Degrees.h">
       <Filter>Header Files</Filter>
     </ClInclude>
   </ItemGroup>
