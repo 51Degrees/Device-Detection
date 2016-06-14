@@ -263,7 +263,6 @@ void Provider::initException(
 			"allocated memory.");
 		break;
 	default:
-	default:
 	case DATA_SET_INIT_STATUS_NOT_SET:
 		throw runtime_error("Could not create data set from file.");
 		break;
