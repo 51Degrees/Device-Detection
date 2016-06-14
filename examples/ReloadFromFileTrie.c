@@ -23,15 +23,14 @@
 Reload from file example that shows how to:
 <ol>
 <li>Use the fiftyoneDegreesDatasetReloadFromFile function to reload the
-dataset, from the same location and with the same set of properties.
-<li>Run detections on the current User-Agent.
+dataset from the same location and with the same set of properties.
 <li>Use the reload functionality in a single threaded environment.
+<li>Use the reload functionality in a multi threaded environment.
 </ol>
 <p>
 This example illustrates how to use a single reference to the provider
 structure to use device detection and invoke the reload functionality
-instead of maintaining a reference to the dataset, pool and cache
-structures separately.
+instead of maintaining a reference to the dataset.
 <p><pre class="prettyprint lang-c">
 fiftyoneDegreesProvider provider;
 </pre></p>
@@ -62,6 +61,12 @@ can be achieved by simply comparing the number of properties before and
 after the reload as the number can not go up but it can go down.
 </p>
 <p>
+The reload functionality works both with the single threaded as well as the
+multi threaded modes. To try the reload functionality in single threaded
+mode build with FIFTYONEDEGREES_NO_THREADING defined. Or build without
+FIFTYONEDEGREES_NO_THREADING for multi threaded example.
+</p>
+<p>
 In a single threaded environment the reload function is executed as part of
 the normal flow of the program execution and will prevent any other actions
 until the reload is complete. The reload itself takes less than half a
@@ -70,12 +75,6 @@ https://51degrees.com/Support/Documentation/APIs/C-V32/Benchmarks
 </p>
 </tutorial>
 */
-
-#ifdef _MSC_VER
-#include <Windows.h>
-#else
-#include <unistd.h>
-#endif
 
 #include <stdio.h>
 #include <stdlib.h>
@@ -88,11 +87,23 @@ https://51degrees.com/Support/Documentation/APIs/C-V32/Benchmarks
 #endif
 #endif
 
+#ifdef _MSC_VER
+#include <Windows.h>
+#else
+#include <unistd.h>
+#endif
 // Snippet Start
 #include "../src/trie/51Degrees.h"
+#include "../src/threading.h"
 
-// Global provider declaration.
+// Global settings and properties.
 static fiftyoneDegreesProvider provider;
+#ifndef FIFTYONEDEGREES_NO_THREADING
+static FIFTYONEDEGREES_THREAD *threads;
+static const int numberOfThreads = 50;
+static volatile int threadsFinished = 0;
+FIFTYONEDEGREES_MUTEX lock;
+#endif
 
 // Function declarations.
 static void reportDatasetInitStatus(
@@ -100,7 +111,13 @@ static void reportDatasetInitStatus(
 	const char* fileName);
 static unsigned long hash(unsigned char *value);
 static unsigned long getHashCode(fiftyoneDegreesDeviceOffsets *offsets);
+#ifndef FIFTYONEDEGREES_NO_THREADING
+static void startThreads(const char* inputFile);
+static void stopThreads();
+static void runRequests(void* inputFile);
+#else
 static int runRequest(const char *inputFile);
+#endif
 
 int main(int argc, char* argv[]) {
 
@@ -122,20 +139,43 @@ int main(int argc, char* argv[]) {
 
 	int numberOfReloads = 0;
 
+#ifndef FIFTYONEDEGREES_NO_THREADING
+	printf("** Multi Threaded Reload Example **\r\n");
+#else
 	printf("** Single Threaded Reload Example **\r\n");
+#endif
 
-
-	// Initialise the provider.
-	fiftyoneDegreesDataSetInitStatus status = fiftyoneDegreesInitProviderWithPropertyString(fileName, &provider, requiredProperties);
+	// Create a provider with the required properties.
+	fiftyoneDegreesDataSetInitStatus status =
+		fiftyoneDegreesInitProviderWithPropertyString(
+		fileName, &provider, requiredProperties);
 	if (status != DATA_SET_INIT_STATUS_SUCCESS) {
 		reportDatasetInitStatus(status, fileName);
 		fgetc(stdin);
 		return 1;
 	}
 
+#ifndef FIFTYONEDEGREES_NO_THREADING
+	FIFTYONEDEGREES_MUTEX_CREATE(lock);
+	if (FIFTYONEDEGREES_MUTEX_VALID(&lock)) {
+		startThreads(inputFile);
+		while (threadsFinished < numberOfThreads) {
+			status = fiftyoneDegreesProviderReloadFromFile(&provider);
+			numberOfReloads++;
+#ifdef _MSC_VER
+			Sleep(1000); // milliseconds
+#else
+			sleep(1); // seconds
+#endif
+		}
+		stopThreads();
+		FIFTYONEDEGREES_MUTEX_CLOSE(lock);
+	}
+#else
 	numberOfReloads = runRequest(inputFile);
+#endif
 
-	// Free the provider.
+	// Free the dataset.
 	fiftyoneDegreesProviderFree(&provider);
 
 	// Finish execution.
@@ -155,8 +195,62 @@ int main(int argc, char* argv[]) {
 	return 0;
 }
 
+#ifndef FIFTYONEDEGREES_NO_THREADING
+
 /**
-* Demonstrates the dataset reload functionality in a single
+* Starts threads that run device detection. Must be done after the dataset
+* has been initialized.
+*/
+static void startThreads(const char* inputFile) {
+	threads = (FIFTYONEDEGREES_THREAD*)malloc(sizeof(FIFTYONEDEGREES_THREAD) * numberOfThreads);
+	int thread;
+	for (thread = 0; thread < numberOfThreads; thread++) {
+		FIFTYONEDEGREES_THREAD_CREATE(threads[thread], (void*)&runRequests, (void*)inputFile);
+	}
+}
+
+/**
+* Stops the threads and frees the memory occupied by the threads.
+*/
+static void stopThreads() {
+	int thread;
+	for (thread = 0; thread < numberOfThreads; thread++) {
+		FIFTYONEDEGREES_THREAD_JOIN(threads[thread]);
+	}
+	free(threads);
+}
+
+/**
+* Demonstrates the dataset reload functionality in a multi
+* threaded environment.
+*
+* @param inputFile containing HTTP User-Agent strings.
+*/
+static void runRequests(void* inputFile) {
+	fiftyoneDegreesDeviceOffsets *offsets;
+	unsigned long hashCode = 0;
+	char userAgent[1000];
+	FILE* fin = fopen((const char*)inputFile, "r");
+
+	while (fgets(userAgent, sizeof(userAgent), fin) != NULL) {
+		offsets = fiftyoneDegreesCreateDeviceOffsets(provider.active->dataSet);
+		offsets->size = 1;
+		fiftyoneDegreesSetDeviceOffset(provider.active->dataSet, userAgent, 0, offsets->firstOffset);
+		hashCode ^= getHashCode(offsets);
+		fiftyoneDegreesFreeDeviceOffsets(offsets);
+	}
+
+	fclose(fin);
+	printf("Finished with hashcode '%lu'\r\n", hashCode);
+	FIFTYONEDEGREES_MUTEX_LOCK(&lock);
+	threadsFinished++;
+	FIFTYONEDEGREES_MUTEX_UNLOCK(&lock);
+}
+
+#else
+
+/**
+* Demonstrates the datasetreload functionality in a single
 * threaded environment. Since only one thread is available the reload will
 * be done as part of the program flow and detection will not be available for
 * the very short time that the dataset is being reloaded.
@@ -192,6 +286,8 @@ static int runRequest(const char *inputFile) {
 	printf("Finished with hashcode '%lu'\r\n", hashCode);
 	return numberOfReloads;
 }
+
+#endif
 
 /**
 * Returns a basic hashcode for the string value provided.
@@ -242,6 +338,14 @@ static void reportDatasetInitStatus(fiftyoneDegreesDataSetInitStatus status,
 		break;
 	case DATA_SET_INIT_STATUS_FILE_NOT_FOUND:
 		printf("Device data file '%s' not found.", fileName);
+		break;
+	case DATA_SET_INIT_STATUS_NULL_POINTER:
+		printf("Null pointer to the existing dataset or memory location.");
+		break;
+	case DATA_SET_INIT_STATUS_POINTER_OUT_OF_BOUNDS:
+		printf("Allocated continuous memory containing 51Degrees data file "
+			"appears to be smaller than expected. Most likely because the"
+			" data file was not fully loaded into the allocated memory.");
 		break;
 	default:
 		printf("Device data file '%s' could not be loaded.", fileName);

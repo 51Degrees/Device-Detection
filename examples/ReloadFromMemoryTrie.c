@@ -186,7 +186,7 @@ int main(int argc, char* argv[]) {
 	printf("** Single Threaded Reload Example **\r\n");
 #endif
 
-	// Create a pool of 4 worksets with a cache for 1000 items.
+	// Create a new provider with the required properties.
 	fiftyoneDegreesDataSetInitStatus status =
 		fiftyoneDegreesInitProviderWithPropertyString(
 		fileName, provider, requiredProperties);
@@ -225,7 +225,7 @@ int main(int argc, char* argv[]) {
 	numberOfReloads = runRequest(inputFile);
 #endif
 
-	// Free the pool, dataset and cache.
+	// Free the dataset.
 	fiftyoneDegreesProviderFree(provider);
 	free(provider);
 
@@ -249,8 +249,8 @@ int main(int argc, char* argv[]) {
 #ifndef FIFTYONEDEGREES_NO_THREADING
 
 /**
-* Starts threads that run device detection. Must be done after the dataset,
-* cache and workset pool have been initialized.
+* Starts threads that run device detection. Must be done after the dataset
+* has been initialized.
 */
 static void startThreads(const char* inputFile) {
 	threads = (FIFTYONEDEGREES_THREAD*)malloc(sizeof(FIFTYONEDEGREES_THREAD) * numberOfThreads);
@@ -272,11 +272,8 @@ static void stopThreads() {
 }
 
 /**
-* Demonstrates the dataset, pool and cache reload functionality in a multi
-* threaded environment. When a workset is returned to the pool of worksets
-* a check is carried out to see if the pool is now inactive and all of the
-* worksets have been returned. If both conditions are met the pool is
-* freed along with the underlying dataset and cache.
+* Demonstrates the dataset reload functionality in a multi
+* threaded environment. 
 *
 * @param inputFile containing HTTP User-Agent strings.
 */
@@ -304,17 +301,17 @@ static void runRequests(void* inputFile) {
 #else
 
 /**
-* Demonstrates the dataset, pool and cache reload functionality in a single
+* Demonstrates the dataset reload functionality in a single
 * threaded environment. Since only one thread is available the reload will
 * be done as part of the program flow and detection will not be available for
-* the very short time that the dataset, pool and cache are being reloaded.
+* the very short time that the dataset is being reloaded.
 *
 * The reload happens every 500 requests. The total number of dataset reloads
 * is then returned.
 *
 * @param inputFile containing HTTP User-Agent strings to use with device
 *		  detection.
-* @return number of times the dataset, pool and cache were reloaded.
+* @return number of times the dataset was reloaded.
 */
 
 static int runRequest(const char *inputFile) {
