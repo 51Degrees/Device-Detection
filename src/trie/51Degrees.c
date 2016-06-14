@@ -331,19 +331,8 @@ static fiftyoneDegreesDataSetInitStatus setDataSetFileName(
  * \endcond
  */
 fiftyoneDegreesDataSetInitStatus readFile(char* fileName, fiftyoneDegreesDataSet *dataSet) {
-#define READMETHODS 8
 	fiftyoneDegreesDataSetInitStatus status = DATA_SET_INIT_STATUS_SUCCESS;
 	FILE *inputFilePtr;
-	int readMethod;
-	fiftyoneDegreesDataSetInitStatus(*m[READMETHODS]) (fiftyoneDegreesDataSet *dataSet, FILE *inputFilePtr);
-	m[0] = readVersion;
-	m[1] = readCopyright;
-	m[2] = readStrings;
-	m[3] = readHttpHeaders;
-	m[4] = readProperties;
-	m[5] = readDevices;
-	m[6] = readLookupList;
-	m[7] = readNodes;
 
 	// Open the file and hold on to the pointer.
 #ifndef _MSC_FULL_VER
@@ -368,13 +357,55 @@ fiftyoneDegreesDataSetInitStatus readFile(char* fileName, fiftyoneDegreesDataSet
 
 	// Read the various data segments if the version is
 	// one we can read.
-	for (readMethod = 0; readMethod < READMETHODS; readMethod++) {
-		status = m[readMethod](dataSet, inputFilePtr);
-		if (status != DATA_SET_INIT_STATUS_SUCCESS) {
-			fiftyoneDegreesDestroy(dataSet);
-			break;
-		}
+	status = readVersion(dataSet, inputFilePtr);
+	if (status != DATA_SET_INIT_STATUS_SUCCESS) {
+		fiftyoneDegreesDestroy(dataSet);
+		fclose(inputFilePtr);
+		return status;
 	}
+	status = readCopyright(dataSet, inputFilePtr);
+	if (status != DATA_SET_INIT_STATUS_SUCCESS) {
+		fiftyoneDegreesDestroy(dataSet);
+		fclose(inputFilePtr);
+		return status;
+	}
+	status = readStrings(dataSet, inputFilePtr);
+	if (status != DATA_SET_INIT_STATUS_SUCCESS) {
+		fiftyoneDegreesDestroy(dataSet);
+		fclose(inputFilePtr);
+		return status;
+	}
+	status = readHttpHeaders(dataSet, inputFilePtr);
+	if (status != DATA_SET_INIT_STATUS_SUCCESS) {
+		fiftyoneDegreesDestroy(dataSet);
+		fclose(inputFilePtr);
+		return status;
+	}
+	status = readProperties(dataSet, inputFilePtr);
+	if (status != DATA_SET_INIT_STATUS_SUCCESS) {
+		fiftyoneDegreesDestroy(dataSet);
+		fclose(inputFilePtr);
+		return status;
+	}
+	status = readDevices(dataSet, inputFilePtr);
+	if (status != DATA_SET_INIT_STATUS_SUCCESS) {
+		fiftyoneDegreesDestroy(dataSet);
+		fclose(inputFilePtr);
+		return status;
+	}
+	status = readLookupList(dataSet, inputFilePtr);
+	if (status != DATA_SET_INIT_STATUS_SUCCESS) {
+		fiftyoneDegreesDestroy(dataSet);
+		fclose(inputFilePtr);
+		return status;
+	}
+	status = readNodes(dataSet, inputFilePtr);
+	if (status != DATA_SET_INIT_STATUS_SUCCESS) {
+		fiftyoneDegreesDestroy(dataSet);
+		fclose(inputFilePtr);
+		return status;
+	}
+
 	fclose(inputFilePtr);
 
 	// Initialise prefixed HTTP headers so they are
