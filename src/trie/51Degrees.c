@@ -740,7 +740,7 @@ static fiftyoneDegreesDataSetInitStatus setPropertiesFromExistingDataset(
 		// Count the number of valid properties.
 		requiredProperty = oldDataSet->properties + oldDataSet->requiredProperties[propertyIndex];
 		requiredPropertyName = oldDataSet->strings + requiredProperty->stringOffset;
-		requiredPropertyLength = strlen(requiredPropertyName);
+		requiredPropertyLength = (int16_t)strlen(requiredPropertyName);
 
 		// For each of the available properties in the new dataset:
 		for (index = 0; index < newDataSet->propertiesCount; index++) {

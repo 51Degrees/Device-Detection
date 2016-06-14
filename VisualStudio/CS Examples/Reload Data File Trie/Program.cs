@@ -92,13 +92,13 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
-using FiftyOne.Mobile.Detection.Provider.Interop.Pattern;
+using FiftyOne.Mobile.Detection.Provider.Interop.Trie;
 using System.IO;
 using System.Threading;
 using System.Collections.Concurrent;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 
-namespace FiftyOne.Example.Illustration.CSharp.Reload_Data_File
+namespace FiftyOne.Example.Illustration.CSharp.Reload_Data_File_Trie
 {
     public class Program
     {
@@ -189,9 +189,9 @@ namespace FiftyOne.Example.Illustration.CSharp.Reload_Data_File
             Match match;
 
             // Open file containing User-Agent strings for read.
-            using (FileStream fs = File.Open(userAgentsFile, 
-                    FileMode.Open, 
-                    FileAccess.Read, 
+            using (FileStream fs = File.Open(userAgentsFile,
+                    FileMode.Open,
+                    FileAccess.Read,
                     FileShare.ReadWrite))
             using (BufferedStream bs = new BufferedStream(fs))
             using (StreamReader sr = new StreamReader(bs))
@@ -201,7 +201,7 @@ namespace FiftyOne.Example.Illustration.CSharp.Reload_Data_File
                 while ((line = sr.ReadLine()) != null)
                 {
                     // Performs detection. Disposes of match.
-                    using (match = provider.getMatch(line)) 
+                    using (match = provider.getMatch(line))
                     {
                         // Compute hash for this match.
                         hash ^= getHash(match);
@@ -214,7 +214,7 @@ namespace FiftyOne.Example.Illustration.CSharp.Reload_Data_File
             // Report on the progress
             cb.Add(hash);
             Interlocked.Increment(ref threadsFinished);
-            Console.WriteLine("Thread complete with hash code: " + hash + 
+            Console.WriteLine("Thread complete with hash code: " + hash +
                               " and records processed: " + recordsProcessed);
         }
 
@@ -232,7 +232,7 @@ namespace FiftyOne.Example.Illustration.CSharp.Reload_Data_File
         public static long getHash(Match match)
         {
             long hash = 0L;
-            foreach(var property in provider.getAvailableProperties()) 
+            foreach (var property in provider.getAvailableProperties())
             {
                 hash += match.getValue(property).GetHashCode();
             }
@@ -254,7 +254,7 @@ namespace FiftyOne.Example.Illustration.CSharp.Reload_Data_File
         /// </param>
         public static void Main(string[] args)
         {
-            string fileName = args.Length > 0 ? args[0] : "../../../../../../data/51Degrees-LiteV3.2.dat";
+            string fileName = args.Length > 0 ? args[0] : "../../../../../../data/51Degrees-LiteV3.2.trie";
             string userAgents = args.Length > 1 ? args[1] : "../../../../../../data/20000 User Agents.csv";
             string properties = args.Length > 2 ? args[2] : "IsMobile,BrowserName";
             Program program = new Program(fileName, userAgents, properties);

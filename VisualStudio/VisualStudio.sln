@@ -116,6 +116,8 @@ Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "Reload From File Trie", "Ex
 EndProject
 Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "Reload From Memory Trie", "Examples\Reload From Memory Trie\Reload From Memory Trie.vcxproj", "{890B74F4-D72A-4F93-A500-4EF2196CB3EB}"
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Reload Data File Trie", "CS Examples\Reload Data File Trie\Reload Data File Trie.csproj", "{6F099305-7E81-4FD6-B803-43C2500A1212}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -560,6 +562,18 @@ Global
 		{890B74F4-D72A-4F93-A500-4EF2196CB3EB}.Release|Win32.ActiveCfg = Release|Win32
 		{890B74F4-D72A-4F93-A500-4EF2196CB3EB}.Release|Win32.Build.0 = Release|Win32
 		{890B74F4-D72A-4F93-A500-4EF2196CB3EB}.Release|x64.ActiveCfg = Release|Win32
+		{6F099305-7E81-4FD6-B803-43C2500A1212}.Debug|Any CPU.ActiveCfg = Debug|x64
+		{6F099305-7E81-4FD6-B803-43C2500A1212}.Debug|Mixed Platforms.ActiveCfg = Debug|x64
+		{6F099305-7E81-4FD6-B803-43C2500A1212}.Debug|Mixed Platforms.Build.0 = Debug|x64
+		{6F099305-7E81-4FD6-B803-43C2500A1212}.Debug|Win32.ActiveCfg = Debug|x64
+		{6F099305-7E81-4FD6-B803-43C2500A1212}.Debug|x64.ActiveCfg = Debug|x64
+		{6F099305-7E81-4FD6-B803-43C2500A1212}.Debug|x64.Build.0 = Debug|x64
+		{6F099305-7E81-4FD6-B803-43C2500A1212}.Release|Any CPU.ActiveCfg = Release|x64
+		{6F099305-7E81-4FD6-B803-43C2500A1212}.Release|Mixed Platforms.ActiveCfg = Release|x64
+		{6F099305-7E81-4FD6-B803-43C2500A1212}.Release|Mixed Platforms.Build.0 = Release|x64
+		{6F099305-7E81-4FD6-B803-43C2500A1212}.Release|Win32.ActiveCfg = Release|x64
+		{6F099305-7E81-4FD6-B803-43C2500A1212}.Release|x64.ActiveCfg = Release|x64
+		{6F099305-7E81-4FD6-B803-43C2500A1212}.Release|x64.Build.0 = Release|x64
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
@@ -602,5 +616,6 @@ Global
 		{BD9C0186-0952-487A-A0F9-90DE7C8CBA84} = {265E957D-344C-4140-9A1F-EE18B729F462}
 		{174B912F-4CB9-4EE9-A6E5-65BB94948B6E} = {DF20EFCE-8171-4272-A5A2-44E75A07B3C5}
 		{890B74F4-D72A-4F93-A500-4EF2196CB3EB} = {DF20EFCE-8171-4272-A5A2-44E75A07B3C5}
+		{6F099305-7E81-4FD6-B803-43C2500A1212} = {265E957D-344C-4140-9A1F-EE18B729F462}
 	EndGlobalSection
 EndGlobal
