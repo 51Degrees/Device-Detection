@@ -109,6 +109,16 @@ void Provider::initException(
 				"permissions.";
 			throw invalid_argument(message.str());
 			break;
+		case DATA_SET_INIT_STATUS_NULL_POINTER:
+			throw runtime_error("Null pointer to the existing dataset or memory"
+				" location.");
+			break;
+		case DATA_SET_INIT_STATUS_POINTER_OUT_OF_BOUNDS:
+			throw runtime_error("Allocated continuous memory containing "
+				"51Degrees data file appears to be smaller than expected. Most"
+				" likely because the data file was not fully loaded into the "
+				"allocated memory.");
+			break;
 		default:
 		case DATA_SET_INIT_STATUS_NOT_SET:
 			throw runtime_error("Could not create data set from file.");
