@@ -312,7 +312,7 @@ static fiftyoneDegreesDataSetInitStatus readComponents(
  * The new dataset is created with exactly the same set of properties as found
  * within the old dataset.
  *
- * If the new data file does not ontain one or more property(ies) that the old
+ * If the new data file does not obtain one or more property(ies) that the old
  * dataset was initialised with, then these properties will not be
  * initialised in the new dataset.
  *
@@ -473,7 +473,7 @@ static fiftyoneDegreesDataSetInitStatus reloadCommon(
  * @param dataSet to be initialised with data from the provided pointer to
  *		 continuous memory space.
  * @param length number of bytes that the file occupies in memory.
- *		 ALso corresponds to the last byte within the continuous memory
+ *		 Also corresponds to the last byte within the continuous memory
  *		 space.
  * @return dataset initialisation status.
  * \endcond
@@ -729,6 +729,26 @@ static fiftyoneDegreesDataSetInitStatus initFromFile(
 	return setDataSetFileName(dataSet, fileName);
 }
 
+/**
+* \cond
+* Creates a new dataset, pool and cache using the same configuration options
+* as the current data set, pool and cache associated with the provider. The
+* data file which the provider was initialised with  is used to create the 
+* new data set. The exisitng data set, pool and cache are marked to be freed
+* if worksets are being used by other threads, or if no work sets are in use
+* they are freed immediately.
+* Important: The memory pointed to by source will NOT be freed by 51Degrees
+* when the associated data set is freed. The caller is responsible for
+* releasing the memory. If 51Degrees should release the memory then the
+* caller should set the memoryToFree field of the data set associated with
+* the returned pool to source. 51Degrees will then free this memory when the
+* pool, data set and cache are freed after the last work set is returned to
+* the pool.
+* @param provider pointer to the provider whose data set should be reloaded
+* @return fiftyoneDegreesDataSetInitStatus indicating the result of the reload
+* 	   operation.
+* \endcond
+*/
 fiftyoneDegreesDataSetInitStatus fiftyoneDegreesProviderReloadFromFile(
 	fiftyoneDegreesProvider *provider) {
 	fiftyoneDegreesDataSetInitStatus status = DATA_SET_INIT_STATUS_NOT_SET;
@@ -772,7 +792,7 @@ fiftyoneDegreesDataSetInitStatus fiftyoneDegreesProviderReloadFromFile(
  * pool, data set and cache are freed after the last work set is returned to
  * the pool.
  * @param provider pointer to the provider whose data set should be reloaded
- * @param provider pointer to the provider whose data set should be reloaded.
+ * @param source pointer to the dataset held in memory.
  * @param length number of bytes that the file occupies in memory.
  * @return fiftyoneDegreesDataSetInitStatus indicating the result of the reload
  * 	   operation.
@@ -1501,7 +1521,7 @@ static void setProperties(fiftyoneDegreesDataSet *dataSet, const char** properti
 	}
 }
 
- /**
+/**
  * \cond
  * Gets the number of separators in the char array
  * @param input char array containing separated values

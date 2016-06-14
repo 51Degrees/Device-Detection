@@ -45,7 +45,16 @@
 void *(FIFTYONEDEGREES_CALL_CONV *fiftyoneDegreesMalloc)(size_t __size) = malloc;
 void (FIFTYONEDEGREES_CALL_CONV *fiftyoneDegreesFree)(void *__ptr) = free;
 
-// Reads the strings from the file.
+/**
+ * \cond
+ * Reads the strings from the file.
+ * @param dataSet a pointer to the dataset to be read into.
+ * @param inputFilePtr a file pointer to read the from (the pointer
+ * must be at the correct position in the file).
+ * @returns fiftyoneDegreesDataSetInitStatus indicates whether or not the read
+ * was successful.
+ * \endcond
+ */
 fiftyoneDegreesDataSetInitStatus readStrings(fiftyoneDegreesDataSet *dataSet, FILE *inputFilePtr) {
 	if (fread(&dataSet->stringsSize, sizeof(int32_t), 1, inputFilePtr) != 1)
 		return DATA_SET_INIT_STATUS_CORRUPT_DATA;
@@ -57,7 +66,16 @@ fiftyoneDegreesDataSetInitStatus readStrings(fiftyoneDegreesDataSet *dataSet, FI
 	return DATA_SET_INIT_STATUS_SUCCESS;
 }
 
-// Reads the HTTP headers from the file.
+/**
+ * \cond
+ * Reads the HTTP headers from the file.
+ * @param dataSet a pointer to the dataset to be read into.
+ * @param inputFilePtr a file pointer to read the from (the pointer
+ * must be at the correct position in the file).
+ * @returns fiftyoneDegreesDataSetInitStatus indicates whether or not the read
+ * was successful.
+ * \endcond
+ */
 fiftyoneDegreesDataSetInitStatus readHttpHeaders(fiftyoneDegreesDataSet *dataSet, FILE *inputFilePtr) {
 	int headerIndex, uniqueHeaderIndex;
 	if (fread(&dataSet->httpHeadersSize, sizeof(int32_t), 1, inputFilePtr) != 1)
@@ -89,7 +107,16 @@ fiftyoneDegreesDataSetInitStatus readHttpHeaders(fiftyoneDegreesDataSet *dataSet
 	return DATA_SET_INIT_STATUS_SUCCESS;
 }
 
-// Reads the properties from the file.
+/**
+ * \cond
+ * Reads the properties from the file.
+ * @param dataSet a pointer to the dataset to be read into.
+ * @param inputFilePtr a file pointer to read the from (the pointer
+ * must be at the correct position in the file).
+ * @returns fiftyoneDegreesDataSetInitStatus indicates whether or not the read
+ * was successful.
+ * \endcond
+ */
 fiftyoneDegreesDataSetInitStatus readProperties(fiftyoneDegreesDataSet *dataSet, FILE *inputFilePtr) {
 	if (fread(&dataSet->propertiesSize, sizeof(int32_t), 1, inputFilePtr) != 1)
 		return DATA_SET_INIT_STATUS_CORRUPT_DATA;
@@ -102,7 +129,16 @@ fiftyoneDegreesDataSetInitStatus readProperties(fiftyoneDegreesDataSet *dataSet,
 	return DATA_SET_INIT_STATUS_SUCCESS;
 }
 
-// Reads the profiles from the file.
+/**
+ * \cond
+ * Reads the profiles from the file.
+ * @param dataSet a pointer to the dataset to be read into.
+ * @param inputFilePtr a file pointer to read the from (the pointer
+ * must be at the correct position in the file).
+ * @returns fiftyoneDegreesDataSetInitStatus indicates whether or not the read
+ * was successful.
+ * \endcond
+ */
 fiftyoneDegreesDataSetInitStatus readDevices(fiftyoneDegreesDataSet *dataSet, FILE *inputFilePtr) {
 	if (fread(&dataSet->devicesSize, sizeof(int32_t), 1, inputFilePtr) != 1)
 		return DATA_SET_INIT_STATUS_CORRUPT_DATA;
@@ -114,7 +150,16 @@ fiftyoneDegreesDataSetInitStatus readDevices(fiftyoneDegreesDataSet *dataSet, FI
 	return DATA_SET_INIT_STATUS_SUCCESS;
 }
 
-// Reads the lookups from the input file provided.
+/**
+ * \cond
+ * Reads the lookups from the input file provided.
+ * @param dataSet a pointer to the dataset to be read into.
+ * @param inputFilePtr a file pointer to read the from (the pointer
+ * must be at the correct position in the file).
+ * @returns fiftyoneDegreesDataSetInitStatus indicates whether or not the read
+ * was successful.
+ * \endcond
+ */
 fiftyoneDegreesDataSetInitStatus readLookupList(fiftyoneDegreesDataSet *dataSet, FILE *inputFilePtr) {
 	if (fread(&dataSet->lookupListSize, sizeof(int32_t), 1, inputFilePtr) != 1)
 		return DATA_SET_INIT_STATUS_CORRUPT_DATA;
@@ -126,7 +171,16 @@ fiftyoneDegreesDataSetInitStatus readLookupList(fiftyoneDegreesDataSet *dataSet,
 	return DATA_SET_INIT_STATUS_SUCCESS;
 }
 
-// Reads the nodes byte array into memory.
+/**
+ * \cond
+ * Reads the nodes byte array into memory.
+ * @param dataSet a pointer to the dataset to be read into.
+ * @param inputFilePtr a file pointer to read the from (the pointer
+ * must be at the correct position in the file).
+ * @returns fiftyoneDegreesDataSetInitStatus indicates whether or not the read
+ * was successful.
+ * \endcond
+ */
 fiftyoneDegreesDataSetInitStatus readNodes(fiftyoneDegreesDataSet *dataSet, FILE *inputFilePtr) {
 	if (fread(&dataSet->nodesSize, sizeof(int64_t), 1, inputFilePtr) != 1)
 		return DATA_SET_INIT_STATUS_CORRUPT_DATA;
@@ -142,7 +196,16 @@ fiftyoneDegreesDataSetInitStatus readNodes(fiftyoneDegreesDataSet *dataSet, FILE
 	return DATA_SET_INIT_STATUS_SUCCESS;
 }
 
-// Reads the copyright message into memory.
+/**
+ * \cond
+ * Reads the copyright message into memory.
+ * @param dataSet a pointer to the dataset to be read into.
+ * @param inputFilePtr a file pointer to read the from (the pointer
+ * must be at the correct position in the file).
+ * @returns fiftyoneDegreesDataSetInitStatus indicates whether or not the read
+ * was successful.
+ * \endcond
+ */
 fiftyoneDegreesDataSetInitStatus readCopyright(fiftyoneDegreesDataSet *dataSet, FILE *inputFilePtr) {
 	if (fread(&dataSet->copyrightSize, sizeof(int32_t), 1, inputFilePtr) != 1)
 		return DATA_SET_INIT_STATUS_CORRUPT_DATA;
@@ -154,7 +217,12 @@ fiftyoneDegreesDataSetInitStatus readCopyright(fiftyoneDegreesDataSet *dataSet, 
 	return DATA_SET_INIT_STATUS_SUCCESS;
 }
 
-// Frees the memory.
+/**
+ * \cond
+ * Frees the memory used by the dataset.
+ * @param dataSet a pointer to the dataset to be freed.
+ * \endcond
+ */
 void fiftyoneDegreesDestroy(fiftyoneDegreesDataSet *dataSet) {
 	int index;
 	if (dataSet->copyright != NULL) {
@@ -212,8 +280,17 @@ void fiftyoneDegreesDestroy(fiftyoneDegreesDataSet *dataSet) {
 	}
 }
 
-// Reads the version value from the start of the file and returns
-// 0 if the file is in a format that can be read by this code.
+/**
+ * \cond
+ * Reads the version value from the start of the file into the dataset.
+ * Returns an error if the dataset is not the correct format.
+ * @param dataSet a pointer to the dataset to be read into.
+ * @param inputFilePtr a file pointer to read the from (the pointer
+ * must be at the correct position in the file).
+ * @returns fiftyoneDegreesDataSetInitStatus indicates whether or not the read
+ * was successful.
+ * \endcond
+ */
 fiftyoneDegreesDataSetInitStatus readVersion(fiftyoneDegreesDataSet *dataSet, FILE *inputFilePtr) {
 	if ((int) fread(&dataSet->version, sizeof(uint16_t), 1, inputFilePtr) != -1) {
 		if (dataSet->version != 32)
@@ -223,8 +300,16 @@ fiftyoneDegreesDataSetInitStatus readVersion(fiftyoneDegreesDataSet *dataSet, FI
 	return DATA_SET_INIT_STATUS_CORRUPT_DATA;
 }
 
-// Sets the data set file name by copying the file name string provided into
-// newly allocated memory in the data set.
+/**
+ * \cond
+ * Sets the data set file name by copying the file name string provided into
+ * newly allocated memory in the data set.
+ * @param dataSet a pointer to the dataset to set the file name in.
+ * @param fileName the path to the data file the dataset was initialised from.
+ * @returns fiftyoneDegreesDataSetInitStatus indicates whether or not the file
+ * name was set correctly.
+ * \endcond
+ */
 static fiftyoneDegreesDataSetInitStatus setDataSetFileName(
 	fiftyoneDegreesDataSet *dataSet,
 	const char *fileName) {
@@ -236,8 +321,15 @@ static fiftyoneDegreesDataSetInitStatus setDataSetFileName(
 	return DATA_SET_INIT_STATUS_SUCCESS;
 }
 
-// Reads the input file into memory returning 1 if it
-// was read unsuccessfully, otherwise 0.
+/**
+ * \cond
+ * Reads the input file into memory returning the initialisation status.
+ * @param filenName the data file to read from.
+ * @param dataSet the dataset to read the data file in to.
+ * @returns fiftyoneDegreesDataSetInitStatus indicates whether or not the
+ * dataset was initialised correctly.
+ * \endcond
+ */
 fiftyoneDegreesDataSetInitStatus readFile(char* fileName, fiftyoneDegreesDataSet *dataSet) {
 #define READMETHODS 8
 	fiftyoneDegreesDataSetInitStatus status = DATA_SET_INIT_STATUS_SUCCESS;
@@ -294,7 +386,16 @@ fiftyoneDegreesDataSetInitStatus readFile(char* fileName, fiftyoneDegreesDataSet
 	return status;
 }
 
-// Returns the index of the property requested, or -1 if not available.
+/**
+ * \cond
+ *  Returns the index of the property requested, or -1 if not available.
+ * @param dataSet a dataset that is already initialised.
+ * @param property to look for in the dataset.
+ * @param length the length of the property string provided.
+ * @retrurns int the index of the property requested, or -1 if not
+ * available.
+ * \endcond
+ */
 int getPropertyIndexRange(fiftyoneDegreesDataSet *dataSet, const char *property, size_t length) {
 	int32_t i = 0;
 	for (i = 0; i < dataSet->propertiesCount; i++) {
@@ -308,7 +409,13 @@ int getPropertyIndexRange(fiftyoneDegreesDataSet *dataSet, const char *property,
 	return -1;
 }
 
-// Initialises the properties provided.
+/**
+ * \cond
+ * Initialises the properties string provided.
+ * @param dataSet to initialise the required properties for.
+ * @param properties a comma separated properties string.
+ * \endcond
+ */
 void initSpecificProperties(fiftyoneDegreesDataSet *dataSet, const char* properties) {
 	char *start;
 	const char *end;
@@ -353,7 +460,14 @@ void initSpecificProperties(fiftyoneDegreesDataSet *dataSet, const char* propert
 	}
 }
 
-// Initialises the properties provided.
+/**
+* \cond
+* Initialises the properties array provided.
+* @param dataSet to initialise the required properties for.
+* @param properties an array of property strings.
+* @param count the number of properties in the array.
+* \endcond
+*/
 void initSpecificPropertiesFromArray(fiftyoneDegreesDataSet *dataSet, const char** properties, int count) {
 	int i;
 	int propertyIndex, currentIndex = 0;
@@ -389,7 +503,12 @@ void initSpecificPropertiesFromArray(fiftyoneDegreesDataSet *dataSet, const char
 	}
 }
 
-// Initialises all the available properties.
+/**
+* \cond
+* Initialises all available properties.
+* @param dataSet to initialise the required properties for.
+* \endcond
+*/
 void initAllProperties(fiftyoneDegreesDataSet *dataSet) {
 	int32_t i;
 
@@ -409,7 +528,18 @@ void initAllProperties(fiftyoneDegreesDataSet *dataSet) {
 	}
 }
 
-// Initialises the memory using the file provided and a string of properties.
+/**
+ * \cond
+ * Initialises the dataset using the file provided and a string of properties.
+ * @param fileName the path to a 51Degrees data file.
+ * @param dataSet pointer to a dataset which has been allocated with the
+ * correct size.
+ * @param properties a comma separated string containing the properties to be
+ * initialised.
+ * @returns fiftyoneDegreesDataSetInitStatus indicates whether or not the
+ * dataset has been initialised correctly.
+ * \endcond
+ */
 fiftyoneDegreesDataSetInitStatus fiftyoneDegreesInitWithPropertyString(const char* fileName, fiftyoneDegreesDataSet *dataSet, const char* properties) {
 	fiftyoneDegreesDataSetInitStatus status = DATA_SET_INIT_STATUS_SUCCESS;
 	status = readFile((char*)fileName, dataSet);
@@ -423,7 +553,19 @@ fiftyoneDegreesDataSetInitStatus fiftyoneDegreesInitWithPropertyString(const cha
 	return status;
 }
 
-// Initialises the memory using the file provided.
+/**
+* \cond
+* Initialises the dataset using the file provided and an array of properties.
+* @param fileName the path to a 51Degrees data file.
+* @param dataSet pointer to a dataset which has been allocated with the
+* correct size.
+* @param properties a string array containing the properties to be
+* initialised.
+* @param propertyCount the number of properties in the array
+* @returns fiftyoneDegreesDataSetInitStatus indicates whether or not the
+* dataset has been initialised correctly.
+* \endcond
+*/
 fiftyoneDegreesDataSetInitStatus fiftyoneDegreesInitWithPropertyArray(const char* fileName, fiftyoneDegreesDataSet *dataSet, const char** properties, int propertyCount) {
 	fiftyoneDegreesDataSetInitStatus status = DATA_SET_INIT_STATUS_SUCCESS;
 	status = readFile((char*)fileName, dataSet);
@@ -433,6 +575,18 @@ fiftyoneDegreesDataSetInitStatus fiftyoneDegreesInitWithPropertyArray(const char
 	return status;
 }
 
+/**
+* \cond
+* Initialises the provider using the file provided and a string of properties.
+* @param fileName the path to a 51Degrees data file.
+* @param provider pointer to a provider which has been allocated with the
+* correct size.
+* @param properties a comma separated string containing the properties to be
+* initialised.
+* @returns fiftyoneDegreesDataSetInitStatus indicates whether or not the
+* provider has been initialised correctly.
+* \endcond
+*/
 fiftyoneDegreesDataSetInitStatus fiftyoneDegreesInitProviderWithPropertyString(const char* fileName, fiftyoneDegreesProvider* provider, const char* properties) {
 	fiftyoneDegreesDataSetInitStatus status;
 	provider->active = (fiftyoneDegreesActiveDataSet*)fiftyoneDegreesMalloc(sizeof(fiftyoneDegreesActiveDataSet));
@@ -444,6 +598,19 @@ fiftyoneDegreesDataSetInitStatus fiftyoneDegreesInitProviderWithPropertyString(c
 	return status;
 }
 
+/**
+* \cond
+* Initialises the provider using the file provided and an array of properties.
+* @param fileName the path to a 51Degrees data file.
+* @param provider pointer to a provider which has been allocated with the
+* correct size.
+* @param properties a string array containing the properties to be
+* initialised.
+* @param propertyCount the number of properties in the array.
+* @returns fiftyoneDegreesDataSetInitStatus indicates whether or not the
+* provider has been initialised correctly.
+* \endcond
+*/
 fiftyoneDegreesDataSetInitStatus fiftyoneDegreesInitProviderWithPropertyArray(const char* filename, fiftyoneDegreesProvider *provider, const char ** properties, int propertyCount) {
 	fiftyoneDegreesDataSetInitStatus status;
 	provider->active = (fiftyoneDegreesActiveDataSet*)fiftyoneDegreesMalloc(sizeof(fiftyoneDegreesActiveDataSet));
@@ -491,6 +658,27 @@ static fiftyoneDegreesDataSetInitStatus advancePointer(byte **pointer,
 	return DATA_SET_INIT_STATUS_SUCCESS;
 }
 
+/**
+* \cond
+* Reads the various entities from the provided continuous memory location into
+* the provided dataset.
+*
+* For most entities within the dataset it is sufficient to set the address
+* of the pointer to the first element to the corresponding place within the
+* provided memory space. This allows to avoid most of the additional memory
+* allocations used in the init from file methods as the space is already
+* allocated and contains data in the right format.
+*
+* @param source pointer to continuous memory space containing decompressed
+*		 51Degrees pattern data file.
+* @param dataSet to be initialised with data from the provided pointer to
+*		 continuous memory space.
+* @param length number of bytes that the file occupies in memory.
+*		 Also corresponds to the last byte within the continuous memory
+*		 space.
+* @return dataset initialisation status.
+* \endcond
+*/
 static fiftyoneDegreesDataSetInitStatus readDataSetFromMemoryLocation(
 	const void *source,
 	fiftyoneDegreesDataSet *dataSet,
@@ -630,7 +818,7 @@ static fiftyoneDegreesDataSetInitStatus initFromMemory(
 *
 * @param fileName path to data file that should be used for initialisation.
 * @param dataSet pointer to the dataset structure to be initialised.
-* @return dataset initialisation status.
+* @return fiftyoneDegreesDataSetInitStatus dataset initialisation status.
 * \endcond
 */
 static fiftyoneDegreesDataSetInitStatus initFromFile(
@@ -697,7 +885,7 @@ static fiftyoneDegreesDataSetInitStatus initFromFile(
 * The new dataset is created with exactly the same set of properties as found
 * within the old dataset.
 *
-* If the new data file does not ontain one or more property(ies) that the old
+* If the new data file does not obtain one or more property(ies) that the old
 * dataset was initialised with, then these properties will not be
 * initialised in the new dataset.
 *
@@ -709,6 +897,7 @@ static fiftyoneDegreesDataSetInitStatus initFromFile(
 *
 * @param oldDataSet the dataset to retrieve required property names. Not NULL.
 * @param newDataSet the dataset to initialise properties in. Not NULL.
+* @return fiftyoneDegreesDataSetInitStatus dataset initialisation status.
 * \endcond
 */
 static fiftyoneDegreesDataSetInitStatus setPropertiesFromExistingDataset(
@@ -761,7 +950,14 @@ static fiftyoneDegreesDataSetInitStatus setPropertiesFromExistingDataset(
 
 	return DATA_SET_INIT_STATUS_SUCCESS;
 }
-
+/**
+ * \cond
+ * Reloads the provider with the new dataset provided. This is common to both
+ * memory and file reloads.
+ * @param provider to reload.
+ * @param newDataSet to replace the providers current dataset.
+ * @return fiftyoneDegreesDataSetInitStatus dataset initialisation status.
+ */
 fiftyoneDegreesDataSetInitStatus reloadCommon(fiftyoneDegreesProvider *provider, fiftyoneDegreesDataSet *newDataSet) {
 	fiftyoneDegreesDataSet *oldDataSet;
 	fiftyoneDegreesDataSetInitStatus status;
@@ -811,6 +1007,24 @@ fiftyoneDegreesDataSetInitStatus reloadCommon(fiftyoneDegreesProvider *provider,
 
 }
 
+/**
+* \cond
+* Creates a new dataset using the same configuration options
+* as the current data set associated with the provider. The
+* memory located at the source pointer is used to create the new data set.
+* Important: The memory pointed to by source will NOT be freed by 51Degrees
+* when the associated data set is freed. The caller is responsible for
+* releasing the memory. If 51Degrees should release the memory then the
+* caller should set the memoryToFree field of the data set associated with
+* the returned pool to source. 51Degrees will then free this memory when the
+* data set is freed.
+* @param provider pointer to the provider whose data set should be reloaded
+* @param source pointer to the dataset held in memory.
+* @param length number of bytes that the file occupies in memory.
+* @return fiftyoneDegreesDataSetInitStatus indicating the result of the reload
+* 	   operation.
+* \endcond
+*/
 fiftyoneDegreesDataSetInitStatus fiftyoneDegreesProviderReloadFromMemory(fiftyoneDegreesProvider *provider, void *source, long length) {
 	fiftyoneDegreesDataSetInitStatus status;
 	fiftyoneDegreesDataSet *newDataSet = NULL;
@@ -836,6 +1050,22 @@ fiftyoneDegreesDataSetInitStatus fiftyoneDegreesProviderReloadFromMemory(fiftyon
 
 }
 
+/**
+* \cond
+* Creates a new dataset using the same configuration options
+* as the current data set associated with the provider. The data file 
+* which the provider was initialised with  is used to create the new data set.
+* Important: The memory pointed to by source will NOT be freed by 51Degrees
+* when the associated data set is freed. The caller is responsible for
+* releasing the memory. If 51Degrees should release the memory then the
+* caller should set the memoryToFree field of the data set associated with
+* the returned pool to source. 51Degrees will then free this memory when the
+* data set is freed.
+* @param provider pointer to the provider whose data set should be reloaded
+* @return fiftyoneDegreesDataSetInitStatus indicating the result of the reload
+* 	   operation.
+* \endcond
+*/
 fiftyoneDegreesDataSetInitStatus fiftyoneDegreesProviderReloadFromFile(fiftyoneDegreesProvider* provider) {
 	fiftyoneDegreesDataSetInitStatus status;
 	fiftyoneDegreesDataSet *newDataSet = NULL;
@@ -863,6 +1093,13 @@ fiftyoneDegreesDataSetInitStatus fiftyoneDegreesProviderReloadFromFile(fiftyoneD
 	return status;
 }
 
+/**
+* \cond
+* Releases all the resources used by the provider. The provider can not be
+* used without being reinitialised after calling this method.
+* @param provider pointer to the provider to be freed.
+* \endcond
+*/
 void fiftyoneDegreesProviderFree(fiftyoneDegreesProvider* provider) {
 	fiftyoneDegreesDestroy((fiftyoneDegreesDataSet*) provider->active->dataSet);
 #ifndef FIFTYONEDEGREES_NO_THREADING
@@ -870,6 +1107,13 @@ void fiftyoneDegreesProviderFree(fiftyoneDegreesProvider* provider) {
 #endif
 }
 
+/**
+* \cond
+* Gets the number of separators in the char array
+* @param input char array containing separated values
+* @return number of separators
+* \endcond
+*/
 static int getSeparatorCount(const char* input) {
 	int index = 0, count = 0;
 	if (input != NULL && *input != 0) {
@@ -886,6 +1130,14 @@ static int getSeparatorCount(const char* input) {
 	return 0;
 }
 
+/**
+ * \cond
+ * Get the size of the file provided.
+ * @param fileName path to the file.
+ * @returns size_t the size the file will need in memory, or -1 if the file
+ * could not be opened.
+ * \endcond
+ */
 size_t getSizeOfFile(const char* fileName) {
 
 	size_t sizeOfFile;
@@ -909,6 +1161,16 @@ size_t getSizeOfFile(const char* fileName) {
 	return sizeOfFile;
 }
 
+/**
+ * \cond
+ * Get the size the dataset will need in memory when initialised with the
+ * provided properties. Returns -1 if the file could not be accessed.
+ * @param fileName path to a valid data file.
+ * @param properties comma separated list of property strings.
+ * @returns size_t the size in memory needed to initialise the dataset,
+ * or -1 if the file could not be accessed.
+ * \endcond
+ */
 size_t fiftyoneDegreesGetDataSetSizeWithPropertyString(const char* fileName, const char* properties) {
 
 	int requiredPropertyCount;
@@ -928,6 +1190,16 @@ size_t fiftyoneDegreesGetDataSetSizeWithPropertyString(const char* fileName, con
 	return size;
 }
 
+/**
+* \cond
+* Get the size the dataset will need in memory when initialised with the
+* provided properties. Returns -1 if the file could not be accessed.
+* @param fileName path to a valid data file.
+* @param propertyCount the number of properties to be initialised.
+* @returns size_t the size in memory needed to initialise the dataset,
+* or -1 if the file could not be accessed.
+* \endcond
+*/
 size_t fiftyoneDegreesGetDataSetSizeWithPropertyCount(const char* fileName, int propertyCount) {
 
 	size_t size;
@@ -942,7 +1214,15 @@ size_t fiftyoneDegreesGetDataSetSizeWithPropertyCount(const char* fileName, int 
 	}
 	return size;
 }
-// Returns the index of the property requested, or -1 if not available.
+
+/**
+ * \cond
+ * Returns the index of the property requested, or -1 if not available.
+ * @param dataSet pointer to an initialised dataset.
+ * @param value name of the property to find.
+ * @returns int the index of the property requested, or -1 if not available.
+ * \endcond
+ */
 int fiftyoneDegreesGetPropertyIndex(fiftyoneDegreesDataSet *dataSet, const char *value) {
 	int32_t i;
 	for (i = 0; i < dataSet->propertiesCount; i++) {
@@ -955,8 +1235,16 @@ int fiftyoneDegreesGetPropertyIndex(fiftyoneDegreesDataSet *dataSet, const char 
 	return -1;
 }
 
-// Returns the index of the child of the current node based on
-// the value of the current character being compared.
+/**
+ * \cond
+ * Returns the index of the child of the current node based on
+ * the value of the current character being compared.
+ * @param dataSet pointer to an initialised dataset.
+ * @param value the character to be compared.
+ * @param lookupListPosition the current position in the lookup list.
+ * @returns byte the index of the child node.
+ * \endcond
+ */
 byte getChildIndex(fiftyoneDegreesDataSet *dataSet, char value, int32_t lookupListPosition) {
 	FIFTYONEDEGREES_LOOKUP_HEADER *lookup = (FIFTYONEDEGREES_LOOKUP_HEADER*)(((byte*)dataSet->lookupList) + lookupListPosition);
 	if (value < lookup->lowest ||
@@ -967,8 +1255,14 @@ byte getChildIndex(fiftyoneDegreesDataSet *dataSet, char value, int32_t lookupLi
 	return *(&lookup->start + value - lookup->lowest);
 }
 
-// Returns the size in bytes of the child offsets for the
-// child type provided.
+/**
+ * \cond
+ * Returns the size in bytes of the child offsets for the
+ * child type provided.
+ * @param children node children to get the offset size of.
+ * @returns int the size in bytes of the child offsets.
+ * \endcond
+ */
 int getSizeOfOffsets(FIFTYONEDEGREES_NODE_CHILDREN* children) {
 	switch (children->offsetType)
 	{
@@ -977,7 +1271,14 @@ int getSizeOfOffsets(FIFTYONEDEGREES_NODE_CHILDREN* children) {
 	default: return sizeof(int64_t);
 	}
 }
-
+/**
+ * \cond
+ * Returns a pointer to the next node.
+ * @param children the current node children.
+ * @param childIndex the index of the current child node.
+ * @returns int32_t* a pointer to the next node.
+ * \endcond
+ */
 int32_t* getNextNode(FIFTYONEDEGREES_NODE_CHILDREN* children, byte childIndex) {
 	uint16_t *offset16;
 	uint32_t *offset32;
@@ -1012,6 +1313,17 @@ int32_t* getNextNode(FIFTYONEDEGREES_NODE_CHILDREN* children, byte childIndex) {
 // Declaration of main device index function.
 int32_t getDeviceIndexForNode(fiftyoneDegreesDataSet *dataSet, char** userAgent, int32_t* node, int32_t parentDeviceIndex);
 
+/**
+ * \cond
+ * Get the device index from the current nodes children.
+ * @param dataSet pointer to an initialised dataset.
+ * @param userAgent the User-Agent used for the match.
+ * @param childIndex the child index to get the next node from.
+ * @param children of the current node.
+ * @param parentDeviceIndex the device index of the current node.
+ * @returns int32_t the device index of the next node.
+ * \endcond
+ */
 int32_t getDeviceIndexChildren(fiftyoneDegreesDataSet *dataSet, char** userAgent, byte childIndex, FIFTYONEDEGREES_NODE_CHILDREN *children, int parentDeviceIndex) {
 	*userAgent = *userAgent + 1;
 	return getDeviceIndexForNode(
@@ -1021,6 +1333,15 @@ int32_t getDeviceIndexChildren(fiftyoneDegreesDataSet *dataSet, char** userAgent
 		parentDeviceIndex);
 }
 
+/**
+ * \cond
+ * Get the device index from a full node.
+ * @param dataSet pointer to an initialised dataset.
+ * @param userAgent the User-Agent used for the match.
+ * @param node the current full node.
+ * @returns int32_t the device index for the supplied node.
+ * \endcond
+ */
 int32_t getDeviceIndexFullNode(fiftyoneDegreesDataSet *dataSet, char** userAgent, FIFTYONEDEGREES_NODE_FULL* node) {
 	byte childIndex = getChildIndex(dataSet, **userAgent, node->lookupListOffset);
 
@@ -1032,6 +1353,16 @@ int32_t getDeviceIndexFullNode(fiftyoneDegreesDataSet *dataSet, char** userAgent
 	return getDeviceIndexChildren(dataSet, userAgent, childIndex, &(node->children), node->deviceIndex);
 }
 
+/**
+ * \cond
+ * Get device index for a node with no device index.
+ * @param dataSet pointer to an initialised dataset.
+ * @param userAgent the User-Agent used for the match.
+ * @param node the node to get the device index for.
+ * @param parentDeviceIndex the device index of the nodes parent.
+ * @returns int32_t the device index for the current node.
+ * \endcond
+ */
 int32_t getDeviceIndexNoDeviceNode(fiftyoneDegreesDataSet *dataSet, char** userAgent, FIFTYONEDEGREES_NODE_NO_DEVICE_INDEX* node, int32_t parentDeviceIndex) {
 	byte childIndex = getChildIndex(dataSet, **userAgent, abs(node->lookupListOffset));
 
@@ -1043,33 +1374,71 @@ int32_t getDeviceIndexNoDeviceNode(fiftyoneDegreesDataSet *dataSet, char** userA
 	return getDeviceIndexChildren(dataSet, userAgent, childIndex, &(node->children), parentDeviceIndex);
 }
 
-// Gets the index of the device associated with the user agent pointer
-// provided. The method moves right along the user agent by shifting
-// the pointer to the user agent left.
+/**
+ * \cond
+ * Gets the index of the device associated with the User-Agent pointer
+ * provided. The method moves right along the user agent by shifting
+ * the pointer to the user agent left.
+ * @param dataSet pointer to an initialised dataset.
+ * @param userAgent the User-Agent used for the match.
+ * @param node the current node.
+ * @param parentDeviceIndex the device index of the parent node.
+ * @returns int32_t the device index of the current node.
+ * \endcond
+ */
 int32_t getDeviceIndexForNode(fiftyoneDegreesDataSet *dataSet, char** userAgent, int32_t* node, int32_t parentDeviceIndex) {
 	if (*node >= 0)
 		return getDeviceIndexFullNode(dataSet, userAgent, (FIFTYONEDEGREES_NODE_FULL*)node);
 	return getDeviceIndexNoDeviceNode(dataSet, userAgent, (FIFTYONEDEGREES_NODE_NO_DEVICE_INDEX*)node, parentDeviceIndex);
 }
 
-// Returns the index to a matching device based on the useragent provided.
+/**
+ * \cond
+ * Returns the index to a matching device based on the User-Agent provided.
+ * @param dataSet pointer to an initialised dataset.
+ * @param userAgent the User-Agent to match with.
+ * @returns int32_t the device index for the given User-Agent.
+ * \endcond
+ */
 int32_t getDeviceIndex(fiftyoneDegreesDataSet *dataSet, const char* userAgent) {
 	return getDeviceIndexForNode(dataSet, (char**)&userAgent, dataSet->rootNode, -1);
 }
 
-// Returns the number of characters which matched in the trie.
+/**
+ * \cond
+ * Returns the number of characters which matched in the Trie.
+ * @param dataSet pointer to an initialised dataset.
+ * @param userAgent User-Agent to use.
+ * @returns int the number of matching characters from the User-Agent.
+ * \endcond
+ */
 int fiftyoneDegreesGetMatchedUserAgentLength(fiftyoneDegreesDataSet *dataSet, char *userAgent) {
 	char *lastCharacter = userAgent;
 	getDeviceIndexForNode(dataSet, &lastCharacter, dataSet->rootNode, -1);
 	return (int)(lastCharacter - userAgent);
 }
 
-// Returns the offset in the properties list to the first value for the device.
+/**
+ * \cond
+ * Returns the offset in the properties list to the first value for the device.
+ * @param dataSet pointer to an initialised dataset.
+ * @param userAgent to match for.
+ * @returns int the property offset for the matched device.
+ * \endcond
+ */
 int fiftyoneDegreesGetDeviceOffset(fiftyoneDegreesDataSet *dataSet, const char* userAgent) {
 	return getDeviceIndex(dataSet, userAgent) * dataSet->propertiesCount;
 }
 
-// Sets the offsets structure passed to the method for the useragent provided.
+/**
+ * \cond
+ * Sets the offsets structure passed to the method for the User-Agent provided.
+ * @param dataSet pointer to an initialised dataset.
+ * @param userAgent to match for.
+ * @param httpHeaderIndex of the User-Agent.
+ * @param offset to set.
+ * \endcond
+ */
 void fiftyoneDegreesSetDeviceOffset(fiftyoneDegreesDataSet *dataSet, const char* userAgent, int httpHeaderIndex, fiftyoneDegreesDeviceOffset *offset) {
 	char *lastCharacter = (char*)userAgent;
 	offset->httpHeaderOffset = dataSet->uniqueHttpHeaders[httpHeaderIndex];
@@ -1081,7 +1450,13 @@ void fiftyoneDegreesSetDeviceOffset(fiftyoneDegreesDataSet *dataSet, const char*
 	offset->difference = (int)(strlen(userAgent) - offset->length);
 }
 
-// Creates a new device offsets structure with memory allocated.
+/**
+ * \cond
+ * Creates a new device offsets structure with memory allocated.
+ * @param dataSet pointer to an initialised dataset.
+ * @returns fiftyoneDegreesDeviceOffsets* newly created device offsets.
+ * \endcond
+ */
 fiftyoneDegreesDeviceOffsets* fiftyoneDegreesCreateDeviceOffsets(fiftyoneDegreesDataSet *dataSet) {
 	fiftyoneDegreesDeviceOffsets* offsets = (fiftyoneDegreesDeviceOffsets*)fiftyoneDegreesMalloc(sizeof(fiftyoneDegreesDeviceOffsets));
 	offsets->size = 0;
@@ -1089,6 +1464,13 @@ fiftyoneDegreesDeviceOffsets* fiftyoneDegreesCreateDeviceOffsets(fiftyoneDegrees
 	return offsets;
 }
 
+/**
+ * \cond
+ * Resets the device offsets to the state they were in when they were created
+ * with fiftyoneDegreesCreateDeviceOffsets.
+ * @param offsets to reset.
+ * \endcond
+ */
 void fiftyoneDegreesResetDeviceOffsets(fiftyoneDegreesDeviceOffsets* offsets) {
 	int offsetIndex;
 	if (offsets != NULL) {
@@ -1103,7 +1485,12 @@ void fiftyoneDegreesResetDeviceOffsets(fiftyoneDegreesDeviceOffsets* offsets) {
 	offsets->size = 0;
 }
 
-// Frees the memory used by the offsets.
+/**
+ * \cond
+ * Frees the memory used by the offsets.
+ * @param offsets to free.
+ * \endcond
+ */
 void fiftyoneDegreesFreeDeviceOffsets(fiftyoneDegreesDeviceOffsets* offsets) {
 	int offsetIndex;
 	if (offsets != NULL) {
@@ -1120,7 +1507,7 @@ void fiftyoneDegreesFreeDeviceOffsets(fiftyoneDegreesDeviceOffsets* offsets) {
 }
 
 /**
- * Sets name to the start of the http header name and returns the length of
+ * Sets name to the start of the HTTP header name and returns the length of
  * the string. A space or colon are used to identify the end of the header
  * name.
  * @param start of the string to be processed
@@ -1182,7 +1569,7 @@ int setNextHttpHeaderValue(char* start, char *end, char** value) {
 
 /**
 * Compares two header strings for case insensitive equality and where -
-* are replaced with _. The http header name must be the same length
+* are replaced with _. The HTTP header name must be the same length
 * as the unique header.
 * @param httpHeaderName string to be checked for equality
 * @param uniqueHeader the unique HTTP header to be compared
@@ -1206,7 +1593,16 @@ int headerCompare(char *httpHeaderName, const char *uniqueHeader, int length) {
 	return 0;
 }
 
-// Returns the index of the unique header, or -1 if the header is not important.
+/**
+ * \cond
+ * Returns the index of the unique header, or -1 if the header is not important.
+ * @param dataSet pointer to an initialised dataset.
+ * @param httpHeaderName name of the header to get the index of.
+ * @param length of the header name.
+ * @returns int index of the unique header, or -1 if the header is not
+ * important.
+ * \endcond
+ */
 int fiftyoneDegreesGetUniqueHttpHeaderIndex(fiftyoneDegreesDataSet *dataSet, char* httpHeaderName, int length) {
 	int uniqueHeaderIndex;
 	static const char httpPrefix[] = "HTTP_";
@@ -1232,7 +1628,15 @@ int fiftyoneDegreesGetUniqueHttpHeaderIndex(fiftyoneDegreesDataSet *dataSet, cha
 	return -1;
 }
 
-// Returns the offsets to a matching devices based on the http headers provided.
+/**
+ * \cond
+ * Returns the offsets to a matching devices based on the HTTP headers provided.
+ * @param dataSet pointer to an initialised dataset.
+ * @param offsets to set.
+ * @param httpHeaders to match for.
+ * @param size of the headers string.
+ * \endcond
+ */
 void fiftyoneDegreesSetDeviceOffsetsWithHeadersString(fiftyoneDegreesDataSet *dataSet, fiftyoneDegreesDeviceOffsets *offsets, char *httpHeaders, size_t size) {
 	char *headerName, *headerValue, *endOfHeaders = httpHeaders + size;
 	int headerNameLength, headerValueLength, uniqueHeaderIndex = 0;
@@ -1254,39 +1658,95 @@ void fiftyoneDegreesSetDeviceOffsetsWithHeadersString(fiftyoneDegreesDataSet *da
 	}
 }
 
-// Returns the offsets to a matching devices based on the http headers provided.
+/**
+ * \cond
+ * Returns the offsets to a matching devices based on the HTTP headers provided.
+ * @param dataSet pointer to an initialised dataset.
+ * @param httpHeaders to match for.
+ * @param size of the HTTP headers string.
+ * @returns fiftyoneDegreesDeviceOffsets* pointer to newly created device
+ * offsets from the match.
+ * \endcond
+ */
 fiftyoneDegreesDeviceOffsets* fiftyoneDegreesGetDeviceOffsetsWithHeadersString(fiftyoneDegreesDataSet *dataSet, char *httpHeaders, size_t size) {
 	fiftyoneDegreesDeviceOffsets* offsets = fiftyoneDegreesCreateDeviceOffsets(dataSet);
 	fiftyoneDegreesSetDeviceOffsetsWithHeadersString(dataSet, offsets, httpHeaders, size);
 	return offsets;
 }
 
+/** 
+ * \cond
+ * Get the value of a given property index from a device.
+ * @param dataSet pointer to an initialised dataset.
+ * @param device to get the value from.
+ * @param propertyIndex of the requested property.
+ * @returns char* the value of the requested property.
+ * \endcond
+ */
 char* getValueFromDevice(fiftyoneDegreesDataSet *dataSet, int32_t* device, int32_t propertyIndex) {
 	return dataSet->strings + *(device + propertyIndex);
 }
 
-// Takes the results of getDeviceOffset and getPropertyIndex to return a value.
+/**
+ * \cond
+ * Takes the results of getDeviceOffset and getPropertyIndex to return a value.
+ * @param dataSet pointer to an initialised dataset.
+ * @param deviceOffset to get the property from.
+ * @param propertyIndex of the requested property.
+ * @return const char* the value of the requested property
+ * \endcond
+ */
 const char* fiftyoneDegreesGetValue(fiftyoneDegreesDataSet *dataSet, int deviceOffset, int propertyIndex) {
 	return getValueFromDevice(dataSet, dataSet->devices + deviceOffset, propertyIndex);
 }
 
-// Returns the number of HTTP headers relevent to device detection.
+/**
+ * \cond
+ * Returns the number of HTTP headers relevant to device detection.
+ * @param dataSet pointer to an initialised dataset.
+ * @returns int the number of relevant HTTP headers.
+ * \endcond
+ */
 int fiftyoneDegreesGetHttpHeaderCount(fiftyoneDegreesDataSet *dataSet) {
 	return dataSet->uniqueHttpHeaderCount;
 }
 
-// Returns a pointer to the HTTP header name at the index provided.
+/**
+ * \cond
+ * Returns a pointer to the HTTP header name at the index provided.
+ * @param dataSet pointer to an initialised dataset.
+ * @param httpHeaderIndex index of the header to get.
+ * @returns const char* the name of the HTTP header.
+ * \endcond
+ */
 const char* fiftyoneDegreesGetHttpHeaderNamePointer(fiftyoneDegreesDataSet *dataSet, int httpHeaderIndex) {
 	return httpHeaderIndex >= 0 && httpHeaderIndex < dataSet->uniqueHttpHeaderCount ?
 		dataSet->strings + dataSet->uniqueHttpHeaders[httpHeaderIndex] : NULL;
 }
 
-// Returns the HTTP header name offset at the index provided.
+/**
+ * \cond
+ * Returns the HTTP header name offset at the index provided.
+ * @param dataSet pointer to an initialised dataset.
+ * @param httpHeaderIndex index of the header to get.
+ * @returns int the name offset of the HTTP header.
+ * \endcond
+ */
 int fiftyoneDegreesGetHttpHeaderNameOffset(fiftyoneDegreesDataSet *dataSet, int httpHeaderIndex) {
 	return dataSet->uniqueHttpHeaders[httpHeaderIndex];
 }
 
-// Sets the http header string to the header name at the index provided.
+/**
+ * \cond
+ * Sets the HTTP header string to the header name at the index provided.
+ * @param dataSet pointer to an initialised dataset.
+ * @param httpHeaderIndex index of the header to get.
+ * @param httpHeader to set.
+ * @param size allocated to httpHeader.
+ * @returns int the length of the HTTP header, or the requred length as a
+ * negative if size is not large enough.
+ * \endcond
+ */
 int fiftyoneDegreesGetHttpHeaderName(fiftyoneDegreesDataSet *dataSet, int httpHeaderIndex, char* httpHeader, int size) {
 	int length = 0;
 	if (httpHeaderIndex < dataSet->uniqueHttpHeaderCount) {
@@ -1296,7 +1756,7 @@ int fiftyoneDegreesGetHttpHeaderName(fiftyoneDegreesDataSet *dataSet, int httpHe
 			strcpy(httpHeader, dataSet->strings + dataSet->uniqueHttpHeaders[httpHeaderIndex]);
 		}
 		else {
-			// The http header is not large enough. Return it's required length.
+			// The HTTP header is not large enough. Return it's required length.
 			// as a negative.
 			length = -length;
 		}
@@ -1305,10 +1765,13 @@ int fiftyoneDegreesGetHttpHeaderName(fiftyoneDegreesDataSet *dataSet, int httpHe
 }
 
 /**
+ * \cond
  * Initialises the prefixed upper HTTP header names for use with Perl, Python
  * and PHP. These headers are in the form HTTP_XXXXXX_XXXX where User-Agent
  * would appear as HTTP_USER_AGENT. This method avoids needing to duplicate
  * the logic to format the header names in each API.
+ * @param dataSet pointer to initialised dataset.
+ * \endcond
  */
 static void initPrefixedUpperHttpHeaderNames(fiftyoneDegreesDataSet *dataSet) {
 	int index, httpHeaderIndex;
@@ -1340,11 +1803,13 @@ static void initPrefixedUpperHttpHeaderNames(fiftyoneDegreesDataSet *dataSet) {
 }
 
 /**
+ * \cond
  * Returns the name of the header in prefixed upper case form at the index
  * provided, or NULL if the index is not valid.
  * @param dataSet pointer to an initialised dataset
  * @param httpHeaderIndex index of the HTTP header name required
  * @returns name of the header, or NULL if index not valid
+ * \endcond
  */
 const char* fiftyoneDegreesGetPrefixedUpperHttpHeaderName(fiftyoneDegreesDataSet *dataSet, int httpHeaderIndex) {
 	const char *prefixedUpperHeaderName = NULL;
@@ -1358,7 +1823,17 @@ const char* fiftyoneDegreesGetPrefixedUpperHttpHeaderName(fiftyoneDegreesDataSet
 	return prefixedUpperHeaderName;
 }
 
-// Sets the propertyname string to the property name at the index provided.
+/**
+ * \cond
+ * Sets the propertyName string to the property name at the index provided.
+ * @param dataSet pointer to an initialised dataset.
+ * @param requiredPropertIndex index in the dataset's requiredProperties array.
+ * @param propertyName to set.
+ * @param size allocated to propertyName.
+ * @returns int the length of the property name , or the requred length as a
+ * negative if size is not large enough.
+ * \endcond
+ */
 int fiftyoneDegreesGetRequiredPropertyName(fiftyoneDegreesDataSet *dataSet, int requiredPropertyIndex, char* propertyName, int size) {
 	int length = 0;
 	if (requiredPropertyIndex < dataSet->requiredPropertiesCount) {
@@ -1376,6 +1851,18 @@ int fiftyoneDegreesGetRequiredPropertyName(fiftyoneDegreesDataSet *dataSet, int 
 	return length;
 }
 
+/**
+ * \cond
+ * Sets the values string for the property index and device requested.
+ * @param dataSet pointer to an initialised dataset.
+ * @param deviceOffset to get the property from.
+ * @param propertyIndex of the requested property.
+ * @param values to set.
+ * @param size allocated to values.
+ * @returns int the length of the HTTP header, or the requred length as a
+ * negative if size is not large enough.
+ * \endcond
+ */
 int setValueFromDeviceOffset(fiftyoneDegreesDataSet *dataSet, int32_t deviceOffset, int32_t propertyIndex, char* values, int size) {
 	const char *value = fiftyoneDegreesGetValue(dataSet, deviceOffset, propertyIndex);
 	int length = (int)strlen(value);
@@ -1388,7 +1875,17 @@ int setValueFromDeviceOffset(fiftyoneDegreesDataSet *dataSet, int32_t deviceOffs
 	return length;
 }
 
-// Returns a pointer to the value for the property based on the device offsets provided.
+/**
+ * \cond
+ * Returns a pointer to the value for the property based on the device offsets
+ * provided.
+ * @param dataSet pointer to an initialised dataset.
+ * @param deviceOffsets to get the property from.
+ * @param requiredPropertyIndex index in the dataset's requiredProperties array.
+ * @returns const char* pointer to the value of the requested property, or NULL
+ * if the property does not exist.
+ * \endcond
+ */
 const char* fiftyoneDegreesGetValuePtrFromOffsets(fiftyoneDegreesDataSet *dataSet, fiftyoneDegreesDeviceOffsets* deviceOffsets, int requiredPropertyIndex) {
 	int deviceHttpHeaderIndex, propertyHttpHeaderIndex;
 	int32_t propertyHttpHeaderOffset;
@@ -1415,7 +1912,18 @@ const char* fiftyoneDegreesGetValuePtrFromOffsets(fiftyoneDegreesDataSet *dataSe
 	return NULL;
 }
 
-// Sets the values string to the property values for the device offests and index provided.
+/**
+ * \cond
+ * Sets the values string to the property values for the device offsets and index provided.
+ * @param dataSet pointer to an initialised dataset.
+ * @param deviceOffsets to get the property from.
+ * @param requiredPropertyIndex index in the dataset's requiredProperties array.
+ * @param values string to set.
+ * @param size allocated to the values string.
+ * @returns int the length of the values string, or the required length as a
+ * negative if size is not large enough.
+ * \endcond
+ */
 int fiftyoneDegreesGetValueFromOffsets(fiftyoneDegreesDataSet *dataSet, fiftyoneDegreesDeviceOffsets* deviceOffsets, int requiredPropertyIndex, char* values, int size) {
 	int deviceHttpHeaderIndex, propertyHttpHeaderIndex;
 	int32_t propertyHttpHeaderOffset;
@@ -1445,17 +1953,36 @@ int fiftyoneDegreesGetValueFromOffsets(fiftyoneDegreesDataSet *dataSet, fiftyone
 	return 0;
 }
 
-// Returns how many properties have been loaded in the dataset.
+/**
+ * \cond
+ * Returns how many properties have been loaded in the dataset.
+ * @param dataSet pointer to an initialised dataset,
+ * @returns int32_t number of initialised properties in the dataset.
+ * \endcond
+ */
 int32_t fiftyoneDegreesGetRequiredPropertiesCount(fiftyoneDegreesDataSet *dataSet) {
 	return dataSet->requiredPropertiesCount;
 }
 
-// Returns the names of the properties loaded in the dataset.
+/**
+ * \cond
+ * Returns the names of the properties loaded in the dataset.
+ * @param dataSet pointer to an initialised dataset.
+ * @retuens const char** pointer to the array of initialised properties.
+ * \endcond
+ */
 const char ** fiftyoneDegreesGetRequiredPropertiesNames(fiftyoneDegreesDataSet *dataSet) {
 	return dataSet->requiredPropertiesNames;
 }
 
-// Returns the index in the array of required properties for this name, or -1 if not found.
+/**
+ * \cond
+ * Returns the index in the array of required properties for this name, or -1 if not found.
+ * @param dataSet pointer to an initialised dataset.
+ * @param propertyName name of the property to get.
+ * @returns int index in the dataset's requiredProperties array, or -1 if not found.
+ * \endcond
+ */
 int fiftyoneDegreesGetRequiredPropertyIndex(fiftyoneDegreesDataSet *dataSet, const char *propertyName) {
 	int requiredPropertyIndex;
 	for (requiredPropertyIndex = 0; requiredPropertyIndex < dataSet->requiredPropertiesCount; requiredPropertyIndex++) {
@@ -1466,7 +1993,17 @@ int fiftyoneDegreesGetRequiredPropertyIndex(fiftyoneDegreesDataSet *dataSet, con
 	return -1;
 }
 
-// Process device properties into a CSV string for the device offsets provided.
+/**
+ * \cond
+ * Process device properties into a CSV string for the device offsets provided.
+ * @param dataSet pointer to an initialised dataset.
+ * @param deviceOffsets from a match to process.
+ * @param result buffer to store the CSV in.
+ * @param resultLength allocated to result buffer.
+ * @returns int the length used in the buffer, 0 if there are no properties, or
+ * -1 if the buffer is not long enough.
+ * \endcond
+ */
 int fiftyoneDegreesProcessDeviceOffsetsCSV(fiftyoneDegreesDataSet *dataSet, fiftyoneDegreesDeviceOffsets *deviceOffsets, char* result, int resultLength) {
 	char* currentPos = result;
 	char* endPos = result + resultLength;
@@ -1507,7 +2044,17 @@ int fiftyoneDegreesProcessDeviceOffsetsCSV(fiftyoneDegreesDataSet *dataSet, fift
 	return (int)(currentPos - result);
 }
 
-// Process device properties into a CSV string for the device offset provided.
+/**
+ * \cond
+ * Process device properties into a CSV string for the device offset provided.
+ * @param dataSet pointer to an initialised dataset.
+ * @param deviceOffset from a match to process.
+ * @param result buffer to store the CSV in.
+ * @param resultLength allocated to result buffer.
+ * @returns int the length used in the buffer, 0 if there are no properties, or
+ * -1 if the buffer is not long enough.
+ * \endcond
+ */
 int fiftyoneDegreesProcessDeviceCSV(fiftyoneDegreesDataSet *dataSet, int32_t deviceOffset, char* result, int resultLength) {
 	fiftyoneDegreesDeviceOffsets deviceOffsets;
 	fiftyoneDegreesDeviceOffset singleOffset;
@@ -1518,11 +2065,13 @@ int fiftyoneDegreesProcessDeviceCSV(fiftyoneDegreesDataSet *dataSet, int32_t dev
 }
 
 /**
+ * \cond
  * Escapes a range of characters in a JSON string value.
  * @param start the first character to be considered
  * @param next the character after the last one to be considered
  * @param max the last allocated pointer
- * @return the number of characters that were escaped
+ * @return int the number of characters that were escaped
+ * \endcond
  */
 static int escapeJSON(char *start, char *next, char *max) {
 	static const char charactersToChange[] = "\\\"\r\n\t";
@@ -1575,7 +2124,17 @@ static int escapeJSON(char *start, char *next, char *max) {
 	return changedCharacters;
 }
 
-// Process device properties into a JSON string for the device offsets provided.
+/**
+ * \cond
+ * Process device properties into a JSON string for the device offsets provided.
+ * @param dataSet pointer to an initialised dataset.
+ * @param deviceOffsets from a match to process.
+ * @param result buffer to store the JSON in.
+ * @param resultLength allocated to result buffer.
+ * @returns int the length used in the buffer, 0 if there are no properties, or
+ * -1 if the buffer is not long enough.
+ * \endcond
+ */
 int fiftyoneDegreesProcessDeviceOffsetsJSON(fiftyoneDegreesDataSet *dataSet, fiftyoneDegreesDeviceOffsets *deviceOffsets, char* result, int resultLength) {
 	char* valuePos;
 	int requiredPropertyIndex;
@@ -1625,7 +2184,17 @@ int fiftyoneDegreesProcessDeviceOffsetsJSON(fiftyoneDegreesDataSet *dataSet, fif
 	return (int)(currentPos - result);
 }
 
-// Process device properties into a JSON string for the device offset provided.
+/**
+ * \cond
+ * Process device properties into a JSON string for the device offset provided.
+ * @param dataSet pointer to an initialised dataset.
+ * @param deviceOffset from a match to process.
+ * @param result buffer to store the JSON in.
+ * @param resultLength allocated to result buffer.
+ * @returns int the length used in the buffer, 0 if there are no properties, or
+ * -1 if the buffer is not long enough.
+ * \endcond
+ */
 int fiftyoneDegreesProcessDeviceJSON(fiftyoneDegreesDataSet *dataSet, int32_t deviceOffset, char* result, int resultLength) {
 	fiftyoneDegreesDeviceOffsets deviceOffsets;
 	fiftyoneDegreesDeviceOffset singleOffset;
