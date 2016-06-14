@@ -99,8 +99,8 @@ class Provider {
 			int cacheSize, int poolSize);
 		void init(const string &fileName, int cacheSize, int poolSize);
 		void initHttpHeaders();
-		void initAvailableProperites();
-		void initExecption(fiftyoneDegreesDataSetInitStatus initStatus,
+		void initAvailableproperties();
+		void initException(fiftyoneDegreesDataSetInitStatus initStatus,
 			const string &fileName);
 		void initMatch(Match *match);
 		void initComplete(fiftyoneDegreesDataSetInitStatus initStatus,

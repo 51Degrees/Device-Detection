@@ -87,7 +87,7 @@ Provider::~Provider()
  * @param initStatus status enum value
  * @param fileName of the data source
  */
-void Provider::initExecption(
+void Provider::initException(
 		fiftyoneDegreesDataSetInitStatus initStatus,
 		const string &fileName) {
 	stringstream message;
@@ -176,10 +176,10 @@ void Provider::initComplete(
 		const string &fileName) {
 	if (initStatus != DATA_SET_INIT_STATUS_SUCCESS)	{
 		fiftyoneDegreesProviderFree(&provider);
-		initExecption(initStatus, fileName);
+		initException(initStatus, fileName);
 	}
 	else {
-		initAvailableProperites();
+		initAvailableproperties();
 		initHttpHeaders();
 	}
 }
@@ -206,7 +206,7 @@ void Provider::initHttpHeaders() {
  * at construction where the data set source file does not contain details
  * of the property name requested.
  */
-void Provider::initAvailableProperites() {
+void Provider::initAvailableproperties() {
 	const char *propertyName;
     for (int requiredPropetyIndex = 0;
 		requiredPropetyIndex < fiftyoneDegreesGetRequiredPropertiesCount(provider.active->dataSet);

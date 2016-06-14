@@ -154,7 +154,7 @@ fiftyoneDegreesDataSetInitStatus readCopyright(fiftyoneDegreesDataSet *dataSet, 
 	return DATA_SET_INIT_STATUS_SUCCESS;
 }
 
-// Fress the memory.
+// Frees the memory.
 void fiftyoneDegreesDestroy(fiftyoneDegreesDataSet *dataSet) {
 	int index;
 	if (dataSet->copyright != NULL) {
