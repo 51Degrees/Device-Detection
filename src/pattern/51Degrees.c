@@ -601,7 +601,7 @@ static void ensureValueProfilesSet(fiftyoneDegreesDataSet *dataSet) {
  * continuous memory space containing decompressed 51Degreees pattern device
  * data.
  *
- * Bemember to free dataset if status is not success.
+ * Remember to free dataset if status is not success.
  *
  * @param dataSet to be initialised with data from the provided pointer to
  *		  memory location.
@@ -705,7 +705,7 @@ static fiftyoneDegreesDataSetInitStatus initFromFile(
 		return DATA_SET_INIT_STATUS_CORRUPT_DATA;
 	}
 
-	// Read the file into memory in a single continous memory space.
+	// Read the file into memory in a single continuous memory space.
 	if (fseek(inputFilePtr, 0, SEEK_SET) != 0) {
 		return DATA_SET_INIT_STATUS_CORRUPT_DATA;
 	}
