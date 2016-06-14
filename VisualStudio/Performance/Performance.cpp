@@ -23,6 +23,9 @@ typedef struct t_threaddata {
 	int device;
 } ThreadData;
 
+// Dataset used for matching.
+static fiftyoneDegreesDataSet dataSet;
+
 // Array of thread handles used to join the
 // treads after each pass.
 static HANDLE _threads[NUM_THREADS];
@@ -51,9 +54,9 @@ DWORD WINAPI test(LPVOID myThreadData) {
 				counter++;
 
 				// If we're not calibrating then get the device for the
-				// useragent that has just been read.
+				// User-Agent that has just been read.
 				if (strlen(userAgent) < 1024 && data->calibrate == 0)
-					device = fiftyoneDegreesGetDeviceOffset(userAgent);
+					device = fiftyoneDegreesGetDeviceOffset(&dataSet, userAgent);
 
 				// Increase the counter.
 				data->detections++;
@@ -145,7 +148,7 @@ int _tmain(int argc, _TCHAR* argv[]) {
 		userAgentsFile = copyFileName(argv[2]);
 
 		// Initialise the trie matcher.
-		if (fiftyoneDegreesInitWithPropertyString(dataFile, "Id") != 0) {
+		if (fiftyoneDegreesInitWithPropertyString(dataFile, &dataSet, "Id") != 0) {
 			printf("\nData file '%s' could not be loaded.\n", dataFile);
 		} else {
 
@@ -162,8 +165,8 @@ int _tmain(int argc, _TCHAR* argv[]) {
 				detections += test.detections;
 			}
 
-			// Destroy the trie matcher.
-			fiftyoneDegreesDestroy();
+			// Destroy the trie dataset.
+			fiftyoneDegreesDestroy(&dataSet);
 
 			// Display the results in detections per second.
 			printf(
