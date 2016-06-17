@@ -63,6 +63,10 @@ typedef enum e_fiftyoneDegreesDataSetInitStatus {
 	DATA_SET_INIT_STATUS_NULL_POINTER // A key pointer was not set
 } fiftyoneDegreesDataSetInitStatus;
 
+#pragma pack(push, 4)
+typedef struct fiftyoneDegrees_active_dataset_t fiftyoneDegreesActiveDataSet;
+#pragma pack(pop)
+
 /* Relates a http header index to to a device offset */
 typedef struct fiftyoneDegrees_device_offset_t {
 	int httpHeaderOffset; /* Offset to the http header string */
@@ -76,6 +80,7 @@ typedef struct fiftyoneDegrees_device_offset_t {
 typedef struct fiftyoneDegrees_device_offsets_t {
 	int size; /* The number of records in the array */
 	fiftyoneDegreesDeviceOffset *firstOffset; /* First item in the array of offsets */
+	fiftyoneDegreesActiveDataSet *active;
 } fiftyoneDegreesDeviceOffsets;
 
 // Used to map a byte from the data file.
@@ -143,46 +148,54 @@ typedef struct fiftyoneDegrees_property_t {
 
 #pragma pack(push, 1)
 typedef struct fiftyoneDegrees_dataset_t {
-	uint16_t version; /* The version of the data file. */
+	uint16_t *version; /* The version of the data file. */
 	const void *memoryToFree;
 	const char *fileName; /* The location of the file the data set has been loaded from. */
-	int32_t copyrightSize; /* The size of the copyright notice at the top of the data file. */
+	int32_t *copyrightSize; /* The size of the copyright notice at the top of the data file. */
 	char *copyright; /* Pointer to the copyright notice held in the data file. */
-	int32_t stringsSize; /* The size of the strings data array. */
+	int32_t *stringsSize; /* The size of the strings data array. */
 	char *strings; /* Pointer to the start of the strings data array. */
-	int32_t httpHeadersSize; /* The size of the HTTP headers data array. */
+	int32_t *httpHeadersSize; /* The size of the HTTP headers data array. */
 	int32_t *httpHeaders; /* Pointer to the start of the HTTP headers data array. */
 	int32_t uniqueHttpHeaderCount; /* The number of unique http headers. */
 	int32_t *uniqueHttpHeaders; /* Pointer to the unique list of HTTP headers. */
 	const char **prefixedUpperHttpHeaders; /* Pointer to an array of prefixed upper HTTP headers. */
 	int32_t propertiesCount; /* The number of properties contained in the system. */
-	int32_t propertiesSize; /* The size of the properties data array. */
+	int32_t *propertiesSize; /* The size of the properties data array. */
 	fiftyoneDegreesProperty *properties; /* Pointer to the start of the properties data array. */
 	int32_t *devices; /* Pointer to the start of the devices data array. */
-	int32_t devicesSize; /* The size of the devices data array. */
-	int32_t lookupListSize; /* The size of the memory reserved for lookup lists. */
+	int32_t *devicesSize; /* The size of the devices data array. */
+	int32_t *lookupListSize; /* The size of the memory reserved for lookup lists. */
 	FIFTYONEDEGREES_LOOKUP_HEADER *lookupList; /* Pointer to the start of the lookup lists. */
 	int32_t *rootNode; /* Offset in the device data file for the root node. */
-	int64_t nodesSize; /* The size of the data array containing the nodes. */
+	int64_t *nodesSize; /* The size of the data array containing the nodes. */
 	int requiredPropertiesCount; /* The number of properties to be returned. */
 	uint32_t *requiredProperties; /* A list of required property indexes. */
 	const char **requiredPropertiesNames; /* A list of pointers to the names of the properties. */
 } fiftyoneDegreesDataSet;
 #pragma pack(pop)
 
-typedef struct fiftyoneDegrees_active_dataset_t {
-	fiftyoneDegreesDataSet *dataSet; /* Pointer to an initialised data set. */
-} fiftyoneDegreesActiveDataSet;
+#pragma pack(push, 4)
+typedef struct fiftyoneDegrees_provider_t fiftyoneDegreesProvider;
+#pragma pack(pop)
 
 #pragma pack(push, 4)
-typedef struct fiftyoneDegrees_provider_t {
+struct fiftyoneDegrees_active_dataset_t {
+	fiftyoneDegreesDataSet *dataSet; /* Pointer to an initialised data set. */
+	fiftyoneDegreesProvider *provider;
+	int inUse;
+};
+#pragma pack(pop)
+
+#pragma pack(push, 4)
+struct fiftyoneDegrees_provider_t {
 #ifndef FIFTYONEDEGREES_NO_THREADING
 	volatile fiftyoneDegreesActiveDataSet *active; /* Volatile wrapper for the providers data set. */
 	FIFTYONEDEGREES_MUTEX lock; /* Used to lock critical regions where mutable variables are written to */
 #else
 	fiftyoneDegreesActiveDataSet *active; /* Non volatile wrapper for the providers data set. */
 #endif
-} fiftyoneDegreesProvider;
+};
 #pragma pack(pop)
 
 /**
@@ -264,6 +277,10 @@ EXTERNAL void fiftyoneDegreesResetDeviceOffsets(fiftyoneDegreesDeviceOffsets* of
 * @param offsets to free.
 */
 EXTERNAL void fiftyoneDegreesFreeDeviceOffsets(fiftyoneDegreesDeviceOffsets* offsets);
+
+EXTERNAL fiftyoneDegreesDeviceOffsets* fiftyoneDegreesProviderCreateDeviceOffsets(fiftyoneDegreesProvider *provider);
+
+EXTERNAL void fiftyoneDegreesProviderFreeDeviceOffsets(fiftyoneDegreesDeviceOffsets* offsets);
 
 /**
 * \ingroup FiftyOneDegreesFunctions
