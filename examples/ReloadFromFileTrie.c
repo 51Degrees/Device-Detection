@@ -135,6 +135,8 @@ int main(int argc, char* argv[]) {
 #ifndef _MSC_VER
 	dmalloc_debug_setup("log-stats,log-non-free,check-fence,log=dmalloc.log");
 #endif
+	_CrtSetReportMode(_CRT_WARN, _CRTDBG_MODE_FILE);
+	_CrtSetReportFile(_CRT_WARN, _CRTDBG_FILE_STDERR);
 #endif
 
 	int numberOfReloads = 0;
@@ -233,11 +235,11 @@ static void runRequests(void* inputFile) {
 	FILE* fin = fopen((const char*)inputFile, "r");
 
 	while (fgets(userAgent, sizeof(userAgent), fin) != NULL) {
-		offsets = fiftyoneDegreesCreateDeviceOffsets(provider.active->dataSet);
+		offsets = fiftyoneDegreesProviderCreateDeviceOffsets(&provider);
 		offsets->size = 1;
-		fiftyoneDegreesSetDeviceOffset(provider.active->dataSet, userAgent, 0, offsets->firstOffset);
+		fiftyoneDegreesSetDeviceOffset(offsets->active->dataSet, userAgent, 0, offsets->firstOffset);
 		hashCode ^= getHashCode(offsets);
-		fiftyoneDegreesFreeDeviceOffsets(offsets);
+		fiftyoneDegreesProviderFreeDeviceOffsets(offsets);
 	}
 
 	fclose(fin);
@@ -315,8 +317,8 @@ static unsigned long getHashCode(fiftyoneDegreesDeviceOffsets *offsets) {
 	for (requiredPropertyIndex = 0;
 		requiredPropertyIndex < provider.active->dataSet->requiredPropertiesCount;
 		requiredPropertyIndex++) {
-		valueName = fiftyoneDegreesGetValuePtrFromOffsets(provider.active->dataSet, offsets, requiredPropertyIndex);
-		hashCode ^= hash((unsigned char*)&(valueName));
+		valueName = fiftyoneDegreesGetValuePtrFromOffsets(provider.active->dataSet, offsets, 0);
+		hashCode ^= hash((unsigned char*)(valueName));
 	}
 	return hashCode;
 }

@@ -173,6 +173,9 @@ int main(int argc, char* argv[]) {
 #ifdef _DEBUG
 #ifndef _MSC_VER
 	dmalloc_debug_setup("log-stats,log-non-free,check-fence,log=dmalloc.log");
+#else
+	_CrtSetReportMode(_CRT_WARN, _CRTDBG_MODE_FILE);
+	_CrtSetReportFile(_CRT_WARN, _CRTDBG_FILE_STDERR);
 #endif
 #endif
 
@@ -431,12 +434,11 @@ static void reportDatasetInitStatus(fiftyoneDegreesDataSetInitStatus status,
 	}
 }
 
-
 static long loadFile(const char* fileName, char **source) {
 
 	long bufsize = -1;
 
-	FILE *fp = fopen(fileName, "r");
+	FILE *fp = fopen(fileName, "rb");
 	printf("Opening file %s ", fileName);
 	if (fp != NULL) {
 		printf("Success!\n");
@@ -451,18 +453,29 @@ static long loadFile(const char* fileName, char **source) {
 			/* Allocate our buffer to that size. */
 			*source = malloc(sizeof(char) * (bufsize + 1));
 
-			/* Go back to the start of the file. */
-			if (fseek(fp, 0L, SEEK_SET) == 0) { /* Error */ }
-
-			/* Read the entire file into memory. */
-			size_t newLen = fread(*source, sizeof(char), bufsize, fp);
-			if (newLen == 0) {
-				printf("ERROR: could not read file.");
-				fputs("Error reading file", stderr);
+			if (*source != NULL) {
+				/* Go back to the start of the file. */
+				if (fseek(fp, 0L, SEEK_SET) == 0) {
+					/* Read the entire file into memory. */
+					size_t newLen = fread(*source, bufsize, 1, fp);
+					if (newLen != 1) {
+						printf("ERROR: could not read file.");
+						fputs("Error reading file", stderr);
+					}
+					else {
+						printf("File read complete.\n");
+					}
+				}
+				else {
+					printf("ERROR: Fseek failed to find the start of file.\n");
+				}
 			}
 			else {
-				printf("File read complete.\n");
+				printf("ERROR: Failed to allocate enough memory.\n");
 			}
+		}
+		else {
+			printf("ERROR: Fseek failed to find the rnd of file.\n");
 		}
 		fclose(fp);
 	}
