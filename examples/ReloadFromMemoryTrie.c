@@ -364,9 +364,9 @@ static unsigned long getHashCode(fiftyoneDegreesDeviceOffsets *offsets) {
 	int32_t requiredPropertyIndex;
 	const char *valueName;
 	for (requiredPropertyIndex = 0;
-		requiredPropertyIndex < provider.active->dataSet->requiredPropertiesCount;
+		requiredPropertyIndex < offsets->active->dataSet->requiredPropertiesCount;
 		requiredPropertyIndex++) {
-		valueName = fiftyoneDegreesGetValuePtrFromOffsets(provider.active->dataSet, offsets, requiredPropertyIndex);
+		valueName = fiftyoneDegreesGetValuePtrFromOffsets(offsets->active->dataSet, offsets, requiredPropertyIndex);
 		hashCode ^= hash((unsigned char*)valueName);
 	}
 	return hashCode;

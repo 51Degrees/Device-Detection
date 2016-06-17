@@ -57,6 +57,10 @@ void fiftyoneDegreesDestroy(fiftyoneDegreesDataSet *dataSet) {
 		fiftyoneDegreesFree((void*)dataSet->requiredPropertiesNames);
 		dataSet->requiredPropertiesNames = NULL;
 	}
+	if (dataSet->requiredProperties != NULL) {
+		fiftyoneDegreesFree((void*)dataSet->requiredProperties);
+		dataSet->requiredProperties = NULL;
+	}
 	if (dataSet->prefixedUpperHttpHeaders != NULL) {
 		for (index = 0; index < dataSet->uniqueHttpHeaderCount; index++) {
 			if (dataSet->prefixedUpperHttpHeaders[index] != NULL) {
@@ -734,6 +738,7 @@ static fiftyoneDegreesDataSetInitStatus setPropertiesFromExistingDataset(
 void fiftyoneDegreesActiveDataSetFree(fiftyoneDegreesActiveDataSet *active) {
 	if (active->dataSet != NULL) {
 		fiftyoneDegreesDestroy(active->dataSet);
+		fiftyoneDegreesFree(active->dataSet);
 	}
 	fiftyoneDegreesFree(active);
 }
@@ -879,7 +884,7 @@ fiftyoneDegreesDataSetInitStatus fiftyoneDegreesProviderReloadFromFile(fiftyoneD
 * \endcond
 */
 void fiftyoneDegreesProviderFree(fiftyoneDegreesProvider* provider) {
-	fiftyoneDegreesDestroy((fiftyoneDegreesDataSet*) provider->active->dataSet);
+	 fiftyoneDegreesActiveDataSetFree((fiftyoneDegreesActiveDataSet*)provider->active);
 #ifndef FIFTYONEDEGREES_NO_THREADING
 	FIFTYONEDEGREES_MUTEX_CLOSE(provider->lock);
 #endif

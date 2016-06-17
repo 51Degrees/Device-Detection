@@ -37,7 +37,7 @@ Reload from memory example that shows how to:
 	access the workset pool, cache and dataset as well as to invoke the reload
 	functionality.
 	<p><pre class="prettyprint lang-c">
-	static fiftyoneDegreesProvider *provider;
+	static fiftyoneDegreesProvider provider;
 	</pre></p>
 </p>
 <p>
@@ -59,7 +59,7 @@ Reload from memory example that shows how to:
 	use. To instruct the API to free the continuous memory space set the
 	memoryToFree pointer equal to the pointer of the file in memory.
 	<p><pre class="prettyprint lang-c">
-	fiftyoneDegreesDataSet *ds = (fiftyoneDegreesDataSet*)provider->activePool->dataSet;
+	fiftyoneDegreesDataSet *ds = (fiftyoneDegreesDataSet*)provider.activePool->dataSet;
 	ds->memoryToFree = (void*)fileInMemory;
 	</pre></p>
 </p>
@@ -83,7 +83,7 @@ Reload from memory example that shows how to:
 	a thread safe collection of workset structures. To retrieve a workset use:
 	<p><pre class="prettyprint lang-c">
 	fiftyoneDegreesWorkset *ws = NULL;
-	ws = fiftyoneDegreesProviderWorksetGet(provider);
+	ws = fiftyoneDegreesProviderWorksetGet(&provider);
 	</pre></p>
 	And to return a workset to the pool use:
 	<p><pre class="prettyprint lang-c">
@@ -135,7 +135,7 @@ Reload from memory example that shows how to:
 #include "../src/pattern/51Degrees.h"
 
 // Global settings and properties.
-static fiftyoneDegreesProvider *provider;
+static fiftyoneDegreesProvider provider;
 #ifndef FIFTYONEDEGREES_NO_THREADING
 static FIFTYONEDEGREES_THREAD *threads;
 static const int numberOfThreads = 50;
@@ -181,8 +181,6 @@ int main(int argc, char* argv[]) {
 
 	// How many times the dataset was reloaded.
 	int numberOfReloads = 0;
-	// Allocate space for provider.
-	provider = (fiftyoneDegreesProvider*)malloc(sizeof(fiftyoneDegreesProvider));
 
 #ifndef FIFTYONEDEGREES_NO_THREADING
 	printf("** Multi Threaded Reload Example **\r\n");
@@ -193,7 +191,7 @@ int main(int argc, char* argv[]) {
 	// Create a pool of 4 worksets with a cache for 1000 items.
 	fiftyoneDegreesDataSetInitStatus status =
 		fiftyoneDegreesInitProviderWithPropertyString(
-		fileName, provider, requiredProperties, 4, 1000);
+		fileName, &provider, requiredProperties, 4, 1000);
 	if (status != DATA_SET_INIT_STATUS_SUCCESS) {
 		reportDatasetInitStatus(status, fileName);
 		fgetc(stdin);
@@ -212,8 +210,8 @@ int main(int argc, char* argv[]) {
 			// Load file into memory.
 			currentFileSize = loadFile(fileName, &fileInMemory);
 			// Refresh the current dataset.
-			fiftyoneDegreesProviderReloadFromMemory(provider, (void*)fileInMemory, currentFileSize);
-			fiftyoneDegreesDataSet *ds = (fiftyoneDegreesDataSet*)provider->activePool->dataSet;
+			fiftyoneDegreesProviderReloadFromMemory(&provider, (void*)fileInMemory, currentFileSize);
+			fiftyoneDegreesDataSet *ds = (fiftyoneDegreesDataSet*)provider.activePool->dataSet;
 			// Tell the API to free the memory occupied by the data file when the dataset is freed.
 			ds->memoryToFree = (void*)fileInMemory;
 
@@ -232,8 +230,7 @@ int main(int argc, char* argv[]) {
 #endif
 
 	// Free the pool, dataset and cache.
-	fiftyoneDegreesProviderFree(provider);
-	free(provider);
+	fiftyoneDegreesProviderFree(&provider);
 
 	// Finish execution.
 	printf("Reloaded '%i' times.\r\n", numberOfReloads);
@@ -293,7 +290,7 @@ static void runRequests(void* inputFile) {
 	FILE* fin = fopen((const char*)inputFile, "r");
 
 	while (fgets(userAgent, sizeof(userAgent), fin) != NULL) {
-		ws = fiftyoneDegreesProviderWorksetGet(provider);
+		ws = fiftyoneDegreesProviderWorksetGet(&provider);
 		fiftyoneDegreesMatch(ws, userAgent);
 		hashCode ^= getHashCode(ws);
 		fiftyoneDegreesWorksetRelease(ws);
@@ -333,13 +330,13 @@ static int runRequest(const char *inputFile) {
 	// In this example the same data file is reloaded from.
 	// Store path for use with reloads.
 	pathToFileInMemory = (char*)malloc(sizeof(char) *
-						(strlen(provider->activePool->dataSet->fileName) + 1));
+						(strlen(provider.activePool->dataSet->fileName) + 1));
 	memcpy(pathToFileInMemory,
-		provider->activePool->dataSet->fileName,
-		strlen(provider->activePool->dataSet->fileName) + 1);
+		provider.activePool->dataSet->fileName,
+		strlen(provider.activePool->dataSet->fileName) + 1);
 
 	while (fgets(userAgent, sizeof(userAgent), fin) != NULL) {
-		ws = fiftyoneDegreesProviderWorksetGet(provider);
+		ws = fiftyoneDegreesProviderWorksetGet(&provider);
 		fiftyoneDegreesMatch(ws, userAgent);
 		hashCode ^= getHashCode(ws);
 		fiftyoneDegreesWorksetRelease(ws);
@@ -349,9 +346,9 @@ static int runRequest(const char *inputFile) {
 			// Load file into memory.
 			currentFileSize = loadFile(pathToFileInMemory, &fileInMemory);
 			// Refresh the current dataset.
-			fiftyoneDegreesProviderReloadFromMemory(provider, (void*)fileInMemory, currentFileSize);
+			fiftyoneDegreesProviderReloadFromMemory(&provider, (void*)fileInMemory, currentFileSize);
 
-			fiftyoneDegreesDataSet *ds = (fiftyoneDegreesDataSet*)provider->activePool->dataSet;
+			fiftyoneDegreesDataSet *ds = (fiftyoneDegreesDataSet*)provider.activePool->dataSet;
 			// Tell the API to free the memory occupied by the data file.
 			ds->memoryToFree = (void*)fileInMemory;
 			numberOfReloads++;
