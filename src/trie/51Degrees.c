@@ -51,7 +51,7 @@ void (FIFTYONEDEGREES_CALL_CONV *fiftyoneDegreesFree)(void *__ptr) = free;
  * @param dataSet a pointer to the dataset to be freed.
  * \endcond
  */
-void fiftyoneDegreesDestroy(fiftyoneDegreesDataSet *dataSet) {
+void fiftyoneDegreesDataSetFree(fiftyoneDegreesDataSet *dataSet) {
 	int index;
 	if (dataSet->requiredPropertiesNames != NULL) {
 		fiftyoneDegreesFree((void*)dataSet->requiredPropertiesNames);
@@ -255,7 +255,7 @@ fiftyoneDegreesDataSetInitStatus initProvider(
 	// Create a new active wrapper for the provider.
 	active = (fiftyoneDegreesActiveDataSet*)fiftyoneDegreesMalloc(sizeof(fiftyoneDegreesActiveDataSet));
 	if (active == NULL) {
-		fiftyoneDegreesDestroy(dataSet);
+		fiftyoneDegreesDataSetFree(dataSet);
 		return DATA_SET_INIT_STATUS_INSUFFICIENT_MEMORY;
 	}
 
@@ -340,7 +340,7 @@ fiftyoneDegreesDataSetInitStatus fiftyoneDegreesInitProviderWithPropertyString(c
 	}
 	status = fiftyoneDegreesInitWithPropertyString(fileName, dataSet, properties);
 	if (status != DATA_SET_INIT_STATUS_SUCCESS) {
-		fiftyoneDegreesDestroy(provider->active->dataSet);
+		fiftyoneDegreesDataSetFree(provider->active->dataSet);
 		return status;
 	}
 #ifndef FIFTYONEDEGREES_NO_THREADING
@@ -370,7 +370,7 @@ fiftyoneDegreesDataSetInitStatus fiftyoneDegreesInitProviderWithPropertyArray(co
 	}
 	status = fiftyoneDegreesInitWithPropertyArray(fileName, dataSet, properties, propertyCount);
 	if (status != DATA_SET_INIT_STATUS_SUCCESS) {
-		fiftyoneDegreesDestroy(provider->active->dataSet);
+		fiftyoneDegreesDataSetFree(provider->active->dataSet);
 		return status;
 	}
 #ifndef FIFTYONEDEGREES_NO_THREADING
@@ -737,7 +737,7 @@ static fiftyoneDegreesDataSetInitStatus setPropertiesFromExistingDataset(
 
 void fiftyoneDegreesActiveDataSetFree(fiftyoneDegreesActiveDataSet *active) {
 	if (active->dataSet != NULL) {
-		fiftyoneDegreesDestroy(active->dataSet);
+		fiftyoneDegreesDataSetFree(active->dataSet);
 		fiftyoneDegreesFree(active->dataSet);
 	}
 	fiftyoneDegreesFree(active);
@@ -761,7 +761,7 @@ fiftyoneDegreesDataSetInitStatus reloadCommon(fiftyoneDegreesProvider *provider,
 	// Initialise the new dataset with the same properties as the old one.
 	status = setPropertiesFromExistingDataset(oldActive->dataSet, newDataSet);
 	if (status != DATA_SET_INIT_STATUS_SUCCESS) {
-		fiftyoneDegreesDestroy(newDataSet);
+		fiftyoneDegreesDataSetFree(newDataSet);
 		return status;
 	}
 
@@ -771,7 +771,7 @@ fiftyoneDegreesDataSetInitStatus reloadCommon(fiftyoneDegreesProvider *provider,
 	// Initialise the new provider.
 	status = initProvider(provider, newDataSet);
 	if (status != DATA_SET_INIT_STATUS_SUCCESS) {
-		fiftyoneDegreesDestroy(newDataSet);
+		fiftyoneDegreesDataSetFree(newDataSet);
 	}
 
 	// If the old pool is ready to be freed then do so.
@@ -827,7 +827,7 @@ fiftyoneDegreesDataSetInitStatus fiftyoneDegreesProviderReloadFromMemory(fiftyon
 	// Reload common components.
 	status = reloadCommon(provider, newDataSet);
 	if (status != DATA_SET_INIT_STATUS_SUCCESS) {
-		fiftyoneDegreesDestroy(newDataSet);
+		fiftyoneDegreesDataSetFree(newDataSet);
 	}
 
 	return status;
@@ -870,7 +870,7 @@ fiftyoneDegreesDataSetInitStatus fiftyoneDegreesProviderReloadFromFile(fiftyoneD
 	// Reload common components.
 	status = reloadCommon(provider, newDataSet);
 	if (status != DATA_SET_INIT_STATUS_SUCCESS) {
-		fiftyoneDegreesDestroy(newDataSet);
+		fiftyoneDegreesDataSetFree(newDataSet);
 	}
 
 	return status;

@@ -341,7 +341,7 @@ EXTERNAL int fiftyoneDegreesGetRequiredPropertyIndex(fiftyoneDegreesDataSet *dat
 * Frees the memory used by the dataset.
 * @param dataSet a pointer to the dataset to be freed.
 */
-EXTERNAL void fiftyoneDegreesDestroy(fiftyoneDegreesDataSet *dataSet);
+EXTERNAL void fiftyoneDegreesDataSetFree(fiftyoneDegreesDataSet *dataSet);
 
 /**
 * \ingroup FiftyOneDegreesFunctions

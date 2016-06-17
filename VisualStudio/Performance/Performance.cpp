@@ -166,7 +166,7 @@ int _tmain(int argc, _TCHAR* argv[]) {
 			}
 
 			// Destroy the trie dataset.
-			fiftyoneDegreesDestroy(&dataSet);
+			fiftyoneDegreesDataSetFree(&dataSet);
 
 			// Display the results in detections per second.
 			printf(

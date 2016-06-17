@@ -37,7 +37,7 @@ int main(int argc, char* argv[]) {
             // Get the next useragent.
             result = fgets(input, 50000, stdin);
           }
-          fiftyoneDegreesDestroy(&dataSet);
+          fiftyoneDegreesDataSetFree(&dataSet);
           break;
         }
       }
