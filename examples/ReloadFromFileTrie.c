@@ -134,9 +134,10 @@ int main(int argc, char* argv[]) {
 #ifdef _DEBUG
 #ifndef _MSC_VER
 	dmalloc_debug_setup("log-stats,log-non-free,check-fence,log=dmalloc.log");
-#endif
+#else
 	_CrtSetReportMode(_CRT_WARN, _CRTDBG_MODE_FILE);
 	_CrtSetReportFile(_CRT_WARN, _CRTDBG_FILE_STDERR);
+#endif
 #endif
 
 	int numberOfReloads = 0;
@@ -272,7 +273,7 @@ static int runRequest(const char *inputFile) {
 	FILE* fin = fopen((const char*)inputFile, "r");
 
 	while (fgets(userAgent, sizeof(userAgent), fin) != NULL) {
-		offsets = fiftyoneDegreesCreateDeviceOffsets(provider.active->dataSet);
+		offsets = fiftyoneDegreesProviderCreateDeviceOffsets(&provider);
 		offsets->size = 1;
 		fiftyoneDegreesSetDeviceOffset(provider.active->dataSet, userAgent, 0, offsets->firstOffset);
 		hashCode ^= getHashCode(offsets);
