@@ -9,6 +9,7 @@ The data file is now initialised into a non static dataset structure, so a few t
 1. fiftyoneDegreesInitWithPropertyString and fiftyoneDegreesInitWithPropertyArray should now be passed a pointer to a dataset structure which can be allocated with ``malloc(sizeof(fiftyoneDegreesDataSet))``.
 2. fiftyoneDegreesDestroy function has been superceded by the fiftyoneDegreesDataSetFree function which takes the dataset to free as an argument.
 3. Many funtions now take a fiftyoneDegreesDataSet pointer as an argument as the dataset is no longer contained staticly. See src/trie/51Degrees.h for more details.
+4. Any project using the Trie API should either be compiled with ``FIFTYONEDEGREES_NO_THREADING`` defined, or threading enabled by compiling it with src/threading.h.
 
 Note: this does not affect any of the C based API's as that is taken care of in the wrapper.
 
