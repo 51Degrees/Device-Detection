@@ -78,7 +78,7 @@ This package includes the following examples:
 3. Visual Studio solution with example web site, command line projects and C++
   projects to demonstrate how to access from managed and unmanaged code.
 
-4. Getting started, takes some common User-Agents and returns the value of
+4. Getting Started (Pattern and Trie), takes some common User-Agents and returns the value of
   the IsMobile property.
 
 5. Match Metrics, takes some common User-Agents and returns various metrics
@@ -93,9 +93,9 @@ This package includes the following examples:
 8. Match for Device Id, takes some common device ids and returns the value of
   the IsMobile property.
 
-9. Reload from File, illustrates how to reload the data file from the data file on disk without restarting the application. Contains example of both the single threaded and multithreaded reload.
+9. Reload from File (Pattern and Trie), illustrates how to reload the data file from the data file on disk without restarting the application. Contains example of both the single threaded and multithreaded reload.
 
-10. Reload from Memory, illustrates how to reload the data file from a continuous memory space that the data file was read into without restarting the application. Contains example of both the single threaded and multithreaded reload.
+10. Reload from Memory (Pattern and Trie), illustrates how to reload the data file from a continuous memory space that the data file was read into without restarting the application. Contains example of both the single threaded and multithreaded reload.
 
 11. Find Profiles, illustrates how to retrieve profiles based on some user-defined value of one of the properties.
 
@@ -108,9 +108,12 @@ C++ Provider within their subdirectories.
 Use the following instructions to compile different versions for different
 target platforms.
 
+**Note: when compiling the examples with GCC or Clang there is a dependancy on dmalloc, and dmallocth for the multithreaded reload functions.**
+
 ### Included Files
 
-makefile - Builds a command line executable under Linux.  
+makefile - Builds a command line executable under Linux. 
+CMakeLists - Builds the example projects under Windows, Linu and OS X.
 LICENSE - The licence terms for all source code and Lite data.  
 
 ApacheBench/ - A version of the Apache Benchmarking tool modified to randomly generate User-Agent headers. See ApacheBench/README.md for more details.
@@ -218,16 +221,24 @@ VisualStudio/ - all files related exclusively to Windows and Visual Studio 2013.
 &nbsp;&nbsp;&nbsp;&nbsp;Console Interop/Properties/AssemblyInfo.cs - Project header information.  
 
 &nbsp;&nbsp;&nbsp;&nbsp;Examples/Getting Started/Getting Started.* - Project files for a getting started example.  
+&nbsp;&nbsp;&nbsp;&nbsp;Examples/Getting Started Trie/Getting Started Trie.* - Project files for a getting started example.  
 &nbsp;&nbsp;&nbsp;&nbsp;Examples/Match For Device Id/Match For Device Id.* - Project files for a match for device id example.  
 &nbsp;&nbsp;&nbsp;&nbsp;Exampes/Match Metrics/Match Metrics.* - Project files for a match metrics example.  
 &nbsp;&nbsp;&nbsp;&nbsp;Examples/Offline Processing/Offline Processing.* - Project files for an offline processing example.  
 &nbsp;&nbsp;&nbsp;&nbsp;Exampels/Strongly Typed/Strongly Typed.* - Project files for a strongly typed example.  
+&nbsp;&nbsp;&nbsp;&nbsp;Examples/Reload From File/Reload From File.* - Project files for a reload example.
+&nbsp;&nbsp;&nbsp;&nbsp;Examples/Reload From File/Reload From Memory.* - Project files for a reload example.
+&nbsp;&nbsp;&nbsp;&nbsp;Examples/Reload From File/Reload From File Trie.* - Project files for a reload example.
+&nbsp;&nbsp;&nbsp;&nbsp;Examples/Reload From File/Reload From Memory Trie.* - Project files for a reload example.
 
-&nbsp;&nbsp;&nbsp;&nbsp;CS Examples/Getting Started/* - Project files for a getting started example/  
+
+&nbsp;&nbsp;&nbsp;&nbsp;CS Examples/Getting Started/* - Project files for a getting started example.  
+&nbsp;&nbsp;&nbsp;&nbsp;CS Examples/Getting Started Trie/* - Project files for a getting started example.  
 &nbsp;&nbsp;&nbsp;&nbsp;CS Examples/Match For Device Id/* - Project files for a match for device id example.  
 &nbsp;&nbsp;&nbsp;&nbsp;CS Examples/Match Metrics/* - Project files for a match metrics example.  
 &nbsp;&nbsp;&nbsp;&nbsp;CS Examples/Offline Processing/* - Project files for an offline processing example.  
 &nbsp;&nbsp;&nbsp;&nbsp;CS Examples/Strongly Typed/* - Project files for a strongly typed example.  
+&nbsp;&nbsp;&nbsp;&nbsp;CS Examples/Reload Data File/* - Project files for a strongly typed example.  
 &nbsp;&nbsp;&nbsp;&nbsp;CS Examples/Examples Tests/* - Project files for tests which test each example.  
 
 &nbsp;&nbsp;&nbsp;&nbsp;Demo/Web Site.csproj - Demo web site using the Interop assembly to request properties associated with the requesting device.  
