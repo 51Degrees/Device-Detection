@@ -33,7 +33,7 @@ Match::Match(fiftyoneDegreesDeviceOffsets *offsets) {
  * Releases the memory used to store the device offsets.
  */
 Match::~Match() {
-	fiftyoneDegreesFreeDeviceOffsets(offsets);
+	fiftyoneDegreesProviderFreeDeviceOffsets(offsets);
 }
 
 /**

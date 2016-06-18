@@ -310,7 +310,7 @@ int Provider::getDataSetDeviceCombinations() {
 fiftyoneDegreesDeviceOffsets* Provider::matchForHttpHeaders(
 		const map<string, string> *headers) {
 	int headerIndex = 0;
-	fiftyoneDegreesDeviceOffsets* offsets = fiftyoneDegreesCreateDeviceOffsets(provider.active->dataSet);
+	fiftyoneDegreesDeviceOffsets* offsets = fiftyoneDegreesProviderCreateDeviceOffsets(&provider);
 	const char *httpHeaderName = GET_HTTP_HEADER_NAME(provider.active->dataSet, headerIndex);
 	while (httpHeaderName != NULL) {
 		map<string, string>::const_iterator httpHeaderValue =
@@ -385,7 +385,7 @@ void Provider::buildArray(int offset, map<string, vector<string> > *result) {
 }
 
 void Provider::initMatch(Match *match) {
-	match->dataSet = provider.active->dataSet;
+	match->dataSet = match->offsets->active->dataSet;
 }
 /**
  * Completes device detection for the User-Agent provided.
@@ -393,7 +393,7 @@ void Provider::initMatch(Match *match) {
  * @returns new Match instance configured to provide access to the results
  */
 Match* Provider::getMatch(const char* userAgent) {
-	fiftyoneDegreesDeviceOffsets* offsets = new fiftyoneDegreesDeviceOffsets();
+	fiftyoneDegreesDeviceOffsets* offsets = fiftyoneDegreesProviderCreateDeviceOffsets(&provider);
 	offsets->size = 1;
 	offsets->firstOffset = new fiftyoneDegreesDeviceOffset[1];
 	fiftyoneDegreesSetDeviceOffset(provider.active->dataSet, userAgent, 0, offsets->firstOffset);

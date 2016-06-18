@@ -247,138 +247,6 @@ void initAllProperties(fiftyoneDegreesDataSet *dataSet) {
 	}
 }
 
-fiftyoneDegreesDataSetInitStatus initProvider(
-	fiftyoneDegreesProvider *provider,
-	fiftyoneDegreesDataSet *dataSet) {
-	fiftyoneDegreesActiveDataSet *active;
-
-	// Create a new active wrapper for the provider.
-	active = (fiftyoneDegreesActiveDataSet*)fiftyoneDegreesMalloc(sizeof(fiftyoneDegreesActiveDataSet));
-	if (active == NULL) {
-		fiftyoneDegreesDataSetFree(dataSet);
-		return DATA_SET_INIT_STATUS_INSUFFICIENT_MEMORY;
-	}
-
-	// Set the number of offsets using the active dataset to zero.
-	active->inUse = 0;
-
-	// Set a link between the new active wrapper and the provider. Used to check if the
-	// dataset can be freed when the last thread has finished using it.
-	active->provider = provider;
-
-	// Switch the active pool for the provider to the newly created one.
-	active->dataSet = dataSet;
-	provider->active = active;
-
-	return DATA_SET_INIT_STATUS_SUCCESS;
-}
-
-/**
- * \cond
- * Initialises the dataset using the file provided and a string of properties.
- * @param fileName the path to a 51Degrees data file.
- * @param dataSet pointer to a dataset which has been allocated with the
- * correct size.
- * @param properties a comma separated string containing the properties to be
- * initialised.
- * @returns fiftyoneDegreesDataSetInitStatus indicates whether or not the
- * dataset has been initialised correctly.
- * \endcond
- */
-fiftyoneDegreesDataSetInitStatus fiftyoneDegreesInitWithPropertyString(const char* fileName, fiftyoneDegreesDataSet *dataSet, const char* properties) {
-	fiftyoneDegreesDataSetInitStatus status = DATA_SET_INIT_STATUS_SUCCESS;
-	status = initFromFile(dataSet, fileName);
-	if (status == DATA_SET_INIT_STATUS_SUCCESS) {
-		// If no properties are provided then use all of them.
-		if (properties == NULL || strlen(properties) == 0)
-			initAllProperties(dataSet);
-		else
-			initSpecificProperties(dataSet, properties);
-	}
-	return status;
-}
-
-/**
-* \cond
-* Initialises the dataset using the file provided and an array of properties.
-* @param fileName the path to a 51Degrees data file.
-* @param dataSet pointer to a dataset which has been allocated with the
-* correct size.
-* @param properties a string array containing the properties to be
-* initialised.
-* @param propertyCount the number of properties in the array
-* @returns fiftyoneDegreesDataSetInitStatus indicates whether or not the
-* dataset has been initialised correctly.
-* \endcond
-*/
-fiftyoneDegreesDataSetInitStatus fiftyoneDegreesInitWithPropertyArray(const char* fileName, fiftyoneDegreesDataSet *dataSet, const char** properties, int propertyCount) {
-	fiftyoneDegreesDataSetInitStatus status = DATA_SET_INIT_STATUS_SUCCESS;
-	status = initFromFile(dataSet, fileName);
-	if (status == DATA_SET_INIT_STATUS_SUCCESS) {
-		initSpecificPropertiesFromArray(dataSet, properties, propertyCount);
-	}
-	return status;
-}
-
-/**
-* \cond
-* Initialises the provider using the file provided and a string of properties.
-* @param fileName the path to a 51Degrees data file.
-* @param provider pointer to a provider which has been allocated with the
-* correct size.
-* @param properties a comma separated string containing the properties to be
-* initialised.
-* @returns fiftyoneDegreesDataSetInitStatus indicates whether or not the
-* provider has been initialised correctly.
-* \endcond
-*/
-fiftyoneDegreesDataSetInitStatus fiftyoneDegreesInitProviderWithPropertyString(const char* fileName, fiftyoneDegreesProvider* provider, const char* properties) {
-	fiftyoneDegreesDataSetInitStatus status;
-	fiftyoneDegreesDataSet *dataSet = (fiftyoneDegreesDataSet*)fiftyoneDegreesMalloc(sizeof(fiftyoneDegreesDataSet));
-	if (dataSet == NULL) {
-		return DATA_SET_INIT_STATUS_INSUFFICIENT_MEMORY;
-	}
-	status = fiftyoneDegreesInitWithPropertyString(fileName, dataSet, properties);
-	if (status != DATA_SET_INIT_STATUS_SUCCESS) {
-		fiftyoneDegreesDataSetFree(provider->active->dataSet);
-		return status;
-	}
-#ifndef FIFTYONEDEGREES_NO_THREADING
-	FIFTYONEDEGREES_MUTEX_CREATE(provider->lock);
-#endif
-	return initProvider(provider, dataSet);
-}
-
-/**
-* \cond
-* Initialises the provider using the file provided and an array of properties.
-* @param fileName the path to a 51Degrees data file.
-* @param provider pointer to a provider which has been allocated with the
-* correct size.
-* @param properties a string array containing the properties to be
-* initialised.
-* @param propertyCount the number of properties in the array.
-* @returns fiftyoneDegreesDataSetInitStatus indicates whether or not the
-* provider has been initialised correctly.
-* \endcond
-*/
-fiftyoneDegreesDataSetInitStatus fiftyoneDegreesInitProviderWithPropertyArray(const char* fileName, fiftyoneDegreesProvider *provider, const char ** properties, int propertyCount) {
-	fiftyoneDegreesDataSetInitStatus status;
-	fiftyoneDegreesDataSet *dataSet = (fiftyoneDegreesDataSet*)fiftyoneDegreesMalloc(sizeof(fiftyoneDegreesDataSet));
-	if (dataSet == NULL) {
-		return DATA_SET_INIT_STATUS_INSUFFICIENT_MEMORY;
-	}
-	status = fiftyoneDegreesInitWithPropertyArray(fileName, dataSet, properties, propertyCount);
-	if (status != DATA_SET_INIT_STATUS_SUCCESS) {
-		fiftyoneDegreesDataSetFree(provider->active->dataSet);
-		return status;
-	}
-#ifndef FIFTYONEDEGREES_NO_THREADING
-		FIFTYONEDEGREES_MUTEX_CREATE(provider->lock);
-#endif
-	return initProvider(provider, dataSet);
-}
-
 /**
 * \cond
 * Provides a safe way to advance a pointer by the specified amount of bytes.
@@ -450,7 +318,7 @@ static fiftyoneDegreesDataSetInitStatus readDataSetFromMemoryLocation(
 	if (status != DATA_SET_INIT_STATUS_SUCCESS) return status;
 
 	/* Check the version of the data file */
-	if (*dataSet->version != 32 ) {
+	if (*dataSet->version != 32) {
 		return DATA_SET_INIT_STATUS_INCORRECT_VERSION;
 	}
 
@@ -511,7 +379,7 @@ static fiftyoneDegreesDataSetInitStatus readDataSetFromMemoryLocation(
 	status = advancePointer(&current, lastByte, (long)*dataSet->nodesSize);
 	if (status != DATA_SET_INIT_STATUS_SUCCESS) return status;
 
-	
+
 	/* Check that the current pointer equals the last byte */
 	if (current != lastByte) {
 		return DATA_SET_INIT_STATUS_POINTER_OUT_OF_BOUNDS;
@@ -519,6 +387,7 @@ static fiftyoneDegreesDataSetInitStatus readDataSetFromMemoryLocation(
 
 	return DATA_SET_INIT_STATUS_SUCCESS;
 }
+
 fiftyoneDegreesDataSetInitStatus initUniqueHttpHeaders(fiftyoneDegreesDataSet *dataSet)
 {
 	int headerIndex, uniqueHeaderIndex;
@@ -658,6 +527,138 @@ static fiftyoneDegreesDataSetInitStatus initFromFile(
 
 	// Set the file name of the data set.
 	return setDataSetFileName(dataSet, fileName);
+}
+
+fiftyoneDegreesDataSetInitStatus initProvider(
+	fiftyoneDegreesProvider *provider,
+	fiftyoneDegreesDataSet *dataSet) {
+	fiftyoneDegreesActiveDataSet *active;
+
+	// Create a new active wrapper for the provider.
+	active = (fiftyoneDegreesActiveDataSet*)fiftyoneDegreesMalloc(sizeof(fiftyoneDegreesActiveDataSet));
+	if (active == NULL) {
+		fiftyoneDegreesDataSetFree(dataSet);
+		return DATA_SET_INIT_STATUS_INSUFFICIENT_MEMORY;
+	}
+
+	// Set the number of offsets using the active dataset to zero.
+	active->inUse = 0;
+
+	// Set a link between the new active wrapper and the provider. Used to check if the
+	// dataset can be freed when the last thread has finished using it.
+	active->provider = provider;
+
+	// Switch the active pool for the provider to the newly created one.
+	active->dataSet = dataSet;
+	provider->active = active;
+
+	return DATA_SET_INIT_STATUS_SUCCESS;
+}
+
+/**
+ * \cond
+ * Initialises the dataset using the file provided and a string of properties.
+ * @param fileName the path to a 51Degrees data file.
+ * @param dataSet pointer to a dataset which has been allocated with the
+ * correct size.
+ * @param properties a comma separated string containing the properties to be
+ * initialised.
+ * @returns fiftyoneDegreesDataSetInitStatus indicates whether or not the
+ * dataset has been initialised correctly.
+ * \endcond
+ */
+fiftyoneDegreesDataSetInitStatus fiftyoneDegreesInitWithPropertyString(const char* fileName, fiftyoneDegreesDataSet *dataSet, const char* properties) {
+	fiftyoneDegreesDataSetInitStatus status = DATA_SET_INIT_STATUS_SUCCESS;
+	status = initFromFile(dataSet, fileName);
+	if (status == DATA_SET_INIT_STATUS_SUCCESS) {
+		// If no properties are provided then use all of them.
+		if (properties == NULL || strlen(properties) == 0)
+			initAllProperties(dataSet);
+		else
+			initSpecificProperties(dataSet, properties);
+	}
+	return status;
+}
+
+/**
+* \cond
+* Initialises the dataset using the file provided and an array of properties.
+* @param fileName the path to a 51Degrees data file.
+* @param dataSet pointer to a dataset which has been allocated with the
+* correct size.
+* @param properties a string array containing the properties to be
+* initialised.
+* @param propertyCount the number of properties in the array
+* @returns fiftyoneDegreesDataSetInitStatus indicates whether or not the
+* dataset has been initialised correctly.
+* \endcond
+*/
+fiftyoneDegreesDataSetInitStatus fiftyoneDegreesInitWithPropertyArray(const char* fileName, fiftyoneDegreesDataSet *dataSet, const char** properties, int propertyCount) {
+	fiftyoneDegreesDataSetInitStatus status = DATA_SET_INIT_STATUS_SUCCESS;
+	status = initFromFile(dataSet, fileName);
+	if (status == DATA_SET_INIT_STATUS_SUCCESS) {
+		initSpecificPropertiesFromArray(dataSet, properties, propertyCount);
+	}
+	return status;
+}
+
+/**
+* \cond
+* Initialises the provider using the file provided and a string of properties.
+* @param fileName the path to a 51Degrees data file.
+* @param provider pointer to a provider which has been allocated with the
+* correct size.
+* @param properties a comma separated string containing the properties to be
+* initialised.
+* @returns fiftyoneDegreesDataSetInitStatus indicates whether or not the
+* provider has been initialised correctly.
+* \endcond
+*/
+fiftyoneDegreesDataSetInitStatus fiftyoneDegreesInitProviderWithPropertyString(const char* fileName, fiftyoneDegreesProvider* provider, const char* properties) {
+	fiftyoneDegreesDataSetInitStatus status;
+	fiftyoneDegreesDataSet *dataSet = (fiftyoneDegreesDataSet*)fiftyoneDegreesMalloc(sizeof(fiftyoneDegreesDataSet));
+	if (dataSet == NULL) {
+		return DATA_SET_INIT_STATUS_INSUFFICIENT_MEMORY;
+	}
+	status = fiftyoneDegreesInitWithPropertyString(fileName, dataSet, properties);
+	if (status != DATA_SET_INIT_STATUS_SUCCESS) {
+		fiftyoneDegreesDataSetFree(provider->active->dataSet);
+		return status;
+	}
+#ifndef FIFTYONEDEGREES_NO_THREADING
+	FIFTYONEDEGREES_MUTEX_CREATE(provider->lock);
+#endif
+	return initProvider(provider, dataSet);
+}
+
+/**
+* \cond
+* Initialises the provider using the file provided and an array of properties.
+* @param fileName the path to a 51Degrees data file.
+* @param provider pointer to a provider which has been allocated with the
+* correct size.
+* @param properties a string array containing the properties to be
+* initialised.
+* @param propertyCount the number of properties in the array.
+* @returns fiftyoneDegreesDataSetInitStatus indicates whether or not the
+* provider has been initialised correctly.
+* \endcond
+*/
+fiftyoneDegreesDataSetInitStatus fiftyoneDegreesInitProviderWithPropertyArray(const char* fileName, fiftyoneDegreesProvider *provider, const char ** properties, int propertyCount) {
+	fiftyoneDegreesDataSetInitStatus status;
+	fiftyoneDegreesDataSet *dataSet = (fiftyoneDegreesDataSet*)fiftyoneDegreesMalloc(sizeof(fiftyoneDegreesDataSet));
+	if (dataSet == NULL) {
+		return DATA_SET_INIT_STATUS_INSUFFICIENT_MEMORY;
+	}
+	status = fiftyoneDegreesInitWithPropertyArray(fileName, dataSet, properties, propertyCount);
+	if (status != DATA_SET_INIT_STATUS_SUCCESS) {
+		fiftyoneDegreesDataSetFree(provider->active->dataSet);
+		return status;
+	}
+#ifndef FIFTYONEDEGREES_NO_THREADING
+		FIFTYONEDEGREES_MUTEX_CREATE(provider->lock);
+#endif
+	return initProvider(provider, dataSet);
 }
 
 /**
