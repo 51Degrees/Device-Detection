@@ -116,6 +116,14 @@ Reload from memory example that shows how to:
 
 #include <stdio.h>
 #include <stdlib.h>
+#include <string.h>
+
+#ifdef _MSC_VER
+#include <Windows.h>
+#else
+#include <unistd.h>
+#endif
+
 #ifdef _DEBUG
 #ifdef _MSC_VER
 #define _CRTDBG_MAP_ALLOC
@@ -127,11 +135,6 @@ Reload from memory example that shows how to:
 #endif
 
 // Snippet Start
-#ifdef _MSC_VER
-#include <Windows.h>
-#else
-#include <unistd.h>
-#endif
 #include "../src/pattern/51Degrees.h"
 
 // Global settings and properties.

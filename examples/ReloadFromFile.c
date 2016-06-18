@@ -105,6 +105,13 @@ Reload from file example that shows how to:
 
 #include <stdio.h>
 #include <stdlib.h>
+
+#ifdef _MSC_VER
+#include <Windows.h>
+#else
+#include <unistd.h>
+#endif
+
 #ifdef _DEBUG
 #ifdef _MSC_VER
 #define _CRTDBG_MAP_ALLOC
@@ -114,14 +121,8 @@ Reload from file example that shows how to:
 #endif
 #endif
 
-#ifdef _MSC_VER
-#include <Windows.h>
-#else
-#include <unistd.h>
-#endif
 // Snippet Start
 #include "../src/pattern/51Degrees.h"
-#include "../src/threading.h"
 
 // Global settings and properties.
 static fiftyoneDegreesProvider provider;

@@ -93,6 +93,14 @@ https://51degrees.com/Support/Documentation/APIs/C-V32/Benchmarks
 
 #include <stdio.h>
 #include <stdlib.h>
+#include <string.h>
+
+#ifdef _MSC_VER
+#include <Windows.h>
+#else
+#include <unistd.h>
+#endif
+
 #ifdef _DEBUG
 #ifdef _MSC_VER
 #define _CRTDBG_MAP_ALLOC
@@ -104,11 +112,6 @@ https://51degrees.com/Support/Documentation/APIs/C-V32/Benchmarks
 #endif
 
 // Snippet Start
-#ifdef _MSC_VER
-#include <Windows.h>
-#else
-#include <unistd.h>
-#endif
 #include "../src/trie/51Degrees.h"
 
 // Global settings and properties.

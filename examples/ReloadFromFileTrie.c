@@ -78,6 +78,13 @@ https://51degrees.com/Support/Documentation/APIs/C-V32/Benchmarks
 
 #include <stdio.h>
 #include <stdlib.h>
+
+#ifdef _MSC_VER
+#include <Windows.h>
+#else
+#include <unistd.h>
+#endif
+
 #ifdef _DEBUG
 #ifdef _MSC_VER
 #define _CRTDBG_MAP_ALLOC
@@ -87,14 +94,8 @@ https://51degrees.com/Support/Documentation/APIs/C-V32/Benchmarks
 #endif
 #endif
 
-#ifdef _MSC_VER
-#include <Windows.h>
-#else
-#include <unistd.h>
-#endif
 // Snippet Start
 #include "../src/trie/51Degrees.h"
-#include "../src/threading.h"
 
 // Global settings and properties.
 static fiftyoneDegreesProvider provider;
@@ -277,7 +278,7 @@ static int runRequest(const char *inputFile) {
 		offsets->size = 1;
 		fiftyoneDegreesSetDeviceOffset(provider.active->dataSet, userAgent, 0, offsets->firstOffset);
 		hashCode ^= getHashCode(offsets);
-		fiftyoneDegreesFreeDeviceOffsets(offsets);
+		fiftyoneDegreesProviderFreeDeviceOffsets(offsets);
 		count++;
 		if (count % 1000 == 0) {
 			fiftyoneDegreesProviderReloadFromFile(&provider);
