@@ -372,6 +372,18 @@ static fiftyoneDegreesDataSetInitStatus setPropertiesFromExistingDataset(
 	return DATA_SET_INIT_STATUS_SUCCESS;
 }
 
+/**
+ * \cond
+ * Initialises the provider with the provided dataset using the given
+ * cache and pool sizes.
+ * @param provider to initialise.
+ * @param dataSet to create cache and pool from.
+ * @param poolSize of the new pool.
+ * @param cacheSize of the new cache.
+ * @returns fiftyoneDegreesDataSetInitStatus indicates whether the init
+ * was successful.
+ * \endcond
+ */
 fiftyoneDegreesDataSetInitStatus initProvider(
 	fiftyoneDegreesProvider *provider,
 	fiftyoneDegreesDataSet *dataSet,
@@ -737,13 +749,6 @@ static fiftyoneDegreesDataSetInitStatus initFromFile(
 * new data set. The exisitng data set, pool and cache are marked to be freed
 * if worksets are being used by other threads, or if no work sets are in use
 * they are freed immediately.
-* Important: The memory pointed to by source will NOT be freed by 51Degrees
-* when the associated data set is freed. The caller is responsible for
-* releasing the memory. If 51Degrees should release the memory then the
-* caller should set the memoryToFree field of the data set associated with
-* the returned pool to source. 51Degrees will then free this memory when the
-* pool, data set and cache are freed after the last work set is returned to
-* the pool.
 * @param provider pointer to the provider whose data set should be reloaded
 * @return fiftyoneDegreesDataSetInitStatus indicating the result of the reload
 * 	   operation.

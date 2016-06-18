@@ -278,8 +278,22 @@ EXTERNAL void fiftyoneDegreesResetDeviceOffsets(fiftyoneDegreesDeviceOffsets* of
 */
 EXTERNAL void fiftyoneDegreesFreeDeviceOffsets(fiftyoneDegreesDeviceOffsets* offsets);
 
+/**
+* \ingroup FiftyOneDegreesFunctions
+* Creates a new device offsets structure with memory allocated and
+* increments the inUse counter in the provider so the dataset will
+* not be free'd until this is.
+* @param provider pointer to an initialised provider.
+* @returns fiftyoneDegreesDeviceOffsets* newly created device offsets.
+*/
 EXTERNAL fiftyoneDegreesDeviceOffsets* fiftyoneDegreesProviderCreateDeviceOffsets(fiftyoneDegreesProvider *provider);
 
+/**
+* \ingroup FiftyOneDegreesFunctions
+* Frees the memory used by the offsets and decrements the inUse counter for
+* the associated dataset.
+* @param offsets to free.
+*/
 EXTERNAL void fiftyoneDegreesProviderFreeDeviceOffsets(fiftyoneDegreesDeviceOffsets* offsets);
 
 /**
@@ -489,7 +503,6 @@ EXTERNAL int fiftyoneDegreesGetMatchedUserAgentLength(fiftyoneDegreesDataSet *da
  * Pointer to malloc function. Defaults to malloc, but can be set externally.
  * @param __size to allocate.
  * @returns pointer to allocated memory, or NULL if allocation failed.
- * \endcond
  */
 EXTERNAL void *(FIFTYONEDEGREES_CALL_CONV *fiftyoneDegreesMalloc)(size_t __size);
 
@@ -497,7 +510,6 @@ EXTERNAL void *(FIFTYONEDEGREES_CALL_CONV *fiftyoneDegreesMalloc)(size_t __size)
  * \ingroup FiftyOneDegreesFunctions
  * Pointer to free function. Defaults to free, but can be set externally.
  * @param __ptr pointer to the memory to free
- * \endcond
  */
 EXTERNAL void (FIFTYONEDEGREES_CALL_CONV *fiftyoneDegreesFree)(void *__ptr);
 
@@ -555,7 +567,6 @@ EXTERNAL fiftyoneDegreesDataSetInitStatus fiftyoneDegreesInitProviderWithPropert
 * Releases all the resources used by the provider. The provider can not be
 * used without being reinitialised after calling this method.
 * @param provider pointer to the provider to be freed.
-* \endcond
 */
 EXTERNAL void fiftyoneDegreesProviderFree(fiftyoneDegreesProvider* provider);
 
@@ -564,16 +575,9 @@ EXTERNAL void fiftyoneDegreesProviderFree(fiftyoneDegreesProvider* provider);
 * Creates a new dataset using the same configuration options
 * as the current data set associated with the provider. The data file
 * which the provider was initialised with  is used to create the new data set.
-* Important: The memory pointed to by source will NOT be freed by 51Degrees
-* when the associated data set is freed. The caller is responsible for
-* releasing the memory. If 51Degrees should release the memory then the
-* caller should set the memoryToFree field of the data set associated with
-* the returned pool to source. 51Degrees will then free this memory when the
-* data set is freed.
 * @param provider pointer to the provider whose data set should be reloaded
 * @return fiftyoneDegreesDataSetInitStatus indicating the result of the reload
 * 	   operation.
-* \endcond
 */EXTERNAL fiftyoneDegreesDataSetInitStatus fiftyoneDegreesProviderReloadFromFile(fiftyoneDegreesProvider* provider);
 
 /**
@@ -592,7 +596,6 @@ EXTERNAL void fiftyoneDegreesProviderFree(fiftyoneDegreesProvider* provider);
 * @param length number of bytes that the file occupies in memory.
 * @return fiftyoneDegreesDataSetInitStatus indicating the result of the reload
 * 	   operation.
-* \endcond
 */
 EXTERNAL fiftyoneDegreesDataSetInitStatus fiftyoneDegreesProviderReloadFromMemory(fiftyoneDegreesProvider *provider, void *source, long length);
 

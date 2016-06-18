@@ -388,9 +388,18 @@ static fiftyoneDegreesDataSetInitStatus readDataSetFromMemoryLocation(
 	return DATA_SET_INIT_STATUS_SUCCESS;
 }
 
+/**
+ * \cond
+ * Initialises the unique HTTP headers in the dataset.
+ * @param dataSet to initialise the headers in.
+ * @returns fiftyoneDegreesDataSetInitStatus indicates whether the init
+ * was successful.
+ * \endcond
+ */
 fiftyoneDegreesDataSetInitStatus initUniqueHttpHeaders(fiftyoneDegreesDataSet *dataSet)
 {
 	int headerIndex, uniqueHeaderIndex;
+	// Allocate more space than is necessary just in case.
 	dataSet->uniqueHttpHeaders = (int32_t*)fiftyoneDegreesMalloc(*dataSet->httpHeadersSize);
 	if (dataSet->uniqueHttpHeaders == NULL) {
 		fiftyoneDegreesFree(dataSet->uniqueHttpHeaders);
@@ -529,6 +538,15 @@ static fiftyoneDegreesDataSetInitStatus initFromFile(
 	return setDataSetFileName(dataSet, fileName);
 }
 
+/**
+* \cond
+* Initialises the provider with the provided dataset.
+* @param provider to initialise.
+* @param dataSet to initialise the provider with.
+* @returns fiftyoneDegreesDataSetInitStatus indicates whether the init
+* was successful.
+* \endcond
+*/
 fiftyoneDegreesDataSetInitStatus initProvider(
 	fiftyoneDegreesProvider *provider,
 	fiftyoneDegreesDataSet *dataSet) {
@@ -548,7 +566,7 @@ fiftyoneDegreesDataSetInitStatus initProvider(
 	// dataset can be freed when the last thread has finished using it.
 	active->provider = provider;
 
-	// Switch the active pool for the provider to the newly created one.
+	// Switch the active dataset for the provider to the newly created one.
 	active->dataSet = dataSet;
 	provider->active = active;
 
@@ -736,6 +754,13 @@ static fiftyoneDegreesDataSetInitStatus setPropertiesFromExistingDataset(
 	return DATA_SET_INIT_STATUS_SUCCESS;
 }
 
+/**
+* \cond
+* Destroys the data set releasing all memory available. Ensure all offsets
+* pointing to this method are freed first.
+* @param dataSet pointer to the data set being destroyed
+* \endcond
+*/
 void fiftyoneDegreesActiveDataSetFree(fiftyoneDegreesActiveDataSet *active) {
 	if (active->dataSet != NULL) {
 		fiftyoneDegreesDataSetFree(active->dataSet);
@@ -775,7 +800,7 @@ fiftyoneDegreesDataSetInitStatus reloadCommon(fiftyoneDegreesProvider *provider,
 		fiftyoneDegreesDataSetFree(newDataSet);
 	}
 
-	// If the old pool is ready to be freed then do so.
+	// If the old dataset is ready to be freed then do so.
 	else if (oldActive->inUse == 0) {
 		fiftyoneDegreesActiveDataSetFree((fiftyoneDegreesActiveDataSet*)oldActive);
 	}
@@ -795,8 +820,8 @@ fiftyoneDegreesDataSetInitStatus reloadCommon(fiftyoneDegreesProvider *provider,
 * when the associated data set is freed. The caller is responsible for
 * releasing the memory. If 51Degrees should release the memory then the
 * caller should set the memoryToFree field of the data set associated with
-* the returned pool to source. 51Degrees will then free this memory when the
-* data set is freed.
+* the returned provider to source. 51Degrees will then free this memory when
+* the data set is freed.
 * @param provider pointer to the provider whose data set should be reloaded
 * @param source pointer to the dataset held in memory.
 * @param length number of bytes that the file occupies in memory.
@@ -839,13 +864,7 @@ fiftyoneDegreesDataSetInitStatus fiftyoneDegreesProviderReloadFromMemory(fiftyon
 * \cond
 * Creates a new dataset using the same configuration options
 * as the current data set associated with the provider. The data file 
-* which the provider was initialised with  is used to create the new data set.
-* Important: The memory pointed to by source will NOT be freed by 51Degrees
-* when the associated data set is freed. The caller is responsible for
-* releasing the memory. If 51Degrees should release the memory then the
-* caller should set the memoryToFree field of the data set associated with
-* the returned pool to source. 51Degrees will then free this memory when the
-* data set is freed.
+* which the provider was initialised with is used to create the new data set.
 * @param provider pointer to the provider whose data set should be reloaded
 * @return fiftyoneDegreesDataSetInitStatus indicating the result of the reload
 * 	   operation.
@@ -947,7 +966,7 @@ size_t getSizeOfFile(const char* fileName) {
 
 /**
  * \cond
- * Get the size the dataset will need in memory when initialised with the
+ * Get the size the provider will need in memory when initialised with the
  * provided properties. Returns -1 if the file could not be accessed.
  * @param fileName path to a valid data file.
  * @param properties comma separated list of property strings.
@@ -955,22 +974,30 @@ size_t getSizeOfFile(const char* fileName) {
  * or -1 if the file could not be accessed.
  * \endcond
  */
-size_t fiftyoneDegreesGetDataSetSizeWithPropertyString(const char* fileName, const char* properties) {
+size_t fiftyoneDegreesGetProviderSizeWithPropertyString(const char* fileName, const char* properties) {
 
 	int requiredPropertyCount;
 	size_t size;
 
 	size = getSizeOfFile(fileName);
 
-	// Add size of file name.
-	size += SIZE_OF_FILE_NAME(fileName);
-
 	if (size > 0) {
-		size += 9 * sizeof(void*);
+
+		// Add size of file name.
+		size += SIZE_OF_FILE_NAME(fileName);
+
+		// Add the size of the dataset.
+		size += sizeof(fiftyoneDegreesDataSet);
+		size += sizeof(fiftyoneDegreesActiveDataSet);
+
 		// Get property count.
 		requiredPropertyCount = getSeparatorCount(properties);
 		size += 2 * sizeof(void*) * requiredPropertyCount;
-	}
+
+		// Add the unique HTTP headers.
+		size += sizeof(int32_t) * 5;
+		}
+
 	return size;
 }
 
@@ -989,12 +1016,20 @@ size_t fiftyoneDegreesGetDataSetSizeWithPropertyCount(const char* fileName, int 
 	size_t size;
 
 	size = getSizeOfFile(fileName);
-	// Add size of file name.
-	size += SIZE_OF_FILE_NAME(fileName);
 
 	if (size > 0) {
-		size += 9 * sizeof(void*);
+		// Add size of file name.
+		size += SIZE_OF_FILE_NAME(fileName);
+
+		// Add the size of the dataset.
+		size += sizeof(fiftyoneDegreesDataSet);
+		size += sizeof(fiftyoneDegreesActiveDataSet);
+
+		// Get property count.
 		size += 2 * sizeof(void*) * propertyCount;
+
+		// Add the unique HTTP headers.
+		size += sizeof(int32_t) * 5;
 	}
 	return size;
 }
@@ -1291,23 +1326,44 @@ void fiftyoneDegreesFreeDeviceOffsets(fiftyoneDegreesDeviceOffsets* offsets) {
 	}
 }
 
+/**
+* \cond
+* Creates a new device offsets structure with memory allocated and
+* increments the inUse counter in the provider so the dataset will
+* not be free'd until this is.
+* @param provider pointer to an initialised provider.
+* @returns fiftyoneDegreesDeviceOffsets* newly created device offsets.
+* \endcond
+*/
 fiftyoneDegreesDeviceOffsets* fiftyoneDegreesProviderCreateDeviceOffsets(fiftyoneDegreesProvider *provider) {
 	const fiftyoneDegreesActiveDataSet *active;
 	fiftyoneDegreesDeviceOffsets *offsets;
 #ifndef FIFTYONEDEGREES_NO_THREADING
 	FIFTYONEDEGREES_MUTEX_LOCK(&provider->lock);
 #endif
+	// Create a link to the dataset which these offsets will be
+	// created from.
 	active = (fiftyoneDegreesActiveDataSet*)provider->active;
+
+	// Increment the inUse counter so the dataset is not free'd
+	// while these offsets are still in use.
 	provider->active->inUse++;
 #ifndef FIFTYONEDEGREES_NO_THREADING
 	FIFTYONEDEGREES_MUTEX_UNLOCK(&provider->lock);
 #endif
-
+	// Create the offsets.
 	offsets = fiftyoneDegreesCreateDeviceOffsets(active->dataSet);
 	offsets->active = (fiftyoneDegreesActiveDataSet*)active;
 	return offsets;
 }
 
+/**
+* \cond
+* Frees the memory used by the offsets and decrements the inUse counter for
+* the associated dataset.
+* @param offsets to free.
+* \endcond
+*/
 void fiftyoneDegreesProviderFreeDeviceOffsets(fiftyoneDegreesDeviceOffsets *offsets) {
 	fiftyoneDegreesProvider* provider= offsets->active->provider;
 #ifndef FIFTYONEDEGREES_NO_THREADING
