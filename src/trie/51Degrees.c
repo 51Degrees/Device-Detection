@@ -640,7 +640,7 @@ fiftyoneDegreesDataSetInitStatus fiftyoneDegreesInitProviderWithPropertyString(c
 	}
 	status = fiftyoneDegreesInitWithPropertyString(fileName, dataSet, properties);
 	if (status != DATA_SET_INIT_STATUS_SUCCESS) {
-		fiftyoneDegreesDataSetFree(provider->active->dataSet);
+		fiftyoneDegreesProviderFree(provider);
 		return status;
 	}
 #ifndef FIFTYONEDEGREES_NO_THREADING
@@ -762,11 +762,13 @@ static fiftyoneDegreesDataSetInitStatus setPropertiesFromExistingDataset(
 * \endcond
 */
 void fiftyoneDegreesActiveDataSetFree(fiftyoneDegreesActiveDataSet *active) {
-	if (active->dataSet != NULL) {
-		fiftyoneDegreesDataSetFree(active->dataSet);
-		fiftyoneDegreesFree(active->dataSet);
+	if (active != NULL) {
+		if (active->dataSet != NULL) {
+			fiftyoneDegreesDataSetFree(active->dataSet);
+			fiftyoneDegreesFree(active->dataSet);
+		}
+		fiftyoneDegreesFree(active);
 	}
-	fiftyoneDegreesFree(active);
 }
 
 /**
@@ -863,7 +865,7 @@ fiftyoneDegreesDataSetInitStatus fiftyoneDegreesProviderReloadFromMemory(fiftyon
 /**
 * \cond
 * Creates a new dataset using the same configuration options
-* as the current data set associated with the provider. The data file 
+* as the current data set associated with the provider. The data file
 * which the provider was initialised with is used to create the new data set.
 * @param provider pointer to the provider whose data set should be reloaded
 * @return fiftyoneDegreesDataSetInitStatus indicating the result of the reload
@@ -1552,7 +1554,7 @@ fiftyoneDegreesDeviceOffsets* fiftyoneDegreesGetDeviceOffsetsWithHeadersString(f
 	return offsets;
 }
 
-/** 
+/**
  * \cond
  * Get the value of a given property index from a device.
  * @param dataSet pointer to an initialised dataset.
