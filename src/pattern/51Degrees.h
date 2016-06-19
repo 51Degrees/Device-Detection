@@ -55,7 +55,7 @@
 #ifndef FIFTYONEDEGREES_NO_THREADING
 #include "../threading.h"
 #endif
-#endif
+
 /* Used to represent bytes */
 typedef unsigned char byte;
 
