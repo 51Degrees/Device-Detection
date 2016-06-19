@@ -12,7 +12,7 @@ ifdef ARGNEEDED
 ifeq ($(API),pattern)
 	ARGS := "-DFIFTYONEDEGREES_PATTERN -DFIFTYONEDEGREES_NO_THREADING -Wno-ignored-qualifiers -Wno-unused-result"
 else ifeq ($(API),trie)
-	ARGS := "-DFIFTYONEDEGREES_TRIE"
+	ARGS := "-DFIFTYONEDEGREES_TRIE -DFIFTYONEDEGREES_NO_THREADING"
 else
 $(error $(API) is not a valid argument, must be pattern or trie)
 endif
@@ -41,13 +41,12 @@ build: clean
 	if [ -d "51Degrees_module/src/pattern" ]; then \
 		mkdir -p 51Degrees_module/src/cityhash && \
 		cp ../src/cityhash/* 51Degrees_module/src/cityhash/ && \
-		cp ../src/threading.* 51Degrees_module/src/ ; \
 	fi
 	exit
 	cp module_conf/$(API)_config 51Degrees_module/config
 	cp ../src/$(API)/51Degrees.c 51Degrees_module/src/$(API)/
 	cp ../src/$(API)/51Degrees.h 51Degrees_module/src/$(API)/
-	
+
 
 get-source:
 	if [ -d "vendor" ]; then rm -r vendor; fi

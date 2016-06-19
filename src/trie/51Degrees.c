@@ -741,7 +741,7 @@ static fiftyoneDegreesDataSetInitStatus setPropertiesFromExistingDataset(
 			propertyName = newDataSet->strings + newDataSet->properties[index].stringOffset;
 
 			// Compare the two properties byte values and lengths.
-			if (requiredPropertyLength == strlen(propertyName) &&
+			if (requiredPropertyLength == (int16_t)strlen(propertyName) &&
 				memcmp(requiredPropertyName, propertyName, requiredPropertyLength) == 0) {
 				newDataSet->requiredProperties[newDataSet->requiredPropertiesCount] = index;
 				newDataSet->requiredPropertiesNames[newDataSet->requiredPropertiesCount] = newDataSet->strings + newDataSet->properties[index].stringOffset;
@@ -863,7 +863,7 @@ fiftyoneDegreesDataSetInitStatus fiftyoneDegreesProviderReloadFromMemory(fiftyon
 /**
 * \cond
 * Creates a new dataset using the same configuration options
-* as the current data set associated with the provider. The data file 
+* as the current data set associated with the provider. The data file
 * which the provider was initialised with is used to create the new data set.
 * @param provider pointer to the provider whose data set should be reloaded
 * @return fiftyoneDegreesDataSetInitStatus indicating the result of the reload
@@ -1011,7 +1011,7 @@ size_t fiftyoneDegreesGetProviderSizeWithPropertyString(const char* fileName, co
 * or -1 if the file could not be accessed.
 * \endcond
 */
-size_t fiftyoneDegreesGetDataSetSizeWithPropertyCount(const char* fileName, int propertyCount) {
+size_t fiftyoneDegreesGetProviderSizeWithPropertyCount(const char* fileName, int propertyCount) {
 
 	size_t size;
 
@@ -1552,7 +1552,7 @@ fiftyoneDegreesDeviceOffsets* fiftyoneDegreesGetDeviceOffsetsWithHeadersString(f
 	return offsets;
 }
 
-/** 
+/**
  * \cond
  * Get the value of a given property index from a device.
  * @param dataSet pointer to an initialised dataset.

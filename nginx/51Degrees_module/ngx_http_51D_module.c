@@ -186,7 +186,6 @@ static ngx_int_t reportDatasetInitStatus(ngx_cycle_t *cycle, fiftyoneDegreesData
 	case DATA_SET_INIT_STATUS_FILE_NOT_FOUND:
 		ngx_log_error(NGX_LOG_ERR, cycle->log, 0, "Device data file '%s' not found.", fileName);
 		break;
-#ifdef FIFTYONEDEGREES_PATTERN
 	case DATA_SET_INIT_STATUS_NULL_POINTER:
 		ngx_log_error(NGX_LOG_ERR, cycle->log, 0, "Null pointer to the existing dataset or memory location.");
 		break;
@@ -195,7 +194,6 @@ static ngx_int_t reportDatasetInitStatus(ngx_cycle_t *cycle, fiftyoneDegreesData
 			"appears to be smaller than expected. Most likely because the"
 			" data file was not fully loaded into the allocated memory.");
 		break;
-#endif // FIFTYONEDEGREES_PATTERN
 	default:
 		ngx_log_error(NGX_LOG_ERR, cycle->log, 0, "Device data file '%s' could not be loaded.", fileName);
 		break;
@@ -254,7 +252,7 @@ ngx_http_51D_post_conf(ngx_conf_t *cf)
 	size = fiftyoneDegreesGetProviderSizeWithPropertyString((const char*)fdmcf->dataFile.data, (const char*)fdmcf->properties, 0, 0);
 #endif // FIFTYONEDEGREES_PATTERN
 #ifdef FIFTYONEDEGREES_TRIE
-	size = fiftyoneDegreesGetDataSetSizeWithPropertyString((const char*)fdmcf->dataFile.data, (const char*)fdmcf->properties);
+	size = fiftyoneDegreesGetProviderSizeWithPropertyString((const char*)fdmcf->dataFile.data, (const char*)fdmcf->properties);
 #endif // FIFTYONEDEGREES_TRIE
 	if ((int)size < 1) {
 		// If there was a problem, throw an error.
@@ -1299,7 +1297,7 @@ ngx_http_51D_handler(ngx_http_request_t *r)
 		return NGX_DECLINED;
 	}
 #ifdef FIFTYONEDEGREES_PATTERN
-	hash = 0;	
+	hash = 0;
 	if (ngx_http_51D_cacheSize > 0) {
 		// Get the hash for this location and request headers.
 		hash = ngx_hash(fdlcf->key, ngx_hash_key(r->headers_in.user_agent[0].value.data, r->headers_in.user_agent[0].value.len));

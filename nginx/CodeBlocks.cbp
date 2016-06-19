@@ -107,15 +107,6 @@
 			<Option target="pattern" />
 			<Option target="pattern-debug" />
 		</Unit>
-		<Unit filename="51Degrees_module/src/threading.c">
-			<Option compilerVar="CC" />
-			<Option target="pattern" />
-			<Option target="pattern-debug" />
-		</Unit>
-		<Unit filename="51Degrees_module/src/threading.h">
-			<Option target="pattern" />
-			<Option target="pattern-debug" />
-		</Unit>
 		<Unit filename="51Degrees_module/src/trie/51Degrees.c">
 			<Option compilerVar="CC" />
 			<Option target="trie" />
