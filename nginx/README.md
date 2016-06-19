@@ -35,6 +35,10 @@ All methods use an external data file which can easilly be updated.
 - gcc
 - make
 - Nginx source
+##### Test Dependencies
+- curl
+- grep
+- ApacheBench dependencies (see Device-Detection/ApacheBench/README.md)
 
 For Ubuntu based distributions gcc can be found on apt, use
 ```
@@ -63,6 +67,8 @@ Then run the included tests with:
 $ make test
 ```
 which will all pass if the local installation was successful.
+
+**Note: If ApacheBench tests fail even though the dependencies are fulfilled it may need to be recompiled using the correct compiler for your OS. This can be done using Device-Detection/CodeBlocks/ApacheBench.cbp**
 
 #### For an existing Nginx deployment
 ##### Static Module
@@ -95,7 +101,7 @@ $ ./configure \
     --with-cc-opt="-DFIFTYONEDEGREES_PATTERN -DFIFTYONEDEGREES_NO_THREADING"
     --add-module=[MODULE DIRECTORY]/51Degrees_module
 ```
-NOTE: with Pattern the arguments ``-Wno-ignored-qualifiers -Wno-unused-result`` are also needed.
+**Note: with Pattern the arguments ``-Wno-ignored-qualifiers -Wno-unused-result`` are also needed.**
 
 Then install with
 ```
@@ -108,7 +114,7 @@ To build the module as ngx_http_51D_module.so, follow the same instructions as t
 ```
 load_module modules/ngx_http_51D_module.so;
 ```
-NOTE: Nginx insists on the same compile arguments being used in both the Nginx executable and the dynamic module.
+**Note: Nginx insists on the same compile arguments being used in both the Nginx executable and the dynamic module.**
 </installation>
 ## Configure
 <configuration>
