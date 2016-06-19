@@ -80,6 +80,8 @@ class Provider {
         string getMatchJson(const map<string, string> &headers);
 
 		void reloadFromFile();
+		void reloadFromMemory(const char *source, int length);
+		void reloadFromMemory(const string &source, int length);
 
 	protected:
 

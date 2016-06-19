@@ -87,7 +87,10 @@ class Provider {
 		Profiles* findProfiles(const char *propertyName, const char *valueName, Profiles* profiles);
 
 		void reloadFromFile();
-	protected:
+		void reloadFromMemory(const char *source, int length);
+		void reloadFromMemory(const string &source, int length);
+
+protected:
 
 	private:
 		vector<string> httpHeaders;
