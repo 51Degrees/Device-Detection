@@ -91,8 +91,8 @@ class Provider {
 		void init(const string &fileName, vector<string> &propertyString);
 		void init(const string &fileName);
 		void initHttpHeaders();
-		void initAvailableProperites();
-		void initExecption(fiftyoneDegreesDataSetInitStatus initStatus,
+		void initAvailableproperties();
+		void initException(fiftyoneDegreesDataSetInitStatus initStatus,
 			const string &fileName);
 		void initComplete(fiftyoneDegreesDataSetInitStatus initStatus,
 			const string &fileName);

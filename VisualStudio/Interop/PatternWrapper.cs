@@ -215,7 +215,7 @@ namespace FiftyOne.Mobile.Detection.Provider.Interop
         }
 
         /// <summary>
-        /// Fress all the unmanaged resources.
+        /// Frees all the unmanaged resources.
         /// </summary>
         /// <param name="disposing"></param>
         protected virtual void Dispose(bool disposing)

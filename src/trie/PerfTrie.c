@@ -307,7 +307,7 @@ int main(int argc, char* argv[]) {
 		}
 
 		// Free the memory used by the trie detector.
-		fiftyoneDegreesDestroy(&dataSet);
+		fiftyoneDegreesDataSetFree(&dataSet);
 
 		// Wait for a character to be pressed.
 		fgetc(stdin);

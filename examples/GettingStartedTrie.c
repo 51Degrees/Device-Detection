@@ -86,7 +86,6 @@ argument if you wish to use Premium or Enterprise data files.
 
 // Snippet Start
 #include <stdio.h>
-#include <string.h>
 #include "../src/trie/51Degrees.h"
 
 // Global settings and properties.
@@ -120,7 +119,7 @@ int main(int argc, char* argv[]) {
 		return 1;
 	}
 
-	run(provider.activeDataSet->dataSet);
+	run(provider.active->dataSet);
 
 	// Free the pool, dataset and cache.
 	fiftyoneDegreesProviderFree(&provider);

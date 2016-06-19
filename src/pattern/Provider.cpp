@@ -212,10 +212,10 @@ void Provider::initComplete(
 	fiftyoneDegreesDataSetInitStatus initStatus,
 	const string &fileName) {
 	if (initStatus != DATA_SET_INIT_STATUS_SUCCESS)	{
-		initExecption(initStatus, fileName);
+		initException(initStatus, fileName);
 	}
 	else {
-		initAvailableProperites();
+		initAvailableproperties();
 		initHttpHeaders();
 	}
 }
@@ -228,7 +228,7 @@ void Provider::initComplete(
 * @param initStatus status enum value
 * @param fileName of the data source
 */
-void Provider::initExecption(
+void Provider::initException(
 	fiftyoneDegreesDataSetInitStatus initStatus,
 	const string &fileName) {
 	stringstream message;
@@ -252,9 +252,15 @@ void Provider::initExecption(
 			"permissions.";
 		throw invalid_argument(message.str());
 		break;
-	case DATA_SET_INIT_STATUS_POINTER_OUT_OF_BOUNDS:
-		break;
 	case DATA_SET_INIT_STATUS_NULL_POINTER:
+		throw runtime_error("Null pointer to the existing dataset or memory"
+			" location.");
+		break;
+	case DATA_SET_INIT_STATUS_POINTER_OUT_OF_BOUNDS:
+		throw runtime_error("Allocated continuous memory containing "
+			"51Degrees data file appears to be smaller than expected. Most"
+			" likely because the data file was not fully loaded into the "
+			"allocated memory.");
 		break;
 	default:
 	case DATA_SET_INIT_STATUS_NOT_SET:
@@ -287,7 +293,7 @@ void Provider::initHttpHeaders() {
  * of the property name requested.
  * This method should not be called as it is part of the internal logic.
  */
-void Provider::initAvailableProperites() {
+void Provider::initAvailableproperties() {
 	const fiftyoneDegreesAsciiString *propertyName;
 	for (int requiredPropetyIndex = 0;
 		requiredPropetyIndex < provider.activePool->dataSet->requiredPropertyCount;

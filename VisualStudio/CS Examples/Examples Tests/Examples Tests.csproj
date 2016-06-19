@@ -68,13 +68,10 @@
     <Compile Include="Properties\AssemblyInfo.cs" />
     <Compile Include="Properties\Constants.cs" />
     <Compile Include="ReloadDataFile.cs" />
+    <Compile Include="ReloadDataFileTrie.cs" />
     <Compile Include="StronglyTyped.cs" />
   </ItemGroup>
   <ItemGroup>
-    <ProjectReference Include="..\..\Reload Data File\Reload Data File.csproj">
-      <Project>{0e073f36-0544-47c9-b489-32316f73ef2a}</Project>
-      <Name>Reload Data File</Name>
-    </ProjectReference>
     <ProjectReference Include="..\Find Profiles\Find Profiles.csproj">
       <Project>{fd83a2a6-3a66-4f86-ba87-7577521913bb}</Project>
       <Name>Find Profiles</Name>
@@ -98,6 +95,14 @@
     <ProjectReference Include="..\Offline Processing\Offline Processing.csproj">
       <Project>{d43ea2c4-8979-474d-94ea-85056c7db97f}</Project>
       <Name>Offline Processing</Name>
+    </ProjectReference>
+    <ProjectReference Include="..\Reload Data File Trie\Reload Data File Trie.csproj">
+      <Project>{6f099305-7e81-4fd6-b803-43c2500a1212}</Project>
+      <Name>Reload Data File Trie</Name>
+    </ProjectReference>
+    <ProjectReference Include="..\Reload Data File\Reload Data File.csproj">
+      <Project>{0e073f36-0544-47c9-b489-32316f73ef2a}</Project>
+      <Name>Reload Data File</Name>
     </ProjectReference>
     <ProjectReference Include="..\Strongly Typed\Strongly Typed.csproj">
       <Project>{c1da4706-9d13-47ea-ba9a-48ca6d8a8f10}</Project>
