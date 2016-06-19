@@ -522,7 +522,7 @@ EXTERNAL void (FIFTYONEDEGREES_CALL_CONV *fiftyoneDegreesFree)(void *__ptr);
 * @returns size_t the size in memory needed to initialise the dataset,
 * or -1 if the file could not be accessed.
 */
-EXTERNAL size_t fiftyoneDegreesGetDataSetSizeWithPropertyString(const char* fileName, const char* properties);
+EXTERNAL size_t fiftyoneDegreesGetProviderSizeWithPropertyString(const char* fileName, const char* properties);
 
 /**
 * \ingroup FiftyOneDegreesFunctions
@@ -533,7 +533,7 @@ EXTERNAL size_t fiftyoneDegreesGetDataSetSizeWithPropertyString(const char* file
 * @returns size_t the size in memory needed to initialise the dataset,
 * or -1 if the file could not be accessed.
 */
-EXTERNAL size_t fiftyoneDegreesGetDataSetSizeWithPropertyCount(const char* fileName, int propertyCount);
+EXTERNAL size_t fiftyoneDegreesGetProviderSizeWithPropertyCount(const char* fileName, int propertyCount);
 
 /**
 * \ingroup FiftyOneDegreesFunctions

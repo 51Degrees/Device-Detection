@@ -70,6 +70,8 @@
     <Compile Include="ReloadDataFile.cs" />
     <Compile Include="ReloadDataFileTrie.cs" />
     <Compile Include="StronglyTyped.cs" />
+    <Compile Include="ReloadFromMemory.cs" />
+    <Compile Include="ReloadFromMemoryTrie.cs" />
   </ItemGroup>
   <ItemGroup>
     <ProjectReference Include="..\Find Profiles\Find Profiles.csproj">
@@ -103,6 +105,14 @@
     <ProjectReference Include="..\Reload Data File\Reload Data File.csproj">
       <Project>{0e073f36-0544-47c9-b489-32316f73ef2a}</Project>
       <Name>Reload Data File</Name>
+    </ProjectReference>
+    <ProjectReference Include="..\Reload From Memory Trie\Reload From Memory Trie.csproj">
+      <Project>{da4d5c59-7449-4121-aa9f-05043d119825}</Project>
+      <Name>Reload From Memory Trie</Name>
+    </ProjectReference>
+    <ProjectReference Include="..\Reload From Memory\Reload From Memory.csproj">
+      <Project>{d41921b5-5d5c-4c8d-86e9-47bb34db61ad}</Project>
+      <Name>Reload From Memory</Name>
     </ProjectReference>
     <ProjectReference Include="..\Strongly Typed\Strongly Typed.csproj">
       <Project>{c1da4706-9d13-47ea-ba9a-48ca6d8a8f10}</Project>

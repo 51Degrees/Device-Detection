@@ -394,6 +394,9 @@ class FiftyOneDegreesTrieV3PINVOKE {
 
   [global::System.Runtime.InteropServices.DllImport("FiftyOne.Mobile.Detection.Provider.Trie.dll", EntryPoint="CSharp_Provider_reloadFromFile")]
   public static extern void Provider_reloadFromFile(global::System.Runtime.InteropServices.HandleRef jarg1);
+
+  [global::System.Runtime.InteropServices.DllImport("FiftyOne.Mobile.Detection.Provider.Trie.dll", EntryPoint="CSharp_Provider_reloadFromMemory")]
+  public static extern void Provider_reloadFromMemory(global::System.Runtime.InteropServices.HandleRef jarg1, string jarg2, int jarg3);
 }
 
 }

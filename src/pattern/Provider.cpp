@@ -651,3 +651,27 @@ Profiles* Provider::findProfiles(const string &propertyName, const string &value
 void Provider::reloadFromFile() {
 	fiftyoneDegreesProviderReloadFromFile(&provider);
 }
+
+/**
+* Initiates the data set reload process from the memory location supplied.
+* New dataset will be initialised with exactly the same set of properties.
+*
+* Function is not thread safe.
+* @param source pointer to the dataset in memory.
+* @param length of the dataset in memory.
+*/
+void Provider::reloadFromMemory(const char *source, int length) {
+	fiftyoneDegreesProviderReloadFromMemory(&provider, (void*)source, (long)length);
+}
+
+/**
+* Initiates the data set reload process from the memory location supplied.
+* New dataset will be initialised with exactly the same set of properties.
+*
+* Function is not thread safe.
+* @param source pointer to the dataset in memory.
+* @param length of the dataset in memory.
+*/
+void Provider::reloadFromMemory(const string &source, int length) {
+	reloadFromMemory(source.c_str(), length);
+}

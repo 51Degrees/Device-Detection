@@ -118,6 +118,10 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Reload Data File Trie", "CS
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Reload Data File", "CS Examples\Reload Data File\Reload Data File.csproj", "{0E073F36-0544-47C9-B489-32316F73EF2A}"
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Reload From Memory", "CS Examples\Reload From Memory\Reload From Memory.csproj", "{D41921B5-5D5C-4C8D-86E9-47BB34DB61AD}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Reload From Memory Trie", "CS Examples\Reload From Memory Trie\Reload From Memory Trie.csproj", "{DA4D5C59-7449-4121-AA9F-05043D119825}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -574,6 +578,30 @@ Global
 		{0E073F36-0544-47C9-B489-32316F73EF2A}.Release|Win32.ActiveCfg = Release|x64
 		{0E073F36-0544-47C9-B489-32316F73EF2A}.Release|x64.ActiveCfg = Release|x64
 		{0E073F36-0544-47C9-B489-32316F73EF2A}.Release|x64.Build.0 = Release|x64
+		{D41921B5-5D5C-4C8D-86E9-47BB34DB61AD}.Debug|Any CPU.ActiveCfg = Debug|x64
+		{D41921B5-5D5C-4C8D-86E9-47BB34DB61AD}.Debug|Mixed Platforms.ActiveCfg = Debug|x64
+		{D41921B5-5D5C-4C8D-86E9-47BB34DB61AD}.Debug|Mixed Platforms.Build.0 = Debug|x64
+		{D41921B5-5D5C-4C8D-86E9-47BB34DB61AD}.Debug|Win32.ActiveCfg = Debug|x64
+		{D41921B5-5D5C-4C8D-86E9-47BB34DB61AD}.Debug|x64.ActiveCfg = Debug|x64
+		{D41921B5-5D5C-4C8D-86E9-47BB34DB61AD}.Debug|x64.Build.0 = Debug|x64
+		{D41921B5-5D5C-4C8D-86E9-47BB34DB61AD}.Release|Any CPU.ActiveCfg = Release|x64
+		{D41921B5-5D5C-4C8D-86E9-47BB34DB61AD}.Release|Mixed Platforms.ActiveCfg = Release|x64
+		{D41921B5-5D5C-4C8D-86E9-47BB34DB61AD}.Release|Mixed Platforms.Build.0 = Release|x64
+		{D41921B5-5D5C-4C8D-86E9-47BB34DB61AD}.Release|Win32.ActiveCfg = Release|x64
+		{D41921B5-5D5C-4C8D-86E9-47BB34DB61AD}.Release|x64.ActiveCfg = Release|x64
+		{D41921B5-5D5C-4C8D-86E9-47BB34DB61AD}.Release|x64.Build.0 = Release|x64
+		{DA4D5C59-7449-4121-AA9F-05043D119825}.Debug|Any CPU.ActiveCfg = Debug|x64
+		{DA4D5C59-7449-4121-AA9F-05043D119825}.Debug|Mixed Platforms.ActiveCfg = Debug|x64
+		{DA4D5C59-7449-4121-AA9F-05043D119825}.Debug|Mixed Platforms.Build.0 = Debug|x64
+		{DA4D5C59-7449-4121-AA9F-05043D119825}.Debug|Win32.ActiveCfg = Debug|x64
+		{DA4D5C59-7449-4121-AA9F-05043D119825}.Debug|x64.ActiveCfg = Debug|x64
+		{DA4D5C59-7449-4121-AA9F-05043D119825}.Debug|x64.Build.0 = Debug|x64
+		{DA4D5C59-7449-4121-AA9F-05043D119825}.Release|Any CPU.ActiveCfg = Release|x64
+		{DA4D5C59-7449-4121-AA9F-05043D119825}.Release|Mixed Platforms.ActiveCfg = Release|x64
+		{DA4D5C59-7449-4121-AA9F-05043D119825}.Release|Mixed Platforms.Build.0 = Release|x64
+		{DA4D5C59-7449-4121-AA9F-05043D119825}.Release|Win32.ActiveCfg = Release|x64
+		{DA4D5C59-7449-4121-AA9F-05043D119825}.Release|x64.ActiveCfg = Release|x64
+		{DA4D5C59-7449-4121-AA9F-05043D119825}.Release|x64.Build.0 = Release|x64
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
@@ -617,5 +645,10 @@ Global
 		{890B74F4-D72A-4F93-A500-4EF2196CB3EB} = {DF20EFCE-8171-4272-A5A2-44E75A07B3C5}
 		{6F099305-7E81-4FD6-B803-43C2500A1212} = {265E957D-344C-4140-9A1F-EE18B729F462}
 		{0E073F36-0544-47C9-B489-32316F73EF2A} = {265E957D-344C-4140-9A1F-EE18B729F462}
+		{D41921B5-5D5C-4C8D-86E9-47BB34DB61AD} = {265E957D-344C-4140-9A1F-EE18B729F462}
+		{DA4D5C59-7449-4121-AA9F-05043D119825} = {265E957D-344C-4140-9A1F-EE18B729F462}
+	EndGlobalSection
+	GlobalSection(Performance) = preSolution
+		HasPerformanceSessions = true
 	EndGlobalSection
 EndGlobal

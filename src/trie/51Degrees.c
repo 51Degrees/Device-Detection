@@ -640,7 +640,7 @@ fiftyoneDegreesDataSetInitStatus fiftyoneDegreesInitProviderWithPropertyString(c
 	}
 	status = fiftyoneDegreesInitWithPropertyString(fileName, dataSet, properties);
 	if (status != DATA_SET_INIT_STATUS_SUCCESS) {
-		fiftyoneDegreesProviderFree(provider);
+		fiftyoneDegreesDataSetFree(provider->active->dataSet);
 		return status;
 	}
 #ifndef FIFTYONEDEGREES_NO_THREADING
@@ -741,7 +741,7 @@ static fiftyoneDegreesDataSetInitStatus setPropertiesFromExistingDataset(
 			propertyName = newDataSet->strings + newDataSet->properties[index].stringOffset;
 
 			// Compare the two properties byte values and lengths.
-			if (requiredPropertyLength == strlen(propertyName) &&
+			if (requiredPropertyLength == (int16_t)strlen(propertyName) &&
 				memcmp(requiredPropertyName, propertyName, requiredPropertyLength) == 0) {
 				newDataSet->requiredProperties[newDataSet->requiredPropertiesCount] = index;
 				newDataSet->requiredPropertiesNames[newDataSet->requiredPropertiesCount] = newDataSet->strings + newDataSet->properties[index].stringOffset;
@@ -762,13 +762,11 @@ static fiftyoneDegreesDataSetInitStatus setPropertiesFromExistingDataset(
 * \endcond
 */
 void fiftyoneDegreesActiveDataSetFree(fiftyoneDegreesActiveDataSet *active) {
-	if (active != NULL) {
-		if (active->dataSet != NULL) {
-			fiftyoneDegreesDataSetFree(active->dataSet);
-			fiftyoneDegreesFree(active->dataSet);
-		}
-		fiftyoneDegreesFree(active);
+	if (active->dataSet != NULL) {
+		fiftyoneDegreesDataSetFree(active->dataSet);
+		fiftyoneDegreesFree(active->dataSet);
 	}
+	fiftyoneDegreesFree(active);
 }
 
 /**
@@ -1013,7 +1011,7 @@ size_t fiftyoneDegreesGetProviderSizeWithPropertyString(const char* fileName, co
 * or -1 if the file could not be accessed.
 * \endcond
 */
-size_t fiftyoneDegreesGetDataSetSizeWithPropertyCount(const char* fileName, int propertyCount) {
+size_t fiftyoneDegreesGetProviderSizeWithPropertyCount(const char* fileName, int propertyCount) {
 
 	size_t size;
 
