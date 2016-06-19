@@ -52,8 +52,10 @@
 #include <stdint.h>
 #include <limits.h>
 #include <time.h>
+#ifndef FIFTYONEDEGREES_NO_THREADING
 #include "../threading.h"
-
+#endif
+#endif
 /* Used to represent bytes */
 typedef unsigned char byte;
 
