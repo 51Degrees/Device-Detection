@@ -149,7 +149,7 @@ namespace FiftyOne.Example.Illustration.CSharp.Reload_Data_File_Trie
             {
                 provider.reloadFromFile();
                 Console.WriteLine("Provider reloaded.");
-                Thread.Sleep(50);
+                Thread.Sleep(1000);
             }
 
             // Wait for all detection threads to complete.
