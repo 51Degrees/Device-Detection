@@ -1846,7 +1846,7 @@ size_t fiftyoneDegreesGetProviderSizeWithPropertyString(const char *fileName, co
 
 	// Read in header.
 	if (fread(header, sizeof(fiftyoneDegreesDataSetHeader), 1, inputFilePtr) != 1) {
-		-1;
+		return -1;
 	}
 
 	fseek(inputFilePtr, 0, SEEK_END);
