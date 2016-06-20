@@ -216,6 +216,7 @@ double performTest(PERFORMANCE_STATE *state) {
 // Performance test.
 void performance(char *fileName, fiftyoneDegreesWorksetPool *pool) {
 	double totalSec, calibration, test;
+	int memoryUsed;
 	PERFORMANCE_STATE state;
 
 	state.pool = pool;
@@ -240,12 +241,17 @@ void performance(char *fileName, fiftyoneDegreesWorksetPool *pool) {
 	state.calibrate = 0;
 	test = performTest(&state);
 
+	// Get the memory needed for a provider.
+	memoryUsed = (int)fiftyoneDegreesGetProviderSizeWithPropertyCount(pool->dataSet->fileName, (int)pool->dataSet->requiredPropertyCount, (int)pool->size, (int)pool->cache->total);
+	memoryUsed = memoryUsed / 1048576;
+
 	// Time to complete.
 	totalSec = test - calibration;
 	printf("Number of records per iteration: %i s\n", state.count);
 	printf("Average detection time for total data set: %.2f s\n", totalSec);
 	printf("Average number of detections per second per thread: %.2f\n", (double)state.max / totalSec / (double)state.numberOfThreads);
 	printf("Average milliseconds per detection: %.6f\n", (totalSec * (double)1000) / (double)state.max);
+	printf("Memory used by a provider initialised with the given arguments: %d Mb\n", memoryUsed);
 	if (pool->cache != NULL) {
 		printf("Cache hits: %d\n", pool->cache->hits);
 		printf("Cache misses: %d\n", pool->cache->misses);

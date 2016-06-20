@@ -203,6 +203,7 @@ double performTest(PERFORMANCE_STATE *state, int passes, char *test) {
 void performance(char *fileName) {
 	PERFORMANCE_STATE state;
 	double totalSec, calibration, test;
+	int memoryUsed;
 
 	state.max = 0;
 	state.fileName = fileName;
@@ -223,10 +224,15 @@ void performance(char *fileName) {
 	state.calibrate = 0;
 	test = performTest(&state, PASSES, "Detection test");
 
+	// Get the memory needed for a provider.
+	memoryUsed = (int)fiftyoneDegreesGetProviderSizeWithPropertyCount(dataSet.fileName, dataSet.requiredPropertiesCount);
+	memoryUsed = memoryUsed / 1048576;
+
 	// Time to complete.
 	totalSec = test - calibration;
 	printf("Average detection time for total data set: %.2fs\n", totalSec);
 	printf("Average number of detections per second: %.0f\n", (double)state.max / totalSec);
+	printf("Memory used by a provider initialised with the given arguments: %d Mb\n", memoryUsed);
 }
 
 // Reduces a file path to file name only.
