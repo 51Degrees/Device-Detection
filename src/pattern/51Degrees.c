@@ -1837,6 +1837,9 @@ size_t fiftyoneDegreesGetProviderSizeWithPropertyString(const char *fileName, co
 	// Open the file and hold on to the pointer.
 #ifndef _MSC_FULL_VER
 	inputFilePtr = fopen(fileName, "rb");
+	if (inputFilePtr == NULL) {
+		return -1;
+	}
 #else
 	/* If using Microsoft use the fopen_s method to avoid warning */
 	if (fopen_s(&inputFilePtr, fileName, "rb") != 0) {
@@ -1892,6 +1895,9 @@ size_t fiftyoneDegreesGetProviderSizeWithPropertyCount(const char *fileName, int
 	// Open the file and hold on to the pointer.
 #ifndef _MSC_FULL_VER
 	inputFilePtr = fopen(fileName, "rb");
+	if (inputFilePtr == NULL) {
+		return -1;
+	}
 #else
 	/* If using Microsoft use the fopen_s method to avoid warning */
 	if (fopen_s(&inputFilePtr, fileName, "rb") != 0) {

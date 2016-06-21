@@ -949,6 +949,9 @@ size_t getSizeOfFile(const char* fileName) {
 	// Open the file and hold on to the pointer.
 #ifndef _MSC_FULL_VER
 	inputFilePtr = fopen(fileName, "rb");
+	if (inputFilePtr == NULL) {
+		return -1;
+	}
 #else
 	/* If using Microsoft use the fopen_s method to avoid warning */
 	if (fopen_s(&inputFilePtr, fileName, "rb") != 0) {
