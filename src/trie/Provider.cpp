@@ -25,6 +25,10 @@ using namespace std;
 
 #define JSON_BUFFER_LENGTH 50000
 
+/**
+ * If required, use prefixed HTTP headers. This is required for some
+ * applications which format header names differently.
+ */
 #ifdef HTTP_HEADERS_PREFIXED
 #define GET_HTTP_HEADER_NAME fiftyoneDegreesGetPrefixedUpperHttpHeaderName
 #else

@@ -1330,7 +1330,9 @@ void fiftyoneDegreesFreeDeviceOffsets(fiftyoneDegreesDeviceOffsets* offsets) {
 * \cond
 * Creates a new device offsets structure with memory allocated and
 * increments the inUse counter in the provider so the dataset will
-* not be free'd until this is.
+* not be freed until this is. A corresponding call to
+* fiftyoneDegreesProviderFreeDeviceOffsets must be made when these
+* offsets are finished with.
 * @param provider pointer to an initialised provider.
 * @returns fiftyoneDegreesDeviceOffsets* newly created device offsets.
 * \endcond
@@ -1359,8 +1361,9 @@ fiftyoneDegreesDeviceOffsets* fiftyoneDegreesProviderCreateDeviceOffsets(fiftyon
 
 /**
 * \cond
-* Frees the memory used by the offsets and decrements the inUse counter for
-* the associated dataset.
+* Frees the memory used by the offsets created by
+* fiftyoneDegreesProviderCreateDeviceOffsets and decrements the inUse counter
+* for the associated dataset.
 * @param offsets to free.
 * \endcond
 */
@@ -1833,7 +1836,7 @@ int fiftyoneDegreesGetValueFromOffsets(fiftyoneDegreesDataSet *dataSet, fiftyone
 
 /**
  * \cond
- * Returns how many properties have been loaded in the dataset.
+ * Returns the number of properties that have been loaded in the dataset.
  * @param dataSet pointer to an initialised dataset,
  * @returns int32_t number of initialised properties in the dataset.
  * \endcond

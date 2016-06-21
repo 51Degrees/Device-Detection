@@ -63,9 +63,8 @@ typedef enum e_fiftyoneDegreesDataSetInitStatus {
 	DATA_SET_INIT_STATUS_NULL_POINTER // A key pointer was not set
 } fiftyoneDegreesDataSetInitStatus;
 
-#pragma pack(push, 4)
+/* Declaration of the active dataset wrapper. */
 typedef struct fiftyoneDegrees_active_dataset_t fiftyoneDegreesActiveDataSet;
-#pragma pack(pop)
 
 /* Relates a http header index to to a device offset */
 typedef struct fiftyoneDegrees_device_offset_t {
@@ -137,7 +136,7 @@ typedef struct t_lookup_header {
 #pragma pack(pop)
 
 
-// A property including references to HTTP headers.
+/* A property including references to HTTP headers. */
 #pragma pack(push, 4)
 typedef struct fiftyoneDegrees_property_t {
 	const int32_t stringOffset;
@@ -146,10 +145,11 @@ typedef struct fiftyoneDegrees_property_t {
 } fiftyoneDegreesProperty;
 #pragma pack(pop)
 
+/* Dataset structure containing all the components used for detections. */
 #pragma pack(push, 1)
 typedef struct fiftyoneDegrees_dataset_t {
 	uint16_t *version; /* The version of the data file. */
-	const void *memoryToFree;
+	const void *memoryToFree; /* A pointer to the memory where the dataset is held. */
 	const char *fileName; /* The location of the file the data set has been loaded from. */
 	int32_t *copyrightSize; /* The size of the copyright notice at the top of the data file. */
 	char *copyright; /* Pointer to the copyright notice held in the data file. */
@@ -175,19 +175,20 @@ typedef struct fiftyoneDegrees_dataset_t {
 } fiftyoneDegreesDataSet;
 #pragma pack(pop)
 
-#pragma pack(push, 4)
+/* Initial declaration of the provider structure. */
 typedef struct fiftyoneDegrees_provider_t fiftyoneDegreesProvider;
-#pragma pack(pop)
 
-#pragma pack(push, 4)
+// Active wrapper for the provider's dataset. This is used to make reloading
+// thread safe.
 struct fiftyoneDegrees_active_dataset_t {
 	fiftyoneDegreesDataSet *dataSet; /* Pointer to an initialised data set. */
-	fiftyoneDegreesProvider *provider;
-	int inUse;
+	fiftyoneDegreesProvider *provider; /* Pointer to the provider the active wrapper
+									   relates to. */
+	int inUse; /* Counter indicating how many device offsets are still linked to
+			   this dataset. */
 };
-#pragma pack(pop)
 
-#pragma pack(push, 4)
+/* Provider structure containing the dataset used for detections. */
 struct fiftyoneDegrees_provider_t {
 #ifndef FIFTYONEDEGREES_NO_THREADING
 	volatile fiftyoneDegreesActiveDataSet *active; /* Volatile wrapper for the providers data set. */
@@ -196,7 +197,6 @@ struct fiftyoneDegrees_provider_t {
 	fiftyoneDegreesActiveDataSet *active; /* Non volatile wrapper for the providers data set. */
 #endif
 };
-#pragma pack(pop)
 
 /**
 * \ingroup FiftyOneDegreesFunctions
@@ -282,7 +282,9 @@ EXTERNAL void fiftyoneDegreesFreeDeviceOffsets(fiftyoneDegreesDeviceOffsets* off
 * \ingroup FiftyOneDegreesFunctions
 * Creates a new device offsets structure with memory allocated and
 * increments the inUse counter in the provider so the dataset will
-* not be free'd until this is.
+* not be freed until this is. A corresponding call to 
+* fiftyoneDegreesProviderFreeDeviceOffsets must be made when these
+* offsets are finished with.
 * @param provider pointer to an initialised provider.
 * @returns fiftyoneDegreesDeviceOffsets* newly created device offsets.
 */
@@ -290,8 +292,9 @@ EXTERNAL fiftyoneDegreesDeviceOffsets* fiftyoneDegreesProviderCreateDeviceOffset
 
 /**
 * \ingroup FiftyOneDegreesFunctions
-* Frees the memory used by the offsets and decrements the inUse counter for
-* the associated dataset.
+* Frees the memory used by the offsets created by
+* fiftyoneDegreesProviderCreateDeviceOffsets and decrements the inUse counter
+* for the associated dataset.
 * @param offsets to free.
 */
 EXTERNAL void fiftyoneDegreesProviderFreeDeviceOffsets(fiftyoneDegreesDeviceOffsets* offsets);
@@ -327,7 +330,7 @@ EXTERNAL const char* fiftyoneDegreesGetValue(fiftyoneDegreesDataSet *dataSet, in
 
 /**
 * \ingroup FiftyOneDegreesFunctions
-* Returns how many properties have been loaded in the dataset.
+* Returns the number of properties that have been loaded in the dataset.
 * @param dataSet pointer to an initialised dataset,
 * @returns int32_t number of initialised properties in the dataset.
 */

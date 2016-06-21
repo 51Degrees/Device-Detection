@@ -60,5 +60,12 @@ namespace FiftyOne.UnitTests.Update.Enterprise
         {
             UpdateTest();
         }
+
+        [TestMethod]
+        [TestCategory("Enterprise"), TestCategory("Update"), TestCategory("Pattern"), TestCategory("One")]
+        public void EnterpriseV32Pattern_Update_Memory_One()
+        {
+            UpdateTest(true);
+        }
     }
 }

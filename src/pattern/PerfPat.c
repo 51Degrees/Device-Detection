@@ -290,8 +290,8 @@ int main(int argc, char* argv[]) {
 	fiftyoneDegreesResultsetCache *cache;
 	fiftyoneDegreesWorksetPool *pool;
 
-	char *dataSetFileName = argc > 1 ? argv[1] : NULL;
-	char *inputFileName = argc > 2 ? argv[2] : NULL;
+	char *dataSetFileName = argc > 1 ? argv[1] : "../../../data/51Degrees-LiteV3.2.dat";
+	char *inputFileName = argc > 2 ? argv[2] : "../../../data/20000 User Agents.csv";
     char *requiredProperties = argc > 3 ? argv[3] : NULL;
     int cacheSize = argc > 4 ? atoi(argv[4]) : 5000;
 

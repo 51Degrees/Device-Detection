@@ -19,13 +19,13 @@
  * defined by the Mozilla Public License, v. 2.0.
  * ********************************************************************* */
 
-using System.Collections.Generic;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
+using System.Collections.Generic;
 
-namespace FiftyOne.UnitTests.Update.Lite
+namespace FiftyOne.UnitTests.Update.Enterprise
 {
     [TestClass]
-    public class PatternOne : PatternBase
+    public class TrieOne : TrieBase
     {
         private static readonly string[] REQUIRED_PROPERTIES = new string[] { "IsMobile" };
 
@@ -39,7 +39,7 @@ namespace FiftyOne.UnitTests.Update.Lite
 
         protected override string DataFile
         {
-            get { return Constants.LITE_PATTERN_V32; }
+            get { return Constants.ENTERPRISE_TRIE_V32; }
         }
 
         [TestInitialize]
@@ -55,15 +55,15 @@ namespace FiftyOne.UnitTests.Update.Lite
         }
 
         [TestMethod]
-        [TestCategory("Lite"), TestCategory("Update"), TestCategory("Pattern"), TestCategory("One")]
-        public void LiteV32Pattern_Update_File_One()
+        [TestCategory("Enterprise"), TestCategory("Update"), TestCategory("Trie"), TestCategory("One")]
+        public void EnterpriseV32Trie_Update_File_One()
         {
             UpdateTest();
         }
 
         [TestMethod]
-        [TestCategory("Lite"), TestCategory("Update"), TestCategory("Pattern"), TestCategory("One")]
-        public void LiteV32Pattern_Update_Memory_One()
+        [TestCategory("Enterprise"), TestCategory("Update"), TestCategory("Trie"), TestCategory("One")]
+        public void EnterpriseV32Trie_Update_Memory_One()
         {
             UpdateTest(true);
         }

@@ -4,14 +4,7 @@
 
 <sup>Need [.NET](https://github.com/51Degrees/.NET-Device-Detection "THE Fastest and most Accurate device detection for .NET") | [Java](https://github.com/51Degrees/Java-Device-Detection "THE Fastest and most Accurate device detection for Java") | [PHP Script](https://github.com/51Degrees/51Degrees-PHP)?</sup>
 
-###Important 3.2.6 Trie C breakages
-The data file is now initialised into a non static dataset structure, so a few things have changed. 
-1. fiftyoneDegreesInitWithPropertyString and fiftyoneDegreesInitWithPropertyArray should now be passed a pointer to a dataset structure which can be allocated with ``malloc(sizeof(fiftyoneDegreesDataSet))``.
-2. fiftyoneDegreesDestroy function has been superceded by the fiftyoneDegreesDataSetFree function which takes the dataset to free as an argument.
-3. Many funtions now take a fiftyoneDegreesDataSet pointer as an argument as the dataset is no longer contained staticly. See src/trie/51Degrees.h for more details.
-4. Any project using the Trie API should either be compiled with ``FIFTYONEDEGREES_NO_THREADING`` defined, or threading enabled by compiling it with src/threading.h.
-
-Note: this does not affect any of the C based API's as that is taken care of in the wrapper.
+[Important 3.2.6 Trie breakages](#Changes)
 
 Use C code like...
 
@@ -110,6 +103,19 @@ Use the following instructions to compile different versions for different
 target platforms.
 
 **Note: when compiling the examples with GCC or Clang there is a dependancy on dmalloc, and dmallocth for the multithreaded reload functions.**
+
+### Changes
+The Trie data file is now initialised into a non static dataset structure, so a few things have changed. 
+1. A new provider structure has now been inroduced, giving the Trie API the same reload capabilities as Pattern. It is initialised in the same way, with ``fiftyoneDegreesInitProviderWithPropertyString`` or ``fiftyoneDegreesInitProviderWithPropertyArray`` and freed with ``fiftyoneDegreesProviderFree``.
+2. When using the provider, offsets should be created with ``fiftyoneDegreesProviderCreateDeviceOffsets`` and freed with ``fiftyoneDegreesProviderFreeDevideOffsets``.
+3. fiftyoneDegreesInitWithPropertyString and fiftyoneDegreesInitWithPropertyArray should now be passed a pointer to a dataset structure which can be allocated with ``malloc(sizeof(fiftyoneDegreesDataSet))``.
+4. fiftyoneDegreesDestroy function has been superceded by the fiftyoneDegreesDataSetFree function which takes the dataset to free as an argument.
+5. Many funtions now take a fiftyoneDegreesDataSet pointer as an argument as the dataset is no longer contained staticly. See src/trie/51Degrees.h for more details.
+6. Any project using the Trie API should either be compiled with ``FIFTYONEDEGREES_NO_THREADING`` defined, or threading enabled by compiling it with src/threading.h.
+7. Two new return codes ``DATA_SET_INIT_STATUS_NULL_POINTER`` and ``DATA_SET_INIT_STATUS_POINTER_OUT_OF_BOUNDS`` can be provided when initialising a Trie data set which indicate where a memory allocation problem could have occurred. When used with C++ runtime_error exceptions are thrown for these cases.
+
+Note: this does not affect any of the C based API's as that is taken care of in the wrapper.
+
 
 ### Included Files
 

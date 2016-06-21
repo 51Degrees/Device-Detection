@@ -279,7 +279,8 @@ int main(int argc, char* argv[]) {
 
 	if (argc > 2) {
 
-		char *fileName = argc > 1 ? argv[1] : NULL;
+		char *fileName = argc > 1 ? argv[1] : "../../../data/51Degrees-LiteV3.2.trie";
+		char* inputFile = argc > 2 ? argv[2] : "../../../data/20000 User Agents.csv";
 		char *requiredProperties = argc > 3 ? argv[3] : NULL;
 
 		fiftyoneDegreesDataSetInitStatus status = DATA_SET_INIT_STATUS_SUCCESS;
@@ -307,7 +308,7 @@ int main(int argc, char* argv[]) {
 			fgetc(stdin);
 
 			// Run the performance tests.
-			performance(argv[2]);
+			performance(inputFile);
 
 			break;
 		}

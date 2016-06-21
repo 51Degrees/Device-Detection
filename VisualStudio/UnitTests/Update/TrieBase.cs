@@ -2,12 +2,12 @@
 
 namespace FiftyOne.UnitTests.Update
 {
-    public abstract class PatternBase : FiftyOne.UnitTests.Update.Base
+    public abstract class TrieBase : FiftyOne.UnitTests.Update.Base
     {
         protected override IWrapper CreateWrapper()
         {
             Utils.CheckFileExists(DataFile);
-            return new PatternWrapper(DataFile);
+            return new TrieWrapper(DataFile);
         }
     }
 }
