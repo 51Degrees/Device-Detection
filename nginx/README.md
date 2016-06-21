@@ -4,6 +4,8 @@
 
 <sup>Need [.NET](https://github.com/51Degrees/.NET-Device-Detection "THE Fastest and most Accurate device detection for .NET") | [Java](https://github.com/51Degrees/Java-Device-Detection "THE Fastest and most Accurate device detection for Java") | [PHP Script](https://github.com/51Degrees/51Degrees-PHP)?</sup>
 
+The NGINX module is currently in beta. Any bugs reported will be added to the stable release.
+
 ## Introduction
 
 In nginx.config, use like...
