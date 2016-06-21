@@ -56,7 +56,7 @@ namespace FiftyOne.UnitTests.Update.Enterprise
 
         [TestMethod]
         [TestCategory("Enterprise"), TestCategory("Update"), TestCategory("Pattern"), TestCategory("One")]
-        public void EnterpriseV32Pattern_Update_One()
+        public void EnterpriseV32Pattern_Update_File_One()
         {
             UpdateTest();
         }
