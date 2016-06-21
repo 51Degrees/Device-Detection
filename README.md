@@ -4,7 +4,7 @@
 
 <sup>Need [.NET](https://github.com/51Degrees/.NET-Device-Detection "THE Fastest and most Accurate device detection for .NET") | [Java](https://github.com/51Degrees/Java-Device-Detection "THE Fastest and most Accurate device detection for Java") | [PHP Script](https://github.com/51Degrees/51Degrees-PHP)?</sup>
 
-[Important 3.2.6 Trie breakages](#Changes)
+[Important 3.2.6 Trie breakages](#recent-changes "Review recent major changes")
 
 Use C code like...
 
@@ -104,7 +104,8 @@ target platforms.
 
 **Note: when compiling the examples with GCC or Clang there is a dependancy on dmalloc, and dmallocth for the multithreaded reload functions.**
 
-### Changes
+### Recent Changes
+#### Version 3.2.6 Changes
 The Trie data file is now initialised into a non static dataset structure, so a few things have changed. 
 1. A new provider structure has now been inroduced, giving the Trie API the same reload capabilities as Pattern. It is initialised in the same way, with ``fiftyoneDegreesInitProviderWithPropertyString`` or ``fiftyoneDegreesInitProviderWithPropertyArray`` and freed with ``fiftyoneDegreesProviderFree``.
 2. When using the provider, offsets should be created with ``fiftyoneDegreesProviderCreateDeviceOffsets`` and freed with ``fiftyoneDegreesProviderFreeDevideOffsets``.
