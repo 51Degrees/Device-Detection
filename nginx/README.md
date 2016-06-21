@@ -197,16 +197,16 @@ x-metrics: 15364-18118-57666-18092,Exact,0,1538
 ```
 Alternatively, the line ``add_header x-mobile http_x_mobile`` is included in the example config. This adds the header to the response headers, so can be viewed in the response without a PHP server set up. In a Linux environment, these can be viewed with the command:
 ```
-$ curl -I localhost:8888
+$ curl localhost:8888 -I -A [SOME USER-AGENT]
 ```
 which will give the following response:
 ```
 HTTP/1.1 200 OK
 Server: nginx/1.10.0
 ...
-x-device: Desktop,Unknown,Unknown
+x-device: Desktop,Firefox,Windows
 x-mobile: False
 x-tablet: False
 x-smartphone: False
-x-metrics: 15364-17017-17470-18092,Exact,0,625
+x-metrics: 15364-21460-53251-18092,Exact,0,249
 ```
