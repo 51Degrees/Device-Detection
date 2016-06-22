@@ -171,4 +171,5 @@ class Provider {
 	Profiles* findProfiles(const std::string propertyName, const std::string valueName, Profiles *profiles);
 
 	void reloadFromFile();
+	void reloadFromMemory(const std::string &source, int length);
 };

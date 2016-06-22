@@ -87,7 +87,10 @@ class Provider {
 		Profiles* findProfiles(const char *propertyName, const char *valueName, Profiles* profiles);
 
 		void reloadFromFile();
-	protected:
+		void reloadFromMemory(const char *source, int length);
+		void reloadFromMemory(const string &source, int length);
+
+protected:
 
 	private:
 		vector<string> httpHeaders;
@@ -99,8 +102,8 @@ class Provider {
 			int cacheSize, int poolSize);
 		void init(const string &fileName, int cacheSize, int poolSize);
 		void initHttpHeaders();
-		void initAvailableProperites();
-		void initExecption(fiftyoneDegreesDataSetInitStatus initStatus,
+		void initAvailableproperties();
+		void initException(fiftyoneDegreesDataSetInitStatus initStatus,
 			const string &fileName);
 		void initMatch(Match *match);
 		void initComplete(fiftyoneDegreesDataSetInitStatus initStatus,

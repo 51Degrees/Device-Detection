@@ -82,7 +82,6 @@ The example shows how to:
 
 // Snippet Start
 #include <stdio.h>
-#include <string.h>
 #include "../src/pattern/51Degrees.h"
 
 // Global settings and properties.
@@ -134,10 +133,11 @@ int main(int argc, char* argv[]) {
 }
 
 void run(fiftyoneDegreesProvider* provider) {
+	fiftyoneDegreesProfilesStruct *mobileProfiles, *nonMobileProfiles;
 	printf("Starting Find Profiles Example.\n\n");
 
 	// Retieve all the mobile profiles in the data set.
-	fiftyoneDegreesProfilesStruct *mobileProfiles = 
+	mobileProfiles = 
 		fiftyoneDegreesFindProfiles(provider->activePool->dataSet, "IsMobile", "True");
 	printf("There are '%d' mobile profiles in the '%s' data set.\n", 
 		mobileProfiles->count, 
@@ -145,7 +145,7 @@ void run(fiftyoneDegreesProvider* provider) {
 			provider->activePool->dataSet->header.nameOffset)->firstByte);
 
 	// Retrieve all the non-mobile profiles in the data set.
-	fiftyoneDegreesProfilesStruct *nonMobileProfiles = 
+	nonMobileProfiles = 
 		fiftyoneDegreesFindProfiles(provider->activePool->dataSet, "IsMobile", "False");
 	printf("There are '%d' non-mobile profiles in the '%s' data set.\n", 
 		nonMobileProfiles->count,

@@ -96,6 +96,8 @@ The example shows how to:
 </tutorial>
 */
 
+#include <stdio.h>
+#include <string.h>
 #ifdef _DEBUG
 #ifdef _MSC_VER
 #define _CRTDBG_MAP_ALLOC
@@ -107,8 +109,6 @@ The example shows how to:
 #endif
 
 // Snippet Start
-#include <stdio.h>
-#include <string.h>
 #include "../src/pattern/51Degrees.h"
 
 // Global settings and properties.
@@ -140,7 +140,7 @@ int main(int argc, char* argv[]) {
 	// Create a pool of 4 worksets with a cache for 1000 items.
 	fiftyoneDegreesDataSetInitStatus status =
 		fiftyoneDegreesInitProviderWithPropertyArray(
-		fileName, &provider, properties, propertiesCount, 4, 1000);
+		fileName, &provider, (const char**)properties, propertiesCount, 4, 1000);
 	if (status != DATA_SET_INIT_STATUS_SUCCESS) {
 		reportDatasetInitStatus(status, fileName);
 		fgetc(stdin);
