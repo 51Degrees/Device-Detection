@@ -67,7 +67,8 @@ setup(
             sources=[
 		'src/trie/51Degrees.c',
 		'src/cityhash/city.c',
-                'src/trie/51Degrees_python.cxx',
+		'src/threading.c',
+		'src/trie/51Degrees_python.cxx',
 		'src/trie/Provider.cpp',
 		'src/trie/Match.cpp',
             ],
