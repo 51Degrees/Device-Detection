@@ -27,7 +27,7 @@ namespace Examples_Tests
         }
         [TestMethod]
         [TestCategory("CSharpAPIExample"), TestCategory("Enterprise")]
-        public void EnterpriseExamples_Reload_From_Memoyr_Trie()
+        public void EnterpriseExamples_Reload_From_Memory_Trie()
         {
             Program program = new Program(Constants.ENTERPRISE_TRIE_V32,
                                           Constants.GOOD_USERAGENTS_FILE,
