@@ -79,6 +79,10 @@ class Provider {
         string getMatchJson(const string &userAgent);
         string getMatchJson(const map<string, string> &headers);
 
+		void reloadFromFile();
+		void reloadFromMemory(const char *source, int length);
+		void reloadFromMemory(const string &source, int length);
+
 	protected:
 
 	private:
@@ -89,8 +93,8 @@ class Provider {
 		void init(const string &fileName, vector<string> &propertyString);
 		void init(const string &fileName);
 		void initHttpHeaders();
-		void initAvailableProperites();
-		void initExecption(fiftyoneDegreesDataSetInitStatus initStatus,
+		void initAvailableproperties();
+		void initException(fiftyoneDegreesDataSetInitStatus initStatus,
 			const string &fileName);
 		void initComplete(fiftyoneDegreesDataSetInitStatus initStatus,
 			const string &fileName);
@@ -99,6 +103,9 @@ class Provider {
 		void buildArray(int offset, map<string, vector<string> > *result);
 		fiftyoneDegreesDeviceOffsets* matchForHttpHeaders(
 			const map<string, string> *headers);
+		void initMatch(Match *match);
+
+		fiftyoneDegreesProvider provider;
 };
 
 #endif // FIFTYONEDEGREESPROVIDER_HPP

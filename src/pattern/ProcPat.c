@@ -31,7 +31,7 @@ int main(int argc, char* argv[]) {
 	fiftyoneDegreesWorkset *ws = NULL;
 	fiftyoneDegreesDataSet dataSet;
     char *output;
-	char *fileName = argc > 1 ? argv[1] : NULL;
+	char *fileName = argc > 1 ? argv[1] : "../../../data/51Degrees-LiteV3.2.dat";
 	char *requiredProperties = argc > 2 ? argv[2] : NULL;
 	char *result;
 

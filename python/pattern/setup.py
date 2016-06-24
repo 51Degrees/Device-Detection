@@ -61,7 +61,6 @@ setup(
             sources=[
 		'src/pattern/51Degrees.c',
 		'src/cityhash/city.c',
-		'src/threading.c',
                 'src/pattern/51Degrees_python.cxx',
 		'src/pattern/Provider.cpp',
 		'src/pattern/Match.cpp',
