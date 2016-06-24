@@ -272,7 +272,13 @@ namespace FiftyOne.Mobile.Detection.Provider.Interop
         /// </summary>
         public void ReloadFromFile()
         {
-            throw new NotImplementedException();
+            _provider.reloadFromFile();
+        }
+
+        public void ReloadFromMemory()
+        {
+            byte[] bytes = File.ReadAllBytes(_fileName);
+            _provider.reloadFromMemory(bytes.ToString(), bytes.GetLength(0));
         }
 
         #endregion

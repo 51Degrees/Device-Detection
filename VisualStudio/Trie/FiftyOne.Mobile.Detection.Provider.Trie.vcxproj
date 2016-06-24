@@ -31,6 +31,9 @@
     <ClCompile Include="..\..\src\trie\Match.cpp" />
     <ClCompile Include="..\..\src\trie\Provider.cpp" />
   </ItemGroup>
+  <ItemGroup>
+    <None Include="..\..\src\trie\51Degrees.i" />
+  </ItemGroup>
   <PropertyGroup Label="Globals">
     <ProjectGuid>{1B83A844-3FFC-4414-A101-AEE0008570DA}</ProjectGuid>
     <Keyword>Win32Proj</Keyword>

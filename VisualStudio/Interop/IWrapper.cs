@@ -77,5 +77,12 @@ namespace FiftyOne.Mobile.Detection.Provider.Interop
         /// wrapper has been created.
         /// </summary>
         void ReloadFromFile();
+
+        /// <summary>
+        /// Reloads the original file into memory. Used
+        /// to refresh the active data set being used at runtime after the
+        /// wrapper has been created.
+        /// </summary>
+        void ReloadFromMemory();
     }
 }

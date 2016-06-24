@@ -21,6 +21,9 @@
     <ClCompile Include="..\..\src\trie\PerfTrie.c">
       <Filter>Source Files</Filter>
     </ClCompile>
+    <ClCompile Include="..\..\src\threading.c">
+      <Filter>Source Files</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="..\..\src\trie\51Degrees.h">
