@@ -1,0 +1,6 @@
+vendor/*
+build/*
+51Degrees_module/src/*
+51Degrees_module/config
+*~
+nginx
