@@ -450,10 +450,10 @@ static long loadFile(const char* fileName, char **source) {
 		else {
 			printf("ERROR: Fseek failed to find the rnd of file.\n");
 		}
-		fclose(fp);
 	}
 	else {
 		printf("Failed!\n");
 	}
+	fclose(fp);
 	return bufsize;
 }
