@@ -11,9 +11,9 @@ system("swig", "-perl", "-c++", "-module", $moduleName, "-outdir", "lib/FiftyOne
 # the contents of the Makefile that is written.
 WriteMakefile(
     NAME			=> $moduleName,
-    VERSION			=> '3.2.5.3',
+    VERSION			=> '3.2.2.4',
     LDFROM			=> '51Degrees.o Match.o Provider.o 51Degrees_perl.o',
-    OBJECT			=> '../../src/trie/51Degrees.o ../../src/trie/Match.o ../../src/trie/Provider.o ../../src/trie/51Degrees_perl.o',
+    OBJECT			=> '../../src/trie/51Degrees.o ../../src/threading.o ../../src/trie/Match.o ../../src/trie/Provider.o ../../src/trie/51Degrees_perl.o',
     INC				=> '-I../../src -I../../src/trie',
     CC				=> "g++",
     LD				=> "g++",
