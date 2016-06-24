@@ -64,6 +64,7 @@ public:
 protected:
 
 private:
+	fiftyoneDegreesDataSet *dataSet;
 	fiftyoneDegreesDeviceOffsets *offsets;
 	string userAgent;
 };

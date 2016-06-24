@@ -126,6 +126,16 @@ public partial class Provider : global::System.IDisposable {
     return ret;
   }
 
+  public void reloadFromFile() {
+    FiftyOneDegreesTrieV3PINVOKE.Provider_reloadFromFile(swigCPtr);
+    if (FiftyOneDegreesTrieV3PINVOKE.SWIGPendingException.Pending) throw FiftyOneDegreesTrieV3PINVOKE.SWIGPendingException.Retrieve();
+  }
+
+  public void reloadFromMemory(string source, int length) {
+    FiftyOneDegreesTrieV3PINVOKE.Provider_reloadFromMemory(swigCPtr, source, length);
+    if (FiftyOneDegreesTrieV3PINVOKE.SWIGPendingException.Pending) throw FiftyOneDegreesTrieV3PINVOKE.SWIGPendingException.Retrieve();
+  }
+
 }
 
 }

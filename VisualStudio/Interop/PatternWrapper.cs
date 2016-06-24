@@ -44,6 +44,12 @@ namespace FiftyOne.Mobile.Detection.Provider.Interop
         /// </summary>
         private readonly Pattern.Provider _provider;
 
+        /// <summary>
+        /// The name of the file used to create the current 
+        /// single underlying provider.
+        /// </summary>
+        private static string _fileName;
+
         #endregion
 
         #region Constructor and Destructor
@@ -80,6 +86,7 @@ namespace FiftyOne.Mobile.Detection.Provider.Interop
         public PatternWrapper(string fileName, string properties, int cacheSize = 10000)
         {
             _provider = new Pattern.Provider(fileName, properties, cacheSize, Environment.ProcessorCount * 4);
+            _fileName = fileName;
         }
         
         #endregion
@@ -197,6 +204,12 @@ namespace FiftyOne.Mobile.Detection.Provider.Interop
             _httpHeaders = null;
         }
 
+        public void ReloadFromMemory()
+        {
+            byte[] bytes = File.ReadAllBytes(_fileName);
+            _provider.reloadFromMemory(bytes.ToString(), bytes.GetLength(0));
+        }
+
         /// <summary>
         /// Finalize to ensure that all resources have been freed.
         /// </summary>
@@ -215,7 +228,7 @@ namespace FiftyOne.Mobile.Detection.Provider.Interop
         }
 
         /// <summary>
-        /// Fress all the unmanaged resources.
+        /// Frees all the unmanaged resources.
         /// </summary>
         /// <param name="disposing"></param>
         protected virtual void Dispose(bool disposing)

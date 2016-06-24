@@ -216,6 +216,7 @@ double performTest(PERFORMANCE_STATE *state) {
 // Performance test.
 void performance(char *fileName, fiftyoneDegreesWorksetPool *pool) {
 	double totalSec, calibration, test;
+	int memoryUsed;
 	PERFORMANCE_STATE state;
 
 	state.pool = pool;
@@ -240,12 +241,17 @@ void performance(char *fileName, fiftyoneDegreesWorksetPool *pool) {
 	state.calibrate = 0;
 	test = performTest(&state);
 
+	// Get the memory needed for a provider.
+	memoryUsed = (int)fiftyoneDegreesGetProviderSizeWithPropertyCount(pool->dataSet->fileName, (int)pool->dataSet->requiredPropertyCount, (int)pool->size, (int)pool->cache->total);
+	memoryUsed = memoryUsed / 1048576;
+
 	// Time to complete.
 	totalSec = test - calibration;
 	printf("Number of records per iteration: %i s\n", state.count);
 	printf("Average detection time for total data set: %.2f s\n", totalSec);
 	printf("Average number of detections per second per thread: %.2f\n", (double)state.max / totalSec / (double)state.numberOfThreads);
 	printf("Average milliseconds per detection: %.6f\n", (totalSec * (double)1000) / (double)state.max);
+	printf("Memory used by a provider initialised with the given arguments: %d Mb\n", memoryUsed);
 	if (pool->cache != NULL) {
 		printf("Cache hits: %d\n", pool->cache->hits);
 		printf("Cache misses: %d\n", pool->cache->misses);
@@ -284,8 +290,8 @@ int main(int argc, char* argv[]) {
 	fiftyoneDegreesResultsetCache *cache;
 	fiftyoneDegreesWorksetPool *pool;
 
-	char *dataSetFileName = argc > 1 ? argv[1] : NULL;
-	char *inputFileName = argc > 2 ? argv[2] : NULL;
+	char *dataSetFileName = argc > 1 ? argv[1] : "../../../data/51Degrees-LiteV3.2.dat";
+	char *inputFileName = argc > 2 ? argv[2] : "../../../data/20000 User Agents.csv";
     char *requiredProperties = argc > 3 ? argv[3] : NULL;
     int cacheSize = argc > 4 ? atoi(argv[4]) : 5000;
 

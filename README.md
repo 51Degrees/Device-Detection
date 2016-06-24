@@ -4,6 +4,8 @@
 
 <sup>Need [.NET](https://github.com/51Degrees/.NET-Device-Detection "THE Fastest and most Accurate device detection for .NET") | [Java](https://github.com/51Degrees/Java-Device-Detection "THE Fastest and most Accurate device detection for Java") | [PHP Script](https://github.com/51Degrees/51Degrees-PHP)?</sup>
 
+[Important 3.2.6 Trie breakages](#recent-changes "Review recent major changes")
+
 Use C code like...
 
 ```c
@@ -70,7 +72,7 @@ This package includes the following examples:
 3. Visual Studio solution with example web site, command line projects and C++
   projects to demonstrate how to access from managed and unmanaged code.
 
-4. Getting started, takes some common User-Agents and returns the value of
+4. Getting Started (Pattern and Trie), takes some common User-Agents and returns the value of
   the IsMobile property.
 
 5. Match Metrics, takes some common User-Agents and returns various metrics
@@ -85,9 +87,9 @@ This package includes the following examples:
 8. Match for Device Id, takes some common device ids and returns the value of
   the IsMobile property.
 
-9. Reload from File, illustrates how to reload the data file from the data file on disk without restarting the application. Contains example of both the single threaded and multithreaded reload.
+9. Reload from File (Pattern and Trie), illustrates how to reload the data file from the data file on disk without restarting the application. Contains example of both the single threaded and multithreaded reload.
 
-10. Reload from Memory, illustrates how to reload the data file from a continuous memory space that the data file was read into without restarting the application. Contains example of both the single threaded and multithreaded reload.
+10. Reload from Memory (Pattern and Trie), illustrates how to reload the data file from a continuous memory space that the data file was read into without restarting the application. Contains example of both the single threaded and multithreaded reload.
 
 11. Find Profiles, illustrates how to retrieve profiles based on some user-defined value of one of the properties.
 
@@ -100,9 +102,26 @@ C++ Provider within their subdirectories.
 Use the following instructions to compile different versions for different
 target platforms.
 
+**Note: when compiling the examples with GCC or Clang there is a dependancy on dmalloc, and dmallocth for the multithreaded reload functions.**
+
+### Recent Changes
+#### Version 3.2.6 Changes
+The Trie data file is now initialised into a non static dataset structure, so a few things have changed. 
+1. A new provider structure has now been inroduced, giving the Trie API the same reload capabilities as Pattern. It is initialised in the same way, with ``fiftyoneDegreesInitProviderWithPropertyString`` or ``fiftyoneDegreesInitProviderWithPropertyArray`` and freed with ``fiftyoneDegreesProviderFree``.
+2. When using the provider, offsets should be created with ``fiftyoneDegreesProviderCreateDeviceOffsets`` and freed with ``fiftyoneDegreesProviderFreeDevideOffsets``.
+3. fiftyoneDegreesInitWithPropertyString and fiftyoneDegreesInitWithPropertyArray should now be passed a pointer to a dataset structure which can be allocated with ``malloc(sizeof(fiftyoneDegreesDataSet))``.
+4. fiftyoneDegreesDestroy function has been superceded by the fiftyoneDegreesDataSetFree function which takes the dataset to free as an argument.
+5. Many funtions now take a fiftyoneDegreesDataSet pointer as an argument as the dataset is no longer contained staticly. See src/trie/51Degrees.h for more details.
+6. Any project using the Trie API should either be compiled with ``FIFTYONEDEGREES_NO_THREADING`` defined, or threading enabled by compiling it with src/threading.h.
+7. Two new return codes ``DATA_SET_INIT_STATUS_NULL_POINTER`` and ``DATA_SET_INIT_STATUS_POINTER_OUT_OF_BOUNDS`` can be provided when initialising a Trie data set which indicate where a memory allocation problem could have occurred. When used with C++ runtime_error exceptions are thrown for these cases.
+
+Note: this does not affect any of the C based API's as that is taken care of in the wrapper.
+
+
 ### Included Files
 
-makefile - Builds a command line executable under Linux.  
+makefile - Builds a command line executable under Linux. 
+CMakeLists - Builds the example projects under Windows, Linu and OS X.
 LICENSE - The licence terms for all source code and Lite data.  
 
 ApacheBench/ - A version of the Apache Benchmarking tool modified to randomly generate User-Agent headers. See ApacheBench/README.md for more details.
@@ -210,16 +229,24 @@ VisualStudio/ - all files related exclusively to Windows and Visual Studio 2013.
 &nbsp;&nbsp;&nbsp;&nbsp;Console Interop/Properties/AssemblyInfo.cs - Project header information.  
 
 &nbsp;&nbsp;&nbsp;&nbsp;Examples/Getting Started/Getting Started.* - Project files for a getting started example.  
+&nbsp;&nbsp;&nbsp;&nbsp;Examples/Getting Started Trie/Getting Started Trie.* - Project files for a getting started example.  
 &nbsp;&nbsp;&nbsp;&nbsp;Examples/Match For Device Id/Match For Device Id.* - Project files for a match for device id example.  
 &nbsp;&nbsp;&nbsp;&nbsp;Exampes/Match Metrics/Match Metrics.* - Project files for a match metrics example.  
 &nbsp;&nbsp;&nbsp;&nbsp;Examples/Offline Processing/Offline Processing.* - Project files for an offline processing example.  
 &nbsp;&nbsp;&nbsp;&nbsp;Exampels/Strongly Typed/Strongly Typed.* - Project files for a strongly typed example.  
+&nbsp;&nbsp;&nbsp;&nbsp;Examples/Reload From File/Reload From File.* - Project files for a reload example.
+&nbsp;&nbsp;&nbsp;&nbsp;Examples/Reload From File/Reload From Memory.* - Project files for a reload example.
+&nbsp;&nbsp;&nbsp;&nbsp;Examples/Reload From File/Reload From File Trie.* - Project files for a reload example.
+&nbsp;&nbsp;&nbsp;&nbsp;Examples/Reload From File/Reload From Memory Trie.* - Project files for a reload example.
 
-&nbsp;&nbsp;&nbsp;&nbsp;CS Examples/Getting Started/* - Project files for a getting started example/  
+
+&nbsp;&nbsp;&nbsp;&nbsp;CS Examples/Getting Started/* - Project files for a getting started example.  
+&nbsp;&nbsp;&nbsp;&nbsp;CS Examples/Getting Started Trie/* - Project files for a getting started example.  
 &nbsp;&nbsp;&nbsp;&nbsp;CS Examples/Match For Device Id/* - Project files for a match for device id example.  
 &nbsp;&nbsp;&nbsp;&nbsp;CS Examples/Match Metrics/* - Project files for a match metrics example.  
 &nbsp;&nbsp;&nbsp;&nbsp;CS Examples/Offline Processing/* - Project files for an offline processing example.  
 &nbsp;&nbsp;&nbsp;&nbsp;CS Examples/Strongly Typed/* - Project files for a strongly typed example.  
+&nbsp;&nbsp;&nbsp;&nbsp;CS Examples/Reload Data File/* - Project files for a strongly typed example.  
 &nbsp;&nbsp;&nbsp;&nbsp;CS Examples/Examples Tests/* - Project files for tests which test each example.  
 
 &nbsp;&nbsp;&nbsp;&nbsp;Demo/Web Site.csproj - Demo web site using the Interop assembly to request properties associated with the requesting device.  

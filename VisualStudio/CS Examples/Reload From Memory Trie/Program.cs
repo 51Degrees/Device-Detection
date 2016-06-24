@@ -20,7 +20,7 @@
  */
 /*
 <tutorial>
-Reload Data File example demonstrates:
+Reload From Memory example demonstrates:
 <ol>
     <li> Instantiate the 51Degrees device detection provider with various 
     settings.
@@ -33,8 +33,8 @@ Reload Data File example demonstrates:
 </ol>
 <p>
     When creating a new Provider you can specify the following parameters: 
-    path to the 51Degrees data file, size of pool, size of cache and a list 
-    of properties that the underlying dataset should be initialised with.
+    path to the 51Degrees data file and a list of properties that the
+    underlying dataset should be initialised with.
     This example demonstrates how to initialise the Provider with a path to 
     the 51Degrees device data file and a comma-separated list of properties.
     <br/><code>
@@ -45,8 +45,9 @@ Reload Data File example demonstrates:
 <p>
     The provider is thread safe and can be used for device detection by as many 
     threads as you need. It is important to remember that each Match object 
-    is using a workset from the workset pool, therefore you need to make sure 
-    that match is disposed of when the current detection is complete:
+    is using offsets linked to the dataset they were created from, therefore you
+    need to make sure that match is disposed of when the current detection is
+    complete:
     <br /><code>
         using (match = provider.getMatch(line)) 
         {
@@ -56,13 +57,6 @@ Reload Data File example demonstrates:
             recordsProcessed++;
         }
     </code>
-    Not disposing of Match will prevent worksets from being returned to the 
-    pool. Once the pool is exhausted the program may stall.
-</p>
-<p>
-    Please also keep in mind that you should set the size of the pool to be 
-    at lease the same as the number of background threads that will make use 
-    of device detection. By default the pool is created with 20 worksets.
 </p>
 <p>
     The data file reload is designed not to disrupt the device detection 
@@ -92,13 +86,13 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
-using FiftyOne.Mobile.Detection.Provider.Interop.Pattern;
+using FiftyOne.Mobile.Detection.Provider.Interop.Trie;
 using System.IO;
 using System.Threading;
 using System.Collections.Concurrent;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 
-namespace FiftyOne.Example.Illustration.CSharp.Reload_Data_File
+namespace FiftyOne.Example.Illustration.CSharp.Reload_From_Memory_Trie
 {
     public class Program
     {
@@ -147,9 +141,10 @@ namespace FiftyOne.Example.Illustration.CSharp.Reload_Data_File
             // Reload data file until at least one thread is still not done.
             while (threadsFinished < numberOfThreads)
             {
-                provider.reloadFromFile();
+                byte[] bytes = File.ReadAllBytes(deviceDataFile);
+                provider.reloadFromMemory(bytes.ToString(), bytes.GetLength(0));
                 Console.WriteLine("Provider reloaded.");
-                Thread.Sleep(50);
+                Thread.Sleep(1000);
             }
 
             // Wait for all detection threads to complete.
@@ -172,10 +167,6 @@ namespace FiftyOne.Example.Illustration.CSharp.Reload_Data_File
                     Assert.IsTrue(first == current, "Hash values are not equal.");
                 }
             }
-
-            // Report the end of the program and exit.
-            Console.WriteLine("Program execution complete. Press Enter to exit.");
-            Console.ReadKey();
         }
 
         /// <summary>
@@ -193,9 +184,9 @@ namespace FiftyOne.Example.Illustration.CSharp.Reload_Data_File
             Match match;
 
             // Open file containing User-Agent strings for read.
-            using (FileStream fs = File.Open(userAgentsFile, 
-                    FileMode.Open, 
-                    FileAccess.Read, 
+            using (FileStream fs = File.Open(userAgentsFile,
+                    FileMode.Open,
+                    FileAccess.Read,
                     FileShare.ReadWrite))
             using (BufferedStream bs = new BufferedStream(fs))
             using (StreamReader sr = new StreamReader(bs))
@@ -205,7 +196,7 @@ namespace FiftyOne.Example.Illustration.CSharp.Reload_Data_File
                 while ((line = sr.ReadLine()) != null)
                 {
                     // Performs detection. Disposes of match.
-                    using (match = provider.getMatch(line)) 
+                    using (match = provider.getMatch(line))
                     {
                         // Compute hash for this match.
                         hash ^= getHash(match);
@@ -218,7 +209,7 @@ namespace FiftyOne.Example.Illustration.CSharp.Reload_Data_File
             // Report on the progress
             cb.Add(hash);
             Interlocked.Increment(ref threadsFinished);
-            Console.WriteLine("Thread complete with hash code: " + hash + 
+            Console.WriteLine("Thread complete with hash code: " + hash +
                               " and records processed: " + recordsProcessed);
         }
 
@@ -236,7 +227,7 @@ namespace FiftyOne.Example.Illustration.CSharp.Reload_Data_File
         public static long getHash(Match match)
         {
             long hash = 0L;
-            foreach(var property in provider.getAvailableProperties()) 
+            foreach (var property in provider.getAvailableProperties())
             {
                 hash += match.getValue(property).GetHashCode();
             }
@@ -258,11 +249,15 @@ namespace FiftyOne.Example.Illustration.CSharp.Reload_Data_File
         /// </param>
         public static void Main(string[] args)
         {
-            string fileName = args.Length > 0 ? args[0] : "../../../../../../data/51Degrees-LiteV3.2.dat";
+            string fileName = args.Length > 0 ? args[0] : "../../../../../../data/51Degrees-LiteV3.2.trie";
             string userAgents = args.Length > 1 ? args[1] : "../../../../../../data/20000 User Agents.csv";
             string properties = args.Length > 2 ? args[2] : "IsMobile,BrowserName";
             Program program = new Program(fileName, userAgents, properties);
             program.Run();
+
+            // Report the end of the program and exit.
+            Console.WriteLine("Program execution complete. Press Enter to exit.");
+            Console.ReadKey();
         }
 
         /// <summary>
