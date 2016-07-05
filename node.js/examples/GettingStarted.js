@@ -1,8 +1,8 @@
 // Include 51Degrees.
-var FiftyOneDegrees = require("./FiftyOneDegreesPatternV3");
+var FiftyOneDegrees = require("../pattern/FiftyOneDegreesPatternV3");
 
 // Set the config.
-var config = {"dataFile" : "../data/51Degrees-LiteV3.2.dat",
+var config = {"dataFile" : "../../data/51Degrees-LiteV3.2.dat",
  "properties" : "IsMobile",
  "cacheSize" : 10000,
  "poolSize" : 4

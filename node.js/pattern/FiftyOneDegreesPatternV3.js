@@ -88,6 +88,13 @@ FiftyOneDegrees.provider = function (configuration) {
             // Return the Match object.
         return returnedProvider.getMatch(headersMap);
     }
+    
+    // Copy the available propeties to a node array to be more easily available.
+    var nativeAvailableProperties = returnedProvider.getAvailableProperties();
+    returnedProvider.availableProperties = new Array(nativeAvailableProperties.size());
+    for (var i = 0; i < nativeAvailableProperties.size(); i++) {
+        returnedProvider.availableProperties[i] = nativeAvailableProperties.get(i);
+    }
 
     // Start the auto update process in the background.
     if (config.Licence) {
