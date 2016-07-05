@@ -5,10 +5,8 @@ var fs = require("fs"),
     readline = require("readline");
 
 // Set the config.
-var config = {"dataFile" : "../../data/51Degrees-LiteV3.2.dat",
- "properties" : "IsMobile,PlatformName,PlatformVersion",
- "cacheSize" : 10000,
- "poolSize" : 4
+var config = {"dataFile" : "../../data/51Degrees-LiteV3.2.trie",
+ "properties" : "IsMobile,PlatformName,PlatformVersion"
 };
 
 var inputFile = "../../data/20000 User Agents.csv";

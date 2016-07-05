@@ -2,7 +2,7 @@ var http = require("http");
 var FiftyOneDegrees = require("../FiftyOneDegreesV3");
 
 // Initialise a new Provider.
-var provider = new FiftyOneDegrees.provider("../pattern/config.json");
+var provider = new FiftyOneDegrees.provider("../trie/config.json");
 
 http.createServer(function (req, res) {
     try {

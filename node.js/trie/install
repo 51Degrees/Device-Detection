@@ -1,0 +1,4 @@
+swig -javascript -node -c++ -o ../../src/trie/51Degrees_node.cpp ../../src/trie/51Degrees.i
+node-gyp clean
+node-gyp configure
+node-gyp build

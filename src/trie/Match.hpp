@@ -60,6 +60,9 @@ public:
 	int getDifference();
 	int getMethod();
 	string getUserAgent();
+    
+    // Manual dispose method for node.
+    void dispose();
 
 protected:
 

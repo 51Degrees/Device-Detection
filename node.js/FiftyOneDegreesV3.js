@@ -20,10 +20,10 @@ FiftyOneDegrees.provider = function (configuration) {
     // Require the 51Degrees node library.
     if (path.parse(config.dataFile).ext === ".dat") {
         config.Type = "BinaryV32";
-        FODcore = require(__dirname + '/build/Release/FiftyOneDegreesPatternV3');
+        FODcore = require(__dirname + '/pattern/build/Release/FiftyOneDegreesPatternV3');
     } else if (path.parse(config.dataFile).ext === ".trie") {
         config.Type = "Trie";
-        FODcore = require(__dirname + '/build/Release/FiftyOneDegreesTrieV3');
+        FODcore = require(__dirname + '/trie/build/Release/FiftyOneDegreesTrieV3');
     } else {
         // Throw an error if neither Pattern or Trie are specified.
         throw "Invalid method " + config.Method + " in " + configFile;

@@ -1,11 +1,9 @@
 // Include 51Degrees.
-var FiftyOneDegrees = require("../pattern/FiftyOneDegreesPatternV3");
+var FiftyOneDegrees = require("../FiftyOneDegreesV3");
 
 // Set the config.
-var config = {"dataFile" : "../../data/51Degrees-LiteV3.2.dat",
- "properties" : "IsMobile",
- "cacheSize" : 10000,
- "poolSize" : 4
+var config = {"dataFile" : "../../data/51Degrees-LiteV3.2.trie",
+ "properties" : "IsMobile"
 };
 
 // Gets a match for the supplied User-Agent and prints the value

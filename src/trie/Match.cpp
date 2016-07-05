@@ -181,3 +181,10 @@ int Match::getDifference() {
 int Match::getMethod() {
 	return 0;
 }
+
+/**
+ * Manual dispose method for node.
+ */
+void Match::dispose() {
+    fiftyoneDegreesFreeDeviceOffsets(offsets);
+}

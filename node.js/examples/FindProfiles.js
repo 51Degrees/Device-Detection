@@ -1,5 +1,5 @@
 // Include 51Degrees.
-var FiftyOneDegrees = require("../pattern/FiftyOneDegreesPatternV3");
+var FiftyOneDegrees = require("../FiftyOneDegreesV3");
 
 // Set the config.
 var config = {"dataFile" : "../../data/51Degrees-LiteV3.2.dat",

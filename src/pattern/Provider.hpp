@@ -55,8 +55,6 @@ class Provider {
 		Provider(const string &fileName, int cacheSize, int poolSize);
 
 		virtual ~Provider();
-    
-        void destroy();
 
 		vector<string> getHttpHeaders();
 		vector<string> getAvailableProperties();

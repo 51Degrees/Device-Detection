@@ -125,11 +125,6 @@ Provider::~Provider() {
 	fiftyoneDegreesProviderFree(&provider);
 }
 
-void Provider::destroy() {
-    fiftyoneDegreesProviderFree(&provider);
-}
-
-
 /**
  * Initialises the Provider.
  * This method should not be called as it is part of the internal logic.
