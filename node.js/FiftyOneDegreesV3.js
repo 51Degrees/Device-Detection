@@ -61,7 +61,7 @@ FiftyOneDegrees.provider = function (configuration) {
 
     // Get the important headers from the data set, this is used when matching with HTTP headers accounting
     // the case of the header names.
-    var getImportantHeaders = function () {
+    returnedProvider.getHttpHeadersLower = function () {
         var i;
         var importantHeaders = {};
         for (i = 0; i < returnedProvider.getHttpHeaders().size(); i++) {
@@ -70,7 +70,7 @@ FiftyOneDegrees.provider = function (configuration) {
         }
         return importantHeaders;
     }
-    var importantHeaders = getImportantHeaders();
+    var importantHeaders = returnedProvider.getHttpHeadersLower();
 
     // Expose the config for extrernal use.
     returnedProvider.config = config;
@@ -98,7 +98,7 @@ FiftyOneDegrees.provider = function (configuration) {
 
     // Start the auto update process in the background.
     if (config.Licence) {
-        require("./update")(returnedProvider, FiftyOneDegrees);
+        require(__dirname + "/update")(returnedProvider, FiftyOneDegrees);
     }
 
     return returnedProvider;
