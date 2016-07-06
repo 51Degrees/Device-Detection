@@ -18,29 +18,21 @@ var provider = new FiftyOneDegrees.provider(config);
 // Set html links globally.
 dataOptions = ('<a class="button" target="_blank" href="https://51degrees.com/'+
 'compare-data-options?utm_source=github&utm_medium=repository&utm_content='+
-'server_pattern_compare&utm_campaign=node-open-source" title="Compare '+
+'server_trie_compare&utm_campaign=node-open-source" title="Compare '+
 'Premium and Enterprise Data Options">Compare Data Options</a>')
-methodHyperLinkUA = ('<a class="button" target="_blank" href="https://'+
-'51degrees.com/support/documentation/pattern?utm_source=github&utm_medium='+
-'repository&utm_content=example_pattern_ua&utm_campaign=node-open-source" '+
-'title="How Pattern Device Detection Works">About Metrics</a>')
-methodHyperLinkHeaders = ('<a class="button" target="_blank" href="https://'+
-'51degrees.com/support/documentation/pattern?utm_source=github&utm_medium='+
-'repository&utm_content=example_pattern_headers&utm_campaign=node-open-'+
-'source" title="How Pattern Device Detection Works">About Metrics</a>')
 propertiesHyperLinkUA = ('<a class="button" target="_blank" href="https://'+
 '51degrees.com/resources/property-dictionary?utm_source=github&utm_medium='+
-'repository&utm_content=server_pattern_properties_ua&utm_campaign=python-'+
+'repository&utm_content=server_trie_properties_ua&utm_campaign=python-'+
 'open-source" title="Review All Properties">All Properties</a>')
 propertiesHyperLinkHeaders = ('<a class="button" target="_blank" href="https:'+
 '//51degrees.com/resources/property-dictionary?utm_source=github&utm_medium='+
-'repository&utm_content=server_pattern_properties_headers&utm_campaign=node'+
+'repository&utm_content=server_trie_properties_headers&utm_campaign=node'+
 '-open-source" title="Review All Properties">All Properties</a>')
 propertyNotFound = ('<a target="_blank" href="https://51degrees.com/compare-'+
 'data-options?utm_source=github&utm_medium=repository&utm_content=server_'+
-'pattern_compare&utm_campaign=node-open-source">Switch Data Set</a>')
+'trie_compare&utm_campaign=node-open-source">Switch Data Set</a>')
 
-var outputProperties = function (res, match, propertiesHyperLink, methodHyperLink) {
+var outputProperties = function (res, match, propertiesHyperLink) {
     res.write('<table>');
     res.write('<tr><th colspan="2">Device Properties</th>' +
               '<td rowspan="' + (properties.length + 1) +
@@ -67,6 +59,8 @@ var outputProperties = function (res, match, propertiesHyperLink, methodHyperLin
         res.write('</table>');    
 }
 
+console.log("Starting server on localhost at port 8080.");
+
 http.createServer(function (req, res) {
     // Begin html formatting.
         res.write('<!doctype html>')
@@ -78,9 +72,9 @@ http.createServer(function (req, res) {
 
         res.write('<p><img src="https://51degrees.com/DesktopModules/'+
 		'FiftyOne/Distributor/Logo.ashx?utm_source=github&utm_medium='+
-		'repository&utm_content=server_pattern&utm_campaign=node-'+
+		'repository&utm_content=server_trie&utm_campaign=node-'+
 		'open-source"></p>')
-        res.write('<h1>Node.js Pattern - Device Detection '+
+        res.write('<h1>Node.js Trie - Device Detection '+
 		'Server Example</h1>')
         
         // Output data set information.
@@ -101,7 +95,7 @@ http.createServer(function (req, res) {
         var match = provider.getMatch(req.headers["user-agent"]);
 
         // Output properties from the match.
-        outputProperties(res, match, propertiesHyperLinkUA, methodHyperLinkUA);
+        outputProperties(res, match, propertiesHyperLinkUA);
     } finally {
         // Dispose of the Match object.
         match.dispose();
@@ -128,7 +122,7 @@ http.createServer(function (req, res) {
 
         
         // Output properties from the match.
-        outputProperties(res, match, propertiesHyperLinkHeaders, methodHyperLinkHeaders);
+        outputProperties(res, match, propertiesHyperLinkHeaders);
     } finally {
         // Dispose of the Match object.
         match.dispose();

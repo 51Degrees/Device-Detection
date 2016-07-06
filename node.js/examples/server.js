@@ -76,6 +76,8 @@ var outputProperties = function (res, match, propertiesHyperLink, methodHyperLin
         res.write('</table>');    
 }
 
+console.log("Starting server on localhost at port 8080.");
+
 http.createServer(function (req, res) {
     // Begin html formatting.
         res.write('<!doctype html>')
