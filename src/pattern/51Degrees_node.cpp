@@ -5081,6 +5081,66 @@ fail:
 }
 
 
+static SwigV8ReturnValue _wrap_Provider_reloadFromMemory(const SwigV8Arguments &args) {
+  SWIGV8_HANDLESCOPE();
+  
+  v8::Handle<v8::Value> jsresult;
+  Provider *arg1 = (Provider *) 0 ;
+  std::string *arg2 = 0 ;
+  int arg3 ;
+  void *argp1 = 0 ;
+  int res1 = 0 ;
+  int res2 = SWIG_OLDOBJ ;
+  int val3 ;
+  int ecode3 = 0 ;
+  
+  if(args.Length() != 2) SWIG_exception_fail(SWIG_ERROR, "Illegal number of arguments for _wrap_Provider_reloadFromMemory.");
+  
+  res1 = SWIG_ConvertPtr(args.Holder(), &argp1,SWIGTYPE_p_Provider, 0 |  0 );
+  if (!SWIG_IsOK(res1)) {
+    SWIG_exception_fail(SWIG_ArgError(res1), "in method '" "Provider_reloadFromMemory" "', argument " "1"" of type '" "Provider *""'"); 
+  }
+  arg1 = (Provider *)(argp1);
+  {
+    std::string *ptr = (std::string *)0;
+    res2 = SWIG_AsPtr_std_string(args[0], &ptr);
+    if (!SWIG_IsOK(res2)) {
+      SWIG_exception_fail(SWIG_ArgError(res2), "in method '" "Provider_reloadFromMemory" "', argument " "2"" of type '" "std::string const &""'"); 
+    }
+    if (!ptr) {
+      SWIG_exception_fail(SWIG_ValueError, "invalid null reference " "in method '" "Provider_reloadFromMemory" "', argument " "2"" of type '" "std::string const &""'"); 
+    }
+    arg2 = ptr;
+  }
+  ecode3 = SWIG_AsVal_int(args[1], &val3);
+  if (!SWIG_IsOK(ecode3)) {
+    SWIG_exception_fail(SWIG_ArgError(ecode3), "in method '" "Provider_reloadFromMemory" "', argument " "3"" of type '" "int""'");
+  } 
+  arg3 = (int)(val3);
+  {
+    try {
+      (arg1)->reloadFromMemory((std::string const &)*arg2,arg3);;
+    }
+    catch(runtime_error& e) {
+      SWIG_exception(SWIG_RuntimeError, e.what());
+    }
+    catch(invalid_argument& e) {
+      SWIG_exception(SWIG_ValueError, e.what());
+    }
+  }
+  jsresult = SWIGV8_UNDEFINED();
+  
+  if (SWIG_IsNewObj(res2)) delete arg2;
+  
+  
+  SWIGV8_RETURN(jsresult);
+  
+  goto fail;
+fail:
+  SWIGV8_RETURN(SWIGV8_UNDEFINED());
+}
+
+
 /* -------- TYPE CONVERSION AND EQUIVALENCE RULES (BEGIN) -------- */
 
 static swig_type_info _swigt__p_Match = {"_p_Match", "p_Match|Match *", 0, 0, (void*)0, 0};
@@ -5517,6 +5577,7 @@ SWIGV8_AddMemberFunction(_exports_Provider_class, "getMatchJson", _wrap_Provider
 SWIGV8_AddMemberFunction(_exports_Provider_class, "getMatchForDeviceId", _wrap_Provider_getMatchForDeviceId);
 SWIGV8_AddMemberFunction(_exports_Provider_class, "findProfiles", _wrap_Provider__wrap_Provider_findProfiles);
 SWIGV8_AddMemberFunction(_exports_Provider_class, "reloadFromFile", _wrap_Provider_reloadFromFile);
+SWIGV8_AddMemberFunction(_exports_Provider_class, "reloadFromMemory", _wrap_Provider_reloadFromMemory);
 
 
   /* setup inheritances */
