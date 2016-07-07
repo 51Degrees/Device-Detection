@@ -9,20 +9,27 @@ var fs = require("fs"),
     rl = readline.createInterface(instream, null),
     i = 0;
 rl.on('line', function (userAgent) {
-    if (i < 20000) {
+    if (i < 10000) {
         userAgents[i] = userAgent;
     }
     i++;
 })
 
-var mobileUserAgent = "Mozilla/5.0 (Linux; Android 5.1; HTC One M9 Build/LMY47O) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/47.0.2526.83 Mobile Safari/537.36";
+// User-Agent string of an iPhone mobile device.
+var mobileUserAgent = "Mozilla/5.0 (iPhone; CPU iPhone OS 7_1 like Mac OS X) AppleWebKit/537.51.2 (KHTML, like Gecko) 'Version/7.0 Mobile/11D167 Safari/9537.53";
+
+// User-Agent string of Firefox Web browser version 41 on desktop.
+var desktopUserAgent = "Mozilla/5.0 (Windows NT 6.3; WOW64; rv:41.0) Gecko/20100101 Firefox/41.0";
+
+// User-Agent string of a MediaHub device.
+var mediaHubUserAgent = "Mozilla/5.0 (Linux; Android 4.4.2; X7 Quad Core Build/KOT49H) AppleWebKit/537.36 (KHTML, like Gecko) Version/4.0 Chrome/30.0.0.0 Safari/537.36";
 
 
 // Set either a pattern or trie config.
 if (process.argv[3] === "--pattern") {
     var config = {"dataFile" : "../data/51Degrees-LiteV3.2.dat",
      "properties" : "IsMobile,BrowserName",
-     "cacheSize" : 10000,
+     "cacheSize" : 20000,
      "poolSize" : 4
     };
     console.log("Creating Pattern provider...");
@@ -48,7 +55,23 @@ describe("Matching", function() {
                 match.dispose();
         })
     })
+    
+    describe("Desktop User-Agent", function() {
+        it("Should be matched as a non-mobile device", function() {
+        var match = provider.getMatch(desktopUserAgent);
+        assert.equal("False", match.getValue("IsMobile"), "IsMobile property was " + match.getValue("IsMobile"));
+        match.dispose();
+        })
+    })
 
+    describe("Media Hub User-Agent", function() {
+        it("Should be matched as a non-mobile device", function() {
+        var match = provider.getMatch(mediaHubUserAgent);
+        assert.equal("False", match.getValue("IsMobile"), "IsMobile property was " + match.getValue("IsMobile"));
+        match.dispose();
+        })
+    })
+    
     describe("All Available Properties", function () {
         it("Should return valid properties for all User-Agents", function() {
             userAgents.forEach(function(userAgent) {
@@ -105,7 +128,24 @@ describe("Performance", function() {
             assert.equal(true, timePerDetection < 0.1, "Time per detection was " + timePerDetection + " ms");
         })
     })
-    
+    if(config.cacheSize !== undefined) {
+        describe("Detection Speed With Cache", function() {
+          it("Should be quicker when fetching matches which are already cached", function() {
+              var cacheProvider = new FiftyOneDegrees.provider(config);
+              var start = new Date()
+              matchAllUserAgents(cacheProvider);
+              var end = new Date();
+              var timeTaken = end - start;
+              
+              var start = new Date();
+              matchAllUserAgents(cacheProvider);
+              var end = new Date();
+              var timeTakenCache = end - start;
+              assert.equal(true, timeTakenCache < timeTaken, "Detection speed when using the cache are more that without " + timeTakenCache + ">" + timeTaken);
+          })       
+        })
+    }
+
     describe("Reload Penalty", function() {
         it("Should reload without costing more than 1s per 20000 matches", function() {
             var numberOfReloads = 5;
