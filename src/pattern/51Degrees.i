@@ -74,8 +74,8 @@
 %nodefaultctor Match;
 #ifndef BUILDING_NODE_EXTENSION
 %newobject Provider::getMatch;
-#endif
 %newobject Provider::getMatchForDeviceId;
+#endif
 %nodefaultctor Profiles;
 %newobject Provider::findProfiles;
 
