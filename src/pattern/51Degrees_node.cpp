@@ -4858,7 +4858,7 @@ static SwigV8ReturnValue _wrap_Provider_getMatchForDeviceId(const SwigV8Argument
       SWIG_exception(SWIG_ValueError, e.what());
     }
   }
-  jsresult = SWIG_NewPointerObj(SWIG_as_voidptr(result), SWIGTYPE_p_Match, SWIG_POINTER_OWN |  0 );
+  jsresult = SWIG_NewPointerObj(SWIG_as_voidptr(result), SWIGTYPE_p_Match, 0 |  0 );
   
   if (SWIG_IsNewObj(res2)) delete arg2;
   
