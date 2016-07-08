@@ -13,26 +13,31 @@ var inputFile = "../../data/20000 User Agents.csv";
 var outputFile = "offlineProcessingOutput.csv";
 
 var outputOfflineProcessing = function() {
-    fs.writeFile(outputFile, "");
-    fs.appendFile(outputFile, "User-Agent");
-    provider.availableProperties.forEach(function(property) {
-        fs.appendFile(outputFile, "|" + property);
+    var inStream = fs.createReadStream(inputFile),
+        rl = readline.createInterface(inStream, null),
+        outStream = fs.createWriteStream(outputFile);
+    inStream.on("close", function() {
+        outStream.close();
+        console.log("Output written to " + outputFile);
     })
-    fs.appendFile(outputFile, "\n");
-    
-    var instream = fs.createReadStream(inputFile),
-        rl = readline.createInterface(instream, null);
+
+    outStream.write("User-Agent");
+    provider.availableProperties.forEach(function(property) {
+        outStream.write("|" + property);
+    })
+    outStream.write("\n");
+
     var i = 0;
     rl.on('line', function (userAgent) {
         if (i < 20) {
             try {
-                fs.appendFile(outputFile, userAgent);
+                outStream.write(userAgent);
                 var match = provider.getMatch(userAgent);
                 provider.availableProperties.forEach(function(property) {
-                    fs.appendFile(outputFile, "|" + match.getValue(property));
+                    outStream.write("|" + match.getValue(property));
                 })
             } finally {
-                fs.appendFile(outputFile, "\n");
+                outStream.write("\n");
                 match.dispose();
             }
         }
@@ -45,4 +50,3 @@ console.log("Starting Offline Processing Example.\n");
 // Initialise a new Provider.
 var provider = new FiftyOneDegrees.provider(config);
 outputOfflineProcessing();
-console.log("Output written to " + outputFile);
