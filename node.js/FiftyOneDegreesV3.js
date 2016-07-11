@@ -26,13 +26,13 @@ FiftyOneDegrees.provider = function (configuration) {
         FODcore = require(__dirname + '/trie/build/Release/FiftyOneDegreesTrieV3');
     } else {
         // Throw an error if neither Pattern or Trie are specified.
-        throw "Invalid method " + config.Method + " in " + configFile;
+        throw "Invalid data file format " + config.dataFile;
     }
 
     // Initialise the Provider. Account for all variations here as the node SWIG interface
     // treats undefined as a value.
     try {
-        if (config.Method === "Trie") {
+        if (config.Type === "Trie") {
             if (config.properties) {
                 returnedProvider =  new FODcore.Provider(config.dataFile, config.properties);
             } else {
@@ -53,9 +53,9 @@ FiftyOneDegrees.provider = function (configuration) {
                 }
             }
         }
-    } catch (e) {
+    } catch (err) {
         //TODO Add in proper error code.
-        throw "51Degrees Provider failed to initialise";
+        throw err;
     }
 
 
