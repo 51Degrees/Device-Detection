@@ -47,6 +47,35 @@
 %include std_map.i
 
 /*
+ * For node.js, override the overloader constructor template to
+ * carry though the correct error message. The additions are the
+ * two "goto fail"'s.
+ */
+#ifdef BUILDING_NODE_EXTENSION
+%fragment ("js_ctor_dispatch_case", "templates")
+%{
+	if(args.Length() == $jsargcount) {
+		errorHandler.err.Clear();
+#if (V8_MAJOR_VERSION-0) < 4 && (SWIG_V8_VERSION < 0x031903)
+		self = $jswrapper(args, errorHandler);
+		if(errorHandler.err.IsEmpty()) {
+			SWIGV8_ESCAPE(self);
+		} else {
+			goto fail;
+		}
+#else
+		$jswrapper(args, errorHandler);
+		if(errorHandler.err.IsEmpty()) {
+			return;
+		} else {
+			goto fail;
+		}
+#endif
+	}
+%}
+#endif
+
+/*
  * Exceptions returned by the C++ code are handled here.
  */
 %exception {
