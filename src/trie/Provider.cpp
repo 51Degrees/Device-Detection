@@ -189,7 +189,6 @@ void Provider::initComplete(
 		fiftyoneDegreesDataSetInitStatus initStatus,
 		const string &fileName) {
 	if (initStatus != DATA_SET_INIT_STATUS_SUCCESS)	{
-		fiftyoneDegreesProviderFree(&provider);
 		initException(initStatus, fileName);
 	}
 	else {
