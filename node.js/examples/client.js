@@ -7,10 +7,10 @@ var provider = new FiftyOneDegrees.provider("../pattern/config.json");
 http.createServer(function (req, res) {
     try {
         // Get a match.
-        var match = new provider.getMatchForHttpHeaders(req.headers);
+        var match = new provider.getMatchForRequest(req);
         provider.availableProperties.forEach(function(value) {
             res.write(value + " : " + match.getValue(value) + "\n");
-        })        
+        })
     } finally {
         // Dispose of the Match object/
         match.dispose();
