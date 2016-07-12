@@ -262,7 +262,7 @@ string Provider::getDataSetName() {
  */
 string Provider::getDataSetFormat() {
 	stringstream stream;
-	stream << provider.active->dataSet->version;
+	stream << *provider.active->dataSet->version;
 	return stream.str();
 }
 
