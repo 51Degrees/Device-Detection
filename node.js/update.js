@@ -6,67 +6,118 @@ var dataSetNextUpdateDate;
 var querystring = require("querystring");
 var updating;
 
-var update = function (provider, callback) {
+// Regular expression to check for a valid licence key.
+var validLicenceRegEx = new RegExp("^[A-Z\\d]+$");
+
+// Update function called when an update is due.
+var update = function (provider, errorHandler) {
     // Load config and make the querystring parameter and http request options.
     var config = provider.config,
         parameters = {
             LicenceKeys: config.Licence,
             Type: config.Type,
-            Download: "True",
-            Product: provider.getDataSetName()
+            Download: 'True',
         };
-    if (parameters.Product.indexOf("Premium") !== -1) {
-        parameters.Product = "Premium";
+    
+    // Check the licence key is not empty
+    if (config.Licence.length === 0) {
+        errorHandler('At least one valid licence key is required ' +
+                     'to update device data. See https://51degrees.com/' +
+                     'compare-data-options to acquire valid licence keys.');
+        return false;
     }
-    var options = {
+    
+    // Check the licence key is a valid format.
+    if (validLicenceRegEx.exec(config.Licence) === null) {
+        errorHandler('The license key(s) provided were invalid. See ' +
+                     'https://51degrees.com/compare-data-options to acquire ' +
+                     'valid licence keys.');
+        return false;
+     }
+    
+    // Set the request options to get the update from.
+    var requestOptions = {
         host: "51degrees.com",
         port: 443,
         path: "/products/downloads/premium?" + querystring.stringify(parameters)
     };
-    var request = https.get(options);
+    var request = https.get(requestOptions);
 
     // When recieving response, if gzip download file, if not, return error.
     request.on("response", function (response) {
+        // If the response code is not 200, then throw an error as the
+        // download will not happen.
+        if (response.statusCode !== 200) {
+            switch (response.statusCode) {
+                case 429 :
+                    errorHandler('Too many attempts have been made to ' +
+                             'download a data file from this public IP ' +
+                             'address or with this licence key. Try again ' +
+                             'after a period of time.');
+                    return false;
+                case 403 :
+                    errorHandler('Data not downloaded. The licence key is not' +
+                             'valid');
+                    return false;
+                default :
+                    errorHandler('An error occurred fetching the data file. ' +
+                                 'Try again incase the error is temporary, ' +
+                                 'or validate licence key and network ' +
+                                'configuration.')
+                    return false;
+            }
+        }
+        
+        // If the response is not gzip encoded then return an error.
         if (response.headers["transfer-encoding"] && response.headers["transfer-encoding"].indexOf("gzip") === -1) {
-            callback("not gzip");
+            errorHandler("The response encoding was " + 
+                     response.headers['transfer-encoding']);
             return false;
         }
+        
         // Set updating flag to true so that another update process does not start.
         updating = true;
 
-        // Stream contents of gzip file into temp file on disk.
+        // Stream contents of the gzip file into temp file on disk.
         var zippedOutput = fs.createWriteStream(config.dataFile + ".gz");
         response.pipe(zippedOutput);
         response.on("end", function () {
-            // When stream completes, read zipped file.
+            // When the stream completes, read zipped file.
             fs.readFile(config.dataFile + ".gz", function (err, zippedFile) {
                 if (err) {
-                    callback(err);
+                    // There was an error reading the donwloaded file.
+                    errorHandler(err);
                     return false;
                 }
+                
                 // Check the hash of the zipped file against the md5 from the request.
                 var hash = crypto.createHash("md5").update(zippedFile).digest("hex");
                 if (hash === response.headers["content-md5"]) {
-                    // If hashes match, unzip the file.
+                    // The hashes match, so unzip the file.
                     zlib.unzip(zippedFile, function (err, data) {
-                        // Once unzipped, write to file.
+                        // Now write it to file.
                         fs.writeFile(config.dataFile, data, function (err) {
                             if (err) {
-                                callback(err);
+                                // There was an error writing to file.
+                                errorHandler(err);
                                 return false;
                             }
                             // If writing to file succedes delete the gzip file.
                             fs.unlink(config.dataFile + ".gz", function (err) {
                                 if (err) {
-                                    callback(err);
+                                    // There was an error deleting the file.
+                                    errorHandler(err);
                                 } else {
-                                    callback();
+                                    // The file was delted, so return
+                                    // without error.
+                                    errorHandler();
                                 }
                             });
                         });
                     });
                 } else {
-                    callback("hash failed");
+                    // The hashes did not match.
+                    errorHandler("Data was downloaded but the MD5 hash failed");
                 }
             })
         })
@@ -90,18 +141,25 @@ module.exports = function (provider, FOD) {
             update(provider, function (err) {
                 if (err) {
                     // If failed, output log the error and unset the updating flag.
-                    FOD.log.emit("51error", err);
+                    FOD.log.emit("51info", 'Could not update the data file ' +
+                                 'reason: ' + err);
                     updating = false;
                     return false
                 } else {
-                    // If uodated successfully, reload the provider using the new data file,
+                    // If updated successfully, reload the provider using the new data file,
                     // set the new update date, and unset the updating flag.
                     provider.reloadFromFile();
                     dataSetNextUpdateDate = new Date(provider.getDataSetNextUpdateDate());
-                    FOD.log.emit("updated", dataSetNextUpdateDate)
+                    FOD.log.emit('51info', 'Automatically updated data file ' +
+                                 config.dataFile + ' with version published ' +
+                                 'on ' + provider.getDataSetPublishedDate());
                     updating = false;
                 }
             });
+        } else {
+            FOD.log.emit('51info', 'Could not update the data file reason: ' +
+                         'The data file is current and does not need to be ' +
+                         'updated');
         }
         //Note, set to 1 second. Change this.
     }, 1000);

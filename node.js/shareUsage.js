@@ -49,19 +49,21 @@ var isLocal = function(address) {
 
 // Sends all the data in the queue.
 var sendData = function(outputStream) {
-    var req = http.request(requestOptions, function(res) {
-        switch (res.statusCode) {
+    log.emit('51debug', 'Sending usage data to ' + requestOptions.host);
+    var request = http.request(requestOptions, function(response) {
+        switch (response.statusCode) {
             case 200:// OK
                 // Ok response, do nothing
                 break;
             case 408:// Request Timeout
                 // Could be temporary, do nothing.
+                log.emit('51debug', "Response code is 408 : " + response.statusMessage);
                 break;
             default:
                 // Turn off functionality.
                 log.emit('51error', 'Stopping usage sharing as remote ' +
                         'name ' + requestOptions.host + ' returned status ' +
-                        'description ' + res.statusMessage);
+                        'description ' + response.statusMessage);
                 stop = true;
                 break;
         }
@@ -92,27 +94,29 @@ var sendData = function(outputStream) {
         // but is quicker.
         xmlString += queue.pop();
     }
-    
+
     // End the devices XML string.
     xmlString += '</Devices>';
-    
+
     // Compress the XML string and send it.
     zlib.gzip(xmlString, function(err, result) {
-        req.write(result);
-        req.end();
+        request.write(result);
+        request.end();
     });
+    
+    log.emit('51debug', 'Usage data sent successfully');
 }
 
 // Adds the request to the queue to be processed.
-shareUsage.recordNewDevice = function(req) {
+shareUsage.recordNewDevice = function(request) {
     if (stop === false) {
-        
+
         // Usage sharing has not been stopped, so get the device information.
-        device = getContent(req);
-        
+        device = getContent(request);
+
         // Add the device information to the queue.
         queue.push(device);
-        
+
         if (queue.length === newDeviceQueueLength) {
             // The queue has reached is maximum length, so send the data.
             sendData(queue);
@@ -121,18 +125,18 @@ shareUsage.recordNewDevice = function(req) {
 }
 
 // Records the information as XML data and converts to a string for storage.
-var getContent = function(req) {
+var getContent = function(request) {
 
     // Begin the XML.
     var device = xmlBuilder.create('Device');
-    
+
     // Add the sender information.
     device.ele('DateSent', new Date().toISOString())
     device.ele('Version', version)
     device.ele('Product', product)
 
     // Get the remote address.
-    var remoteAddress = req.connection.remoteAddress;
+    var remoteAddress = request.connection.remoteAddress;
     // Are you local?
     if (isLocal(remoteAddress.toString()) === true) {
         // Strip the leading part of the ip when setting.
@@ -140,15 +144,15 @@ var getContent = function(req) {
     }
 
     // Add the local address, removing the leading part.
-    var localAddress = req.connection.localAddress.replace(/^.*:/, '');
+    var localAddress = request.connection.localAddress.replace(/^.*:/, '');
     device.ele('ServerIP', localAddress);
 
     // Add the headers that are useful.
-    Object.keys(req.headers).forEach(function (header) {
+    Object.keys(request.headers).forEach(function (header) {
         if (header === 'user-agent'
             || header === 'host'
             || header.indexOf('profile') !== -1) {
-            device.ele('Header', {'Name': header}, req.headers[header]);        
+            device.ele('Header', {'Name': header}, request.headers[header]);        
         }
     })
 
@@ -164,5 +168,6 @@ module.exports = function(provider, FOD) {
     log = FOD.log;
     version = provider.getDataSetFormat();
     product = 'Node js : ' + provider.config.Type;
+    log.emit('51info', 'Usage sharer started')
     return shareUsage;
 };
