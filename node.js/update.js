@@ -163,4 +163,7 @@ module.exports = function (provider, FOD) {
         }
         //Note, set to 1 second. Change this.
     }, 1000);
+    
+    FOD.log.emit('51info', 'Auto updater started. Next update date ' +
+                 provider.getDataSetNextUpdateDate());
 }
