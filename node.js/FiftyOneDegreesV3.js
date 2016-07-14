@@ -7,11 +7,10 @@ var FiftyOneDegrees = {};
 
 // The event logger and available logging levels.
 var logError,
-    logLevels = ['error', 'info', 'debug'];
+    logLevels = ['none', 'error', 'info', 'debug'];
 
 // Return the Provider object initialised with the supplied config file.
 FiftyOneDegrees.provider = function (configuration) {
-
     // Read the configuration.
     if (typeof(configuration) === "string") {
         // The configuration is a string so parse it.
@@ -23,7 +22,7 @@ FiftyOneDegrees.provider = function (configuration) {
         // need to do anything.
         var config = configuration;
     }
-    
+
     // Create the logger.
     FiftyOneDegrees.log = new eventEmitter();
 
@@ -48,6 +47,10 @@ FiftyOneDegrees.provider = function (configuration) {
     
     // Set the logging level.
     for (var i = 0; i < logLevels.length; i++) {
+        if (config.logLevel === logLevels[0]) {
+            // Log level is none, so don't set anything.
+            break;
+        }
         // Start an event listener for this logging level.
         FiftyOneDegrees.log.on('51' + logLevels[i], function(err) {
             logError(err);
@@ -118,7 +121,7 @@ FiftyOneDegrees.provider = function (configuration) {
         }
         return importantHeaders;
     }
-    
+
     // Store the importand headers for use by the getMatchForHttpHeaders
     // function.
     var importantHeaders = returnedProvider.getHttpHeadersLower();
@@ -142,7 +145,7 @@ FiftyOneDegrees.provider = function (configuration) {
                 }
             })
         })
-        
+
         // Return the Match object using the important headers.
         return returnedProvider.getMatch(headersMap);
     }
