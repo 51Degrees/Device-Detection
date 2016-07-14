@@ -1,12 +1,67 @@
+/*
+This Source Code Form is copyright of 51Degrees Mobile Experts Limited.
+Copyright (c) 2015 51Degrees Mobile Experts Limited, 5 Charlotte Close,
+Caversham, Reading, Berkshire, United Kingdom RG4 7BY
+
+This Source Code Form is the subject of the following patent
+applications, owned by 51Degrees Mobile Experts Limited of 5 Charlotte
+Close, Caversham, Reading, Berkshire, United Kingdom RG4 7BY:
+European Patent Application No. 13192291.6; and
+United States Patent Application Nos. 14/085,223 and 14/085,301.
+
+This Source Code Form is subject to the terms of the Mozilla Public
+License, v. 2.0.
+
+If a copy of the MPL was not distributed with this file, You can obtain
+one at http://mozilla.org/MPL/2.0/.
+
+This Source Code Form is "Incompatible With Secondary Licenses", as
+defined by the Mozilla Public License, v. 2.0.
+*/
+
+/*
+<tutorial>
+Match with device id example of using 51Degrees device detection. The example
+shows how to:
+<ol>
+<li>Set the configuration using a json object
+<p><pre class="prettyprint lang-js">
+var config = {"dataFile" : "../../data/51Degrees-LiteV3.2.dat",
+              "properties" : "IsMobile",
+              "cacheSize" : 10000,
+              "poolSize" : 4
+};
+</pre></p>
+<li>Instantiate the 51Degrees device detection provider with this
+connfiguration
+<p><pre class="prettyprint lang-js">
+var provider = new FiftyOneDegreesV3.provider(config);
+</pre></p>
+<li>Produce a match for a single device id
+<p><pre class="prettyprint lang-js">
+var match = provider.getMatchForDeviceId(deviceId)
+</pre><p>
+<li>Extract the value of the IsMobile property
+<p><pre class="prettyprint lang-js">
+match.getValue('IsMobile')
+</pre></p>
+</ol>
+This example should be run in the examples directory as the path
+to the data file is relative.
+</tutorial>
+*/
+
+// Snippet Start
 // Include 51Degrees.
 var FiftyOneDegrees = require("../FiftyOneDegreesV3");
 
 // Set the config.
 var config = {"dataFile" : "../../data/51Degrees-LiteV3.2.dat",
- "properties" : "IsMobile",
- "cacheSize" : 10000,
- "poolSize" : 4
-};
+              "properties" : "IsMobile",
+              "cacheSize" : 10000,
+              "poolSize" : 4,
+              "logLevel" : "none"
+             };
 
 // User-Agent string of an iPhone mobile device.
 var mobileUserAgent = "Mozilla/5.0 (iPhone; CPU iPhone OS 7_1 like Mac OS X) AppleWebKit/537.51.2 (KHTML, like Gecko) 'Version/7.0 Mobile/11D167 Safari/9537.53";
@@ -30,7 +85,12 @@ var getDeviceId = function(userAgent) {
 }
 console.log("Starting Match For Device Id Example.");
 
-// Initialise a new Provider.
+/*
+Initialises the device detection provider with settings from the config.
+By default this will use the included Lite data file For more info see:
+<a href="https://51degrees.com/compare-data-options">compare data options
+</a>
+*/
 var provider = new FiftyOneDegrees.provider(config);
 
 // Get the device id for a selection of User-Agents.
@@ -42,13 +102,16 @@ var mediaHubDeviceId = getDeviceId(mediaHubUserAgent);
 console.log("\nMobileDeviceId : " + mobileDeviceId);
 var match = provider.getMatchForDeviceId(mobileDeviceId);
 console.log("   IsMobile: " + match.getValue("IsMobile"));
+match.dispose();
 
 // Carries out a match for a desktop device id.
 console.log("\nDesktopDeviceId : " + desktopDeviceId);
 var match = provider.getMatchForDeviceId(desktopDeviceId);
 console.log("   IsMobile: " + match.getValue("IsMobile"));
+match.dispose();
 
 // Carries out a match for a MediaHub device id.
 console.log("\nMediaHubDeviceId : " + mediaHubDeviceId);
 var match = provider.getMatchForDeviceId(mediaHubDeviceId);
 console.log("   IsMobile: " + match.getValue("IsMobile"));
+match.dispose();

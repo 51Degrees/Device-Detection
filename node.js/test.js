@@ -31,15 +31,17 @@ var mediaHubUserAgent = "Mozilla/5.0 (Linux; Android 4.4.2; X7 Quad Core Build/K
 if (process.argv[3] === "--pattern") {
     var pattern = true;
     var config = {"dataFile" : "../data/51Degrees-LiteV3.2.dat",
-     "properties" : "IsMobile,BrowserName",
-     "cacheSize" : 10000,
-     "poolSize" : 4
-    };
+                  "properties" : "IsMobile,BrowserName",
+                  "cacheSize" : 10000,
+                  "poolSize" : 4,
+                  "logLevel" : "none"
+                 };
     console.log("Creating Pattern provider...");
 } else if (process.argv[3] === "--trie") {
     var config = {"dataFile" : "../data/51Degrees-LiteV3.2.trie",
-    "properties" : "IsMobile,BrowserName"
-    };
+                  "properties" : "IsMobile,BrowserName",
+                  "logLevel" : "none"
+                 };
     console.log("Creating Trie provider...");
 } else {
     console.log(process.argv[3] + " is not a valid argument, use --pattern or --trie.");
@@ -151,7 +153,7 @@ describe("API", function() {
         })
 
         describe("Find Non-Mobile Profiles", function() {
-            it("shoudl find profiles", function() {
+            it("Should find only non-mobile profiles", function() {
                 var profiles = provider.findProfiles("IsMobile", "False");
                 for(var i = 0; i < profiles.getCount(); i++) {
                     var match = provider.getMatchForDeviceId(profiles.getProfileId(i).toString());
