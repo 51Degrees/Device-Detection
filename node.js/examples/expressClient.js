@@ -14,29 +14,29 @@ if (process.argv[2] === "pattern") {
     console.log("Started new Pattern provider (default).")
 }
 
+// Enabling this means booleans and Object.keys can be used when
+// getting properties from the device.
+provider.config.nodeify = true;
+
 app.get('/', function(req, res) {
     var deviceString = '';
     try {
         // Get a match.
-        var match = new provider.getMatchForRequest(req);
+        var device = new provider.getMatchForRequest(req);
         // Print the type of device.
-        if (match.getValue("IsMobile") === "True") {
+        if (device.IsMobile) {
             deviceString += "This is a mobile device.<br>\n";
         } else {
             deviceString += "This is a non-mobile device.<br>\n";
         }
         // Print all the properties for the device.
         deviceString += "Here are all its properties:<br><br>\n\n";
-        provider.availableProperties.forEach(function(property) {
-            var values = match.getValues(property);
-            // Some properties can have multiple values, so get them all.
-            for (var i = 0; i < values.size(); i++) {
-                deviceString += property + " : " + values.get(i) + "<br>\n";
-            }
+        Object.keys(device).forEach(function(property) {
+            deviceString += property + " : " + device[property] + "<br>\n";
         })
     } finally {
         // Dispose of the Match object and return the page.
-        match.dispose();
+        device.dispose();
         res.send(deviceString);
     }
 })
@@ -49,15 +49,16 @@ app.get('/metrics', function(req, res) {
         var metricsString = '';
         try {
             // Get a match.
-            var match = new provider.getMatchForRequest(req);
+            var device = new provider.getMatchForRequest(req);
+
             // Print the match metrics.
-            metricsString += "Device Id : " + match.getDeviceId() + "<br>\n";
-            metricsString += "Method : " + match.getMethod() + "<br>\n";
-            metricsString += "Difference : " + match.getDifference() + "<br>\n";
-            metricsString += "Rank : " + match.getRank() + "<br>\n";
+            metricsString += "Device Id : " + device.getDeviceId() + "<br>\n";
+            metricsString += "Method : " + device.getMethod() + "<br>\n";
+            metricsString += "Difference : " + device.getDifference() + "<br>\n";
+            metricsString += "Rank : " + device.getRank() + "<br>\n";
         } finally {
             // Dispose of the match object and return the page.
-            match.dispose();
+            device.dispose();
             res.send(metricsString);
         }
     }
