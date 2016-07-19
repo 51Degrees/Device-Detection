@@ -19,27 +19,23 @@ else {
 // getting properties from the device.
 provider.config.nodeify = true;
 
-http.createServer(function (req, res) {
-    try {
-        // Get a match.
-        var device = new provider.getMatchForRequest(req);
-        // Print the type of device.
-        if (device.IsMobile) {
-            res.write("This is a mobile device.\n");
-        }
-        else {
-            res.write("This is a non-mobile device.\n");
-        }
-        // Print all the properties for the device.
-        res.write("Here are all its properties:\n\n");
-        Object.keys(device).forEach(function(property) {
-            res.write(property + " : " + device[property] + "\n");
-        })
+var server = http.createServer(function (req, res) {
+    // Get a match.
+    provider.getMatchForRequest(req);
+
+    // Print the type of device.
+    if (req.IsMobile) {
+        res.write("This is a mobile device.\n");
     }
-    finally {
-        // Dispose of the Match object/
-        device.dispose();
+    else {
+        res.write("This is a non-mobile device.\n");
     }
+
+    // Print all the properties for the device.
+    res.write("Here are all its properties:\n\n");
+    provider.availableProperties.forEach(function(property) {
+        res.write(property + " : " + req[property] + "\n");
+    })
     res.end();
 }).listen(3000, function () {
     console.log("Test HTTP server listening on port 3000");

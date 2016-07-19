@@ -157,32 +157,29 @@ FiftyOneDegrees.provider = function (configuration) {
         return returnedProvider.getMatch(headersMap);
     }
 
-    // Wrapper function for matching HTML requests.
+    // Wrapper function for matching HTML requests.    
     returnedProvider.getMatchForRequest = function (req) {
-        if (config.UsageSharingEnabled) {
+        if (config.UsageSharingEnabled !== false) {
             // Share usage is enabled, so record the device.
             shareUsage.recordNewDevice(req);
         }
 
         // Get a Match object using the headers from the supplied request.
-        var match =  returnedProvider.getMatchForHttpHeaders(req.headers);
+        req.match =  returnedProvider.getMatchForHttpHeaders(req.headers);
         
         // Define getter functions so properties are accessible
-        if (config.nodeify) {
+        if (returnedProvider.config.addGetters !== false) {
             returnedProvider.availableProperties.forEach(function(property) {
                 if (property.indexOf("JavascriptHardwareProfile") !== -1) {
                     // Skip this property as it will break the API.
-                    match.__defineGetter__(property, function() {
-                        return null;
-                    })
                 } else {
                     // Define the getter for this property.
-                    match.__defineGetter__(property, function() {
+                    req.__defineGetter__(property, function() {
                         // This property has multiple values, so put them in
                         // an array.
-                        values = this.getValues(property);
+                        var values = this.match.getValues(property);
                         if (values.size() > 1) {
-                            valuesArray = new Array(values.size());
+                            var valuesArray = new Array(values.size());
                             for (var i = 0; i < values.size(); i++) {
                                 valuesArray[i] = values.get(i);
                             }
@@ -204,7 +201,26 @@ FiftyOneDegrees.provider = function (configuration) {
                 }
             })
         }
-        return match;
+        
+        req.on('end', function() {
+            if (this.match) {
+                this.match.dispose()
+                this.match = false
+            }
+        })
+        req.on('abort', function() {
+            if (this.match) {
+                this.match.dispose()
+                this.match = false
+            }
+        })
+        req.on('aborted', function() {
+            if (this.match) {
+                this.match.dispose()
+                this.match = false
+            }
+        })
+        return;
     }
 
     // Copy the available propeties to a node array to be more easily
@@ -223,7 +239,7 @@ FiftyOneDegrees.provider = function (configuration) {
     }
 
     // Start the share usage process.
-    if (config.UsageSharingEnabled) {
+    if (config.UsageSharingEnabled !== false) {
         FiftyOneDegrees.log.emit('51info', 'Starting usage sharer');
         shareUsage = require(__dirname + "/shareUsage")(returnedProvider, FiftyOneDegrees);
     }
