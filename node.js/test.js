@@ -26,24 +26,29 @@ var desktopUserAgent = "Mozilla/5.0 (Windows NT 6.3; WOW64; rv:41.0) Gecko/20100
 // User-Agent string of a MediaHub device.
 var mediaHubUserAgent = "Mozilla/5.0 (Linux; Android 4.4.2; X7 Quad Core Build/KOT49H) AppleWebKit/537.36 (KHTML, like Gecko) Version/4.0 Chrome/30.0.0.0 Safari/537.36";
 
-
 // Set either a pattern or trie config.
 if (process.argv[3] === "--pattern") {
     var pattern = true;
-    var config = {"dataFile" : "../data/51Degrees-LiteV3.2.dat",
-                  "properties" : "IsMobile,BrowserName",
-                  "cacheSize" : 10000,
-                  "poolSize" : 4,
-                  "logLevel" : "none"
-                 };
+    var config = {
+        "dataFile": "../data/51Degrees-LiteV3.2.dat",
+        "properties": "IsMobile,BrowserName",
+        "cacheSize": 10000,
+        "poolSize": 4,
+        "logLevel": "none",
+        "UsageSharingEnabled": false
+    };
     console.log("Creating Pattern provider...");
-} else if (process.argv[3] === "--trie") {
-    var config = {"dataFile" : "../data/51Degrees-LiteV3.2.trie",
-                  "properties" : "IsMobile,BrowserName",
-                  "logLevel" : "none"
-                 };
+}
+else if (process.argv[3] === "--trie") {
+    var config = {
+        "dataFile": "../data/51Degrees-LiteV3.2.trie",
+        "properties": "IsMobile,BrowserName",
+        "logLevel": "none",
+        "UsageSharingEnabled": false
+    };
     console.log("Creating Trie provider...");
-} else {
+}
+else {
     console.log(process.argv[3] + " is not a valid argument, use --pattern or --trie.");
     process.exit();
 }
@@ -52,58 +57,58 @@ if (process.argv[3] === "--pattern") {
 var provider = new FiftyOneDegrees.provider(config);
 
 // API tests.
-describe("API", function() {
-    describe("Mobile User-Agent", function() {
-        before(function() {
-        this.match = provider.getMatch(mobileUserAgent);
+describe("API", function () {
+    describe("Mobile User-Agent", function () {
+        before(function () {
+            this.match = provider.getMatch(mobileUserAgent);
         })
-        it("Should return a valid match object", function() {
+        it("Should return a valid match object", function () {
             assert.equal(true, this.match !== undefined);
         })
-        it("Should be matched as a mobile device", function() {
+        it("Should be matched as a mobile device", function () {
             assert.equal("True", this.match.getValue("IsMobile"), "IsMobile property was " + this.match.getValue("IsMobile"));
         })
-        after(function() {
+        after(function () {
             this.match.dispose();
         })
     })
 
-    describe("Desktop User-Agent", function() {
-        before(function() {
-        this.match = provider.getMatch(desktopUserAgent);
+    describe("Desktop User-Agent", function () {
+        before(function () {
+            this.match = provider.getMatch(desktopUserAgent);
         })
-        it("Should return a valid match object", function() {
+        it("Should return a valid match object", function () {
             assert.equal(true, this.match !== undefined);
         })
-        it("Should be matched as a non-mobile device", function() {
+        it("Should be matched as a non-mobile device", function () {
             assert.equal("False", this.match.getValue("IsMobile"), "IsMobile property was " + this.match.getValue("IsMobile"));
         })
-        after(function() {
+        after(function () {
             this.match.dispose();
         })
     })
 
-    describe("Media Hub User-Agent", function() {
-        before(function() {
+    describe("Media Hub User-Agent", function () {
+        before(function () {
             this.match = provider.getMatch(mediaHubUserAgent);
         })
-        it("Should return a valid match object", function() {
+        it("Should return a valid match object", function () {
             assert.equal(true, this.match !== undefined);
         })
-        it("Should be matched as a non-mobile device", function() {
+        it("Should be matched as a non-mobile device", function () {
             assert.equal("False", this.match.getValue("IsMobile"), "IsMobile property was " + this.match.getValue("IsMobile"));
         })
-        after(function() {
+        after(function () {
             this.match.dispose();
         })
     })
 
     describe("All Available Properties", function () {
-        it("Should return valid properties for all User-Agents", function() {
-            userAgents.forEach(function(userAgent) {
+        it("Should return valid properties for all User-Agents", function () {
+            userAgents.forEach(function (userAgent) {
                 var match = provider.getMatch(userAgent);
                 assert.equal(true, match !== undefined, "Match object was undefined for User-Agent:" + userAgent);
-                provider.availableProperties.forEach(function(property) {
+                provider.availableProperties.forEach(function (property) {
                     assert.equal(true, match.getValue(property).length > 0, "Value of " + property + " returned was empty");
                 });
                 match.dispose();
@@ -111,9 +116,9 @@ describe("API", function() {
         })
     })
 
-    describe("Unavailable Property", function() {
-        it ("Should return no value for all User-Agents", function() {
-            userAgents.forEach(function(userAgent) {
+    describe("Unavailable Property", function () {
+        it("Should return no value for all User-Agents", function () {
+            userAgents.forEach(function (userAgent) {
                 var match = provider.getMatch(userAgent);
                 assert.equal(true, match !== undefined, "Match object was undefined for User-Agent:" + userAgent);
                 assert.equal(true, match.getValue("notaproperty").length === 0, "Match returned " + match.getValue("notaproperty") + " for nonexistant property");
@@ -122,16 +127,16 @@ describe("API", function() {
         })
     })
 
-    if(pattern === true) {
-        describe("Match for Device Id", function() {
-            it("Should return the same match using getMatch and getMatchForDeviceId", function() {
-                userAgents.forEach(function(userAgent) {
+    if (pattern === true) {
+        describe("Match for Device Id", function () {
+            it("Should return the same match using getMatch and getMatchForDeviceId", function () {
+                userAgents.forEach(function (userAgent) {
                     var match = provider.getMatch(userAgent);
                     assert.equal(true, match !== undefined, "Match object was undefined for User-Agent:" + userAgent);
                     var deviceId = match.getDeviceId();
                     var deviceMatch = provider.getMatchForDeviceId(deviceId);
                     assert.equal(true, deviceMatch !== undefined, "Match object was undefined for device id:" + deviceId);
-                    provider.availableProperties.forEach(function(property) {
+                    provider.availableProperties.forEach(function (property) {
                         assert.equal(match.getValue(property), deviceMatch.getValue(property), "Match from matched device id did not match the original match for UserAgent " + userAgent);
                     })
                     deviceMatch.dispose();
@@ -140,10 +145,10 @@ describe("API", function() {
             })
         })
 
-        describe("Find Mobile Profiles", function() {
-            it("Should find only mobile profiles", function() {
+        describe("Find Mobile Profiles", function () {
+            it("Should find only mobile profiles", function () {
                 var profiles = provider.findProfiles("IsMobile", "True");
-                for(var i = 0; i < profiles.getCount(); i++) {
+                for (var i = 0; i < profiles.getCount(); i++) {
                     var match = provider.getMatchForDeviceId(profiles.getProfileId(i).toString());
                     assert.equal(true, match !== undefined, "Match object was undefined for profile id:" + profiles.getProfileId(i));
                     assert.equal("True", match.getValue("IsMobile"), "Profile with profile id " + profiles.getProfileId(i) + " is not a mobile profile");
@@ -152,10 +157,10 @@ describe("API", function() {
             })
         })
 
-        describe("Find Non-Mobile Profiles", function() {
-            it("Should find only non-mobile profiles", function() {
+        describe("Find Non-Mobile Profiles", function () {
+            it("Should find only non-mobile profiles", function () {
                 var profiles = provider.findProfiles("IsMobile", "False");
-                for(var i = 0; i < profiles.getCount(); i++) {
+                for (var i = 0; i < profiles.getCount(); i++) {
                     var match = provider.getMatchForDeviceId(profiles.getProfileId(i).toString());
                     assert.equal(true, match !== undefined, "Match object was undefined for profile id:" + profiles.getProfileId(i));
                     assert.equal("False", match.getValue("IsMobile"), "Profile with profile id " + profiles.getProfileId(i) + " is a mobile profile");
@@ -166,23 +171,97 @@ describe("API", function() {
     }
 })
 
+// Helper method tests.
+describe("Helper Methods", function() {
+    describe("Match Redirection", function() {
+        var match;
+        var headers = {"user-agent":mobileUserAgent};
+        it("Should return User-Agent matches correctly", function() {
+            match = provider.match(mobileUserAgent);
+            assert.equal(true, match.IsMobile)
+            match.dispose()
+        })
+        it("Should return HTTP header matches correctly", function() {
+            match = provider.match(headers);
+            assert.equal(true, match.IsMobile);
+            match.dispose();
+        })
+        req = {"headers":headers}
+        it("Should return request matches correctly", function() {
+            req.on = function(name, func) {
+                if (name === "end") {
+                    req.end = func;
+                }
+            }
+            provider.match(req);
+            assert.equal(true, req.device.IsMobile);
+            req.device.dispose();
+        })
+        it("Should dispose of request matches automatically", function () {
+            var disposed = false;
+            req.device.dispose = function() {
+                disposed = true;
+            }
+            req.end();
+            assert.equal(true, disposed);
+        })
+    })
+    
+    describe("Property Getters", function() {
+        it("Should set propery getters to boolean", function() {
+            var match = provider.match(mobileUserAgent);
+            assert.equal(true,typeof(match.IsMobile) === 'boolean');
+        })
+    })
+    
+    if ( pattern === true ) {
+        describe("Matching From FindProfiles", function() {
+                var profiles = provider.findProfiles("IsMobile", "True");
+            it("Should return a match object with profiles.getMatch(i)", function() {
+                for (var i = 0; i < profiles.count; i++) {
+                    var match = profiles.getMatch(i);
+                    assert.equal(true, match.IsMobile);
+                    match.dispose();
+                }
+            })
+            it("Should return undefined for an out of range profile", function() {
+                var match = profiles.getMatch(profiles.count);
+                assert.equal(true, match === undefined);
+            })
+            it("Should return undefined for a property from a different component", function() {
+                var match = profiles.getMatch(0);
+                assert.equal(true, match.BrowserName === undefined)
+                match.dispose();
+            })
+        })
+    }
+    
+    describe("Available Properties", function() {
+        it("Should have an array of valid properties", function() {
+            provider.availableProperties.forEach(function(property) {
+                assert.equal(true, config.properties.indexOf(property) !== -1);
+            })
+        })
+    })
+})
+
 // Performance tests.
-describe("Performance", function() {
+describe("Performance", function () {
     // Time used to compare times with reload.
     var baseTime;
 
     // General matching function. Runs though all 20000 User-Agents
     // and throws an error is a match is not returned.
-    var matchAllUserAgents = function() {
-        userAgents.forEach(function(userAgent) {
+    var matchAllUserAgents = function () {
+        userAgents.forEach(function (userAgent) {
             var match = provider.getMatch(userAgent);
             assert.equal(true, match !== undefined, "Match object was undefined for User-Agent:" + userAgent);
             match.dispose();
         })
     }
 
-    describe("Startup", function() {
-        it("Should startup in < 1.5s", function() {
+    describe("Startup", function () {
+        it("Should startup in < 1.5s", function () {
             var start = new Date();
             var provider = new FiftyOneDegrees.provider(config);
             var end = new Date();
@@ -192,7 +271,7 @@ describe("Performance", function() {
     })
 
     describe("Detection Speed", function () {
-        it("Should take < 0.1ms per detection", function() {
+        it("Should take < 0.1ms per detection", function () {
             var start = new Date();
             matchAllUserAgents();
             var end = new Date();
@@ -206,43 +285,43 @@ describe("Performance", function() {
 
     // Only test caching if there is a cache.
     // todo fix or remove
-    if(config.cacheSize !== undefined && true === false) {
-        describe("Detection Speed With Cache", function() {
-          it("Should be quicker when fetching matches which are already cached", function() {
+    if (config.cacheSize !== undefined && true === false) {
+        describe("Detection Speed With Cache", function () {
+            it("Should be quicker when fetching matches which are already cached", function () {
 
-              // Reload to clear the cache.
-              provider.reloadFromFile();
+                // Reload to clear the cache.
+                provider.reloadFromFile();
 
-              // Test when cache is empty.
-              var start = new Date();
-              for(var i = 0; i < config.cacheSize && i < userAgents.length; i++) {
-                  var match = provider.getMatch(userAgents[i].toString());
-                  assert.equal(true, match !== undefined, "Match object was undefined for User-Agent:" + userAgent);
-                  match.dispose();
-              }
-              var end = new Date();
-              var timeTaken = end - start;
+                // Test when cache is empty.
+                var start = new Date();
+                for (var i = 0; i < config.cacheSize && i < userAgents.length; i++) {
+                    var match = provider.getMatch(userAgents[i].toString());
+                    assert.equal(true, match !== undefined, "Match object was undefined for User-Agent:" + userAgent);
+                    match.dispose();
+                }
+                var end = new Date();
+                var timeTaken = end - start;
 
-              // Test now all User-Agents are in the cache.
-              var start = new Date();
-              for(var i = 0; i < config.cacheSize && i < userAgents.length; i++) {
-                  var match = provider.getMatch(userAgents[i].toString());
-                  assert.equal(true, match !== undefined, "Match object was undefined for User-Agent:" + userAgent);
-                  match.dispose();
-              }
-              var end = new Date();
-              var timeTakenCache = end - start;
-              // Cache should be quicker.
-              assert.equal(true, timeTakenCache < timeTaken, "Detection speed when using the cache is more that without " + timeTakenCache + ">" + timeTaken);
-          })
+                // Test now all User-Agents are in the cache.
+                var start = new Date();
+                for (var i = 0; i < config.cacheSize && i < userAgents.length; i++) {
+                    var match = provider.getMatch(userAgents[i].toString());
+                    assert.equal(true, match !== undefined, "Match object was undefined for User-Agent:" + userAgent);
+                    match.dispose();
+                }
+                var end = new Date();
+                var timeTakenCache = end - start;
+                // Cache should be quicker.
+                assert.equal(true, timeTakenCache < timeTaken, "Detection speed when using the cache is more that without " + timeTakenCache + ">" + timeTaken);
+            })
         })
     }
 
-    describe("Reload Penalty", function() {
-        it("Should reload without costing more than 1s per 20000 matches", function() {
+    describe("Reload Penalty", function () {
+        it("Should reload without costing more than 1s per 20000 matches", function () {
             var numberOfReloads = 5;
             var start = new Date();
-            for(var i = 0; i < numberOfReloads; i++) {
+            for (var i = 0; i < numberOfReloads; i++) {
                 matchAllUserAgents();
                 provider.reloadFromFile();
             }
