@@ -43,7 +43,7 @@ var match = provider.getMatchForDeviceId(deviceId)
 </pre><p>
 <li>Extract the value of the IsMobile property
 <p><pre class="prettyprint lang-js">
-match.getValue('IsMobile')
+match['IsMobile']
 </pre></p>
 </ol>
 This example should be run in the examples directory as the path
@@ -60,7 +60,8 @@ var config = {"dataFile" : "../../data/51Degrees-LiteV3.2.dat",
               "properties" : "IsMobile",
               "cacheSize" : 10000,
               "poolSize" : 4,
-              "logLevel" : "none"
+              "logLevel" : "none",
+              "stronglyTyped" :false
              };
 
 // User-Agent string of an iPhone mobile device.
@@ -75,7 +76,7 @@ var mediaHubUserAgent = "Mozilla/5.0 (Linux; Android 4.4.2; X7 Quad Core Build/K
 // Gets a match for the supplied User-Agent and returns the device id.
 var getDeviceId = function(userAgent) {
     try {
-        var match = provider.getMatch(userAgent);
+        var match = provider.match(userAgent);
         var deviceId = match.getDeviceId();
     }
     finally {
@@ -101,17 +102,17 @@ var mediaHubDeviceId = getDeviceId(mediaHubUserAgent);
 // Carries out a match for a mobile device id.
 console.log("\nMobileDeviceId : " + mobileDeviceId);
 var match = provider.getMatchForDeviceId(mobileDeviceId);
-console.log("   IsMobile: " + match.getValue("IsMobile"));
+console.log("   IsMobile: " + match["IsMobile"]);
 match.dispose();
 
 // Carries out a match for a desktop device id.
 console.log("\nDesktopDeviceId : " + desktopDeviceId);
 var match = provider.getMatchForDeviceId(desktopDeviceId);
-console.log("   IsMobile: " + match.getValue("IsMobile"));
+console.log("   IsMobile: " + match["IsMobile"]);
 match.dispose();
 
 // Carries out a match for a MediaHub device id.
 console.log("\nMediaHubDeviceId : " + mediaHubDeviceId);
 var match = provider.getMatchForDeviceId(mediaHubDeviceId);
-console.log("   IsMobile: " + match.getValue("IsMobile"));
+console.log("   IsMobile: " + match["IsMobile"]);
 match.dispose();

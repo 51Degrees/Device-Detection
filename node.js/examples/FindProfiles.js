@@ -77,17 +77,17 @@ var provider = new FiftyOneDegrees.provider(config);
 
 // Retrieve all the mobile profiles in the data set.
 var profiles = provider.findProfiles("IsMobile", "True");
-console.log("There are " + profiles.getCount() + " mobile profiles in the " + provider.getDataSetName() + " data file.");
+console.log("There are " + profiles.count + " mobile profiles in the " + provider.getDataSetName() + " data file.");
 profiles = provider.findProfiles("ScreenPixelsWidth", "1080", profiles);
-console.log(profiles.getCount() +
+console.log(profiles.count +
             " of them have a screen width of 1080 pixels.");
 
 // Retrieve all the non-mobile profiles in the data set.
 profiles = provider.findProfiles("IsMobile", "False");
-console.log("There are " + profiles.getCount() +
+console.log("There are " + profiles.count +
             " non-mobile profiles in the " + provider.getDataSetName() + 
             " data set.");
 profiles = provider.findProfiles("ScreenPixelsWidth", "1080", profiles);
-console.log(profiles.getCount() +
+console.log(profiles.count +
             " of them have a screen width of 1080 pixels.");
 // Snippet End

@@ -73,13 +73,13 @@ FiftyOneDegrees.provider = function (configuration) {
         // The data file is a Pattern data file, so use the Pattern library
         // and set the type for auto updating.
         config.Type = "BinaryV32";
-        FODcore = require(__dirname + '/pattern/build/Release/FiftyOneDegreesPatternV3');
+        FODcore = require(__dirname + '/build/Release/FiftyOneDegreesPatternV3');
     }
     else if (path.parse(config.dataFile).ext === ".trie") {
         // The data file is a Trie data file, so use the Trie library and set
         // the type for auto updating.
         config.Type = "Trie";
-        FODcore = require(__dirname + '/trie/build/Release/FiftyOneDegreesTrieV3');
+        FODcore = require(__dirname + '/build/Release/FiftyOneDegreesTrieV3');
     }
     else {
         // The file does not have the correct extension, so return null.
@@ -128,7 +128,133 @@ FiftyOneDegrees.provider = function (configuration) {
         }
         return importantHeaders;
     }
+    
+    var defineTypedGetter = function(match, property) {
+        // This property has multiple values, so put them in
+        // an array.
+        match.__defineGetter__(property, function() {
+            var values = this.getValues(property);
+            if (values.size() > 1) {
+                var valuesArray = new Array(values.size());
+                for (var i = 0; i < values.size(); i++) {
+                    valuesArray[i] = values.get(i);
+                }
+                return valuesArray;
+            }
+            else if (values.size() > 0) {
+                // This property only has a single property, so just
+                // return it, converting to boolean if needed.
+                var value = values.get(0);
+                if (value === "True") {
+                    return true;
+                } else if (value === "False") {
+                    return false;
+                } else {
+                    return value;
+                }
+            } else {
+                return undefined;
+            }
+        })
+    }
+    
+    var defineNonTypedGetter = function(match, property) {
+        // This property has multiple values, so put them in
+        // an array.
+        match.__defineGetter__(property, function() {
+            var values = this.getValues(property);
+            if (values.size() > 1) {
+                var valuesArray = new Array(values.size());
+                for (var i = 0; i < values.size(); i++) {
+                    valuesArray[i] = values.get(i);
+                }
+                return valuesArray;
+            }
+            else if (values.size() > 0) {
+                // This property only has a single property, so just
+                // return it.
+                return values.get(0);
+            }
+            else {
+                return undefined;
+            }
+        })
+    }
+    
+    var setGetters = function(match) {
+        // Define getter functions so properties are accessible
+        if (returnedProvider.config.addGetters !== false) {
+            if (returnedProvider.config.stronglyTyped !== false) {
+                var defineGetter = defineTypedGetter;
+            } else {
+                var defineGetter = defineNonTypedGetter;
+            }
+            returnedProvider.availableProperties.forEach(function(property) {
+                if (property.indexOf("JavascriptHardwareProfile") !== -1) {
+                    // Skip this property as it will break the API.
+                } else {
+                    // Define the getter for this property.
+                    defineGetter(match, property);
+                }
+            })
+            if (returnedProvider.config.Type !== 'Trie') {
+                match.__defineGetter__('Id', function() {
+                    return this.getDeviceId();
+                });
+                match.__defineGetter__('Rank', function() {
+                    return this.getRank();
+                });
+                match.__defineGetter__('Difference', function() {
+                    return this.getDifference();
+                });
+                match.__defineGetter__('Method', function() {
+                    return this.getMethod();
+                })
+            }
+        }        
+    }
+    
+    if (config.Type !== 'Trie') {
+        var findProfiles = returnedProvider.findProfiles;
+        returnedProvider.findProfiles = function(property, value){
+            var profiles = findProfiles.apply(this,arguments);
+            profiles.__defineGetter__('count', function() {
+                return this.getCount();
+            })
+            profiles.getMatch = function(index) {
+                var id = this.getProfileId(index);
+                if (id >= 0) {
+                    return returnedProvider.getMatchForDeviceId(id.toString());
+                } else {
+                    return undefined;
+                }
+            }
+            return profiles;
+        }
+    }
 
+    returnedProvider.match = function(input) {
+        if (typeof(input) === "string") {
+            var match = returnedProvider.getMatch(input);
+            setGetters(match)
+            return match;
+        } else if (input.headers) {
+            returnedProvider.getMatchForRequest(input);
+            setGetters(input.device);
+        } else {
+            var match = returnedProvider.getMatchForHttpHeaders(input);
+            setGetters(match);
+            return match;
+        }
+    }
+
+    getMatchForDeviceId = returnedProvider.getMatchForDeviceId;
+    returnedProvider.getMatchForDeviceId = function(deviceId) {
+        var match = getMatchForDeviceId.apply(this, arguments);
+        setGetters(match);
+        return match;
+    }
+    
     // Store the importand headers for use by the getMatchForHttpHeaders
     // function.
     var importantHeaders = returnedProvider.getHttpHeadersLower();
@@ -165,59 +291,24 @@ FiftyOneDegrees.provider = function (configuration) {
         }
 
         // Get a Match object using the headers from the supplied request.
-        req.match =  returnedProvider.getMatchForHttpHeaders(req.headers);
-        
-        // Define getter functions so properties are accessible
-        if (returnedProvider.config.addGetters !== false) {
-            returnedProvider.availableProperties.forEach(function(property) {
-                if (property.indexOf("JavascriptHardwareProfile") !== -1) {
-                    // Skip this property as it will break the API.
-                } else {
-                    // Define the getter for this property.
-                    req.__defineGetter__(property, function() {
-                        // This property has multiple values, so put them in
-                        // an array.
-                        var values = this.match.getValues(property);
-                        if (values.size() > 1) {
-                            var valuesArray = new Array(values.size());
-                            for (var i = 0; i < values.size(); i++) {
-                                valuesArray[i] = values.get(i);
-                            }
-                            return valuesArray;
-                        }
-                        else {
-                            // This property only has a single property, so just
-                            // return it, converting to boolean if needed.
-                            var value = values.get(0);
-                            if (value === "True") {
-                                return true;
-                            } else if (value === "False") {
-                                return false;
-                            } else {
-                                return value;
-                            }
-                        }
-                    })
-                }
-            })
-        }
-        
+        req.device =  returnedProvider.getMatchForHttpHeaders(req.headers);
+                
         req.on('end', function() {
-            if (this.match) {
-                this.match.dispose()
-                this.match = false
+            if (this.device) {
+                this.device.dispose()
+                this.device = false
             }
         })
         req.on('abort', function() {
-            if (this.match) {
-                this.match.dispose()
-                this.match = false
+            if (this.device) {
+                this.device.dispose()
+                this.device = false
             }
         })
         req.on('aborted', function() {
-            if (this.match) {
-                this.match.dispose()
-                this.match = false
+            if (this.device) {
+                this.device.dispose()
+                this.device = false
             }
         })
         return;

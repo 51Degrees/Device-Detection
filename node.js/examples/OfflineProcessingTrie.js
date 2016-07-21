@@ -59,9 +59,9 @@ the CSV.
 rl.on('line', function (userAgent) {
     if (i < 20) {
         outStream.write(userAgent);
-        var match = provider.getMatch(userAgent);
+        var match = provider.match(userAgent);
         provider.availableProperties.forEach(function(property) {
-            outStream.write("|" + match.getValue(property));
+            outStream.write("|" + match[property]);
         })
         outStream.write("\n");
         match.dispose();
@@ -85,7 +85,8 @@ var fs = require("fs"),
 // Set the config.
 var config = {"dataFile" : "../../data/51Degrees-LiteV3.2.trie",
               "properties" : "IsMobile,PlatformName,PlatformVersion",
-              "logLevel" : "none"
+              "logLevel" : "none",
+              "stronglyTyped" : false
              };
 
 var inputFile = "../../data/20000 User Agents.csv";
@@ -112,9 +113,9 @@ var outputOfflineProcessing = function() {
     rl.on('line', function (userAgent) {
         if (i < 20) {
             outStream.write(userAgent);
-            var match = provider.getMatch(userAgent);
+            var match = provider.match(userAgent);
             provider.availableProperties.forEach(function(property) {
-                outStream.write("|" + match.getValue(property));
+                outStream.write("|" + match[property]);
             })
             outStream.write("\n");
             match.dispose();

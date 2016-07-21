@@ -39,11 +39,11 @@ var provider = new FiftyOneDegreesV3.provider(config);
 </pre></p>
 <li>Produce a match for a single HTTP User-Agent header
 <p><pre class="prettyprint lang-js">
-var match = provider.getMatch(userAgent);
+var match = provider.match(userAgent);
 </pre><p>
 <li>Extract the value of the IsMobile property
 <p><pre class="prettyprint lang-js">
-match.getValue('IsMobile');
+match['IsMobile'];
 </pre></p>
 </ol>
 This example should be run in the examples directory as the path
@@ -60,7 +60,8 @@ var config = {"dataFile" : "../../data/51Degrees-LiteV3.2.dat",
               "properties" : "IsMobile",
               "cacheSize" : 10000,
               "poolSize" : 4,
-              "logLevel" : "none"
+              "logLevel" : "none",
+              "stronglyTyped": false
              };
 
 // User-Agent string of an iPhone mobile device.
@@ -84,19 +85,19 @@ var provider = new FiftyOneDegrees.provider(config);
 
 // Carries out a match with a mobile User-Agent.
 console.log("\nMobile User-Agent: " + mobileUserAgent);
-var match = provider.getMatch(mobileUserAgent);
-console.log("   IsMobile: " + match.getValue("IsMobile"));
+var match = provider.match(mobileUserAgent);
+console.log("   IsMobile: " + match.IsMobile);
 match.dispose();
 
 // Carries out a match with a desktop User-Agent.
 console.log("\nDesktop User-Agent: " + desktopUserAgent);
-var match = provider.getMatch(desktopUserAgent);
-console.log("   IsMobile: " + match.getValue("IsMobile"));
+var match = provider.match(desktopUserAgent);
+console.log("   IsMobile: " + match.IsMobile);
 match.dispose();
 
 // Carries out a match with a MediaHub User-Agent.
 console.log("\nMediaHub User-Agent: " + mediaHubUserAgent);
-var match = provider.getMatch(mediaHubUserAgent);
-console.log("   IsMobile: " + match.getValue("IsMobile"));
+var match = provider.match(mediaHubUserAgent);
+console.log("   IsMobile: " + match.IsMobile);
 match.dispose();
 // Snippet End

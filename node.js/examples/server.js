@@ -6,9 +6,8 @@ var config ={
 	'HardwareVendor,IsTablet,IsMobile,IsCrawler,ScreenInchesDiagonal,'+
 	'ScreenPixelsWidth',
     "dataFile" : "../../data/51Degrees-LiteV3.2.dat",
-    "cacheSize" : 1000,
-	"poolSize" :  20,
-	"UsageSharingEnabled" : 'False'
+	"UsageSharingEnabled" : false,
+    "stronglyTyped" : false
 }
 
 // Set the properties in an array.
@@ -46,24 +45,22 @@ var outputProperties = function (res, match, propertiesHyperLink, methodHyperLin
     res.write('<table>');
     res.write('<tr><th colspan="2">Match Metrics</th><td rowspan="5">' +
              methodHyperLink + '</td></tr>');
-    res.write('<tr><td>Id</td><td>' + match.getDeviceId() + '</td></tr>');
-    res.write('<tr><td>Method</td><td>' + match.getMethod() + '</td></tr>');
-    res.write('<tr><td>Difference</td><td>' + match.getDifference() + '</td></tr>');
-    res.write('<tr><td>Rank</td><td>' + match.getRank() + '</td></tr>');
+    res.write('<tr><td>Id</td><td>' + match.Id + '</td></tr>');
+    res.write('<tr><td>Method</td><td>' + match.Method + '</td></tr>');
+    res.write('<tr><td>Difference</td><td>' + match.Difference + '</td></tr>');
+    res.write('<tr><td>Rank</td><td>' + match.Rank + '</td></tr>');
 
     res.write('<tr><th colspan="2">Device Properties</th>' +
               '<td rowspan="' + (properties.length + 1) +
               '">' + propertiesHyperLink + '</td></tr>');
     properties.forEach(function(property) {
-        var values = match.getValues(property);
-        if (values.size() !== 0) {
+        var values = match[property];
+        if (values !== undefined) {
         res.write('<tr><td><a target="_blank" href="https://51degrees.com'+
                   '/resources/property-dictionary#' + property +
                   '" title="Read About ' + property + '">' +
                   property + '</a></td><td>')
-        for (var i = 0; i < values.size(); i++) {
-            res.write(values.get(i));
-        }
+        res.write(values);
         res.write('</td></tr>');
         } else {
             res.write('<tr><td><a target="_blank" href="https://51degrees.com'+
@@ -114,7 +111,7 @@ http.createServer(function (req, res) {
 
     try {
         // Perform a match for a single User-Agent.
-        var match = provider.getMatch(req.headers["user-agent"]);
+        var match = provider.match(req.headers["user-agent"]);
 
         // Output properties from the match.
         outputProperties(res, match, propertiesHyperLinkUA, methodHyperLinkUA);
@@ -124,7 +121,7 @@ http.createServer(function (req, res) {
     }
     try {
         // Perform a match for all http headers.
-        var match = provider.getMatchForHttpHeaders(req.headers);
+        var match = provider.match(req.headers);
         
         // Print http relevant http headers.
         res.write('<table>');

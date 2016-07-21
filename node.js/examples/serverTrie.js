@@ -6,7 +6,8 @@ var config ={
 	'HardwareVendor,IsTablet,IsMobile,IsCrawler,ScreenInchesDiagonal,'+
 	'ScreenPixelsWidth',
     "dataFile" : "../../data/51Degrees-LiteV3.2.trie",
-	"UsageSharingEnabled" : 'False'
+	"UsageSharingEnabled" : false,
+    "stronglyTyped" : false
 }
 
 // Set the properties in an array.
@@ -38,15 +39,13 @@ var outputProperties = function (res, match, propertiesHyperLink) {
               '<td rowspan="' + (properties.length + 1) +
               '">' + propertiesHyperLink + '</td></tr>');
     properties.forEach(function(property) {
-        var values = match.getValues(property);
-        if (values.size() !== 0) {
+        var values = match[property];
+        if (values !== undefined) {
         res.write('<tr><td><a target="_blank" href="https://51degrees.com'+
                   '/resources/property-dictionary#' + property +
                   '" title="Read About ' + property + '">' +
                   property + '</a></td><td>')
-        for (var i = 0; i < values.size(); i++) {
-            res.write(values.get(i));
-        }
+        res.write(values);
         res.write('</td></tr>');
         } else {
             res.write('<tr><td><a target="_blank" href="https://51degrees.com'+
@@ -92,7 +91,7 @@ http.createServer(function (req, res) {
 
     try {
         // Perform a match for a single User-Agent.
-        var match = provider.getMatch(req.headers["user-agent"]);
+        var match = provider.match(req.headers["user-agent"]);
 
         // Output properties from the match.
         outputProperties(res, match, propertiesHyperLinkUA);
@@ -102,7 +101,7 @@ http.createServer(function (req, res) {
     }
     try {
         // Perform a match for all http headers.
-        var match = provider.getMatchForHttpHeaders(req.headers);
+        var match = provider.match(req.headers);
         
         // Print http relevant http headers.
         res.write('<table>');

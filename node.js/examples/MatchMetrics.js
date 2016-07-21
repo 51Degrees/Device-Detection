@@ -39,7 +39,7 @@ var provider = new FiftyOneDegreesV3.provider(config);
 </pre></p>
 <li>Produce a match for a single HTTP User-Agent header
 <p><pre class="prettyprint lang-js">
-var match = provider.getMatch(userAgent);
+var match = provider.match(userAgent);
 </pre><p>
 <li>Obtain device Id: consists of four components separated by a hyphen 
 symbol: Hardware-Platform-Browser-IsCrawler where each Component 
@@ -108,19 +108,19 @@ var provider = new FiftyOneDegrees.provider(config);
 
 // Carries out a match with a mobile User-Agent.
 console.log("Mobile User-Agent: " + mobileUserAgent);
-var match = provider.getMatch(mobileUserAgent);
+var match = provider.match(mobileUserAgent);
 outputMetrics(match);
 match.dispose();
 
 // Carries out a match with a desktop User-Agent.
 console.log("Desktop User-Agent: " + desktopUserAgent);
-var match = provider.getMatch(desktopUserAgent);
+var match = provider.match(desktopUserAgent);
 outputMetrics(match);
 match.dispose();
 
 // Carries out a match with a MediaHub User-Agent.
 console.log("Media Hub User-Agent: " + mediaHubUserAgent);
-var match = provider.getMatch(mediaHubUserAgent);
+var match = provider.match(mediaHubUserAgent);
 outputMetrics(match);
 match.dispose();
 // Snippet End
