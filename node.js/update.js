@@ -141,7 +141,7 @@ module.exports = function (provider, FOD) {
             update(provider, function (err) {
                 if (err) {
                     // If failed, output log the error and unset the updating flag.
-                    FOD.log.emit("51info", 'Could not update the data file ' +
+                    FOD.log.emit("info", 'Could not update the data file ' +
                                  'reason: ' + err);
                     updating = false;
                     return false
@@ -150,20 +150,20 @@ module.exports = function (provider, FOD) {
                     // set the new update date, and unset the updating flag.
                     provider.reloadFromFile();
                     dataSetNextUpdateDate = new Date(provider.getDataSetNextUpdateDate());
-                    FOD.log.emit('51info', 'Automatically updated data file ' +
+                    FOD.log.emit('info', 'Automatically updated data file ' +
                                  config.dataFile + ' with version published ' +
                                  'on ' + provider.getDataSetPublishedDate());
                     updating = false;
                 }
             });
         } else {
-            FOD.log.emit('51info', 'Could not update the data file reason: ' +
+            FOD.log.emit('info', 'Could not update the data file reason: ' +
                          'The data file is current and does not need to be ' +
                          'updated');
         }
         //Note, set to 1 second. Change this.
     }, 1000);
     
-    FOD.log.emit('51info', 'Auto updater started. Next update date ' +
+    FOD.log.emit('info', 'Auto updater started. Next update date ' +
                  provider.getDataSetNextUpdateDate());
 }

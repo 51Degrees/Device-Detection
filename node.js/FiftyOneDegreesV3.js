@@ -53,7 +53,7 @@ FiftyOneDegrees.provider = function (configuration) {
             break;
         }
         // Start an event listener for this logging level.
-        FiftyOneDegrees.log.on('51' + logLevels[i], function (err) {
+        FiftyOneDegrees.log.on(logLevels[i], function (err) {
             logError(err);
         })
         if (logLevels[i] === config.logLevel) {
@@ -61,6 +61,14 @@ FiftyOneDegrees.provider = function (configuration) {
             break;
         }
     }
+
+    // Listen for unchecked errors.
+    FiftyOneDegrees.log.on('error', function(err) {
+        if (FiftyOneDegrees.log.listenerCount('error') <= 1) {
+            // An error was thrown without a listener, so log it.
+            console.log(err)
+        }
+    })
 
     // The core 51Degrees library and the provider that will be returned
     // from the call to this function.
@@ -83,14 +91,14 @@ FiftyOneDegrees.provider = function (configuration) {
     }
     else {
         // The file does not have the correct extension, so return null.
-        FiftyOneDegrees.log.emit('51error', "Error: Invalid data file extension " +
+        FiftyOneDegrees.log.emit('error', "Error: Invalid data file extension " +
             config.dataFile);
         return null;
     }
 
     // Initialise the Provider. Account for all variations here as the node SWIG interface
     // treats undefined as a value.
-    FiftyOneDegrees.log.emit('51info', 'Creating provider from data file ' + config.dataFile);
+    FiftyOneDegrees.log.emit('info', 'Creating provider from data file ' + config.dataFile);
     try {
         if (config.properties) {
             if (config.cacheSize && config.poolSize) {
@@ -111,12 +119,12 @@ FiftyOneDegrees.provider = function (configuration) {
     }
     catch (err) {
         // Initialisation of the provider failed, so return null.
-        FiftyOneDegrees.log.emit('51error', err);
+        FiftyOneDegrees.log.emit('error', err);
         return null;
     }
 
     // The provider has been successfully created, so say so.
-    FiftyOneDegrees.log.emit('51info', 'Created provider from data file ' + config.dataFile);
+    FiftyOneDegrees.log.emit('info', 'Created provider from data file ' + config.dataFile);
 
     // Get the important headers from the data set, this is used when matching
     // with HTTP headers accounting the case of the header names.
@@ -258,7 +266,7 @@ FiftyOneDegrees.provider = function (configuration) {
     // Store the importand headers for use by the getMatchForHttpHeaders
     // function.
     var importantHeaders = returnedProvider.getHttpHeadersLower();
-    FiftyOneDegrees.log.emit('51debug', 'Set the important headers')
+    FiftyOneDegrees.log.emit('debug', 'Set the important headers')
 
     // Expose the config for extrernal use.
     returnedProvider.config = config;
@@ -321,17 +329,17 @@ FiftyOneDegrees.provider = function (configuration) {
     for (var i = 0; i < nativeAvailableProperties.size(); i++) {
         returnedProvider.availableProperties[i] = nativeAvailableProperties.get(i);
     }
-    FiftyOneDegrees.log.emit('51debug', 'Got the availbale properties')
+    FiftyOneDegrees.log.emit('debug', 'Got the availbale properties')
 
     // Start the auto update process in the background.
     if (config.Licence) {
-        FiftyOneDegrees.log.emit('51info', 'Starting auto updater');
+        FiftyOneDegrees.log.emit('info', 'Starting auto updater');
         require(__dirname + "/update")(returnedProvider, FiftyOneDegrees);
     }
 
     // Start the share usage process.
     if (config.UsageSharingEnabled !== false) {
-        FiftyOneDegrees.log.emit('51info', 'Starting usage sharer');
+        FiftyOneDegrees.log.emit('info', 'Starting usage sharer');
         shareUsage = require(__dirname + "/shareUsage")(returnedProvider, FiftyOneDegrees);
     }
 

@@ -49,7 +49,7 @@ var isLocal = function(address) {
 
 // Sends all the data in the queue.
 var sendData = function(outputStream) {
-    log.emit('51debug', 'Sending usage data to ' + requestOptions.host);
+    log.emit('debug', 'Sending usage data to ' + requestOptions.host);
     var request = http.request(requestOptions, function(response) {
         switch (response.statusCode) {
             case 200:// OK
@@ -57,11 +57,11 @@ var sendData = function(outputStream) {
                 break;
             case 408:// Request Timeout
                 // Could be temporary, do nothing.
-                log.emit('51debug', "Response code is 408 : " + response.statusMessage);
+                log.emit('debug', "Response code is 408 : " + response.statusMessage);
                 break;
             default:
                 // Turn off functionality.
-                log.emit('51error', 'Stopping usage sharing as remote ' +
+                log.emit('error', 'Stopping usage sharing as remote ' +
                         'name ' + requestOptions.host + ' returned status ' +
                         'description ' + response.statusMessage);
                 stop = true;
@@ -72,12 +72,12 @@ var sendData = function(outputStream) {
         if (err['code'] === 'ENOTFOUND') {
             // The address was not found, stop sharing.
             stop = true;
-            log.emit('51error', 'Stopping usage sharing as remote name ' + 
+            log.emit('error', 'Stopping usage sharing as remote name ' + 
                      requestOptions+ ' generated ENOTFOUND exception.')
         } else {
             // Some other error occured, stop sharing.
             stop = true;
-            log.emit('51error', 'Stopping usage shareing after ' + err['code'] +
+            log.emit('error', 'Stopping usage shareing after ' + err['code'] +
                      ' exception.');
         }
     })
@@ -104,7 +104,7 @@ var sendData = function(outputStream) {
         request.end();
     });
     
-    log.emit('51debug', 'Usage data sent successfully');
+    log.emit('debug', 'Usage data sent successfully');
 }
 
 // Adds the request to the queue to be processed.
@@ -168,6 +168,6 @@ module.exports = function(provider, FOD) {
     log = FOD.log;
     version = provider.getDataSetFormat();
     product = 'Node js : ' + provider.config.Type;
-    log.emit('51info', 'Usage sharer started')
+    log.emit('info', 'Usage sharer started')
     return shareUsage;
 };
