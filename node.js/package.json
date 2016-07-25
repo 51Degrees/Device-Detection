@@ -5,15 +5,16 @@
     "main": "FiftyOneDegreesV3.js",
     "scripts": {
         "test": "mocha test.js --pattern",
-        "install": "node-gyp rebuild",
-        "build": "node-gyp configure && node-gyp build"
+        "preinstall": "node gitCopy.js",
+        "install": "node-gyp rebuild --msvs_version=2013",
+        "build": "node-gyp configure --msvs_version=2013 && node-gyp build"
     },
     "repository": {
         "type": "git",
         "url": "git@github.com:51Degrees/Device-Detection.git"
     },
     "author": "Ben Shillito <Ben@51Degrees.com>",
-    "license": "MPL2",
+    "license": "MPL-2.0",
     "gypfile": true,
     "bugs": {
         "url": "https://github.com/51Degrees/Device-Detection/issues"
