@@ -5,7 +5,7 @@ var config ={
 	"properties" : 'BrowserName,BrowserVendor,BrowserVersion,DeviceType,'+
 	'HardwareVendor,IsTablet,IsMobile,IsCrawler,ScreenInchesDiagonal,'+
 	'ScreenPixelsWidth',
-    "dataFile" : "../../data/51Degrees-LiteV3.2.trie",
+    "dataFile" : "../data/51Degrees-LiteV3.2.trie",
 	"UsageSharingEnabled" : false,
     "stronglyTyped" : false
 }
@@ -97,7 +97,7 @@ http.createServer(function (req, res) {
         outputProperties(res, match, propertiesHyperLinkUA);
     } finally {
         // Dispose of the Match object.
-        match.dispose();
+        match.close();
     }
     try {
         // Perform a match for all http headers.
@@ -124,7 +124,7 @@ http.createServer(function (req, res) {
         outputProperties(res, match, propertiesHyperLinkHeaders);
     } finally {
         // Dispose of the Match object.
-        match.dispose();
+        match.close();
     }
     
     res.write('</div></body></html>');

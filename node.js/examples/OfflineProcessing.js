@@ -26,7 +26,7 @@ shows how to:
 <ol>
 <li>Set the configuration using a json object
 <p><pre class="prettyprint lang-js">
-var config = {"dataFile" : "../../data/51Degrees-LiteV3.2.dat",
+var config = {"dataFile" : "../data/51Degrees-LiteV3.2.dat",
               "properties" : "IsMobile",
               "cacheSize" : 10000,
               "poolSize" : 4
@@ -64,7 +64,7 @@ rl.on('line', function (userAgent) {
             outStream.write("|" + match[property]);
         })
         outStream.write("\n");
-        match.dispose();
+        match.close();
     }
     i++;
 });
@@ -83,7 +83,7 @@ var fs = require("fs"),
     readline = require("readline");
 
 // Set the config.
-var config = {"dataFile" : "../../data/51Degrees-LiteV3.2.dat",
+var config = {"dataFile" : "../data/51Degrees-LiteV3.2.dat",
               "properties" : "IsMobile,PlatformName,PlatformVersion",
               "cacheSize" : 10000,
               "poolSize" : 4,
@@ -119,7 +119,7 @@ var outputOfflineProcessing = function() {
                 outStream.write("|" + match[property]);
             })
             outStream.write("\n");
-            match.dispose();
+            match.close();
         }
         i++;
     });

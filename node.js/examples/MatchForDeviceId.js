@@ -26,7 +26,7 @@ shows how to:
 <ol>
 <li>Set the configuration using a json object
 <p><pre class="prettyprint lang-js">
-var config = {"dataFile" : "../../data/51Degrees-LiteV3.2.dat",
+var config = {"dataFile" : "../data/51Degrees-LiteV3.2.dat",
               "properties" : "IsMobile",
               "cacheSize" : 10000,
               "poolSize" : 4
@@ -56,7 +56,7 @@ to the data file is relative.
 var FiftyOneDegrees = require("../FiftyOneDegreesV3");
 
 // Set the config.
-var config = {"dataFile" : "../../data/51Degrees-LiteV3.2.dat",
+var config = {"dataFile" : "../data/51Degrees-LiteV3.2.dat",
               "properties" : "IsMobile",
               "cacheSize" : 10000,
               "poolSize" : 4,
@@ -80,7 +80,7 @@ var getDeviceId = function(userAgent) {
         var deviceId = match.getDeviceId();
     }
     finally {
-        match.dispose();
+        match.close();
         return deviceId;
     }
 }
@@ -103,16 +103,16 @@ var mediaHubDeviceId = getDeviceId(mediaHubUserAgent);
 console.log("\nMobileDeviceId : " + mobileDeviceId);
 var match = provider.getMatchForDeviceId(mobileDeviceId);
 console.log("   IsMobile: " + match["IsMobile"]);
-match.dispose();
+match.close();
 
 // Carries out a match for a desktop device id.
 console.log("\nDesktopDeviceId : " + desktopDeviceId);
 var match = provider.getMatchForDeviceId(desktopDeviceId);
 console.log("   IsMobile: " + match["IsMobile"]);
-match.dispose();
+match.close();
 
 // Carries out a match for a MediaHub device id.
 console.log("\nMediaHubDeviceId : " + mediaHubDeviceId);
 var match = provider.getMatchForDeviceId(mediaHubDeviceId);
 console.log("   IsMobile: " + match["IsMobile"]);
-match.dispose();
+match.close();

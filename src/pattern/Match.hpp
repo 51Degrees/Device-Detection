@@ -65,7 +65,7 @@ public:
 	string getUserAgent();
 
     // Manual dispose method for node.
-    void dispose();
+    void close();
 
 protected:
 

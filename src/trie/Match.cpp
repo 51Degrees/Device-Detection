@@ -185,6 +185,6 @@ int Match::getMethod() {
 /**
  * Manual dispose method for node.
  */
-void Match::dispose() {
+void Match::close() {
     fiftyoneDegreesFreeDeviceOffsets(offsets);
 }

@@ -295,19 +295,19 @@ FiftyOneDegrees.provider = function (configuration) {
                 
         req.on('end', function() {
             if (this.device) {
-                this.device.dispose()
+                this.device.close()
                 this.device = false
             }
         })
         req.on('abort', function() {
             if (this.device) {
-                this.device.dispose()
+                this.device.close()
                 this.device = false
             }
         })
         req.on('aborted', function() {
             if (this.device) {
-                this.device.dispose()
+                this.device.close()
                 this.device = false
             }
         })

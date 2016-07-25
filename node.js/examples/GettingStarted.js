@@ -26,7 +26,7 @@ shows how to:
 <ol>
 <li>Set the configuration using a json object
 <p><pre class="prettyprint lang-js">
-var config = {"dataFile" : "../../data/51Degrees-LiteV3.2.dat",
+var config = {"dataFile" : "../data/51Degrees-LiteV3.2.dat",
               "properties" : "IsMobile",
               "cacheSize" : 10000,
               "poolSize" : 4
@@ -56,7 +56,7 @@ to the data file is relative.
 var FiftyOneDegrees = require("../FiftyOneDegreesV3");
 
 // Set the config.
-var config = {"dataFile" : "../../data/51Degrees-LiteV3.2.dat",
+var config = {"dataFile" : "../data/51Degrees-LiteV3.2.dat",
               "properties" : "IsMobile",
               "cacheSize" : 10000,
               "poolSize" : 4,
@@ -87,17 +87,17 @@ var provider = new FiftyOneDegrees.provider(config);
 console.log("\nMobile User-Agent: " + mobileUserAgent);
 var match = provider.match(mobileUserAgent);
 console.log("   IsMobile: " + match.IsMobile);
-match.dispose();
+match.close();
 
 // Carries out a match with a desktop User-Agent.
 console.log("\nDesktop User-Agent: " + desktopUserAgent);
 var match = provider.match(desktopUserAgent);
 console.log("   IsMobile: " + match.IsMobile);
-match.dispose();
+match.close();
 
 // Carries out a match with a MediaHub User-Agent.
 console.log("\nMediaHub User-Agent: " + mediaHubUserAgent);
 var match = provider.match(mediaHubUserAgent);
 console.log("   IsMobile: " + match.IsMobile);
-match.dispose();
+match.close();
 // Snippet End
