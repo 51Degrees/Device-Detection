@@ -3564,7 +3564,7 @@ fail:
 }
 
 
-static SwigV8ReturnValue _wrap_Match_dispose(const SwigV8Arguments &args) {
+static SwigV8ReturnValue _wrap_Match_close(const SwigV8Arguments &args) {
   SWIGV8_HANDLESCOPE();
   
   v8::Handle<v8::Value> jsresult;
@@ -3572,16 +3572,16 @@ static SwigV8ReturnValue _wrap_Match_dispose(const SwigV8Arguments &args) {
   void *argp1 = 0 ;
   int res1 = 0 ;
   
-  if(args.Length() != 0) SWIG_exception_fail(SWIG_ERROR, "Illegal number of arguments for _wrap_Match_dispose.");
+  if(args.Length() != 0) SWIG_exception_fail(SWIG_ERROR, "Illegal number of arguments for _wrap_Match_close.");
   
   res1 = SWIG_ConvertPtr(args.Holder(), &argp1,SWIGTYPE_p_Match, 0 |  0 );
   if (!SWIG_IsOK(res1)) {
-    SWIG_exception_fail(SWIG_ArgError(res1), "in method '" "Match_dispose" "', argument " "1"" of type '" "Match *""'"); 
+    SWIG_exception_fail(SWIG_ArgError(res1), "in method '" "Match_close" "', argument " "1"" of type '" "Match *""'"); 
   }
   arg1 = (Match *)(argp1);
   {
     try {
-      (arg1)->dispose();;
+      (arg1)->close();;
     }
     catch(runtime_error& e) {
       SWIG_exception(SWIG_RuntimeError, e.what());
@@ -4975,7 +4975,7 @@ SWIGV8_AddMemberFunction(_exports_Match_class, "getRank", _wrap_Match_getRank);
 SWIGV8_AddMemberFunction(_exports_Match_class, "getDifference", _wrap_Match_getDifference);
 SWIGV8_AddMemberFunction(_exports_Match_class, "getMethod", _wrap_Match_getMethod);
 SWIGV8_AddMemberFunction(_exports_Match_class, "getUserAgent", _wrap_Match_getUserAgent);
-SWIGV8_AddMemberFunction(_exports_Match_class, "dispose", _wrap_Match_dispose);
+SWIGV8_AddMemberFunction(_exports_Match_class, "close", _wrap_Match_close);
 SWIGV8_AddMemberFunction(_exports_Provider_class, "getHttpHeaders", _wrap_Provider_getHttpHeaders);
 SWIGV8_AddMemberFunction(_exports_Provider_class, "getAvailableProperties", _wrap_Provider_getAvailableProperties);
 SWIGV8_AddMemberFunction(_exports_Provider_class, "getDataSetName", _wrap_Provider_getDataSetName);

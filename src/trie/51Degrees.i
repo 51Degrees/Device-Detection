@@ -152,7 +152,7 @@ class Match {
     
     // Manual dispose method for node.
 #ifdef BUILDING_NODE_EXTENSION
-    void dispose();
+    void close();
 #endif
 };
 

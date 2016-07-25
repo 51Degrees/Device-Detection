@@ -30,7 +30,7 @@ var mediaHubUserAgent = "Mozilla/5.0 (Linux; Android 4.4.2; X7 Quad Core Build/K
 if (process.argv[3] === "--pattern") {
     var pattern = true;
     var config = {
-        "dataFile": "../data/51Degrees-LiteV3.2.dat",
+        "dataFile": "./data/51Degrees-LiteV3.2.dat",
         "properties": "IsMobile,BrowserName",
         "cacheSize": 10000,
         "poolSize": 4,
@@ -41,7 +41,7 @@ if (process.argv[3] === "--pattern") {
 }
 else if (process.argv[3] === "--trie") {
     var config = {
-        "dataFile": "../data/51Degrees-LiteV3.2.trie",
+        "dataFile": "./data/51Degrees-LiteV3.2.trie",
         "properties": "IsMobile,BrowserName",
         "logLevel": "none",
         "UsageSharingEnabled": false
@@ -69,7 +69,7 @@ describe("API", function () {
             assert.equal("True", this.match.getValue("IsMobile"), "IsMobile property was " + this.match.getValue("IsMobile"));
         })
         after(function () {
-            this.match.dispose();
+            this.match.close();
         })
     })
 
@@ -84,7 +84,7 @@ describe("API", function () {
             assert.equal("False", this.match.getValue("IsMobile"), "IsMobile property was " + this.match.getValue("IsMobile"));
         })
         after(function () {
-            this.match.dispose();
+            this.match.close();
         })
     })
 
@@ -99,7 +99,7 @@ describe("API", function () {
             assert.equal("False", this.match.getValue("IsMobile"), "IsMobile property was " + this.match.getValue("IsMobile"));
         })
         after(function () {
-            this.match.dispose();
+            this.match.close();
         })
     })
 
@@ -111,7 +111,7 @@ describe("API", function () {
                 provider.availableProperties.forEach(function (property) {
                     assert.equal(true, match.getValue(property).length > 0, "Value of " + property + " returned was empty");
                 });
-                match.dispose();
+                match.close();
             })
         })
     })
@@ -122,7 +122,7 @@ describe("API", function () {
                 var match = provider.getMatch(userAgent);
                 assert.equal(true, match !== undefined, "Match object was undefined for User-Agent:" + userAgent);
                 assert.equal(true, match.getValue("notaproperty").length === 0, "Match returned " + match.getValue("notaproperty") + " for nonexistant property");
-                match.dispose();
+                match.close();
             })
         })
     })
@@ -139,8 +139,8 @@ describe("API", function () {
                     provider.availableProperties.forEach(function (property) {
                         assert.equal(match.getValue(property), deviceMatch.getValue(property), "Match from matched device id did not match the original match for UserAgent " + userAgent);
                     })
-                    deviceMatch.dispose();
-                    match.dispose();
+                    deviceMatch.close();
+                    match.close();
                 })
             })
         })
@@ -152,7 +152,7 @@ describe("API", function () {
                     var match = provider.getMatchForDeviceId(profiles.getProfileId(i).toString());
                     assert.equal(true, match !== undefined, "Match object was undefined for profile id:" + profiles.getProfileId(i));
                     assert.equal("True", match.getValue("IsMobile"), "Profile with profile id " + profiles.getProfileId(i) + " is not a mobile profile");
-                    match.dispose();
+                    match.close();
                 }
             })
         })
@@ -164,7 +164,7 @@ describe("API", function () {
                     var match = provider.getMatchForDeviceId(profiles.getProfileId(i).toString());
                     assert.equal(true, match !== undefined, "Match object was undefined for profile id:" + profiles.getProfileId(i));
                     assert.equal("False", match.getValue("IsMobile"), "Profile with profile id " + profiles.getProfileId(i) + " is a mobile profile");
-                    match.dispose();
+                    match.close();
                 }
             })
         })
@@ -179,12 +179,12 @@ describe("Helper Methods", function() {
         it("Should return User-Agent matches correctly", function() {
             match = provider.match(mobileUserAgent);
             assert.equal(true, match.IsMobile)
-            match.dispose()
+            match.close()
         })
         it("Should return HTTP header matches correctly", function() {
             match = provider.match(headers);
             assert.equal(true, match.IsMobile);
-            match.dispose();
+            match.close();
         })
         req = {"headers":headers}
         it("Should return request matches correctly", function() {
@@ -195,15 +195,15 @@ describe("Helper Methods", function() {
             }
             provider.match(req);
             assert.equal(true, req.device.IsMobile);
-            req.device.dispose();
+            req.device.close();
         })
-        it("Should dispose of request matches automatically", function () {
-            var disposed = false;
-            req.device.dispose = function() {
-                disposed = true;
+        it("Should close of request matches automatically", function () {
+            var closed = false;
+            req.device.close = function() {
+                closed = true;
             }
             req.end();
-            assert.equal(true, disposed);
+            assert.equal(true, closed);
         })
     })
     
@@ -221,7 +221,7 @@ describe("Helper Methods", function() {
                 for (var i = 0; i < profiles.count; i++) {
                     var match = profiles.getMatch(i);
                     assert.equal(true, match.IsMobile);
-                    match.dispose();
+                    match.close();
                 }
             })
             it("Should return undefined for an out of range profile", function() {
@@ -231,7 +231,7 @@ describe("Helper Methods", function() {
             it("Should return undefined for a property from a different component", function() {
                 var match = profiles.getMatch(0);
                 assert.equal(true, match.BrowserName === undefined)
-                match.dispose();
+                match.close();
             })
         })
     }
@@ -256,7 +256,7 @@ describe("Performance", function () {
         userAgents.forEach(function (userAgent) {
             var match = provider.getMatch(userAgent);
             assert.equal(true, match !== undefined, "Match object was undefined for User-Agent:" + userAgent);
-            match.dispose();
+            match.close();
         })
     }
 
@@ -297,7 +297,7 @@ describe("Performance", function () {
                 for (var i = 0; i < config.cacheSize && i < userAgents.length; i++) {
                     var match = provider.getMatch(userAgents[i].toString());
                     assert.equal(true, match !== undefined, "Match object was undefined for User-Agent:" + userAgent);
-                    match.dispose();
+                    match.close();
                 }
                 var end = new Date();
                 var timeTaken = end - start;
@@ -307,7 +307,7 @@ describe("Performance", function () {
                 for (var i = 0; i < config.cacheSize && i < userAgents.length; i++) {
                     var match = provider.getMatch(userAgents[i].toString());
                     assert.equal(true, match !== undefined, "Match object was undefined for User-Agent:" + userAgent);
-                    match.dispose();
+                    match.close();
                 }
                 var end = new Date();
                 var timeTakenCache = end - start;
