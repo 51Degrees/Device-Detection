@@ -1,0 +1,4 @@
+on build => sub {
+    requires 'ExtUtils::MakeMaker' => '0';
+    requires 'ExtUtils::CChecker' => '0';
+};

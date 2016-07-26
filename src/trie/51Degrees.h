@@ -33,7 +33,17 @@
 #define FIFTYONEDEGREES_H_TRIE_INCLUDED
 #endif
 
+/**
+ * See stdint.h:
+ *  "The ISO C99 standard specifies that in C++ implementations these
+ *  macros should only be defined if explicitly requested."
+*/
+#ifdef __cplusplus
+#define __STDC_LIMIT_MACROS 1
+#undef _STDINT_H
+#endif
 #include <stdint.h>
+
 #ifndef FIFTYONEDEGREES_NO_THREADING
 #include "../threading.h"
 #endif

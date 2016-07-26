@@ -8,6 +8,7 @@ million.csv
 *.o
 *.layout
 offlineProcessingOutput.csv
+Makefile.old
 
 # NuGet Packages
 *.nupkg
