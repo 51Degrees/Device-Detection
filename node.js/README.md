@@ -10,7 +10,7 @@ In Node, use like...
 ```js
 var FiftyOneDegrees = require('FiftyOneDegreesV3');
 var provider = new FiftyOneDegrees.provider('/path/to/config/file');
-var match = provider.match(userAgent;
+var match = provider.getMatch(userAgent;
 console.log(match['IsMobile']);
 console.log(match['DeviceType']);
 match.close();
@@ -105,7 +105,7 @@ To check everything is set up , try fetching a match by opening a node console, 
 > var config = {'dataFile' : 'data/51Degrees-LiteV3.2.dat',
                 'properties' : 'BrowserName,ScreenPixelsWidth'};
 > var provider = FiftyOneDegrees.provider(config);
-> var device = provider.match("Mozilla/5.0 (iPad; CPU OS 5_1 like Mac OS X) AppleWebKit/534.46 (KHTML, like Gecko) Mobile/9B176")
+> var device = provider.getMatch("Mozilla/5.0 (iPad; CPU OS 5_1 like Mac OS X) AppleWebKit/534.46 (KHTML, like Gecko) Mobile/9B176")
 
 > device.Id
 '15767-18117-17776-18092'

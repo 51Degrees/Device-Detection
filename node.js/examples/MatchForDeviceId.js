@@ -76,7 +76,7 @@ var mediaHubUserAgent = "Mozilla/5.0 (Linux; Android 4.4.2; X7 Quad Core Build/K
 // Gets a match for the supplied User-Agent and returns the device id.
 var getDeviceId = function(userAgent) {
     try {
-        var match = provider.match(userAgent);
+        var match = provider.getMatch(userAgent);
         var deviceId = match.getDeviceId();
     }
     finally {

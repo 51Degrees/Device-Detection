@@ -40,7 +40,7 @@ var provider = new FiftyOneDegreesV3.provider(config);
 </pre></p>
 <li>Produce a match for a single HTTP User-Agent header
 <p><pre class="prettyprint lang-js">
-var match = provider.match(userAgent);
+var match = provider.getMatch(userAgent);
 </pre><p>
 <li>Extract the value of the IsMobile property as boolean
 <p><pre class="prettyprint lang-js">
@@ -82,7 +82,7 @@ console.log('Unlike other examples, stronglyTyped is set to \'true\' ' +
 console.log('Mobile User-Agent: ' + mobileUserAgent)
 
 // Determines whether the mobile User-Agent is a mobile device.
-var match = provider.match(mobileUserAgent);
+var match = provider.getMatch(mobileUserAgent);
 if (match.IsMobile){
     console.log('   Mobile\n');
 } else {
@@ -93,7 +93,7 @@ match.close();
 console.log('Desktop User-Agent: ' + desktopUserAgent)
 
 // Determines whether the desktop User-Agent is a mobile device.
-var match = provider.match(desktopUserAgent);
+var match = provider.getMatch(desktopUserAgent);
 if (match.IsMobile){
     console.log('   Mobile\n');
 } else {
@@ -104,7 +104,7 @@ match.close();
 console.log('MediaHub User-Agent: ' + mediaHubUserAgent)
 
 // Determines whether the MediaHub User-Agent is a mobile device.
-var match = provider.match(mediaHubUserAgent);
+var match = provider.getMatch(mediaHubUserAgent);
 if (match.IsMobile){
     console.log('   Mobile\n');
 } else {

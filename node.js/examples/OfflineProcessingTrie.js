@@ -59,7 +59,7 @@ the CSV.
 rl.on('line', function (userAgent) {
     if (i < 20) {
         outStream.write(userAgent);
-        var match = provider.match(userAgent);
+        var match = provider.getMatch(userAgent);
         provider.availableProperties.forEach(function(property) {
             outStream.write("|" + match[property]);
         })
@@ -113,7 +113,7 @@ var outputOfflineProcessing = function() {
     rl.on('line', function (userAgent) {
         if (i < 20) {
             outStream.write(userAgent);
-            var match = provider.match(userAgent);
+            var match = provider.getMatch(userAgent);
             provider.availableProperties.forEach(function(property) {
                 outStream.write("|" + match[property]);
             })

@@ -5,9 +5,13 @@ var path = require("path");
 // 51Degrees object to return.
 var FiftyOneDegrees = {};
 
-// The event logger and available logging levels.
-var logError,
-    logLevels = ['none', 'error', 'info', 'debug'];
+// Create the logger.
+FiftyOneDegrees.log = new eventEmitter();
+
+// Listen for unchecked errors.
+FiftyOneDegrees.log.on('error', function (err) {
+    //todo prople should listen to for errors
+})
 
 // Return the Provider object initialised with the supplied config file.
 FiftyOneDegrees.provider = function (configuration) {
@@ -23,57 +27,15 @@ FiftyOneDegrees.provider = function (configuration) {
         var config = configuration;
     }
 
-    // Create the logger.
-    FiftyOneDegrees.log = new eventEmitter();
-
-    // Set the log formatting function.
-    if (config.logFile) {
-        // A log file has been specified, so log to this.
-        logError = function (err) {
-            fs.appendFile(config.logFile, new Date() + ' ' + err + '\n');
-        }
-    }
-    else {
-        // No log file has been specified, so log to the console.
-        logError = function (err) {
-            console.log(new Date() + ' ' + err);
-        }
-    }
-
-    // The logging level has not been defined or is not a valid logging
-    // level, so set the default.
-    if (logLevels.indexOf(config.logLevel) === -1) {
-        config.logLevel = 'info';
-    }
-
-    // Set the logging level.
-    for (var i = 0; i < logLevels.length; i++) {
-        if (config.logLevel === logLevels[0]) {
-            // Log level is none, so don't set anything.
-            break;
-        }
-        // Start an event listener for this logging level.
-        FiftyOneDegrees.log.on(logLevels[i], function (err) {
-            logError(err);
-        })
-        if (logLevels[i] === config.logLevel) {
-            // Do not log any deeper than this.
-            break;
-        }
-    }
-
-    // Listen for unchecked errors.
-    FiftyOneDegrees.log.on('error', function(err) {
-        if (FiftyOneDegrees.log.listenerCount('error') <= 1) {
-            // An error was thrown without a listener, so log it.
-            console.log(err)
-        }
-    })
-
     // The core 51Degrees library and the provider that will be returned
     // from the call to this function.
     var FODcore,
         returnedProvider;
+
+    // Set the default data file if not supplied.
+    if (!config.dataFile) {
+        config.dataFile = __dirname + '/data/51Degrees-LiteV3.2.dat';
+    }
 
     // Load the correct 51Degrees node library by looking at the data
     // file extension.
@@ -91,36 +53,27 @@ FiftyOneDegrees.provider = function (configuration) {
     }
     else {
         // The file does not have the correct extension, so return null.
-        FiftyOneDegrees.log.emit('error', "Error: Invalid data file extension " +
-            config.dataFile);
-        return null;
+        throw "Error: Invalid data file extension " + config.dataFile;
     }
 
     // Initialise the Provider. Account for all variations here as the node SWIG interface
     // treats undefined as a value.
     FiftyOneDegrees.log.emit('info', 'Creating provider from data file ' + config.dataFile);
-    try {
-        if (config.properties) {
-            if (config.cacheSize && config.poolSize) {
-                returnedProvider = new FODcore.Provider(config.dataFile, config.properties.toString(), config.cacheSize, config.poolSize);
-            }
-            else {
-                returnedProvider = new FODcore.Provider(config.dataFile, config.properties);
-            }
+    if (config.properties) {
+        if (config.cacheSize && config.poolSize) {
+            returnedProvider = new FODcore.Provider(config.dataFile, config.properties.toString(), config.cacheSize, config.poolSize);
         }
         else {
-            if (config.cacheSize && config.poolSize) {
-                returnedProvider = new FODcore.Provider(config.dataFile, config.cacheSize, config.poolSize);
-            }
-            else {
-                returnedProvider = new FODcore.Provider(config.dataFile);
-            }
+            returnedProvider = new FODcore.Provider(config.dataFile, config.properties);
         }
     }
-    catch (err) {
-        // Initialisation of the provider failed, so return null.
-        FiftyOneDegrees.log.emit('error', err);
-        return null;
+    else {
+        if (config.cacheSize && config.poolSize) {
+            returnedProvider = new FODcore.Provider(config.dataFile, config.cacheSize, config.poolSize);
+        }
+        else {
+            returnedProvider = new FODcore.Provider(config.dataFile);
+        }
     }
 
     // The provider has been successfully created, so say so.
@@ -136,11 +89,11 @@ FiftyOneDegrees.provider = function (configuration) {
         }
         return importantHeaders;
     }
-    
-    var defineTypedGetter = function(match, property) {
+
+    var defineTypedGetter = function (match, property) {
         // This property has multiple values, so put them in
         // an array.
-        match.__defineGetter__(property, function() {
+        match.__defineGetter__(property, function () {
             var values = this.getValues(property);
             if (values.size() > 1) {
                 var valuesArray = new Array(values.size());
@@ -155,21 +108,24 @@ FiftyOneDegrees.provider = function (configuration) {
                 var value = values.get(0);
                 if (value === "True") {
                     return true;
-                } else if (value === "False") {
+                }
+                else if (value === "False") {
                     return false;
-                } else {
+                }
+                else {
                     return value;
                 }
-            } else {
+            }
+            else {
                 return undefined;
             }
         })
     }
-    
-    var defineNonTypedGetter = function(match, property) {
+
+    var defineNonTypedGetter = function (match, property) {
         // This property has multiple values, so put them in
         // an array.
-        match.__defineGetter__(property, function() {
+        match.__defineGetter__(property, function () {
             var values = this.getValues(property);
             if (values.size() > 1) {
                 var valuesArray = new Array(values.size());
@@ -188,52 +144,55 @@ FiftyOneDegrees.provider = function (configuration) {
             }
         })
     }
-    
-    var setGetters = function(match) {
+
+    var setGetters = function (match) {
         // Define getter functions so properties are accessible
         if (returnedProvider.config.addGetters !== false) {
             if (returnedProvider.config.stronglyTyped !== false) {
                 var defineGetter = defineTypedGetter;
-            } else {
+            }
+            else {
                 var defineGetter = defineNonTypedGetter;
             }
-            returnedProvider.availableProperties.forEach(function(property) {
+            returnedProvider.availableProperties.forEach(function (property) {
                 if (property.indexOf("JavascriptHardwareProfile") !== -1) {
                     // Skip this property as it will break the API.
-                } else {
+                }
+                else {
                     // Define the getter for this property.
                     defineGetter(match, property);
                 }
             })
             if (returnedProvider.config.Type !== 'Trie') {
-                match.__defineGetter__('Id', function() {
+                match.__defineGetter__('Id', function () {
                     return this.getDeviceId();
                 });
-                match.__defineGetter__('Rank', function() {
+                match.__defineGetter__('Rank', function () {
                     return this.getRank();
                 });
-                match.__defineGetter__('Difference', function() {
+                match.__defineGetter__('Difference', function () {
                     return this.getDifference();
                 });
-                match.__defineGetter__('Method', function() {
+                match.__defineGetter__('Method', function () {
                     return this.getMethod();
                 })
             }
-        }        
+        }
     }
-    
+
     if (config.Type !== 'Trie') {
         var findProfiles = returnedProvider.findProfiles;
-        returnedProvider.findProfiles = function(property, value){
-            var profiles = findProfiles.apply(this,arguments);
-            profiles.__defineGetter__('count', function() {
+        returnedProvider.findProfiles = function (property, value) {
+            var profiles = findProfiles.apply(this, arguments);
+            profiles.__defineGetter__('count', function () {
                 return this.getCount();
             })
-            profiles.getMatch = function(index) {
+            profiles.getMatch = function (index) {
                 var id = this.getProfileId(index);
                 if (id >= 0) {
                     return returnedProvider.getMatchForDeviceId(id.toString());
-                } else {
+                }
+                else {
                     return undefined;
                 }
             }
@@ -241,39 +200,7 @@ FiftyOneDegrees.provider = function (configuration) {
         }
     }
 
-    returnedProvider.match = function(input) {
-        if (typeof(input) === "string") {
-            var match = returnedProvider.getMatch(input);
-            setGetters(match)
-            return match;
-        } else if (input.headers) {
-            returnedProvider.getMatchForRequest(input);
-            setGetters(input.device);
-        } else {
-            var match = returnedProvider.getMatchForHttpHeaders(input);
-            setGetters(match);
-            return match;
-        }
-    }
-
-    getMatchForDeviceId = returnedProvider.getMatchForDeviceId;
-    returnedProvider.getMatchForDeviceId = function(deviceId) {
-        var match = getMatchForDeviceId.apply(this, arguments);
-        setGetters(match);
-        return match;
-    }
-    
-    // Store the importand headers for use by the getMatchForHttpHeaders
-    // function.
-    var importantHeaders = returnedProvider.getHttpHeadersLower();
-    FiftyOneDegrees.log.emit('debug', 'Set the important headers')
-
-    // Expose the config for extrernal use.
-    returnedProvider.config = config;
-
-    // Wrapper function to ensure matching with HTTP headers uses the
-    // correct native function.
-    returnedProvider.getMatchForHttpHeaders = function (headers) {
+    var getHeadersMap = function (headers) {
         // Create a new string-string map to use for the match.
         var headersMap = new FODcore.MapStringString();
 
@@ -286,41 +213,78 @@ FiftyOneDegrees.provider = function (configuration) {
                 }
             })
         })
-
-        // Return the Match object using the important headers.
-        return returnedProvider.getMatch(headersMap);
+        return headersMap;
     }
 
-    // Wrapper function for matching HTML requests.    
-    returnedProvider.getMatchForRequest = function (req) {
-        if (config.UsageSharingEnabled !== false) {
-            // Share usage is enabled, so record the device.
-            shareUsage.recordNewDevice(req);
+    var getMatchOld = returnedProvider.getMatch;
+    returnedProvider.getMatch = function () {
+        var match;
+        if (arguments && arguments[0]) {
+            if (typeof (arguments[0]) === 'string') {
+                match = getMatchOld.apply(this, arguments);
+            }
+            else if (arguments[0].headers) {
+                var req = arguments[0];
+                if (config.UsageSharingEnabled !== false) {
+                    // Share usage is enabled, so record the device.
+                    shareUsage.recordNewDevice(req);
+                }
+
+                // Get a Match object using the headers from the supplied request.
+                if (req.device) {
+                    req.device.close();
+                }
+
+                var headersMap = getHeadersMap(req.headers);
+
+                req.device = getMatchOld.apply(this, [headersMap]);
+
+                req.on('end', function () {
+                    if (this.device) {
+                        this.device.close()
+                        delete this.device;
+                    }
+                })
+                req.on('abort', function () {
+                    if (this.device) {
+                        this.device.close()
+                        delete this.device;
+                    }
+                })
+                req.on('aborted', function () {
+                    if (this.device) {
+                        this.device.close()
+                        delete this.device;
+                    }
+                })
+                match = req.device;
+            }
+            else {
+                var headers = arguments[0];
+                var headersMap = getHeadersMap(headers);
+                match = getMatchOld.apply(this, [headersMap]);
+            }
         }
-
-        // Get a Match object using the headers from the supplied request.
-        req.device =  returnedProvider.getMatchForHttpHeaders(req.headers);
-                
-        req.on('end', function() {
-            if (this.device) {
-                this.device.close()
-                this.device = false
-            }
-        })
-        req.on('abort', function() {
-            if (this.device) {
-                this.device.close()
-                this.device = false
-            }
-        })
-        req.on('aborted', function() {
-            if (this.device) {
-                this.device.close()
-                this.device = false
-            }
-        })
-        return;
+        if (match) {
+            setGetters(match);
+        }
+        return match;
     }
+
+    getMatchForDeviceId = returnedProvider.getMatchForDeviceId;
+    returnedProvider.getMatchForDeviceId = function (deviceId) {
+        var match = getMatchForDeviceId.apply(this, arguments);
+        setGetters(match);
+        return match;
+    }
+
+    // Store the importand headers for use by the getMatchForHttpHeaders
+    // function.
+    var importantHeaders = returnedProvider.getHttpHeadersLower();
+    FiftyOneDegrees.log.emit('debug', 'Set the important headers')
+
+    // Expose the config for extrernal use.
+    returnedProvider.config = config;
 
     // Copy the available propeties to a node array to be more easily
     // available outside the module.
@@ -344,7 +308,7 @@ FiftyOneDegrees.provider = function (configuration) {
     }
 
     // Return the provider object just created in this function.
-    return returnedProvider;
+    return returnedProvider
 }
 
 // Export the FiftyOneDegrees object.

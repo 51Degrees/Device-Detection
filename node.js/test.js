@@ -177,12 +177,13 @@ describe("Helper Methods", function() {
         var match;
         var headers = {"user-agent":mobileUserAgent};
         it("Should return User-Agent matches correctly", function() {
-            match = provider.match(mobileUserAgent);
+            match = provider.getMatch(mobileUserAgent);
+            console.log(match)
             assert.equal(true, match.IsMobile)
             match.close()
         })
         it("Should return HTTP header matches correctly", function() {
-            match = provider.match(headers);
+            match = provider.getMatch(headers);
             assert.equal(true, match.IsMobile);
             match.close();
         })
@@ -193,7 +194,7 @@ describe("Helper Methods", function() {
                     req.end = func;
                 }
             }
-            provider.match(req);
+            provider.getMatch(req);
             assert.equal(true, req.device.IsMobile);
             req.device.close();
         })
@@ -209,7 +210,7 @@ describe("Helper Methods", function() {
     
     describe("Property Getters", function() {
         it("Should set propery getters to boolean", function() {
-            var match = provider.match(mobileUserAgent);
+            var match = provider.getMatch(mobileUserAgent);
             assert.equal(true,typeof(match.IsMobile) === 'boolean');
         })
     })

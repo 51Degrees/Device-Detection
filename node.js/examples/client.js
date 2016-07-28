@@ -21,7 +21,7 @@ provider.config.nodeify = true;
 
 var server = http.createServer(function (req, res) {
     // Get a match.
-    provider.match(req);
+    provider.getMatch(req);
 
     // Print the type of device.
     if (req.device.IsMobile) {

@@ -111,7 +111,7 @@ http.createServer(function (req, res) {
 
     try {
         // Perform a match for a single User-Agent.
-        var match = provider.match(req.headers["user-agent"]);
+        var match = provider.getMatch(req.headers["user-agent"]);
 
         // Output properties from the match.
         outputProperties(res, match, propertiesHyperLinkUA, methodHyperLinkUA);
@@ -121,7 +121,7 @@ http.createServer(function (req, res) {
     }
     try {
         // Perform a match for all http headers.
-        var match = provider.match(req.headers);
+        var match = provider.getMatch(req.headers);
         
         // Print http relevant http headers.
         res.write('<table>');

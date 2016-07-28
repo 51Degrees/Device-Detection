@@ -6,8 +6,7 @@
     "scripts": {
         "test": "mocha test.js --pattern",
         "preinstall": "node gitCopy.js",
-        "install": "node-gyp rebuild --msvs_version=2013",
-        "build": "node-gyp configure --msvs_version=2013 && node-gyp build"
+        "install": "node-gyp configure && node-gyp build"
     },
     "repository": {
         "type": "git",
@@ -22,8 +21,5 @@
     "homepage": "https://github.com/51Degrees/Device-Detection",
     "dependencies": {
         "xmlbuilder" : "^8.2.2"
-    },
-    "devDependencies": {
-        "mocha" : "^2.5.3"
     }
 }

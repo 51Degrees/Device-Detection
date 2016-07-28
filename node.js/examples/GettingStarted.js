@@ -39,7 +39,7 @@ var provider = new FiftyOneDegreesV3.provider(config);
 </pre></p>
 <li>Produce a match for a single HTTP User-Agent header
 <p><pre class="prettyprint lang-js">
-var match = provider.match(userAgent);
+var match = provider.getMatch(userAgent);
 </pre><p>
 <li>Extract the value of the IsMobile property
 <p><pre class="prettyprint lang-js">
@@ -56,11 +56,10 @@ to the data file is relative.
 var FiftyOneDegrees = require("../FiftyOneDegreesV3");
 
 // Set the config.
-var config = {"dataFile" : "../data/51Degrees-LiteV3.2.dat",
+var config = {"dataFile" : "undefined.dat",
               "properties" : "IsMobile",
               "cacheSize" : 10000,
               "poolSize" : 4,
-              "logLevel" : "none",
               "stronglyTyped": false
              };
 
@@ -81,23 +80,33 @@ By default this will use the included Lite data file For more info see:
 <a href="https://51degrees.com/compare-data-options">compare data options
 </a>
 */
+
+FiftyOneDegrees.log.on('error', function (err) {
+    console.log("test",     err)
+})
 var provider = new FiftyOneDegrees.provider(config);
-
-// Carries out a match with a mobile User-Agent.
-console.log("\nMobile User-Agent: " + mobileUserAgent);
-var match = provider.match(mobileUserAgent);
+console.log(provider)
+//// Carries out a match with a mobile User-Agent.
+var headers = {'user-agent' : mobileUserAgent};
+if (provider){
+var match = provider.getMatch(headers);
 console.log("   IsMobile: " + match.IsMobile);
 match.close();
+}
 
-// Carries out a match with a desktop User-Agent.
-console.log("\nDesktop User-Agent: " + desktopUserAgent);
-var match = provider.match(desktopUserAgent);
-console.log("   IsMobile: " + match.IsMobile);
-match.close();
 
-// Carries out a match with a MediaHub User-Agent.
-console.log("\nMediaHub User-Agent: " + mediaHubUserAgent);
-var match = provider.match(mediaHubUserAgent);
-console.log("   IsMobile: " + match.IsMobile);
-match.close();
+//
+//// Carries out a match with a desktop User-Agent.
+//console.log("\nDesktop User-Agent: " + desktopUserAgent);
+//var match = provider.getMatch(desktopUserAgent);
+//console.log("   IsMobile: " + match.IsMobile);
+//match.close();
+//
+//// Carries out a match with a MediaHub User-Agent.
+//console.log("\nMediaHub User-Agent: " + mediaHubUserAgent);
+//var match = provider.getMatch(mediaHubUserAgent);
+//console.log("   IsMobile: " + match.IsMobile);
+//match.close();
+//
+//provider.getMatch("kkkkkk")
 // Snippet End
