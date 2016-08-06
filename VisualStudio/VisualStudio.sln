@@ -1,7 +1,7 @@
 ﻿
 Microsoft Visual Studio Solution File, Format Version 12.00
-# Visual Studio 2013
-VisualStudioVersion = 12.0.40629.0
+# Visual Studio 14
+VisualStudioVersion = 14.0.25420.1
 MinimumVisualStudioVersion = 10.0.40219.1
 Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "Console", "Console\Console.vcxproj", "{A15A0ED0-810E-43BA-8113-C037DCBBE798}"
 EndProject
@@ -647,8 +647,5 @@ Global
 		{0E073F36-0544-47C9-B489-32316F73EF2A} = {265E957D-344C-4140-9A1F-EE18B729F462}
 		{D41921B5-5D5C-4C8D-86E9-47BB34DB61AD} = {265E957D-344C-4140-9A1F-EE18B729F462}
 		{DA4D5C59-7449-4121-AA9F-05043D119825} = {265E957D-344C-4140-9A1F-EE18B729F462}
-	EndGlobalSection
-	GlobalSection(Performance) = preSolution
-		HasPerformanceSessions = true
 	EndGlobalSection
 EndGlobal
