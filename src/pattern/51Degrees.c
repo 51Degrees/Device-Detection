@@ -1836,7 +1836,7 @@ static size_t getProviderSizeWithPropertyCount(size_t sizeOfFile, fiftyoneDegree
 size_t fiftyoneDegreesGetProviderSizeWithPropertyString(const char *fileName, const char *properties, int poolSize, int cacheSize)
 {
 	int requiredPropertyCount;
-	size_t sizeOfFile;
+	size_t sizeOfFile, size;
 	FILE *inputFilePtr;
 	fiftyoneDegreesDataSetHeader *header = (fiftyoneDegreesDataSetHeader*)fiftyoneDegreesMalloc(sizeof(fiftyoneDegreesDataSetHeader));
 
@@ -1873,8 +1873,14 @@ size_t fiftyoneDegreesGetProviderSizeWithPropertyString(const char *fileName, co
 	// Add required properties array.
 	sizeOfFile += (SIZE_OF_REQUIRED_PROPERTIES_ARRAY);
 
+	// Get the final size that will be used in memory.
+	size = getProviderSizeWithPropertyCount(sizeOfFile, *header, requiredPropertyCount, poolSize, cacheSize);
+
+	// Free the header that was allocated.
+	fiftyoneDegreesFree(header);
+
 	// Return the total size needed for the provider.
-	return getProviderSizeWithPropertyCount(sizeOfFile, *header, requiredPropertyCount, poolSize, cacheSize);
+	return size;
 }
 
 /**
@@ -1894,7 +1900,7 @@ size_t fiftyoneDegreesGetProviderSizeWithPropertyString(const char *fileName, co
 */
 size_t fiftyoneDegreesGetProviderSizeWithPropertyCount(const char *fileName, int propertyCount, int poolSize, int cacheSize)
 {
-	size_t sizeOfFile;
+	size_t sizeOfFile, size;
 	FILE *inputFilePtr;
 	fiftyoneDegreesDataSetHeader *header = (fiftyoneDegreesDataSetHeader*)fiftyoneDegreesMalloc(sizeof(fiftyoneDegreesDataSetHeader));
 
@@ -1924,8 +1930,14 @@ size_t fiftyoneDegreesGetProviderSizeWithPropertyCount(const char *fileName, int
 	// Add file name.
 	sizeOfFile += (SIZE_OF_FILE_NAME(fileName));
 
+	// Get the final size that will be used in memory.
+	size = getProviderSizeWithPropertyCount(sizeOfFile, *header, propertyCount, poolSize, cacheSize);
+
+	// Free the header that was allocated.
+	fiftyoneDegreesFree(header);
+	
 	// Return the total size needed for the provider.
-	return getProviderSizeWithPropertyCount(sizeOfFile, *header, propertyCount, poolSize, cacheSize);
+	return size;
 }
 
 /**
