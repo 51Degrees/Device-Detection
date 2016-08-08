@@ -77,7 +77,7 @@ namespace FiftyOne.UnitTests.Performance.Enterprise
         [TestCategory("Enterprise"), TestCategory("Pattern"), TestCategory("Performance"), TestCategory("Single"), TestCategory("Bad"), TestCategory("One")]
         public void EnterpriseV32Pattern_Performance_BadUserAgentsSingleOne()
         {
-            BadUserAgentsSingle(9);
+            BadUserAgentsSingle(1);
         }
 
         [TestMethod]

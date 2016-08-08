@@ -66,7 +66,7 @@ namespace FiftyOne.UnitTests.Performance.Lite
         [TestCategory("Lite"), TestCategory("Pattern"), TestCategory("Performance"), TestCategory("Single"), TestCategory("Bad"), TestCategory("All")]
         public void LiteV32Pattern_Performance_BadUserAgentsSingleAll()
         {
-            BadUserAgentsSingle(2);
+            BadUserAgentsSingle(1);
         }
 
         [TestMethod]
