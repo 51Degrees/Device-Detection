@@ -2613,7 +2613,6 @@ static int32_t resultsetCacheTreeCount(fiftyoneDegreesResultset *current) {
 * \endcond
 */
 static void resultsetCacheTreeRotateLeft(fiftyoneDegreesResultset *rs) {
-	const fiftyoneDegreesResultsetCache *cache = rs->cache;
 	fiftyoneDegreesResultset *child = rs->treeRight;
 	rs->treeRight = child->treeLeft;
 
