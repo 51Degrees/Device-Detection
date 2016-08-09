@@ -23,6 +23,7 @@
 #include <vector>
 #include <map>
 #include <stdexcept>
+#include <stdlib.h>
 #include <sstream>
 #include "Match.hpp"
 #include "Profiles.hpp"

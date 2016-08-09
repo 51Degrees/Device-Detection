@@ -133,7 +133,7 @@ Provider::~Provider() {
  * @param poolSize the maximum number of worksets to create for the pool
  */
 void Provider::init(const string &fileName, int cacheSize, int poolSize) {
-	fiftyoneDegreesDataSetInitStatus status = 
+	fiftyoneDegreesDataSetInitStatus status =
 		fiftyoneDegreesInitProviderWithPropertyString(
 			fileName.c_str(),
 			&provider,
@@ -157,9 +157,9 @@ void Provider::init(
 		const string &propertyString,
 		int cacheSize,
 		int poolSize) {
-	fiftyoneDegreesDataSetInitStatus status = 
+	fiftyoneDegreesDataSetInitStatus status =
 		fiftyoneDegreesInitProviderWithPropertyString(
-			fileName.c_str(), 
+			fileName.c_str(),
 			&provider,
 			propertyString.c_str(),
 			poolSize,
@@ -641,9 +641,9 @@ Profiles* Provider::findProfiles(const string &propertyName, const string &value
 }
 
 /**
- * Initiates the data set reload process from the same file location that was 
- * used to create the current dataset. New dataset will be initialised with 
- * exactly the same set of properties, cache size and number of worksets in 
+ * Initiates the data set reload process from the same file location that was
+ * used to create the current dataset. New dataset will be initialised with
+ * exactly the same set of properties, cache size and number of worksets in
  * the workset pool.
  *
  * Function is not thread safe.
@@ -725,6 +725,9 @@ Provider::Provider(
 
 		// If the calculated memory is less than the actual memory then throw
 		// an error.
+		// Note: this will always be a slight overestimate as calculating the
+		// exact number of unique HTTP headers requires reading in the data
+		// file. For this reason the maximum is used.
 		if (difference < 0) {
 			message << "Predicted memory usage is below the actual usage by "
 				<< (0 - difference)
@@ -734,7 +737,7 @@ Provider::Provider(
 	}
 	else {
 		// Validate is false so divert to the standard constructor.
-		Provider::Provider(fileName, propertyString, cacheSize, poolSize);
+		Provider(fileName, propertyString, cacheSize, poolSize);
 	}
 }
 
@@ -775,7 +778,7 @@ int64_t Provider::initWithValidate(
 	// allocation will be counted using the validateMalloc function.
 	init(fileName, propertyString, cacheSize, poolSize);
 
-	// Revert the malloc function so that future calls do not use the 
+	// Revert the malloc function so that future calls do not use the
 	// validateMalloc function.
 	fiftyoneDegreesMalloc = malloc;
 
