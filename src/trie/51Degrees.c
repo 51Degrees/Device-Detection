@@ -346,7 +346,7 @@ static fiftyoneDegreesDataSetInitStatus readDataSetFromMemoryLocation(
 	status = advancePointer(&current, lastByte, *dataSet->httpHeadersSize);
 	if (status != DATA_SET_INIT_STATUS_SUCCESS) return status;
 
-	// Read the properties.r
+	// Read the properties.
 	dataSet->propertiesSize = (int32_t*)current;
 	status = advancePointer(&current, lastByte, sizeof(int32_t));
 	if (status != DATA_SET_INIT_STATUS_SUCCESS) return status;
@@ -968,6 +968,64 @@ size_t getSizeOfFile(const char* fileName) {
 }
 
 /**
+* \cond
+* Get the number of properties in the data set from the file without
+* reading it all into memory. This function is used in the
+* getProviderSizeWithPropertiyString when the property string is empty.
+* @param fileName path to a valid data file.
+* @returns int the number of properties in the data file.
+* \endcond
+*/
+int getPropertyCountFromFile(const char* fileName) {
+	FILE *inputFilePtr;
+	int size;
+
+	// Open the file and hold on to the pointer.
+#ifndef _MSC_FULL_VER
+	inputFilePtr = fopen(fileName, "rb");
+	if (inputFilePtr == NULL) {
+		return -1;
+	}
+#else
+	/* If using Microsoft use the fopen_s method to avoid warning */
+	if (fopen_s(&inputFilePtr, fileName, "rb") != 0) {
+		return -1;
+	}
+#endif
+
+	// Skip over the version.
+	fseek(inputFilePtr, sizeof(uint16_t), SEEK_SET);
+	
+	// Skip over the copyright.
+	if (fread(&size, sizeof(int32_t), 1, inputFilePtr) != 1)
+		return DATA_SET_INIT_STATUS_CORRUPT_DATA;
+	fseek(inputFilePtr, size, SEEK_CUR);
+
+	// Skip over the strings.
+	if (fread(&size, sizeof(int32_t), 1, inputFilePtr) != 1)
+		return DATA_SET_INIT_STATUS_CORRUPT_DATA;
+	fseek(inputFilePtr, size, SEEK_CUR);
+
+	// Skip over the HTTP headers.
+	if (fread(&size, sizeof(int32_t), 1, inputFilePtr) != 1)
+		return DATA_SET_INIT_STATUS_CORRUPT_DATA;
+	fseek(inputFilePtr, size, SEEK_CUR);
+
+	// Read the size of the properties.
+	if (fread(&size, sizeof(int32_t), 1, inputFilePtr) != 1)
+		return DATA_SET_INIT_STATUS_CORRUPT_DATA;
+
+	// Exteact the number of properties from the size.
+	size = size / (int)sizeof(fiftyoneDegreesProperty);
+
+	// Close the file pointer.
+	fclose(inputFilePtr);
+
+	// Return the number of properties in the data file.
+	return size;
+}
+
+/**
  * \cond
  * Get the size the provider will need in memory when initialised with the
  * provided properties. Returns -1 if the file could not be accessed.
@@ -994,7 +1052,12 @@ size_t fiftyoneDegreesGetProviderSizeWithPropertyString(const char* fileName, co
 		size += sizeof(fiftyoneDegreesActiveDataSet);
 
 		// Get property count.
-		requiredPropertyCount = getSeparatorCount(properties);
+		if (properties[0] == '\0') {
+			requiredPropertyCount = getPropertyCountFromFile(fileName);
+		}
+		else {
+			requiredPropertyCount = getSeparatorCount(properties);
+		}
 		size += 2 * sizeof(void*) * requiredPropertyCount;
 
 		// Add the unique HTTP headers.

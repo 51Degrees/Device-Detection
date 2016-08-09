@@ -1868,7 +1868,12 @@ size_t fiftyoneDegreesGetProviderSizeWithPropertyString(const char *fileName, co
 	sizeOfFile += (SIZE_OF_FILE_NAME(fileName));
 
 	// Get property count.
-	requiredPropertyCount = getSeparatorCount(properties);
+	if (properties[0] == '\0') {
+		requiredPropertyCount = header->properties.count;
+	}
+	else {
+		requiredPropertyCount = getSeparatorCount(properties);
+	}
 
 	// Add required properties array.
 	sizeOfFile += (SIZE_OF_REQUIRED_PROPERTIES_ARRAY);
