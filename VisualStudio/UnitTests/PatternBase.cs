@@ -30,5 +30,11 @@ namespace FiftyOne.UnitTests
             Utils.CheckFileExists(DataFile);
             return new PatternWrapper(DataFile, 5000);
         }
+
+        protected override IWrapper CreateWrapper(string properties, bool validate)
+        {
+            Utils.CheckFileExists(DataFile);
+            return new PatternWrapper(DataFile, properties, 5000, validate);
+        }
     }
 }

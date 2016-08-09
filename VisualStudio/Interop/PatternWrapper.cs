@@ -88,6 +88,20 @@ namespace FiftyOne.Mobile.Detection.Provider.Interop
             _provider = new Pattern.Provider(fileName, properties, cacheSize, Environment.ProcessorCount * 4);
             _fileName = fileName;
         }
+
+        /// <summary>
+        /// Construct the wrapper creating a workset for the number of CPUs multiplied by 4.
+        /// Also validates the memory calculation.
+        /// </summary>
+        /// <param name="fileName">Path to the data set file.</param>
+        /// <param name="properties">Comma separated list of properties to include in the results</param>
+        /// <param name="cacheSize">The size of the cache to be used with the wrapper.</param>
+        /// <param name="validate">Set to true to validate the memory calculation.</param>
+        public PatternWrapper(string fileName, string properties, int cacheSize, bool validate)
+        {
+            _provider = new Pattern.Provider(fileName, properties, cacheSize, Environment.ProcessorCount * 4, validate);
+            _fileName = fileName;
+        }
         
         #endregion
 

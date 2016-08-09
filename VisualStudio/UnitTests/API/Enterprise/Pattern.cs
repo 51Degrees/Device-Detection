@@ -113,6 +113,24 @@ namespace UnitTests.API.Premium
             }
         }
 
+        [TestMethod]
+        [TestCategory("API"), TestCategory("Enterprise")]
+        public void EnterprisePatternAPI_ProviderMemory()
+        {
+            string properties = "IsMobile,BrowserName,PlatformName";
+            var provider = CreateWrapper(properties, true);
+            provider.Dispose();
+        }
+
+        [TestMethod]
+        [TestCategory("API"), TestCategory("Enterprise")]
+        public void EnterprisePatternAPI_ProviderMemoryEmptyProperties()
+        {
+            string properties = "";
+            var provider = CreateWrapper(properties, true);
+            provider.Dispose();
+        }
+
         protected override string DataFile
         {
             get { return Constants.ENTERPRISE_PATTERN_V32; }

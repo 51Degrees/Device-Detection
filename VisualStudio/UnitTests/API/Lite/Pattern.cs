@@ -129,6 +129,24 @@ namespace UnitTests.API.Lite
             }
         }
 
+        [TestMethod]
+        [TestCategory("API"), TestCategory("Lite")]
+        public void LitePatternAPI_ProviderMemory()
+        {
+            string properties = "IsMobile,BrowserName,PlatformName";
+            var provider = CreateWrapper(properties, true);
+            provider.Dispose();
+        }
+
+        [TestMethod]
+        [TestCategory("API"), TestCategory("Lite")]
+        public void LitePatternAPI_ProviderMemoryEmptyProperties()
+        {
+            string properties = "";
+            var provider = CreateWrapper(properties, true);
+            provider.Dispose();
+        }
+
         protected override string DataFile
         {
             get { return Constants.LITE_PATTERN_V32; }
