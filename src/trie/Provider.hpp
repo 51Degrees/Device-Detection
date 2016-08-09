@@ -23,6 +23,7 @@
 #include <vector>
 #include <map>
 #include <stdexcept>
+#include <stdlib.h>
 #include <sstream>
 #include "Match.hpp"
 
@@ -83,6 +84,9 @@ class Provider {
 		void reloadFromMemory(const char *source, int length);
 		void reloadFromMemory(const string &source, int length);
 
+		Provider(const string &fileName, const string &propertyString,
+			bool validate);
+
 	protected:
 
 	private:
@@ -104,6 +108,9 @@ class Provider {
 		fiftyoneDegreesDeviceOffsets* matchForHttpHeaders(
 			const map<string, string> *headers);
 		void initMatch(Match *match);
+
+		int64_t initWithValidate(const string &fileName,
+			const string &properties);
 
 		fiftyoneDegreesProvider provider;
 };

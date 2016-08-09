@@ -48,12 +48,17 @@
     </When>
     <Otherwise>
       <ItemGroup>
-        <Reference Include="Microsoft.VisualStudio.QualityTools.UnitTestFramework" />
+        <Reference Include="Microsoft.VisualStudio.QualityTools.UnitTestFramework">
+          <Private>False</Private>
+        </Reference>
       </ItemGroup>
     </Otherwise>
   </Choose>
   <ItemGroup>
+    <Compile Include="API\Enterprise\Trie.cs" />
     <Compile Include="API\Enterprise\Pattern.cs" />
+    <Compile Include="API\Lite\Trie.cs" />
+    <Compile Include="API\Premium\Trie.cs" />
     <Compile Include="API\Premium\Pattern.cs" />
     <Compile Include="Base.cs" />
     <Compile Include="API\Lite\Pattern.cs" />
@@ -65,6 +70,7 @@
     <Compile Include="HttpHeaders\PatternBase.cs" />
     <Compile Include="HttpHeaders\Premium\V32PatternFile.cs" />
     <Compile Include="HttpHeaders\Premium\V32TrieFile.cs" />
+    <Compile Include="TrieBase.cs" />
     <Compile Include="PatternBase.cs" />
     <Compile Include="Common\UserAgentGenerator.cs" />
     <Compile Include="Common\Utils.cs" />

@@ -971,7 +971,7 @@ size_t getSizeOfFile(const char* fileName) {
 * \cond
 * Get the number of properties in the data set from the file without
 * reading it all into memory. This function is used in the
-* getProviderSizeWithPropertiyString when the property string is empty.
+* getProviderSizeWithPropertyString when the property string is empty.
 * @param fileName path to a valid data file.
 * @returns int the number of properties in the data file.
 * \endcond
@@ -1048,6 +1048,7 @@ size_t fiftyoneDegreesGetProviderSizeWithPropertyString(const char* fileName, co
 		size += SIZE_OF_FILE_NAME(fileName);
 
 		// Add the size of the dataset.
+		size += sizeof(fiftyoneDegreesProvider);
 		size += sizeof(fiftyoneDegreesDataSet);
 		size += sizeof(fiftyoneDegreesActiveDataSet);
 
@@ -1056,7 +1057,7 @@ size_t fiftyoneDegreesGetProviderSizeWithPropertyString(const char* fileName, co
 			requiredPropertyCount = getPropertyCountFromFile(fileName);
 		}
 		else {
-			requiredPropertyCount = getSeparatorCount(properties);
+			requiredPropertyCount = (getSeparatorCount(properties) + 1);
 		}
 		size += 2 * sizeof(void*) * requiredPropertyCount;
 

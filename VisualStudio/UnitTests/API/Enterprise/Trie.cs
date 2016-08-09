@@ -28,7 +28,7 @@ using System.Collections.Specialized;
 namespace UnitTests.API.Enterprise
 {
     [TestClass]
-    public class Pattern : PatternBase
+    public class Trie : TrieBase
     {
         [TestInitialize]
         public void Initialise()
@@ -44,7 +44,7 @@ namespace UnitTests.API.Enterprise
 
         [TestMethod]
         [TestCategory("API"), TestCategory("Enterprise")]
-        public void EnterprisePatternAPI_NullUserAgent()
+        public void EnterpriseTrieAPI_NullUserAgent()
         {
             using (var result = _wrapper.Match((string)null))
             {
@@ -54,7 +54,7 @@ namespace UnitTests.API.Enterprise
 
         [TestMethod]
         [TestCategory("API"), TestCategory("Enterprise")]
-        public void EnterprisePatternAPI_EmptyUserAgent()
+        public void EnterpriseTrieAPI_EmptyUserAgent()
         {
             using (var result = _wrapper.Match(String.Empty))
             {
@@ -64,7 +64,7 @@ namespace UnitTests.API.Enterprise
 
         [TestMethod]
         [TestCategory("API"), TestCategory("Enterprise")]
-        public void EnterprisePatternAPI_LongUserAgent()
+        public void EnterpriseTrieAPI_LongUserAgent()
         {
             var userAgent = String.Join(" ", UserAgentGenerator.GetEnumerable(10, 10));
             using (var result = _wrapper.Match(userAgent))
@@ -75,7 +75,7 @@ namespace UnitTests.API.Enterprise
 
         [TestMethod]
         [TestCategory("API"), TestCategory("Enterprise")]
-        public void EnterprisePatternAPI_HttpHeaders()
+        public void EnterpriseTrieAPI_HttpHeaders()
         {
             var headers = new NameValueCollection();
             foreach(var header in _wrapper.HttpHeaders)
@@ -93,29 +93,7 @@ namespace UnitTests.API.Enterprise
 
         [TestMethod]
         [TestCategory("API"), TestCategory("Enterprise")]
-        public void EnterprisePatternAPI_FindProfiles()
-        {
-            string[] properties = new string[3] { "IsTablet", "BrowserName", "HardwareVendor" };
-            string[,] values = new string[3, 2] { { "True", "False" }, { "Firefox", "Chrome" }, { "Samsung", "Dell" } };
-            for (int i = 0; i < 3; i++)
-            {
-                for (int j = 0; j < 2; j++)
-                {
-                    Console.WriteLine("Testing " + properties[i] + " " + values[i, j]);
-                    var profiles = _wrapper.FindProfiles(properties[i], values[i, j]);
-                    for (int k = 0; k < profiles.getCount(); k++)
-                    {
-                        Assert.IsNotNull(profiles.getProfileId(k));
-                        Assert.IsTrue(profiles.getProfileIndex(k) >= 0);
-                        Assert.IsTrue(profiles.getProfileId(k) >= 0);
-                    }
-                }
-            }
-        }
-
-        [TestMethod]
-        [TestCategory("API"), TestCategory("Enterprise")]
-        public void EnterprisePatternAPI_ProviderMemory()
+        public void EnterpriseTrieAPI_ProviderMemory()
         {
             string properties = "IsMobile,BrowserName,PlatformName";
             var provider = CreateWrapper(properties, true);
@@ -124,7 +102,7 @@ namespace UnitTests.API.Enterprise
 
         [TestMethod]
         [TestCategory("API"), TestCategory("Enterprise")]
-        public void EnterprisePatternAPI_ProviderMemoryEmptyProperties()
+        public void EnterpriseTrieAPI_ProviderMemoryEmptyProperties()
         {
             string properties = "";
             var provider = CreateWrapper(properties, true);
@@ -133,7 +111,7 @@ namespace UnitTests.API.Enterprise
 
         protected override string DataFile
         {
-            get { return Constants.ENTERPRISE_PATTERN_V32; }
+            get { return Constants.ENTERPRISE_TRIE_V32; }
         }
     }
 }

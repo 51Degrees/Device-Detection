@@ -22,13 +22,12 @@
 using System;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using FiftyOne.UnitTests;
-using System.Text;
 using System.Collections.Specialized;
 
-namespace UnitTests.API.Enterprise
+namespace UnitTests.API.Lite
 {
     [TestClass]
-    public class Pattern : PatternBase
+    public class Trie : TrieBase
     {
         [TestInitialize]
         public void Initialise()
@@ -43,8 +42,8 @@ namespace UnitTests.API.Enterprise
         }
 
         [TestMethod]
-        [TestCategory("API"), TestCategory("Enterprise")]
-        public void EnterprisePatternAPI_NullUserAgent()
+        [TestCategory("API"), TestCategory("Lite")]
+        public void LiteTrieAPI_NullUserAgent()
         {
             using (var result = _wrapper.Match((string)null))
             {
@@ -53,8 +52,8 @@ namespace UnitTests.API.Enterprise
         }
 
         [TestMethod]
-        [TestCategory("API"), TestCategory("Enterprise")]
-        public void EnterprisePatternAPI_EmptyUserAgent()
+        [TestCategory("API"), TestCategory("Lite")]
+        public void LiteTrieAPI_EmptyUserAgent()
         {
             using (var result = _wrapper.Match(String.Empty))
             {
@@ -63,8 +62,8 @@ namespace UnitTests.API.Enterprise
         }
 
         [TestMethod]
-        [TestCategory("API"), TestCategory("Enterprise")]
-        public void EnterprisePatternAPI_LongUserAgent()
+        [TestCategory("API"), TestCategory("Lite")]
+        public void LiteTrieAPI_LongUserAgent()
         {
             var userAgent = String.Join(" ", UserAgentGenerator.GetEnumerable(10, 10));
             using (var result = _wrapper.Match(userAgent))
@@ -74,17 +73,17 @@ namespace UnitTests.API.Enterprise
         }
 
         [TestMethod]
-        [TestCategory("API"), TestCategory("Enterprise")]
-        public void EnterprisePatternAPI_HttpHeaders()
+        [TestCategory("API"), TestCategory("Lite")]
+        public void LiteTrieAPI_HttpHeaders()
         {
             var headers = new NameValueCollection();
-            foreach(var header in _wrapper.HttpHeaders)
+            foreach (var header in _wrapper.HttpHeaders)
             {
                 headers.Add(header, UserAgentGenerator.GetRandomUserAgent(0));
             }
             using (var result = _wrapper.Match(headers))
             {
-                foreach(var property in _wrapper.AvailableProperties)
+                foreach (var property in _wrapper.AvailableProperties)
                 {
                     Console.WriteLine("{0}: {1}", property, result[property]);
                 }
@@ -92,30 +91,8 @@ namespace UnitTests.API.Enterprise
         }
 
         [TestMethod]
-        [TestCategory("API"), TestCategory("Enterprise")]
-        public void EnterprisePatternAPI_FindProfiles()
-        {
-            string[] properties = new string[3] { "IsTablet", "BrowserName", "HardwareVendor" };
-            string[,] values = new string[3, 2] { { "True", "False" }, { "Firefox", "Chrome" }, { "Samsung", "Dell" } };
-            for (int i = 0; i < 3; i++)
-            {
-                for (int j = 0; j < 2; j++)
-                {
-                    Console.WriteLine("Testing " + properties[i] + " " + values[i, j]);
-                    var profiles = _wrapper.FindProfiles(properties[i], values[i, j]);
-                    for (int k = 0; k < profiles.getCount(); k++)
-                    {
-                        Assert.IsNotNull(profiles.getProfileId(k));
-                        Assert.IsTrue(profiles.getProfileIndex(k) >= 0);
-                        Assert.IsTrue(profiles.getProfileId(k) >= 0);
-                    }
-                }
-            }
-        }
-
-        [TestMethod]
-        [TestCategory("API"), TestCategory("Enterprise")]
-        public void EnterprisePatternAPI_ProviderMemory()
+        [TestCategory("API"), TestCategory("Lite")]
+        public void LiteTrieAPI_ProviderMemory()
         {
             string properties = "IsMobile,BrowserName,PlatformName";
             var provider = CreateWrapper(properties, true);
@@ -123,8 +100,8 @@ namespace UnitTests.API.Enterprise
         }
 
         [TestMethod]
-        [TestCategory("API"), TestCategory("Enterprise")]
-        public void EnterprisePatternAPI_ProviderMemoryEmptyProperties()
+        [TestCategory("API"), TestCategory("Lite")]
+        public void LiteTrieAPI_ProviderMemoryEmptyProperties()
         {
             string properties = "";
             var provider = CreateWrapper(properties, true);
@@ -133,7 +110,7 @@ namespace UnitTests.API.Enterprise
 
         protected override string DataFile
         {
-            get { return Constants.ENTERPRISE_PATTERN_V32; }
+            get { return Constants.LITE_TRIE_V32; }
         }
     }
 }
