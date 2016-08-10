@@ -5,7 +5,8 @@
     "main": "fiftyonedegreescore.js",
     "scripts": {
         "test": "mocha test.js --pattern",
-        "install": "node-gyp configure && node-gyp build"
+        "install": "node-gyp configure && node-gyp build",
+        "postinstall": "node postInstall.js"
     },
     "repository": {
         "type": "git",
