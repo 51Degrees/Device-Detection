@@ -312,7 +312,7 @@ FiftyOneDegrees.provider = function (configuration) {
     FiftyOneDegrees.log.emit('debug', 'Got the availbale properties')
 
     // Start the auto update process in the background.
-    if (config.Licence) {
+    if (config.License) {
         FiftyOneDegrees.log.emit('info', 'Starting auto updater');
         require(__dirname + "/update")(returnedProvider, FiftyOneDegrees);
     }

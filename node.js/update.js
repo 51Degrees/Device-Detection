@@ -6,35 +6,39 @@ var dataSetNextUpdateDate;
 var querystring = require("querystring");
 var updating;
 
-// Regular expression to check for a valid licence key.
-var validLicenceRegEx = new RegExp("^[A-Z\\d]+$");
+// Default the product name to Lite.
+var product = 'Lite';
+
+// Regular expression to check for a valid license key.
+var validLicenseRegEx = new RegExp("^[A-Z\\d]+$");
 
 // Update function called when an update is due.
 var update = function (provider, errorHandler) {
     // Load config and make the querystring parameter and http request options.
     var config = provider.config,
         parameters = {
-            LicenceKeys: config.Licence,
+            LicenseKeys: config.License,
             Type: config.Type,
             Download: 'True',
+            Product: product,
         };
-    
-    // Check the licence key is not empty
-    if (config.Licence.length === 0) {
-        errorHandler('At least one valid licence key is required ' +
+
+    // Check the license key is not empty
+    if (config.License.length === 0) {
+        errorHandler('At least one valid license key is required ' +
                      'to update device data. See https://51degrees.com/' +
-                     'compare-data-options to acquire valid licence keys.');
+                     'compare-data-options to acquire valid license keys.');
         return false;
     }
-    
-    // Check the licence key is a valid format.
-    if (validLicenceRegEx.exec(config.Licence) === null) {
+
+    // Check the license key is a valid format.
+    if (validLicenseRegEx.exec(config.License) === null) {
         errorHandler('The license key(s) provided were invalid. See ' +
                      'https://51degrees.com/compare-data-options to acquire ' +
-                     'valid licence keys.');
+                     'valid license keys.');
         return false;
      }
-    
+
     // Set the request options to get the update from.
     var requestOptions = {
         host: "51degrees.com",
@@ -45,6 +49,7 @@ var update = function (provider, errorHandler) {
 
     // When recieving response, if gzip download file, if not, return error.
     request.on("response", function (response) {
+
         // If the response code is not 200, then throw an error as the
         // download will not happen.
         if (response.statusCode !== 200) {
@@ -52,29 +57,29 @@ var update = function (provider, errorHandler) {
                 case 429 :
                     errorHandler('Too many attempts have been made to ' +
                              'download a data file from this public IP ' +
-                             'address or with this licence key. Try again ' +
+                             'address or with this license key. Try again ' +
                              'after a period of time.');
                     return false;
                 case 403 :
-                    errorHandler('Data not downloaded. The licence key is not' +
+                    errorHandler('Data not downloaded. The license key is not' +
                              'valid');
                     return false;
                 default :
                     errorHandler('An error occurred fetching the data file. ' +
                                  'Try again incase the error is temporary, ' +
-                                 'or validate licence key and network ' +
+                                 'or validate license key and network ' +
                                 'configuration.')
                     return false;
             }
         }
-        
+
         // If the response is not gzip encoded then return an error.
         if (response.headers["transfer-encoding"] && response.headers["transfer-encoding"].indexOf("gzip") === -1) {
             errorHandler("The response encoding was " + 
                      response.headers['transfer-encoding']);
             return false;
         }
-        
+
         // Set updating flag to true so that another update process does not start.
         updating = true;
 
@@ -89,7 +94,7 @@ var update = function (provider, errorHandler) {
                     errorHandler(err);
                     return false;
                 }
-                
+
                 // Check the hash of the zipped file against the md5 from the request.
                 var hash = crypto.createHash("md5").update(zippedFile).digest("hex");
                 if (hash === response.headers["content-md5"]) {
@@ -127,11 +132,40 @@ var update = function (provider, errorHandler) {
 
 module.exports = function (provider, FOD) {
     var config = provider.config;
-    // Get the next update date of the data file (onnly called once on init).
+    // Get the next update date of the data file (only called once on init).
     dataSetNextUpdateDate = new Date(provider.getDataSetNextUpdateDate());
 
+    // Get the product name of the data file which is being used. If a lite
+    // file is being used then emit an info event stating automatic updates
+    // are not supported.
+    if (provider.getDataSetName().indexOf('Premium') !== -1) {
+        product = 'Premium';
+    }
+    else if (provider.getDataSetName().indexOf('Enterprise') !== -1) {
+        product = 'Enterprise';
+    }
+    else if (provider.getDataSetName().indexOf('Trie') !== -1) {
+        // Trie data file does not contain the product name, so use
+        // the file name instead.
+        if (provider.config.fileName.indexOf('Premium') !== -1) {
+            product = 'Premium';
+        }
+        else if (provider.config.fileName.indexOf('Enterprise') !== -1) {
+            product = 'Enterprise';
+        }
+        else {
+            FOD.log.emit('info', 'Lite data file does not support automatic' +
+                         ' updates. See https://51degrees.com/compare-data-' +
+                         'options for more information.');
+        }
+    }
+    else {
+        FOD.log.emit('info', 'Lite data file does not support automatic' +
+                     ' updates. See https://51degrees.com/compare-data-' +
+                     'options for more information.');
+    }
+    
     // Regularly check if the data file is up to date against the current time.
-    // Note: it is possible to expose this to allow pausing and restarting.
     var timer = setInterval(function () {
         if (updating) {
             return false;

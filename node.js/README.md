@@ -85,7 +85,7 @@ Before you start matching user agents, you may wish to configure the solution to
  
  - ``properties`` (defaults to all available). List of case-sensitive property names to be fetched on every device detection. Leave empty to fetch all available properties.
 
- - ``LicenceKey``. Your 51Degrees license key. This is required if you want to set up the automatic package updates.
+ - ``LicenseKey``. Your 51Degrees license key. This is required if you want to set up the automatic package updates.
 
 #### Pattern Detector Settings
  - ``cacheSize`` (defaults to ``10000``). Sets the size of the workset cache.
