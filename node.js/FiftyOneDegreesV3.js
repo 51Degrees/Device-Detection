@@ -93,31 +93,34 @@ FiftyOneDegrees.provider = function (configuration) {
     var defineTypedGetter = function (match, property) {
         // This property has multiple values, so put them in
         // an array.
-        match.__defineGetter__(property, function () {
-            var values = this.getValues(property);
-            if (values.size() > 1) {
-                var valuesArray = new Array(values.size());
-                for (var i = 0; i < values.size(); i++) {
-                    valuesArray[i] = values.get(i);
+
+        Object.defineProperty(match, property, {
+            get: function () {
+                var values = this.getValues(property);
+                if (values.size() > 1) {
+                    var valuesArray = new Array(values.size());
+                    for (var i = 0; i < values.size(); i++) {
+                        valuesArray[i] = values.get(i);
+                    }
+                    return valuesArray;
                 }
-                return valuesArray;
-            }
-            else if (values.size() > 0) {
-                // This property only has a single property, so just
-                // return it, converting to boolean if needed.
-                var value = values.get(0);
-                if (value === "True") {
-                    return true;
-                }
-                else if (value === "False") {
-                    return false;
+                else if (values.size() > 0) {
+                    // This property only has a single property, so just
+                    // return it, converting to boolean if needed.
+                    var value = values.get(0);
+                    if (value === "True") {
+                        return true;
+                    }
+                    else if (value === "False") {
+                        return false;
+                    }
+                    else {
+                        return value;
+                    }
                 }
                 else {
-                    return value;
+                    return undefined;
                 }
-            }
-            else {
-                return undefined;
             }
         })
     }
@@ -125,22 +128,24 @@ FiftyOneDegrees.provider = function (configuration) {
     var defineNonTypedGetter = function (match, property) {
         // This property has multiple values, so put them in
         // an array.
-        match.__defineGetter__(property, function () {
-            var values = this.getValues(property);
-            if (values.size() > 1) {
-                var valuesArray = new Array(values.size());
-                for (var i = 0; i < values.size(); i++) {
-                    valuesArray[i] = values.get(i);
+        Object.defineProperty(match, property, {
+            get: function() {
+                var values = this.getValues(property);
+                if (values.size() > 1) {
+                    var valuesArray = new Array(values.size());
+                    for (var i = 0; i < values.size(); i++) {
+                        valuesArray[i] = values.get(i);
+                    }
+                    return valuesArray;
                 }
-                return valuesArray;
-            }
-            else if (values.size() > 0) {
-                // This property only has a single property, so just
-                // return it.
-                return values.get(0);
-            }
-            else {
-                return undefined;
+                else if (values.size() > 0) {
+                    // This property only has a single property, so just
+                    // return it.
+                    return values.get(0);
+                }
+                else {
+                    return undefined;
+                }
             }
         })
     }
@@ -164,18 +169,26 @@ FiftyOneDegrees.provider = function (configuration) {
                 }
             })
             if (returnedProvider.config.Type !== 'Trie') {
-                match.__defineGetter__('Id', function () {
-                    return this.getDeviceId();
+                Object.defineProperty(match, 'Id', {
+                    get: function() {
+                        return this.getDeviceId();
+                    }
                 });
-                match.__defineGetter__('Rank', function () {
-                    return this.getRank();
+                Object.defineProperty(match, 'Rank', {
+                    get: function() {
+                        return this.getRank();
+                    }
                 });
-                match.__defineGetter__('Difference', function () {
-                    return this.getDifference();
+                Object.defineProperty(match, 'Difference', {
+                    get: function() {
+                        return this.getDifference();
+                    }
                 });
-                match.__defineGetter__('Method', function () {
-                    return this.getMethod();
-                })
+                Object.defineProperty(match, 'Method', {
+                    get: function() {
+                        return this.getMethod();
+                    }
+                });
             }
         }
     }
@@ -184,9 +197,11 @@ FiftyOneDegrees.provider = function (configuration) {
         var findProfiles = returnedProvider.findProfiles;
         returnedProvider.findProfiles = function (property, value) {
             var profiles = findProfiles.apply(this, arguments);
-            profiles.__defineGetter__('count', function () {
-                return this.getCount();
-            })
+            Object.defineProperty(profiles, 'count', {
+                get: function() {
+                    return this.getCount();
+                }
+            });
             profiles.getMatch = function (index) {
                 var id = this.getProfileId(index);
                 if (id >= 0) {
@@ -225,6 +240,7 @@ FiftyOneDegrees.provider = function (configuration) {
             }
             else if (arguments[0].headers) {
                 var req = arguments[0];
+
                 if (config.UsageSharingEnabled !== false) {
                     // Share usage is enabled, so record the device.
                     shareUsage.recordNewDevice(req);
