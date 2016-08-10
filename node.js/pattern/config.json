@@ -1,8 +1,0 @@
-{"dataFile" : "../../data/51Degrees-LiteV3.2.dat",
- "properties" : "",
- "cacheSize" : 10000,
- "poolSize" : 4,
- "UsageSharingEnabled" : true,
- "logFile": "51degrees.log",
- "logLevel": "info"
-}

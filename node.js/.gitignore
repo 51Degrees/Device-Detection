@@ -2,4 +2,5 @@
 build/
 node_modules/
 src/
-data/
+*.dat
+*.trie

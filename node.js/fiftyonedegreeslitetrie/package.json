@@ -1,0 +1,16 @@
+{
+    "name": "fiftyonedegreeslitetrie",
+    "version": "3.2.1",
+    "description": "51degrees trie data for nodejs",
+    "main": "fiftyonedegreeslitetrie.js",
+    "repository": {
+        "type": "git",
+        "url": "git@github.com:51Degrees/Device-Detection.git"
+    },
+    "author": "Ben Shillito <Ben@51Degrees.com>",
+    "license": "MPL-2.0",
+    "bugs": {
+        "url": "https://github.com/51Degrees/Device-Detection/issues"
+    },
+    "homepage": "https://github.com/51Degrees/Device-Detection"
+}

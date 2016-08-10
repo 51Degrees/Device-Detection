@@ -1,11 +1,11 @@
 var http = require("http");
-var FiftyOneDegrees = require("../FiftyOneDegreesV3");
+var fiftyonedegrees = require("fiftyonedegreescore");
 
 var config ={
 	"properties" : 'BrowserName,BrowserVendor,BrowserVersion,DeviceType,'+
 	'HardwareVendor,IsTablet,IsMobile,IsCrawler,ScreenInchesDiagonal,'+
 	'ScreenPixelsWidth',
-    "dataFile" : "../data/51Degrees-LiteV3.2.trie",
+    "dataFile" : require("fiftyonedegreeslitetrie"),
 	"UsageSharingEnabled" : false,
     "stronglyTyped" : false
 }
@@ -14,7 +14,7 @@ var config ={
 var properties = config.properties.split(/,/);
 
 // Initialise a new Provider.
-var provider = new FiftyOneDegrees.provider(config);
+var provider = new fiftyonedegrees.provider(config);
 
 // Set html links globally.
 dataOptions = ('<a class="button" target="_blank" href="https://51degrees.com/'+

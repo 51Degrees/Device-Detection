@@ -26,7 +26,7 @@ shows how to:
 <ol>
 <li>Set the configuration using a json object
 <p><pre class="prettyprint lang-js">
-var config = {"dataFile" : "../data/51Degrees-LiteV3.2.trie",
+var config = {"dataFile" : require("fiftyonedegreeslitetrie"),
               "properties" : "IsMobile",
               "stronglyTyped" : true
 };
@@ -36,7 +36,7 @@ is the default</p>
 <li>Instantiate the 51Degrees device detection provider with this
 connfiguration
 <p><pre class="prettyprint lang-js">
-var provider = new FiftyOneDegreesV3.provider(config);
+var provider = new fiftyonedegrees.provider(config);
 </pre></p>
 <li>Produce a match for a single HTTP User-Agent header
 <p><pre class="prettyprint lang-js">
@@ -52,16 +52,16 @@ to the data file is relative.
 </tutorial>
 */
 // Snippet Start
-var FiftyOneDegrees = require("../FiftyOneDegreesV3");
+var fiftyonedegrees = require("fiftyonedegreescore");
 
 // Set the config.
-var config = {"dataFile" : "../data/51Degrees-LiteV3.2.trie",
+var config = {"dataFile" : require("fiftyonedegreeslitetrie"),
               "properties" : "IsMobile",
               "logLevel" : "none",
               "stronglyTyped" : true
              };
 
-var provider = new FiftyOneDegrees.provider(config);
+var provider = new fiftyonedegrees.provider(config);
 
 // User-Agent string of an iPhone mobile device.
 var mobileUserAgent = ("Mozilla/5.0 (iPhone; CPU iPhone OS 7_1 like Mac OS X" +

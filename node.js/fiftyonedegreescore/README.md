@@ -8,7 +8,7 @@
 
 In Node, use like...
 ```js
-var FiftyOneDegrees = require('FiftyOneDegreesV3');
+var FiftyOneDegrees = require('FiftyOneDegreesCore');
 var provider = new FiftyOneDegrees.provider('/path/to/config/file');
 var match = provider.getMatch(userAgent;
 console.log(match['IsMobile']);
@@ -101,7 +101,7 @@ If you want to set up automatic updates, add your license key to your settings a
 ## Usage
 To check everything is set up , try fetching a match by opening a node console, load the module and start matching with
 ```js
-> var FiftyOneDegrees = require('FiftyOneDegreesV3');
+> var FiftyOneDegrees = require('FiftyOneDegreesCore');
 > var config = {'dataFile' : 'data/51Degrees-LiteV3.2.dat',
                 'properties' : 'BrowserName,ScreenPixelsWidth'};
 > var provider = FiftyOneDegrees.provider(config);

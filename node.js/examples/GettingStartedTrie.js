@@ -33,7 +33,7 @@ var config = {"dataFile" : "../data/51Degrees-LiteV3.2.trie",
 <li>Instantiate the 51Degrees device detection provider with this
 connfiguration
 <p><pre class="prettyprint lang-js">
-var provider = new FiftyOneDegreesV3.provider(config);
+var provider = new fiftyonedegrees.provider(config);
 </pre></p>
 <li>Produce a match for a single HTTP User-Agent header
 <p><pre class="prettyprint lang-js">
@@ -51,12 +51,12 @@ to the data file is relative.
 
 // Snippet Start
 // Include 51Degrees.
-var FiftyOneDegrees = require("../FiftyOneDegreesV3");
+var fiftyonedegrees = require("fiftyonedegreescore");
 
 // Set the config.
-var config = {"dataFile" : "../data/51Degrees-LiteV3.2.trie",
+var config = {"dataFile" : require("fiftyonedegreeslitetrie"),
               "properties" : "IsMobile",
-              "logLevel" : "none"
+              "stronglyTyped": false
              };
 
 // User-Agent string of an iPhone mobile device.
@@ -72,27 +72,27 @@ console.log("Starting Getting Started Example.");
 
 /*
 Initialises the device detection provider with settings from the config.
-By default this will use the included Lite data file For more info see:
+By default this will use the packaged Lite data file. For more info see:
 <a href="https://51degrees.com/compare-data-options">compare data options
 </a>
 */
-var provider = new FiftyOneDegrees.provider(config);
+var provider = new fiftyonedegrees.provider(config);
 
 // Carries out a match with a mobile User-Agent.
 console.log("\nMobile User-Agent: " + mobileUserAgent);
 var match = provider.getMatch(mobileUserAgent);
-console.log("   IsMobile: " + match["IsMobile"]);
+console.log("   IsMobile: " + match.IsMobile);
 match.close();
 
 // Carries out a match with a desktop User-Agent.
 console.log("\nDesktop User-Agent: " + desktopUserAgent);
 var match = provider.getMatch(desktopUserAgent);
-console.log("   IsMobile: " + match["IsMobile"]);
+console.log("   IsMobile: " + match.IsMobile);
 match.close();
 
 // Carries out a match with a MediaHub User-Agent.
 console.log("\nMediaHub User-Agent: " + mediaHubUserAgent);
 var match = provider.getMatch(mediaHubUserAgent);
-console.log("   IsMobile: " + match["IsMobile"]);
+console.log("   IsMobile: " + match.IsMobile);
 match.close();
 // Snippet End

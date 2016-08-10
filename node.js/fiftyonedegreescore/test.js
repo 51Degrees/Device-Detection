@@ -1,5 +1,5 @@
 // Import modules.
-var FiftyOneDegrees = require("./FiftyOneDegreesV3.js");
+var FiftyOneDegrees = require("./FiftyOneDegreesCore.js");
 var assert = require("assert");
 
 // Set up the User-Agent file name and array.

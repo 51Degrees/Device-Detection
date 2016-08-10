@@ -1,23 +1,23 @@
 var http = require("http");
-var FiftyOneDegrees = require("../FiftyOneDegreesV3");
+var fiftyonedegrees = require("fiftyonedegreescore");
+var config = {};
 
-// Initialise a new Provider.
+// Get the path to a Lite data file.
 if (process.argv[2] === "pattern") {
-    var provider = new FiftyOneDegrees.provider("../pattern/config.json");
-    console.log("Started new Pattern provider.")
+    config.dataFile = require('fiftyonedegreeslitepattern');
+    console.log("Starting new Pattern provider.")
 }
 else if (process.argv[2] === "trie") {
-    var provider = new FiftyOneDegrees.provider("../trie/config.json");
-    console.log("Started new Trie provider.")
+    config.dataFile = require('fiftyonedegreeslitetrie');
+    console.log("Starting new Trie provider.")
 }
 else {
-    var provider = new FiftyOneDegrees.provider("../pattern/config.json");
-    console.log("Started new Pattern provider (default).")
+    config.dataFile = require('fiftyonedegreeslitepattern');
+    console.log("Starting new Pattern provider (default).");
 }
 
-// Enabling this means booleans and Object.keys can be used when
-// getting properties from the device.
-provider.config.nodeify = true;
+// Initialise a new Provider.
+var provider = new fiftyonedegrees.provider(config);
 
 var server = http.createServer(function (req, res) {
     // Get a match.

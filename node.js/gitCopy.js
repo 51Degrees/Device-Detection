@@ -28,10 +28,8 @@ var srcFiles = [
     'cityhash/LICENSE'
 ];
 
-var dataFiles = [
-    '51Degrees-LiteV3.2.dat',
-    '51Degrees-LiteV3.2.trie'
-];
+var patternDataFile = '51Degrees-LiteV3.2.dat';
+var trieDataFile = '51Degrees-LiteV3.2.trie';
 
 var errorCheck = function(err) {
     if (err) {
@@ -69,31 +67,18 @@ var copyFile = function(source, target, callback) {
 }
 
 // Make source directories if they do not exist.
-if (!fs.existsSync('src')) {
-    fs.mkdirSync('src');
-    fs.mkdirSync('src/pattern');
-    fs.mkdirSync('src/trie');
-    fs.mkdirSync('src/cityhash');
+if (!fs.existsSync('core/src')) {
+    fs.mkdirSync('core/src');
+    fs.mkdirSync('core/src/pattern');
+    fs.mkdirSync('core/src/trie');
+    fs.mkdirSync('core/src/cityhash');
 }
 
-// Make data directory if it does not exist.
-if (!fs.existsSync('data')) {
-    fs.mkdirSync('data');
-}
+// Copy source files.
+srcFiles.forEach(function(fileName) {
+    copyFile('../src/' + fileName, 'core/src/' + fileName, errorCheck)
+});
 
-try {
-    // Check a data file exists. This means we are in a git directory.
-    stats = fs.lstatSync('../data/51Degrees-LiteV3.2.dat');
-    if (stats.isFile()) {
-        // Copy source files.
-        srcFiles.forEach(function(fileName) {
-            copyFile('../src/' + fileName, 'src/' + fileName, errorCheck)
-        });
-        // Copy data files.
-        dataFiles.forEach(function(fileName) {
-            copyFile('../data/' + fileName, 'data/' + fileName, errorCheck)
-        });
-    }
-} catch (err) {
-    // File does not exist, so don't copy source.
-}
+// Copy data files.
+copyFile('../data/' + patternDataFile, 'litePattern/' + patternDataFile, errorCheck);
+copyFile('../data/' + trieDataFile, 'liteTrie/' + trieDataFile, errorCheck);

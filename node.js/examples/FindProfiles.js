@@ -26,7 +26,7 @@ shows how to:
 <ol>
 <li>Set the configuration using a json object
 <p><pre class="prettyprint lang-js">
-var config = {"dataFile" : "../data/51Degrees-LiteV3.2.dat",
+var config = {"dataFile" : require("fiftyonedegreeslitepattern"),
               "properties" : "IsMobile",
               "cacheSize" : 10000,
               "poolSize" : 4
@@ -35,7 +35,7 @@ var config = {"dataFile" : "../data/51Degrees-LiteV3.2.dat",
 <li>Instantiate the 51Degrees device detection provider with this
 connfiguration
 <p><pre class="prettyprint lang-js">
-var provider = new FiftyOneDegreesV3.provider(config);
+var provider = new fiftyonedegrees.provider(config);
 </pre></p>
 <li>Retrieve all profiles from the data set which match the specified
 property value pair
@@ -48,32 +48,29 @@ var profiles = provider.findProfiles("IsMobile", "True");
 profiles = provider.findProfiles("ScreenPixelsWidth", "1080", profiles)
 </pre></p>
 </ol>
-This example should be run in the examples directory as the path
-to the data file is relative.
 </tutorial>
 */
 
 // Snippet Start
 // Include 51Degrees.
-var FiftyOneDegrees = require("../FiftyOneDegreesV3");
+var fiftyonedegrees = require("fiftyonedegreescore");
 
 // Set the config.
-var config = {"dataFile" : "../data/51Degrees-LiteV3.2.dat",
+var config = {"dataFile" : require("fiftyonedegreeslitepattern"),
               "properties" : "IsMobile",
               "cacheSize" : 10000,
               "poolSize" : 4,
-              "logLevel" : "none"
              };
 
 console.log("Starting Find Profiles Example.\n");
 
 /*
 Initialises the device detection provider with settings from the config.
-By default this will use the included Lite data file For more info see:
+By default this will use the packaged Lite data file. For more info see:
 <a href="https://51degrees.com/compare-data-options">compare data options
 </a>
 */
-var provider = new FiftyOneDegrees.provider(config);
+var provider = new fiftyonedegrees.provider(config);
 
 // Retrieve all the mobile profiles in the data set.
 var profiles = provider.findProfiles("IsMobile", "True");

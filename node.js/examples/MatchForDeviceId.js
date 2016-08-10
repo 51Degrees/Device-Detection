@@ -26,7 +26,7 @@ shows how to:
 <ol>
 <li>Set the configuration using a json object
 <p><pre class="prettyprint lang-js">
-var config = {"dataFile" : "../data/51Degrees-LiteV3.2.dat",
+var config = {"dataFile" : require("fiftyonedegreeslitepattern"),
               "properties" : "IsMobile",
               "cacheSize" : 10000,
               "poolSize" : 4
@@ -35,7 +35,7 @@ var config = {"dataFile" : "../data/51Degrees-LiteV3.2.dat",
 <li>Instantiate the 51Degrees device detection provider with this
 connfiguration
 <p><pre class="prettyprint lang-js">
-var provider = new FiftyOneDegreesV3.provider(config);
+var provider = new fiftyonedegrees.provider(config);
 </pre></p>
 <li>Produce a match for a single device id
 <p><pre class="prettyprint lang-js">
@@ -46,21 +46,18 @@ var match = provider.getMatchForDeviceId(deviceId)
 match['IsMobile']
 </pre></p>
 </ol>
-This example should be run in the examples directory as the path
-to the data file is relative.
 </tutorial>
 */
 
 // Snippet Start
 // Include 51Degrees.
-var FiftyOneDegrees = require("../FiftyOneDegreesV3");
+var fiftyonedegrees = require("fiftyonedegreescore");
 
 // Set the config.
-var config = {"dataFile" : "../data/51Degrees-LiteV3.2.dat",
+var config = {"dataFile" : require("fiftyonedegreeslitepattern"),
               "properties" : "IsMobile",
               "cacheSize" : 10000,
               "poolSize" : 4,
-              "logLevel" : "none",
               "stronglyTyped" :false
              };
 
@@ -88,11 +85,11 @@ console.log("Starting Match For Device Id Example.");
 
 /*
 Initialises the device detection provider with settings from the config.
-By default this will use the included Lite data file For more info see:
+By default this will use the packaged Lite data file. For more info see:
 <a href="https://51degrees.com/compare-data-options">compare data options
 </a>
 */
-var provider = new FiftyOneDegrees.provider(config);
+var provider = new fiftyonedegrees.provider(config);
 
 // Get the device id for a selection of User-Agents.
 var mobileDeviceId = getDeviceId(mobileUserAgent);
