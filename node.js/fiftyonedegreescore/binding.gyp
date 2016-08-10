@@ -22,7 +22,9 @@
                         }\
                     string += arr[i];\
                 }\
-                console.log(string);\")"]
+                console.log(string);\")",
+                "-Wno-maybe-uninitialized",
+                "-Wno-ignored-qualifiers"]
         },
         {
             "target_name": "FiftyOneDegreesTrieV3",
@@ -44,7 +46,8 @@
                         }\
                     string += arr[i];\
                 }\
-                console.log(string);\")"]
+                console.log(string);\")",
+                "-Wno-maybe-uninitialized"]
         }
     ]
 }
