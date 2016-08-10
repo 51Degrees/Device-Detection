@@ -2,12 +2,33 @@
 var FiftyOneDegrees = require("./FiftyOneDegreesV3.js");
 var assert = require("assert");
 
-// Read 20000 User Agents.csv into an array.
+// Set up the User-Agent file name and array.
 var fs = require("fs"),
     readline = require("readline"),
-    inputFile = "../data/20000 User Agents.csv",
-    userAgents = new Array(20000),
-    instream = fs.createReadStream(inputFile),
+    inputFileName = "/20000 User Agents.csv",
+    userAgents = new Array(20000);
+
+// Find the User Agents file.
+if (fs.existsSync(__dirname + "/../data" + inputFileName)) {
+    // The module is in the Device-Detection git repository
+    // so use the included file.
+    var inputFile = __dirname + "/../data" + inputFileName;
+}
+else if (fs.existsSync(process.cwd() + inputFileName)) {
+    // The file is in the execution directory.
+    var inputFile = process.cwd() + inputFileName;
+}
+else {
+    // The file cannot be found, share a link and exit.
+    console.log("No User-Agents file is present. Download from " +
+                "https://github.com/51Degrees/Device-Detection/blob/master" +
+                "/data/20000%20User%20Agents.csv and " +
+                "place it in your execution directory.");
+    process.exit();
+}
+
+// Read the User Agents file into an array.
+var instream = fs.createReadStream(inputFile),
     rl = readline.createInterface(instream, null),
     i = 0;
 rl.on('line', function (userAgent) {
@@ -16,6 +37,7 @@ rl.on('line', function (userAgent) {
     }
     i++;
 })
+
 
 // User-Agent string of an iPhone mobile device.
 var mobileUserAgent = "Mozilla/5.0 (iPhone; CPU iPhone OS 7_1 like Mac OS X) AppleWebKit/537.51.2 (KHTML, like Gecko) 'Version/7.0 Mobile/11D167 Safari/9537.53";
@@ -30,7 +52,7 @@ var mediaHubUserAgent = "Mozilla/5.0 (Linux; Android 4.4.2; X7 Quad Core Build/K
 if (process.argv[3] === "--pattern") {
     var pattern = true;
     var config = {
-        "dataFile": "./data/51Degrees-LiteV3.2.dat",
+        "dataFile": __dirname + "/data/51Degrees-LiteV3.2.dat",
         "properties": "IsMobile,BrowserName",
         "cacheSize": 10000,
         "poolSize": 4,
@@ -41,7 +63,7 @@ if (process.argv[3] === "--pattern") {
 }
 else if (process.argv[3] === "--trie") {
     var config = {
-        "dataFile": "./data/51Degrees-LiteV3.2.trie",
+        "dataFile": __dirname + "/data/51Degrees-LiteV3.2.trie",
         "properties": "IsMobile,BrowserName",
         "logLevel": "none",
         "UsageSharingEnabled": false
@@ -56,6 +78,49 @@ else {
 // Initialise the provider.
 var provider = new FiftyOneDegrees.provider(config);
 
+describe("usage sharing", function() {
+    it("should share valid data", function(done) {
+        var http = require('http');
+        var zlib = require('zlib');
+        var server = http.createServer(function(req, res) {
+            var str = '';
+            var gz = zlib.createGunzip();
+            req.pipe(gz);
+            res.write("connected to server");
+            gz.on('data', function(chunk) {
+                str += chunk;
+            })
+            gz.on('end', function() {
+                assert.equal(true, str.indexOf('<Device>') !== -1);
+                done();
+            })
+            res.end();
+        })
+        server.listen(1234);
+        
+        var usageConfig = JSON.parse(JSON.stringify(config));
+        usageConfig.UsageSharingEnabled = true;
+        usageConfig.UsageSharingDebug = true;
+        var usageProvider = new FiftyOneDegrees.provider(usageConfig);
+        
+        var matchServer = http.createServer(function(req, res) {
+            usageProvider.getMatch(req)
+            res.end();
+        })
+        matchServer.listen(3000, function() {
+            var options = {
+                host: 'localhost',
+                port: 3000,
+                method: 'GET',
+                headers: {'user-agent': mobileUserAgent}
+            }
+
+            http.request(options, function(res) {
+            }).end();
+        });
+        
+    })
+})
 // API tests.
 describe("API", function () {
     describe("Mobile User-Agent", function () {
@@ -142,7 +207,7 @@ describe("API", function () {
                     deviceMatch.close();
                     match.close();
                 })
-            })
+            }).timeout(3000)
         })
 
         describe("Find Mobile Profiles", function () {
@@ -178,7 +243,6 @@ describe("Helper Methods", function() {
         var headers = {"user-agent":mobileUserAgent};
         it("Should return User-Agent matches correctly", function() {
             match = provider.getMatch(mobileUserAgent);
-            console.log(match)
             assert.equal(true, match.IsMobile)
             match.close()
         })
