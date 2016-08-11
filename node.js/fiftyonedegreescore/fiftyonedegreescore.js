@@ -34,7 +34,7 @@ FiftyOneDegrees.provider = function (configuration) {
 
     // Set the default data file if not supplied.
     if (!config.dataFile) {
-        config.dataFile = __dirname + '/data/51Degrees-LiteV3.2.dat';
+        config.dataFile = require('fiftyonedegreeslitepattern');
     }
 
     // Load the correct 51Degrees node library by looking at the data

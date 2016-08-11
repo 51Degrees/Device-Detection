@@ -1,5 +1,5 @@
 // Import modules.
-var FiftyOneDegrees = require("./FiftyOneDegreesCore.js");
+var FiftyOneDegrees = require("fiftyonedegreescore");
 var assert = require("assert");
 
 // Set up the User-Agent file name and array.
@@ -9,10 +9,10 @@ var fs = require("fs"),
     userAgents = new Array(20000);
 
 // Find the User Agents file.
-if (fs.existsSync(__dirname + "/../data" + inputFileName)) {
+if (fs.existsSync(__dirname + "/../../data" + inputFileName)) {
     // The module is in the Device-Detection git repository
     // so use the included file.
-    var inputFile = __dirname + "/../data" + inputFileName;
+    var inputFile = __dirname + "/../../data" + inputFileName;
 }
 else if (fs.existsSync(process.cwd() + inputFileName)) {
     // The file is in the execution directory.
@@ -52,7 +52,7 @@ var mediaHubUserAgent = "Mozilla/5.0 (Linux; Android 4.4.2; X7 Quad Core Build/K
 if (process.argv[3] === "--pattern") {
     var pattern = true;
     var config = {
-        "dataFile": __dirname + "/data/51Degrees-LiteV3.2.dat",
+        "dataFile": require("fiftyonedegreeslitepattern"),
         "properties": "IsMobile,BrowserName",
         "cacheSize": 10000,
         "poolSize": 4,
@@ -63,7 +63,7 @@ if (process.argv[3] === "--pattern") {
 }
 else if (process.argv[3] === "--trie") {
     var config = {
-        "dataFile": __dirname + "/data/51Degrees-LiteV3.2.trie",
+        "dataFile": require("fiftyonedegreeslitetrie"),
         "properties": "IsMobile,BrowserName",
         "logLevel": "none",
         "UsageSharingEnabled": false
