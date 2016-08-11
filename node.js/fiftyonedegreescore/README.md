@@ -142,6 +142,29 @@ To check everything is set up , try fetching a match by opening a node console, 
 '1024'
 ```
 
+#### Muliple HTTP Headers
+A match can also be carried out on multiple HTTP headers in the same way, where instead of passing in a User-Agent string, a JSON object containing the headers is used like
+```js
+var headers = {'user-agent': userAgent,
+               etc...
+               };
+var match = provider.getMatch(headers);
+```
+
+#### HTTP Request
+When used in an HTTP server the request object can be used. Using this method means that the match object is closed when the request ends so there is no need to implement ``match.close()``. The match object is also attached to the request as ``fiftyoneDevice`` when ``getMatch()`` is called so can be accessed in one of two ways:
+
+1. The same as with a match outside of an HTTP server
+```js
+var match = provider.getMatch(request);
+var isMobile = match.IsMobile;
+```
+2. Through the request object
+```js
+provider.getMatch(request);
+var isMobile = request.fiftyoneDevice.IsMobile;
+```
+
 #### Examples
 In the examples folder, you can find examples of various functionalities that the 51Degrees detector has such as:
 - Matching with a User-Agent
