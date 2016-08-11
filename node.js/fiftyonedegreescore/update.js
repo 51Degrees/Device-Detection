@@ -195,8 +195,8 @@ module.exports = function (provider, FOD) {
                          'The data file is current and does not need to be ' +
                          'updated');
         }
-        //Note, set to 1 second. Change this.
-    }, 1000);
+        // Atempt to update every 6 hours.
+    }, 21600000);
     
     FOD.log.emit('info', 'Auto updater started. Next update date ' +
                  provider.getDataSetNextUpdateDate());
