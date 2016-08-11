@@ -53,7 +53,8 @@ FiftyOneDegrees.provider = function (configuration) {
     }
     else {
         // The file does not have the correct extension, so return null.
-        throw "Error: Invalid data file extension " + config.dataFile;
+        FiftyOneDegrees.log.emit('error', "Error: Invalid data file extension " + config.dataFile);
+        return null;
     }
 
     // Initialise the Provider. Account for all variations here as the node SWIG interface
