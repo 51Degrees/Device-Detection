@@ -106,19 +106,24 @@ When you're done installing, check it's set up correctly by recreating the outpu
 Before you start matching user agents, you may wish to configure the solution to use a different datadase for example. The config json object is where all the settings can be changed, it is also possible to initialise the provider a path to a .json file.
 ### Settings
 #### General Settings
- - ``dataFile``. Location on the Pattern or Trie database file.
+ - ``dataFile``. (defaults to the ``fiftyonedegreeslitepattern`` package). Location on the Pattern or Trie database file.
  
  - ``properties`` (defaults to all available). List of case-sensitive property names to be fetched on every device detection. Leave empty to fetch all available properties.
 
- - ``LicenseKey``. Your 51Degrees license key. This is required if you want to set up the automatic package updates.
-
-#### Pattern Detector Settings
+ - ``License``. Your 51Degrees license key. This is required if you want to set up the automatic package updates.
+ 
+#### Pattern Specific Settings
  - ``cacheSize`` (defaults to ``10000``). Sets the size of the workset cache.
 
  - ``poolSize`` (defaults to ``20``). Sets the size of the workset pool.
 
 #### Usage Sharer Settings
  - ``UsageSharingEnabled`` (defaults to ``true``). Indicates if usage data should be shared with 51Degrees.com. We recommended leaving this value unchanged to ensure we're improving the performance and accuracy of the solution.
+ 
+#### Interface Settings
+ - ``setGetters`` (defaults to ``true``). Indicates whether getters are set for the match object so that ``match.IsMobile`` can be used in place of ``match.getValue('IsMobile')``. This makes things simpler when using properties that can return an array of values.
+ 
+ - ``stronglyTyped`` (defaults to ``true``). Indicates whether the match getters return boolean values as a string (``True``/``False``) or a boolean type (``true``/``false``).
  
 #### Automatic updates
 If you want to set up automatic updates, add your license key to your settings and the provider will automatically update the data file whenvever a new one is available.
