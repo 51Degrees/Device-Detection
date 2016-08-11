@@ -78,15 +78,13 @@ By default this will use the packaged Lite data file. For more info see:
 <a href="https://51degrees.com/compare-data-options">compare data options
 </a>
 */
-
 var provider = new fiftyonedegrees.provider(config);
+
 // Carries out a match with a mobile User-Agent.
-var headers = {'user-agent' : mobileUserAgent};
-if (provider){
-var match = provider.getMatch(headers);
+console.log("\nMobile User-Agent: " + mobileUserAgent);
+var match = provider.getMatch(mobileUserAgent);
 console.log("   IsMobile: " + match.IsMobile);
 match.close();
-}
 
 // Carries out a match with a desktop User-Agent.
 console.log("\nDesktop User-Agent: " + desktopUserAgent);

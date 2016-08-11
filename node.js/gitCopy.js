@@ -67,18 +67,18 @@ var copyFile = function(source, target, callback) {
 }
 
 // Make source directories if they do not exist.
-if (!fs.existsSync('core/src')) {
-    fs.mkdirSync('core/src');
-    fs.mkdirSync('core/src/pattern');
-    fs.mkdirSync('core/src/trie');
-    fs.mkdirSync('core/src/cityhash');
+if (!fs.existsSync('fiftyonedegreescore/src')) {
+    fs.mkdirSync('fiftyonedegreescore/src');
+    fs.mkdirSync('fiftyonedegreescore/src/pattern');
+    fs.mkdirSync('fiftyonedegreescore/src/trie');
+    fs.mkdirSync('fiftyonedegreescore/src/cityhash');
 }
 
 // Copy source files.
 srcFiles.forEach(function(fileName) {
-    copyFile('../src/' + fileName, 'core/src/' + fileName, errorCheck)
+    copyFile('../src/' + fileName, 'fiftyonedegreescore/src/' + fileName, errorCheck)
 });
 
 // Copy data files.
-copyFile('../data/' + patternDataFile, 'litePattern/' + patternDataFile, errorCheck);
-copyFile('../data/' + trieDataFile, 'liteTrie/' + trieDataFile, errorCheck);
+copyFile('../data/' + patternDataFile, 'fiftyonedegreeslitepattern/' + patternDataFile, errorCheck);
+copyFile('../data/' + trieDataFile, 'fiftyonedegreeslitetrie/' + trieDataFile, errorCheck);
