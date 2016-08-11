@@ -8,11 +8,6 @@ var FiftyOneDegrees = {};
 // Create the logger.
 FiftyOneDegrees.log = new eventEmitter();
 
-// Listen for unchecked errors.
-FiftyOneDegrees.log.on('error', function (err) {
-    //todo prople should listen to for errors
-})
-
 // Return the Provider object initialised with the supplied config file.
 FiftyOneDegrees.provider = function (configuration) {
     // Read the configuration.
@@ -82,6 +77,8 @@ FiftyOneDegrees.provider = function (configuration) {
 
     // Get the important headers from the data set, this is used when matching
     // with HTTP headers accounting the case of the header names.
+    // Note: these are converted to lowercase to match how headers are named
+    // in node.
     returnedProvider.getHttpHeadersLower = function () {
         var importantHeaders = {};
         for (var i = 0; i < returnedProvider.getHttpHeaders().size(); i++) {
@@ -91,14 +88,18 @@ FiftyOneDegrees.provider = function (configuration) {
         return importantHeaders;
     }
 
+    // Define a getter for the property where 'True' and 'False' strings are
+    // converted to boolean. Getters are set without getting the value so no
+    // unneccessary computation is carried out.
     var defineTypedGetter = function (match, property) {
-        // This property has multiple values, so put them in
-        // an array.
 
         Object.defineProperty(match, property, {
             get: function () {
+                // Get the property values from the this match object.
                 var values = this.getValues(property);
                 if (values.size() > 1) {
+                    // This property has multiple values, so put them in
+                    // an array.
                     var valuesArray = new Array(values.size());
                     for (var i = 0; i < values.size(); i++) {
                         valuesArray[i] = values.get(i);
@@ -126,13 +127,17 @@ FiftyOneDegrees.provider = function (configuration) {
         })
     }
 
+    // Define a getter for the property where 'True' and 'False' strings are
+    // not converted to boolean. Getters are set without getting the value so
+    // no unneccessary computation is carried out.
     var defineNonTypedGetter = function (match, property) {
-        // This property has multiple values, so put them in
-        // an array.
         Object.defineProperty(match, property, {
             get: function() {
+                // Get the property values from this match object.
                 var values = this.getValues(property);
                 if (values.size() > 1) {
+                    // This property has multiple values, so put them in
+                    // an array.
                     var valuesArray = new Array(values.size());
                     for (var i = 0; i < values.size(); i++) {
                         valuesArray[i] = values.get(i);
@@ -151,15 +156,26 @@ FiftyOneDegrees.provider = function (configuration) {
         })
     }
 
+    // Go through all the available properties and set the getters for them.
+    // This makes returning arrays much simpler, see define*Getter functions
+    // to see how it is done.
+    // Getters are set without getting the value so no unneccessary computation
+    // is carried out.
     var setGetters = function (match) {
         // Define getter functions so properties are accessible
+        // addGetters and stronglyTyped are both checked inside this
+        // function so they are changable at runtime.
         if (returnedProvider.config.addGetters !== false) {
             if (returnedProvider.config.stronglyTyped !== false) {
+                // Convert boolean values.
                 var defineGetter = defineTypedGetter;
             }
             else {
+                // Don't convert boolean values.
                 var defineGetter = defineNonTypedGetter;
             }
+            
+            // Loop through all the properties the provider has made available.
             returnedProvider.availableProperties.forEach(function (property) {
                 if (property.indexOf("JavascriptHardwareProfile") !== -1) {
                     // Skip this property as it will break the API.
@@ -169,6 +185,8 @@ FiftyOneDegrees.provider = function (configuration) {
                     defineGetter(match, property);
                 }
             })
+
+            // If the API is Pattern then set the match metrics getters.
             if (returnedProvider.config.Type !== 'Trie') {
                 Object.defineProperty(match, 'Id', {
                     get: function() {
@@ -195,14 +213,22 @@ FiftyOneDegrees.provider = function (configuration) {
     }
 
     if (config.Type !== 'Trie') {
-        var findProfiles = returnedProvider.findProfiles;
+        // Wrap the find profiles function to make it more node friendly.
+        var nativeFindProfiles = returnedProvider.findProfiles;
         returnedProvider.findProfiles = function (property, value) {
-            var profiles = findProfiles.apply(this, arguments);
+
+            // Get the profiles object from the native function.
+            var profiles = nativeFindProfiles.apply(this, arguments);
+            
+            // Add a count getter which calls getCount().
             Object.defineProperty(profiles, 'count', {
                 get: function() {
                     return this.getCount();
                 }
             });
+            
+            // Add a getMatch function so a match can be returned from a
+            // profile.
             profiles.getMatch = function (index) {
                 var id = this.getProfileId(index);
                 if (id >= 0) {
@@ -212,10 +238,14 @@ FiftyOneDegrees.provider = function (configuration) {
                     return undefined;
                 }
             }
+            
+            // Return the profiles object.
             return profiles;
         }
     }
 
+    // Converts a headers JSON object to as MapStringString to be passed
+    // into the getMatch function.
     var getHeadersMap = function (headers) {
         // Create a new string-string map to use for the match.
         var headersMap = new FODcore.MapStringString();
@@ -232,14 +262,20 @@ FiftyOneDegrees.provider = function (configuration) {
         return headersMap;
     }
 
-    var getMatchOld = returnedProvider.getMatch;
+    // Override the getMatch function to ensure the correct mapping of argument
+    // types.
+    var getMatchNative = returnedProvider.getMatch;
     returnedProvider.getMatch = function () {
         var match;
         if (arguments && arguments[0]) {
             if (typeof (arguments[0]) === 'string') {
-                match = getMatchOld.apply(this, arguments);
+                // The argument is just a User-Agent so call the native
+                // match function.
+                match = getMatchNative.apply(this, arguments);
             }
             else if (arguments[0].headers) {
+                // The argument has a headers property, so it must be an HTTP
+                // request.
                 var req = arguments[0];
 
                 if (config.UsageSharingEnabled !== false) {
@@ -247,15 +283,21 @@ FiftyOneDegrees.provider = function (configuration) {
                     shareUsage.recordNewDevice(req);
                 }
 
-                // Get a Match object using the headers from the supplied request.
+                // If the request object already has a match attached,
+                // close it.
                 if (req.fiftyoneDevice) {
                     req.fiftyoneDevice.close();
                 }
 
+                // Map the headers to the correct type.
                 var headersMap = getHeadersMap(req.headers);
 
-                req.fiftyoneDevice = getMatchOld.apply(this, [headersMap]);
+                // Get a match for the headers and attach it to the request
+                // object.
+                req.fiftyoneDevice = getMatchNative.apply(this, [headersMap]);
 
+                // Attach the close method to request events so that whatever
+                // happens, the match will be released to the workset pool.
                 req.on('end', function () {
                     if (this.fiftyoneDevice) {
                         this.fiftyoneDevice.close()
@@ -274,29 +316,46 @@ FiftyOneDegrees.provider = function (configuration) {
                         delete this.fiftyoneDevice;
                     }
                 })
+                
+                // Set the match object so it can be returned as well as
+                // set in req.
                 match = req.fiftyoneDevice;
             }
             else {
+                // The argument is not a string and does not have a headers
+                // property, so it must be a headers object.
                 var headers = arguments[0];
+                
+                // Map the headers to the correct type.
                 var headersMap = getHeadersMap(headers);
-                match = getMatchOld.apply(this, [headersMap]);
+                
+                // Get a match for the HTTP headers.
+                match = getMatchNative.apply(this, [headersMap]);
             }
         }
         if (match) {
+            // Try to set the getters if config.setGetters is set to true.
             setGetters(match);
         }
+        
+        // Return the match object.
         return match;
     }
 
+    // Wrap the native getMatchForDeviceId function so getters can be set.
     getMatchForDeviceId = returnedProvider.getMatchForDeviceId;
     returnedProvider.getMatchForDeviceId = function (deviceId) {
+        // Get a match for the device id.
         var match = getMatchForDeviceId.apply(this, arguments);
+        
+        // Try to set the getters if config.setGetters is set to true.
         setGetters(match);
+        
+        // Return the match object.
         return match;
     }
 
-    // Store the importand headers for use by the getMatchForHttpHeaders
-    // function.
+    // Store the important headers for use by the getMatch function.
     var importantHeaders = returnedProvider.getHttpHeadersLower();
     FiftyOneDegrees.log.emit('debug', 'Set the important headers')
 
@@ -307,6 +366,7 @@ FiftyOneDegrees.provider = function (configuration) {
     // available outside the module.
     var nativeAvailableProperties = returnedProvider.getAvailableProperties();
     returnedProvider.availableProperties = new Array(nativeAvailableProperties.size());
+    // For all the available properties add them to the array.
     for (var i = 0; i < nativeAvailableProperties.size(); i++) {
         returnedProvider.availableProperties[i] = nativeAvailableProperties.get(i);
     }

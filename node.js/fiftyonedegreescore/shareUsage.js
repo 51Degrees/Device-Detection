@@ -173,12 +173,20 @@ var getContent = function(request) {
 module.exports = function(provider, FOD) {
     log = FOD.log;
     if (provider.config.UsageSharingDebug === true) {
+        // Provider has been created as part of a test, so send the usage data
+        // to localhost after one request to be tested.
         requestOptions.host = 'localhost';
         requestOptions.port = 1234;
         newDeviceQueueLength = 1;
     }
+    
+    // Get the version of the data set e.g. "3.2".
     version = provider.getDataSetFormat();
+    
+    // Get the product name e.g. "Node js : Trie"
     product = 'Node js : ' + provider.config.Type;
     log.emit('info', 'Usage sharer started')
+    
+    // Return the share usage object.
     return shareUsage;
 };

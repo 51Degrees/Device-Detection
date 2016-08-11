@@ -74,9 +74,9 @@ var update = function (provider, errorHandler) {
         }
 
         // If the response is not gzip encoded then return an error.
-        if (response.headers["transfer-encoding"] && response.headers["transfer-encoding"].indexOf("gzip") === -1) {
+        if (response.headers["content-encoding"] && response.headers["content-encoding"].indexOf("gzip") === -1) {
             errorHandler("The response encoding was " + 
-                     response.headers['transfer-encoding']);
+                     response.headers['content-encoding']);
             return false;
         }
 
