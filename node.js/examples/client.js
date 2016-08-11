@@ -24,7 +24,7 @@ var server = http.createServer(function (req, res) {
     provider.getMatch(req);
 
     // Print the type of device.
-    if (req.device.IsMobile) {
+    if (req.fiftyoneDevice.IsMobile) {
         res.write("This is a mobile device.\n");
     }
     else {
@@ -34,7 +34,7 @@ var server = http.createServer(function (req, res) {
     // Print all the properties for the device.
     res.write("Here are all its properties:\n\n");
     provider.availableProperties.forEach(function(property) {
-        res.write(property + " : " + req.device[property] + "\n");
+        res.write(property + " : " + req.fiftyoneDevice[property] + "\n");
     })
     res.end();
 }).listen(3000, function () {

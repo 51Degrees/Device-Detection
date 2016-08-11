@@ -259,12 +259,12 @@ describe("Helper Methods", function() {
                 }
             }
             provider.getMatch(req);
-            assert.equal(true, req.device.IsMobile);
-            req.device.close();
+            assert.equal(true, req.fiftyoneDevice.IsMobile);
+            req.fiftyoneDevice.close();
         })
         it("Should close of request matches automatically", function () {
             var closed = false;
-            req.device.close = function() {
+            req.fiftyoneDevice.close = function() {
                 closed = true;
             }
             req.end();

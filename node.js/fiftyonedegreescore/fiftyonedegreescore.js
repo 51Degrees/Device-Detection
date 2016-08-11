@@ -247,33 +247,33 @@ FiftyOneDegrees.provider = function (configuration) {
                 }
 
                 // Get a Match object using the headers from the supplied request.
-                if (req.device) {
-                    req.device.close();
+                if (req.fiftyoneDevice) {
+                    req.fiftyoneDevice.close();
                 }
 
                 var headersMap = getHeadersMap(req.headers);
 
-                req.device = getMatchOld.apply(this, [headersMap]);
+                req.fiftyoneDevice = getMatchOld.apply(this, [headersMap]);
 
                 req.on('end', function () {
-                    if (this.device) {
-                        this.device.close()
-                        delete this.device;
+                    if (this.fiftyoneDevice) {
+                        this.fiftyoneDevice.close()
+                        delete this.fiftyoneDevice;
                     }
                 })
                 req.on('abort', function () {
-                    if (this.device) {
-                        this.device.close()
-                        delete this.device;
+                    if (this.fiftyoneDevice) {
+                        this.fiftyoneDevice.close()
+                        delete this.fiftyoneDevice;
                     }
                 })
                 req.on('aborted', function () {
-                    if (this.device) {
-                        this.device.close()
-                        delete this.device;
+                    if (this.fiftyoneDevice) {
+                        this.fiftyoneDevice.close()
+                        delete this.fiftyoneDevice;
                     }
                 })
-                match = req.device;
+                match = req.fiftyoneDevice;
             }
             else {
                 var headers = arguments[0];
