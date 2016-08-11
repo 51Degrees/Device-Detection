@@ -8,9 +8,9 @@
 
 In Node, use like...
 ```js
-var FiftyOneDegrees = require('FiftyOneDegreesCore');
-var provider = new FiftyOneDegrees.provider('/path/to/config/file');
-var match = provider.getMatch(userAgent;
+var fiftyonedegrees = require('fiftyonedegreescore');
+var provider = new fiftyonedegrees.provider(config);
+var match = provider.getMatch(userAgent);
 console.log(match['IsMobile']);
 console.log(match['DeviceType']);
 match.close();
@@ -58,9 +58,20 @@ $ npm install -g mocha
 ```
 
 ## Install
-<installation>
-### Linux
-#### From git
+### npm
+Install the core 51Degrees module with:
+```
+$ npm install -g fiftyonedegreescore
+```
+and to install a Lite data file, run either:
+```
+$ npm install -g fiftyonedegreeslitepattern
+```
+or
+```
+$ npm install -g fiftyonedegreeslitetrie
+```
+### GitHub
 However, if you want to build the package yourself and use the examples too.
 First clone 51Degrees/Device-Detection repository with
 ```
@@ -70,15 +81,29 @@ Move to the node.js directory with
 ```
 $ cd Device-Detection/node.js
 ```
-and install with
+copy the source and data files with
 ```
-$ npm install
+$ node gitCopy.js
 ```
-</installation>
+then install in the same way as through npm where the name is interpreted as the directory
+```
+$ npm install fiftyonedegreescore fiftyonedegreeslitepattern fiftyonedegreeslitetrie
+```
+
+### Windows
+Node has know issues installing modules in Windows. Three things must be in place before installing.
+1. Install Visual C++ Build Tools
+2. Install Python 2.7 and run npm ``config set python python2.7``
+3. Open a terminal and run ``npm config set msvs_version 2015``
+
+Alternatively, Microsoft have offered an npm package to install all this and can be run (in an elevated Power Shell) with ``npm install -g windows-build-tools``.
+
+Full explanation of windows issues can be found at https://github.com/Microsoft/nodejs-guidelines/blob/master/windows-environment.md
+
 When you're done installing, check it's set up correctly by recreating the output in the Usage section below. Or if you've cloned this repository, try the examples.
+
 ## Configure
-<configuration>
-Before you start matching user agents, you may wish to configure the solution to use a different datadase for example. The config file used when initialising the provider is where all settings can be changed. It is also possible to initialise the provider with a json object in the same format as the config file
+Before you start matching user agents, you may wish to configure the solution to use a different datadase for example. The config json object is where all the settings can be changed, it is also possible to initialise the provider a path to a .json file.
 ### Settings
 #### General Settings
  - ``dataFile``. Location on the Pattern or Trie database file.
@@ -94,17 +119,17 @@ Before you start matching user agents, you may wish to configure the solution to
 
 #### Usage Sharer Settings
  - ``UsageSharingEnabled`` (defaults to ``true``). Indicates if usage data should be shared with 51Degrees.com. We recommended leaving this value unchanged to ensure we're improving the performance and accuracy of the solution.
-</configuration>
+ 
 #### Automatic updates
-If you want to set up automatic updates, add your license key to your settings and the provider will automatically update the data file.
+If you want to set up automatic updates, add your license key to your settings and the provider will automatically update the data file whenvever a new one is available.
 
 ## Usage
 To check everything is set up , try fetching a match by opening a node console, load the module and start matching with
 ```js
-> var FiftyOneDegrees = require('FiftyOneDegreesCore');
-> var config = {'dataFile' : 'data/51Degrees-LiteV3.2.dat',
+> var fiftyonedegrees = require('fiftyonedegreescore');
+> var config = {'dataFile' : require('fiftyonedegreeslitepattern'),
                 'properties' : 'BrowserName,ScreenPixelsWidth'};
-> var provider = FiftyOneDegrees.provider(config);
+> var provider = fiftyonedegrees.provider(config);
 > var device = provider.getMatch("Mozilla/5.0 (iPad; CPU OS 5_1 like Mac OS X) AppleWebKit/534.46 (KHTML, like Gecko) Mobile/9B176")
 
 > device.Id
@@ -126,23 +151,44 @@ In the examples folder, you can find examples of various functionalities that th
 - Strongly typed variables
 - Finding profiles
 
-There are also the following server examples
-
-**server.js** which runs a server at localhost:8080 by default and returns matches from the web browsers User-Agent and all relevant HTTP headers seperately. Is run with
+#### Example Server
+The example **server.js** runs a server at localhost:8080 by default and returns matches from the web browsers User-Agent and all relevant HTTP headers seperately. Is run with
 ```
-$ node server.js
+$ node examples/server.js pattern
 ```
 or
 ```
-$ node serverTrie.js
+$ node examples/server.js trie
 ```
 
 #### Http and Express
 There are also simple HTTP and express server examples. These can be run with
 ```
-$ node client.js 
+$ node examples/client.js 
 ```
 and 
 ```
-$ node expressClient.js
+$ node examples/expressClient.js
+```
+
+### Logging
+Log events are emitted via ``fiftyonedegreescore.log`` with the possible events being **error**, **info** and **debug**. A function can be attached to any of these events in the expected way like
+```js
+fiftyonedegreescore.log.on('error', function(err) {
+    // Oh no, an error!
+    console.log(err);
+})
+```
+to print the an error.
+
+**NOTE: if the ``error`` event is not listened for, node will treat it as a full blown error and exit the process. So be sure to add the above function as a minimum.**
+
+### Tests
+API and performance tests can be run from the module directory with either
+```
+$ mocha test.js --pattern
+```
+or
+```
+$ mocha test.js --trie
 ```
