@@ -23,7 +23,7 @@ dataOptions = ('<a class="button" target="_blank" href="https://51degrees.com/'+
 'Premium and Enterprise Data Options">Compare Data Options</a>')
 propertiesHyperLinkUA = ('<a class="button" target="_blank" href="https://'+
 '51degrees.com/resources/property-dictionary?utm_source=github&utm_medium='+
-'repository&utm_content=server_trie_properties_ua&utm_campaign=python-'+
+'repository&utm_content=server_trie_properties_ua&utm_campaign=node-'+
 'open-source" title="Review All Properties">All Properties</a>')
 propertiesHyperLinkHeaders = ('<a class="button" target="_blank" href="https:'+
 '//51degrees.com/resources/property-dictionary?utm_source=github&utm_medium='+
