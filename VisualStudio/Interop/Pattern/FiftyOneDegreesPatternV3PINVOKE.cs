@@ -431,6 +431,15 @@ class FiftyOneDegreesPatternV3PINVOKE {
   [global::System.Runtime.InteropServices.DllImport("FiftyOne.Mobile.Detection.Provider.Pattern.dll", EntryPoint="CSharp_FiftyOnefMobilefDetectionfProviderfInteropfPattern_Provider_reloadFromMemory___")]
   public static extern void Provider_reloadFromMemory(global::System.Runtime.InteropServices.HandleRef jarg1, string jarg2, int jarg3);
 
+  [global::System.Runtime.InteropServices.DllImport("FiftyOne.Mobile.Detection.Provider.Pattern.dll", EntryPoint="CSharp_FiftyOnefMobilefDetectionfProviderfInteropfPattern_Provider_getCacheHits___")]
+  public static extern int Provider_getCacheHits(global::System.Runtime.InteropServices.HandleRef jarg1);
+
+  [global::System.Runtime.InteropServices.DllImport("FiftyOne.Mobile.Detection.Provider.Pattern.dll", EntryPoint="CSharp_FiftyOnefMobilefDetectionfProviderfInteropfPattern_Provider_getCacheMisses___")]
+  public static extern int Provider_getCacheMisses(global::System.Runtime.InteropServices.HandleRef jarg1);
+
+  [global::System.Runtime.InteropServices.DllImport("FiftyOne.Mobile.Detection.Provider.Pattern.dll", EntryPoint="CSharp_FiftyOnefMobilefDetectionfProviderfInteropfPattern_Provider_getCacheMaxIterations___")]
+  public static extern int Provider_getCacheMaxIterations(global::System.Runtime.InteropServices.HandleRef jarg1);
+
   [global::System.Runtime.InteropServices.DllImport("FiftyOne.Mobile.Detection.Provider.Pattern.dll", EntryPoint="CSharp_FiftyOnefMobilefDetectionfProviderfInteropfPattern_new_Provider__SWIG_6___")]
   public static extern global::System.IntPtr new_Provider__SWIG_6(string jarg1, string jarg2, int jarg3, int jarg4, bool jarg5);
 }

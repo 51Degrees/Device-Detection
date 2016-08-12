@@ -676,6 +676,33 @@ void Provider::reloadFromMemory(const string &source, int length) {
 	reloadFromMemory(source.c_str(), length);
 }
 
+/**
+* Returns the number of times the cache fetch has found what it's
+* looking for.
+* @returns int number of cache hits.
+*/
+int Provider::getCacheHits() {
+	return provider.activePool->cache->hits;
+}
+
+/**
+* Returns the number of times the cache fetch has not found what it's
+* looking for. The cache fetch function is called a second time to insert
+* a value that was not found.
+* @returns int number of cache misses.
+*/
+int Provider::getCacheMisses() {
+	return provider.activePool->cache->misses;
+}
+
+/**
+* Return the maximum number of iterations a cache fetch could take to find
+* a match. This is the depth of the binary tree.
+*/
+int Provider::getCacheMaxIterations() {
+	return provider.activePool->cache->maxIterations;
+}
+
 // The section below is entirely for testing purposes and is not written
 // for use in a production environment.
 

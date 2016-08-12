@@ -267,10 +267,40 @@ namespace FiftyOne.Mobile.Detection.Provider.Interop
             _provider.reloadFromFile();
         }
 
+        /// <summary>
+        /// Reads the data file at the original file path into memory and
+        /// uses the reload from memory function to reload the data set
+        /// from that memory location.
+        /// </summary>
         public void ReloadFromMemory()
         {
             byte[] bytes = File.ReadAllBytes(_fileName);
             _provider.reloadFromMemory(bytes.ToString(), bytes.GetLength(0));
+        }
+
+        /// <summary>
+        /// Returns the number of times the cache fetch function has found what
+        /// it is looking for.
+        /// </summary>
+        public int CacheHits
+        {
+            get
+            {
+                throw new NotImplementedException();
+            }
+        }
+
+        /// <summary>
+        /// Returns the number of times the cache fetch function has not found
+        /// what it is looking for. The cache fetch function is called a second
+        /// time to insert a value that was not found.
+        /// </summary>
+        public int CacheMisses
+        {
+            get
+            {
+                throw new NotImplementedException();
+            }
         }
 
         #endregion

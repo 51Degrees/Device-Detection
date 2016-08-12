@@ -91,6 +91,10 @@ class Provider {
 		void reloadFromMemory(const char *source, int length);
 		void reloadFromMemory(const string &source, int length);
 
+		int getCacheHits();
+		int getCacheMisses();
+		int getCacheMaxIterations();
+
 		Provider(const string &fileName, const string &propertyString,
 			int cacheSize, int poolSize, bool validate);
 

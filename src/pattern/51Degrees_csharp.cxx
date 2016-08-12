@@ -2990,6 +2990,84 @@ SWIGEXPORT void SWIGSTDCALL CSharp_FiftyOnefMobilefDetectionfProviderfInteropfPa
 }
 
 
+SWIGEXPORT int SWIGSTDCALL CSharp_FiftyOnefMobilefDetectionfProviderfInteropfPattern_Provider_getCacheHits___(void * jarg1) {
+  int jresult ;
+  Provider *arg1 = (Provider *) 0 ;
+  int result;
+  
+  arg1 = (Provider *)jarg1; 
+  {
+    try {
+      result = (int)(arg1)->getCacheHits();;
+    }
+    catch(runtime_error& e) {
+      {
+        SWIG_CSharpException(SWIG_RuntimeError, e.what()); return 0; 
+      };
+    }
+    catch(invalid_argument& e) {
+      {
+        SWIG_CSharpException(SWIG_ValueError, e.what()); return 0; 
+      };
+    }
+  }
+  jresult = result; 
+  return jresult;
+}
+
+
+SWIGEXPORT int SWIGSTDCALL CSharp_FiftyOnefMobilefDetectionfProviderfInteropfPattern_Provider_getCacheMisses___(void * jarg1) {
+  int jresult ;
+  Provider *arg1 = (Provider *) 0 ;
+  int result;
+  
+  arg1 = (Provider *)jarg1; 
+  {
+    try {
+      result = (int)(arg1)->getCacheMisses();;
+    }
+    catch(runtime_error& e) {
+      {
+        SWIG_CSharpException(SWIG_RuntimeError, e.what()); return 0; 
+      };
+    }
+    catch(invalid_argument& e) {
+      {
+        SWIG_CSharpException(SWIG_ValueError, e.what()); return 0; 
+      };
+    }
+  }
+  jresult = result; 
+  return jresult;
+}
+
+
+SWIGEXPORT int SWIGSTDCALL CSharp_FiftyOnefMobilefDetectionfProviderfInteropfPattern_Provider_getCacheMaxIterations___(void * jarg1) {
+  int jresult ;
+  Provider *arg1 = (Provider *) 0 ;
+  int result;
+  
+  arg1 = (Provider *)jarg1; 
+  {
+    try {
+      result = (int)(arg1)->getCacheMaxIterations();;
+    }
+    catch(runtime_error& e) {
+      {
+        SWIG_CSharpException(SWIG_RuntimeError, e.what()); return 0; 
+      };
+    }
+    catch(invalid_argument& e) {
+      {
+        SWIG_CSharpException(SWIG_ValueError, e.what()); return 0; 
+      };
+    }
+  }
+  jresult = result; 
+  return jresult;
+}
+
+
 SWIGEXPORT void * SWIGSTDCALL CSharp_FiftyOnefMobilefDetectionfProviderfInteropfPattern_new_Provider__SWIG_6___(char * jarg1, char * jarg2, int jarg3, int jarg4, unsigned int jarg5) {
   void * jresult ;
   std::string *arg1 = 0 ;

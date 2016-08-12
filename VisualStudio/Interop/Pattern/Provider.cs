@@ -169,6 +169,24 @@ public partial class Provider : global::System.IDisposable {
     if (FiftyOneDegreesPatternV3PINVOKE.SWIGPendingException.Pending) throw FiftyOneDegreesPatternV3PINVOKE.SWIGPendingException.Retrieve();
   }
 
+  public int getCacheHits() {
+    int ret = FiftyOneDegreesPatternV3PINVOKE.Provider_getCacheHits(swigCPtr);
+    if (FiftyOneDegreesPatternV3PINVOKE.SWIGPendingException.Pending) throw FiftyOneDegreesPatternV3PINVOKE.SWIGPendingException.Retrieve();
+    return ret;
+  }
+
+  public int getCacheMisses() {
+    int ret = FiftyOneDegreesPatternV3PINVOKE.Provider_getCacheMisses(swigCPtr);
+    if (FiftyOneDegreesPatternV3PINVOKE.SWIGPendingException.Pending) throw FiftyOneDegreesPatternV3PINVOKE.SWIGPendingException.Retrieve();
+    return ret;
+  }
+
+  public int getCacheMaxIterations() {
+    int ret = FiftyOneDegreesPatternV3PINVOKE.Provider_getCacheMaxIterations(swigCPtr);
+    if (FiftyOneDegreesPatternV3PINVOKE.SWIGPendingException.Pending) throw FiftyOneDegreesPatternV3PINVOKE.SWIGPendingException.Retrieve();
+    return ret;
+  }
+
   public Provider(string fileName, string propertyString, int cacheSize, int poolSize, bool validate) : this(FiftyOneDegreesPatternV3PINVOKE.new_Provider__SWIG_6(fileName, propertyString, cacheSize, poolSize, validate), true) {
     if (FiftyOneDegreesPatternV3PINVOKE.SWIGPendingException.Pending) throw FiftyOneDegreesPatternV3PINVOKE.SWIGPendingException.Retrieve();
   }

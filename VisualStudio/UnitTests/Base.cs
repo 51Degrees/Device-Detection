@@ -56,6 +56,17 @@ namespace FiftyOne.UnitTests
         }
 
         /// <summary>
+        /// Method used to create wrapper when the constructor is called.
+        /// PatternBase overrides this method to set the cache size.
+        /// </summary>
+        /// <param name="cacheSize">The size of the cache.</param>
+        /// <returns></returns>
+        protected virtual IWrapper CreateWrapper(int cacheSize)
+        {
+            return CreateWrapper();
+        }
+
+        /// <summary>
         /// Location of the data file used to create the wrapper.
         /// </summary>
         protected abstract string DataFile { get; }

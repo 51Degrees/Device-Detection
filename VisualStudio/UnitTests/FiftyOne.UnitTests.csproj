@@ -62,6 +62,10 @@
     <Compile Include="API\Premium\Pattern.cs" />
     <Compile Include="Base.cs" />
     <Compile Include="API\Lite\Pattern.cs" />
+    <Compile Include="Cache\Enterprise\Pattern.cs" />
+    <Compile Include="Cache\PatternBase.cs" />
+    <Compile Include="Cache\Lite\Pattern.cs" />
+    <Compile Include="Cache\Premium\Pattern.cs" />
     <Compile Include="HttpHeaders\Base.cs" />
     <Compile Include="HttpHeaders\Combinations.cs" />
     <Compile Include="HttpHeaders\Enterprise\V32PatternFile.cs" />
