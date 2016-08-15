@@ -1813,6 +1813,8 @@ static size_t getProviderSizeWithPropertyCount(size_t sizeOfFile, fiftyoneDegree
 	size += ((SIZE_OF_WORKSET_TARGET_USERAGENT_ARRAY(header)) * poolSize);
 	size += ((SIZE_OF_WORKSET_IMPORTANT_HEADERS(httpHeadersCount)) * poolSize);
 
+	assert(size > sizeOfFile);
+
 	// Return the total size needed for the provider.
 	return size;
 }
@@ -1864,6 +1866,8 @@ size_t fiftyoneDegreesGetProviderSizeWithPropertyString(const char *fileName, co
 	sizeOfFile = ftell(inputFilePtr);
 	fclose(inputFilePtr);
 
+	assert(sizeOfFile > 0);
+
 	// Add file name.
 	sizeOfFile += (SIZE_OF_FILE_NAME(fileName));
 
@@ -1874,6 +1878,8 @@ size_t fiftyoneDegreesGetProviderSizeWithPropertyString(const char *fileName, co
 	else {
 		requiredPropertyCount = getSeparatorCount(properties);
 	}
+
+	assert(requiredPropertyCount > 0);
 
 	// Add required properties array.
 	sizeOfFile += (SIZE_OF_REQUIRED_PROPERTIES_ARRAY);
@@ -1931,6 +1937,8 @@ size_t fiftyoneDegreesGetProviderSizeWithPropertyCount(const char *fileName, int
 	// Add file size.
 	sizeOfFile = ftell(inputFilePtr);
 	fclose(inputFilePtr);
+
+	assert(sizeOfFile > 0);
 
 	// Add file name.
 	sizeOfFile += (SIZE_OF_FILE_NAME(fileName));

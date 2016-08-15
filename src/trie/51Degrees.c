@@ -4,6 +4,7 @@
 #include <string.h>
 #include <math.h>
 #include <ctype.h>
+#include <assert.h>
 #include "51Degrees.h"
 
 /* *********************************************************************
@@ -964,6 +965,8 @@ size_t getSizeOfFile(const char* fileName) {
 	sizeOfFile = ftell(inputFilePtr);
 	fclose(inputFilePtr);
 
+	assert(sizeOfFile > 0);
+
 	return sizeOfFile;
 }
 
@@ -1059,6 +1062,9 @@ size_t fiftyoneDegreesGetProviderSizeWithPropertyString(const char* fileName, co
 		else {
 			requiredPropertyCount = (getSeparatorCount(properties) + 1);
 		}
+
+		assert(requiredPropertyCount > 0);
+
 		size += 2 * sizeof(void*) * requiredPropertyCount;
 
 		// Add the unique HTTP headers.
