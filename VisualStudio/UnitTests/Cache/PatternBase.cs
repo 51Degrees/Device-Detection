@@ -28,8 +28,7 @@ namespace FiftyOne.UnitTests.Cache
     public abstract class PatternBase : UnitTests.PatternBase
     {
         protected static int _iterations = 10;
-        protected static int[] _cacheSizesSingle = { 100, 1000, 20000 };
-        protected static int[] _cacheSizesMulti = { 10, 100, 500 };
+        protected static int[] _cacheSizes = { 100, 1000, 20000 };
 
         protected IWrapper GetFreshWrapper(int cacheSize)
         {
@@ -154,6 +153,8 @@ namespace FiftyOne.UnitTests.Cache
 
         }
 
+        private static double tolerance = 1.1;
+
         private void AssertCacheSpeed(System.TimeSpan cachedTime,
             System.TimeSpan uncachedTime)
         {
@@ -162,7 +163,7 @@ namespace FiftyOne.UnitTests.Cache
             Console.WriteLine("Average time when fetching from cache: " +
                 cachedTime.TotalMilliseconds);
 
-            Assert.IsTrue(cachedTime.TotalMilliseconds < uncachedTime.TotalMilliseconds,
+            Assert.IsTrue(cachedTime.TotalMilliseconds < uncachedTime.TotalMilliseconds*tolerance,
                 String.Format("Average time of '{0:0.000}' ms when fetching " +
                 "from the cache exceded time of '{1:0.000}' ms when adding " +
                 "to the cache.",

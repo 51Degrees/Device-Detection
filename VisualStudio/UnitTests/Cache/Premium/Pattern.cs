@@ -47,42 +47,42 @@ namespace FiftyOne.UnitTests.Cache.Premium
         [TestCategory("Premium"), TestCategory("Pattern"), TestCategory("Cache")]
         public void PremiumV32Pattern_Cache_LargeCacheSingle()
         {
-            CachePerformanceSingleThreaded(_cacheSizesSingle[2], _iterations);
+            CachePerformanceSingleThreaded(_cacheSizes[2], _iterations);
         }
 
         [TestMethod]
         [TestCategory("Premium"), TestCategory("Pattern"), TestCategory("Cache")]
         public void PremiumV32Pattern_Cache_MediumCacheSingle()
         {
-            CachePerformanceSingleThreaded(_cacheSizesSingle[2], _iterations);
+            CachePerformanceSingleThreaded(_cacheSizes[2], _iterations);
         }
 
         [TestMethod]
         [TestCategory("Premium"), TestCategory("Pattern"), TestCategory("Cache")]
         public void PremiumV32Pattern_Cache_SmallCacheSingle()
         {
-            CachePerformanceSingleThreaded(_cacheSizesSingle[0], _iterations);
+            CachePerformanceSingleThreaded(_cacheSizes[0], _iterations);
         }
 
         [TestMethod]
         [TestCategory("Premium"), TestCategory("Pattern"), TestCategory("Cache")]
         public void PremiumV32Pattern_Cache_LargeCacheMulti()
         {
-            CachePerformanceMultiThreaded(_cacheSizesMulti[2], _iterations);
+            CachePerformanceMultiThreaded(_cacheSizes[2], _iterations);
         }
 
         [TestMethod]
         [TestCategory("Premium"), TestCategory("Pattern"), TestCategory("Cache")]
         public void PremiumV32Pattern_Cache_MediumCacheMulti()
         {
-            CachePerformanceMultiThreaded(_cacheSizesMulti[2], _iterations);
+            CachePerformanceMultiThreaded(_cacheSizes[2], _iterations);
         }
 
         [TestMethod]
         [TestCategory("Premium"), TestCategory("Pattern"), TestCategory("Cache")]
         public void PremiumV32Pattern_Cache_SmallCacheMulti()
         {
-            CachePerformanceMultiThreaded(_cacheSizesMulti[0], _iterations);
+            CachePerformanceMultiThreaded(_cacheSizes[0], _iterations);
         }
     }
 }
