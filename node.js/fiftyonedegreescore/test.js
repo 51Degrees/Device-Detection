@@ -348,40 +348,6 @@ describe("Performance", function () {
         })
     })
 
-    // Only test caching if there is a cache.
-    // todo fix or remove
-    if (config.cacheSize !== undefined && true === false) {
-        describe("Detection Speed With Cache", function () {
-            it("Should be quicker when fetching matches which are already cached", function () {
-
-                // Reload to clear the cache.
-                provider.reloadFromFile();
-
-                // Test when cache is empty.
-                var start = new Date();
-                for (var i = 0; i < config.cacheSize && i < userAgents.length; i++) {
-                    var match = provider.getMatch(userAgents[i].toString());
-                    assert.equal(true, match !== undefined, "Match object was undefined for User-Agent:" + userAgent);
-                    match.close();
-                }
-                var end = new Date();
-                var timeTaken = end - start;
-
-                // Test now all User-Agents are in the cache.
-                var start = new Date();
-                for (var i = 0; i < config.cacheSize && i < userAgents.length; i++) {
-                    var match = provider.getMatch(userAgents[i].toString());
-                    assert.equal(true, match !== undefined, "Match object was undefined for User-Agent:" + userAgent);
-                    match.close();
-                }
-                var end = new Date();
-                var timeTakenCache = end - start;
-                // Cache should be quicker.
-                assert.equal(true, timeTakenCache < timeTaken, "Detection speed when using the cache is more that without " + timeTakenCache + ">" + timeTaken);
-            })
-        })
-    }
-
     describe("Reload Penalty", function () {
         it("Should reload without costing more than 1s per 20000 matches", function () {
             var numberOfReloads = 5;
