@@ -28,13 +28,11 @@ namespace FiftyOne.UnitTests.Cache.Premium
     [TestClass]
     public class Pattern : PatternBase
     {
-        private static int _iterations = 100;
-
         private static readonly string[] REQUIRED_PROPERTIES = new string[] { "IsMobile" };
 
         protected override string DataFile
         {
-            get { return Constants.LITE_PATTERN_V32; }
+            get { return Constants.PREMIUM_PATTERN_V32; }
         }
 
         protected override IEnumerable<string> RequiredProperties
@@ -49,42 +47,42 @@ namespace FiftyOne.UnitTests.Cache.Premium
         [TestCategory("Premium"), TestCategory("Pattern"), TestCategory("Cache")]
         public void PremiumV32Pattern_Cache_LargeCacheSingle()
         {
-            CachePerformanceSingleThreaded(20000, _iterations);
+            CachePerformanceSingleThreaded(_cacheSizesSingle[2], _iterations);
         }
 
         [TestMethod]
         [TestCategory("Premium"), TestCategory("Pattern"), TestCategory("Cache")]
         public void PremiumV32Pattern_Cache_MediumCacheSingle()
         {
-            CachePerformanceSingleThreaded(1000, _iterations);
+            CachePerformanceSingleThreaded(_cacheSizesSingle[2], _iterations);
         }
 
         [TestMethod]
         [TestCategory("Premium"), TestCategory("Pattern"), TestCategory("Cache")]
         public void PremiumV32Pattern_Cache_SmallCacheSingle()
         {
-            CachePerformanceSingleThreaded(100, _iterations);
+            CachePerformanceSingleThreaded(_cacheSizesSingle[0], _iterations);
         }
 
         [TestMethod]
         [TestCategory("Premium"), TestCategory("Pattern"), TestCategory("Cache")]
         public void PremiumV32Pattern_Cache_LargeCacheMulti()
         {
-            CachePerformanceMultiThreaded(20000, _iterations);
+            CachePerformanceMultiThreaded(_cacheSizesMulti[2], _iterations);
         }
 
         [TestMethod]
         [TestCategory("Premium"), TestCategory("Pattern"), TestCategory("Cache")]
         public void PremiumV32Pattern_Cache_MediumCacheMulti()
         {
-            CachePerformanceMultiThreaded(1000, _iterations);
+            CachePerformanceMultiThreaded(_cacheSizesMulti[2], _iterations);
         }
 
         [TestMethod]
         [TestCategory("Premium"), TestCategory("Pattern"), TestCategory("Cache")]
         public void PremiumV32Pattern_Cache_SmallCacheMulti()
         {
-            CachePerformanceMultiThreaded(100, _iterations);
+            CachePerformanceMultiThreaded(_cacheSizesMulti[0], _iterations);
         }
     }
 }

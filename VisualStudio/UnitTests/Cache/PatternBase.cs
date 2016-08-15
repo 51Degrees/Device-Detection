@@ -27,6 +27,10 @@ namespace FiftyOne.UnitTests.Cache
 {
     public abstract class PatternBase : UnitTests.PatternBase
     {
+        protected static int _iterations = 10;
+        protected static int[] _cacheSizesSingle = { 100, 1000, 20000 };
+        protected static int[] _cacheSizesMulti = { 10, 100, 500 };
+
         protected IWrapper GetFreshWrapper(int cacheSize)
         {
             if (_wrapper != null)
