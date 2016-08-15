@@ -28,6 +28,14 @@
 
 #ifdef _DEBUG
 #define PASSES 1
+// Memory leak detection code.
+#ifdef _MSC_VER
+#define _CRTDBG_MAP_ALLOC
+#include <stdlib.h>
+#include <crtdbg.h>
+#else
+#include "dmalloc.h"
+#endif
 #else
 #define PASSES 10
 #endif
@@ -283,6 +291,13 @@ int main(int argc, char* argv[]) {
 		char* inputFile = argc > 2 ? argv[2] : "../../../data/20000 User Agents.csv";
 		char *requiredProperties = argc > 3 ? argv[3] : NULL;
 
+		// Memory leak detection code.
+#ifdef _DEBUG
+#ifndef _MSC_VER
+		dmalloc_debug_setup("log-stats,log-non-free,check-fence,log=dmalloc.log");
+#endif
+#endif
+
 		fiftyoneDegreesDataSetInitStatus status = DATA_SET_INIT_STATUS_SUCCESS;
 		status = fiftyoneDegreesInitWithPropertyString(fileName, &dataSet, requiredProperties);
 		switch (status) {
@@ -322,6 +337,14 @@ int main(int argc, char* argv[]) {
 	else {
 		printf("Not enough arguments supplied. Expecting: path/to/trie_file path/to/test_file property1,property2(optional)\n");
 	}
+
+#ifdef _DEBUG
+#ifdef _MSC_VER
+	_CrtDumpMemoryLeaks();
+#else
+	printf("Log file is %s\r\n", dmalloc_logpath);
+#endif
+#endif
 
 	return 0;
 }
