@@ -5,6 +5,7 @@
 #include <math.h>
 #include <time.h>
 #include <ctype.h>
+#include <assert.h>
 #include "../cityhash/city.h"
 #include "51Degrees.h"
 /* *********************************************************************
@@ -750,7 +751,7 @@ static fiftyoneDegreesDataSetInitStatus initFromFile(
 * \cond
 * Creates a new dataset, pool and cache using the same configuration options
 * as the current data set, pool and cache associated with the provider. The
-* data file which the provider was initialised with  is used to create the 
+* data file which the provider was initialised with  is used to create the
 * new data set. The exisitng data set, pool and cache are marked to be freed
 * if worksets are being used by other threads, or if no work sets are in use
 * they are freed immediately.
@@ -1746,6 +1747,42 @@ fiftyoneDegreesDataSetInitStatus fiftyoneDegreesInitProviderWithPropertyArray(
 }
 
 /**
+ * \cond
+ * Get the size of the file provided.
+ * @param fileName path to the file.
+ * @returns size_t the size the file will need in memory, or -1 if the file
+ * could not be opened.
+ * \endcond
+ */
+size_t getSizeOfFile(const char* fileName) {
+
+	size_t sizeOfFile;
+	FILE *inputFilePtr;
+
+	// Open the file and hold on to the pointer.
+#ifndef _MSC_FULL_VER
+	inputFilePtr = fopen(fileName, "rb");
+	if (inputFilePtr == NULL) {
+		return -1;
+	}
+#else
+	/* If using Microsoft use the fopen_s method to avoid warning */
+	if (fopen_s(&inputFilePtr, fileName, "rb") != 0) {
+		return -1;
+	}
+#endif
+	fseek(inputFilePtr, 0, SEEK_END);
+
+	// Add file size.
+	sizeOfFile = ftell(inputFilePtr);
+	fclose(inputFilePtr);
+
+	assert(sizeOfFile > 0);
+
+	return sizeOfFile;
+}
+
+/**
 * \cond
 * Uses the memory allocation size macros to calculate the amount of memory
 * needed by the provider. The size of the file and filename must be set prior
@@ -1835,45 +1872,25 @@ static size_t getProviderSizeWithPropertyCount(size_t sizeOfFile, fiftyoneDegree
 size_t fiftyoneDegreesGetProviderSizeWithPropertyString(const char *fileName, const char *properties, int poolSize, int cacheSize)
 {
 	int requiredPropertyCount;
-	size_t sizeOfFile;
-	FILE *inputFilePtr;
+	size_t size;
 	fiftyoneDegreesDataSetHeader *header = (fiftyoneDegreesDataSetHeader*)fiftyoneDegreesMalloc(sizeof(fiftyoneDegreesDataSetHeader));
 
-	// Open the file and hold on to the pointer.
-#ifndef _MSC_FULL_VER
-	inputFilePtr = fopen(fileName, "rb");
-	if (inputFilePtr == NULL) {
-		return -1;
+	size = getSizeOfFile(fileName);
+
+	if ((int)size > 0) {
+		// Add file name.
+		size += (SIZE_OF_FILE_NAME(fileName));
+
+		// Get property count.
+		requiredPropertyCount = getSeparatorCount(properties);
+
+		// Add required properties array.
+		size += (SIZE_OF_REQUIRED_PROPERTIES_ARRAY);
+
+		// Return the total size needed for the provider.
+		size = getProviderSizeWithPropertyCount(size, *header, requiredPropertyCount, poolSize, cacheSize);
 	}
-#else
-	/* If using Microsoft use the fopen_s method to avoid warning */
-	if (fopen_s(&inputFilePtr, fileName, "rb") != 0) {
-		return -1;
-	}
-#endif
-
-	// Read in header.
-	if (fread(header, sizeof(fiftyoneDegreesDataSetHeader), 1, inputFilePtr) != 1) {
-		return -1;
-	}
-
-	fseek(inputFilePtr, 0, SEEK_END);
-
-	// Add file size.
-	sizeOfFile = ftell(inputFilePtr);
-	fclose(inputFilePtr);
-
-	// Add file name.
-	sizeOfFile += (SIZE_OF_FILE_NAME(fileName));
-
-	// Get property count.
-	requiredPropertyCount = getSeparatorCount(properties);
-
-	// Add required properties array.
-	sizeOfFile += (SIZE_OF_REQUIRED_PROPERTIES_ARRAY);
-
-	// Return the total size needed for the provider.
-	return getProviderSizeWithPropertyCount(sizeOfFile, *header, requiredPropertyCount, poolSize, cacheSize);
+	return size;
 }
 
 /**
@@ -1893,38 +1910,19 @@ size_t fiftyoneDegreesGetProviderSizeWithPropertyString(const char *fileName, co
 */
 size_t fiftyoneDegreesGetProviderSizeWithPropertyCount(const char *fileName, int propertyCount, int poolSize, int cacheSize)
 {
-	size_t sizeOfFile;
-	FILE *inputFilePtr;
+	size_t size;
 	fiftyoneDegreesDataSetHeader *header = (fiftyoneDegreesDataSetHeader*)fiftyoneDegreesMalloc(sizeof(fiftyoneDegreesDataSetHeader));
 
-	// Open the file and hold on to the pointer.
-#ifndef _MSC_FULL_VER
-	inputFilePtr = fopen(fileName, "rb");
-	if (inputFilePtr == NULL) {
-		return -1;
+	size = getSizeOfFile(fileName);
+
+	if ((int)size > 0) {
+		// Add file name.
+		size += (SIZE_OF_FILE_NAME(fileName));
+
+		// Return the total size needed for the provider.
+		size = getProviderSizeWithPropertyCount(size, *header, propertyCount, poolSize, cacheSize);
 	}
-#else
-	/* If using Microsoft use the fopen_s method to avoid warning */
-	if (fopen_s(&inputFilePtr, fileName, "rb") != 0) {
-		return -1;
-	}
-#endif
-
-	// Read in header.
-	if (fread(header, sizeof(fiftyoneDegreesDataSetHeader), 1, inputFilePtr) != 1) {
-		return -1;
-	}
-	fseek(inputFilePtr, 0, SEEK_END);
-
-	// Add file size.
-	sizeOfFile = ftell(inputFilePtr);
-	fclose(inputFilePtr);
-
-	// Add file name.
-	sizeOfFile += (SIZE_OF_FILE_NAME(fileName));
-
-	// Return the total size needed for the provider.
-	return getProviderSizeWithPropertyCount(sizeOfFile, *header, propertyCount, poolSize, cacheSize);
+	return size;
 }
 
 /**
