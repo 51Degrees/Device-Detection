@@ -4,6 +4,9 @@ var http = require("http");
 // Share usage object to return.
 var shareUsage = {};
 
+// Is a share usage worker already running?
+var running = 0;
+
 // Queue to store new device information.
 var queue = [],
 // Maximum length of the queue.
@@ -171,22 +174,32 @@ var getContent = function(request) {
 
 // Module constructor. Sets the error log, product version and product name.
 module.exports = function(provider, FOD) {
-    log = FOD.log;
-    if (provider.config.UsageSharingDebug === true) {
-        // Provider has been created as part of a test, so send the usage data
-        // to localhost after one request to be tested.
-        requestOptions.host = 'localhost';
-        requestOptions.port = 1234;
-        newDeviceQueueLength = 1;
+    if (running !== 1) {
+        log = FOD.log;
+
+        if (provider.config.UsageSharingDebug === true) {
+            // Provider has been created as part of a test, so send the usage
+            // data to localhost after one request to be tested.
+            requestOptions.host = 'localhost';
+            requestOptions.port = 1234;
+            newDeviceQueueLength = 1;
+        }
+    
+        // Get the version of the data set e.g. "3.2".
+        version = provider.getDataSetFormat();
+    
+        // Get the product name e.g. "Node js : Trie"
+        product = 'Node js : ' + provider.config.Type;
+        log.emit('info', '[' + provider.Id + '] ' +
+                 'Usage sharer started');
+
+        // The usage sharer is started.
+        running = 1;
     }
-    
-    // Get the version of the data set e.g. "3.2".
-    version = provider.getDataSetFormat();
-    
-    // Get the product name e.g. "Node js : Trie"
-    product = 'Node js : ' + provider.config.Type;
-    log.emit('info', 'Usage sharer started')
-    
+    else {
+        log.emit('info', '[' + provider.Id + '] ' +
+                 'Using pre-existing usage sharer.');
+    }
     // Return the share usage object.
     return shareUsage;
 };

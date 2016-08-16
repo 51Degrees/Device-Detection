@@ -4,6 +4,7 @@ var path = require("path");
 
 // 51Degrees object to return.
 var FiftyOneDegrees = {};
+var providerId = 1;
 
 // Create the logger.
 FiftyOneDegrees.log = new eventEmitter();
@@ -54,7 +55,8 @@ FiftyOneDegrees.provider = function (configuration) {
 
     // Initialise the Provider. Account for all variations here as the node SWIG interface
     // treats undefined as a value.
-    FiftyOneDegrees.log.emit('info', 'Creating provider from data file ' + config.dataFile);
+    FiftyOneDegrees.log.emit('info', 'Creating provider [' + providerId +
+                             '] from data file ' + config.dataFile);
     if (config.properties) {
         if (config.cacheSize && config.poolSize) {
             returnedProvider = new FODcore.Provider(config.dataFile, config.properties.toString(), config.cacheSize, config.poolSize);
@@ -73,7 +75,13 @@ FiftyOneDegrees.provider = function (configuration) {
     }
 
     // The provider has been successfully created, so say so.
-    FiftyOneDegrees.log.emit('info', 'Created provider from data file ' + config.dataFile);
+    FiftyOneDegrees.log.emit('info', 'Created provider [' + providerId +
+                             '] from data file ' + config.dataFile);
+
+    // Set the provider's id so the log is readable with multiple
+    // providers.
+    returnedProvider.Id = providerId;
+    providerId++;
 
     // Get the important headers from the data set, this is used when matching
     // with HTTP headers accounting the case of the header names.
@@ -357,7 +365,8 @@ FiftyOneDegrees.provider = function (configuration) {
 
     // Store the important headers for use by the getMatch function.
     var importantHeaders = returnedProvider.getHttpHeadersLower();
-    FiftyOneDegrees.log.emit('debug', 'Set the important headers')
+    FiftyOneDegrees.log.emit('debug', '[' +returnedProvider.Id +
+                             '] Set the important headers')
 
     // Expose the config for extrernal use.
     returnedProvider.config = config;
@@ -370,17 +379,20 @@ FiftyOneDegrees.provider = function (configuration) {
     for (var i = 0; i < nativeAvailableProperties.size(); i++) {
         returnedProvider.availableProperties[i] = nativeAvailableProperties.get(i);
     }
-    FiftyOneDegrees.log.emit('debug', 'Got the availbale properties')
+    FiftyOneDegrees.log.emit('debug', '[' +returnedProvider.Id +
+                             '] Got the availbale properties')
 
     // Start the auto update process in the background.
     if (config.License) {
-        FiftyOneDegrees.log.emit('info', 'Starting auto updater');
+        FiftyOneDegrees.log.emit('info', '[' +returnedProvider.Id +
+                                 '] Starting auto updater');
         require(__dirname + "/update")(returnedProvider, FiftyOneDegrees);
     }
 
     // Start the share usage process.
     if (config.UsageSharingEnabled !== false) {
-        FiftyOneDegrees.log.emit('info', 'Starting usage sharer');
+        FiftyOneDegrees.log.emit('info', '[' +returnedProvider.Id +
+                                 '] Starting usage sharer');
         shareUsage = require(__dirname + "/shareUsage")(returnedProvider, FiftyOneDegrees);
     }
 

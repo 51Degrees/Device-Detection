@@ -154,13 +154,15 @@ module.exports = function (provider, FOD) {
             product = 'Enterprise';
         }
         else {
-            FOD.log.emit('info', 'Lite data file does not support automatic' +
+            FOD.log.emit('info', '[' + provider.Id + '] ' + 
+                         'Lite data file does not support automatic' +
                          ' updates. See https://51degrees.com/compare-data-' +
                          'options for more information.');
         }
     }
     else {
-        FOD.log.emit('info', 'Lite data file does not support automatic' +
+        FOD.log.emit('info', '[' + provider.Id + '] ' +
+                     'Lite data file does not support automatic' +
                      ' updates. See https://51degrees.com/compare-data-' +
                      'options for more information.');
     }
@@ -175,7 +177,8 @@ module.exports = function (provider, FOD) {
             update(provider, function (err) {
                 if (err) {
                     // If failed, output log the error and unset the updating flag.
-                    FOD.log.emit("info", 'Could not update the data file ' +
+                    FOD.log.emit("info", '[' + provider.Id + '] ' +
+                                 'Could not update the data file ' +
                                  'reason: ' + err);
                     updating = false;
                     return false
@@ -184,20 +187,23 @@ module.exports = function (provider, FOD) {
                     // set the new update date, and unset the updating flag.
                     provider.reloadFromFile();
                     dataSetNextUpdateDate = new Date(provider.getDataSetNextUpdateDate());
-                    FOD.log.emit('info', 'Automatically updated data file ' +
+                    FOD.log.emit('info', '[' + provider.Id + '] ' +
+                                 'Automatically updated data file ' +
                                  config.dataFile + ' with version published ' +
                                  'on ' + provider.getDataSetPublishedDate());
                     updating = false;
                 }
             });
         } else {
-            FOD.log.emit('info', 'Could not update the data file reason: ' +
+            FOD.log.emit('info', '[' + provider.Id + '] ' +
+                         'Could not update the data file reason: ' +
                          'The data file is current and does not need to be ' +
                          'updated');
         }
         // Atempt to update every 6 hours.
     }, 21600000);
     
-    FOD.log.emit('info', 'Auto updater started. Next update date ' +
+    FOD.log.emit('info', '[' + provider.Id + '] ' +
+                 'Auto updater started. Next update date ' +
                  provider.getDataSetNextUpdateDate());
 }
