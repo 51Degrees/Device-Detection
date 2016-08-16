@@ -74,6 +74,9 @@ if (!fs.existsSync('fiftyonedegreescore/src')) {
     fs.mkdirSync('fiftyonedegreescore/src/cityhash');
 }
 
+// Copy the readme.
+copyFile('README.md', 'fiftyonedegreescore/README.md', errorCheck);
+
 // Copy source files.
 srcFiles.forEach(function(fileName) {
     copyFile('../src/' + fileName, 'fiftyonedegreescore/src/' + fileName, errorCheck)

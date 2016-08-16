@@ -81,9 +81,9 @@ Move to the node.js directory with
 ```
 $ cd Device-Detection/node.js
 ```
-copy the source and data files with
+copy the source and data files to the fiftyonedegreescore directory with
 ```
-$ node gitCopy.js
+$ node copySource.js
 ```
 then install in the same way as through npm where the name is interpreted as the directory
 ```
