@@ -174,7 +174,6 @@ var getContent = function(request) {
 
 // Module constructor. Sets the error log, product version and product name.
 module.exports = function(provider, FOD) {
-    if (running !== 1) {
         log = FOD.log;
 
         if (provider.config.UsageSharingDebug === true) {
@@ -190,15 +189,16 @@ module.exports = function(provider, FOD) {
     
         // Get the product name e.g. "Node js : Trie"
         product = 'Node js : ' + provider.config.Type;
+
+    if (running !== 1) {
         log.emit('info', '[' + provider.Id + '] ' +
                  'Usage sharer started');
-
         // The usage sharer is started.
         running = 1;
     }
     else {
         log.emit('info', '[' + provider.Id + '] ' +
-                 'Using pre-existing usage sharer.');
+                 'Updated pre-existing usage sharer.');
     }
     // Return the share usage object.
     return shareUsage;
