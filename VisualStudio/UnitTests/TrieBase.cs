@@ -23,24 +23,17 @@ using FiftyOne.Mobile.Detection.Provider.Interop;
 
 namespace FiftyOne.UnitTests
 {
-    public abstract class PatternBase : Base
+    public abstract class TrieBase : Base
     {
         protected override IWrapper CreateWrapper()
         {
             Utils.CheckFileExists(DataFile);
-            return new PatternWrapper(DataFile, 5000);
+            return new TrieWrapper(DataFile);
         }
 
         protected override IWrapper CreateWrapper(string properties, bool validate)
         {
-            Utils.CheckFileExists(DataFile);
-            return new PatternWrapper(DataFile, properties, 5000, validate);
-        }
-
-        protected override IWrapper CreateWrapper(int cacheSize)
-        {
-            Utils.CheckFileExists(DataFile);
-            return new PatternWrapper(DataFile, cacheSize);
+            return new TrieWrapper(DataFile, properties, validate);
         }
     }
 }

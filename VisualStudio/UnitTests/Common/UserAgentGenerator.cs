@@ -73,10 +73,10 @@ namespace FiftyOne.UnitTests
         }
 
         /// <summary>
-        /// Returns an enumerable of user agent strings which match the regex. The
+        /// Returns an enumerable of User-Agent strings which match the regex. The
         /// results can not return more than the count specified.
         /// </summary>
-        /// <param name="count">Nmber of user agents to return.</param>
+        /// <param name="count">Number of User-Agents to return.</param>
         /// <param name="pattern">Regular expression for the user agents.</param>
         /// <returns></returns>
         public static IEnumerable<string> GetEnumerable(int count, string pattern)
@@ -95,6 +95,17 @@ namespace FiftyOne.UnitTests
                     }
                 }
             }
+        }
+
+        /// <summary>
+        /// Returns an enumerable of User-Agent strings. The results can not
+        /// return more than the count specified.
+        /// </summary>
+        /// <param name="count">Number of User-Agents to return.</param>
+        /// <returns></returns>
+        public static IEnumerable<string> GetEnumerable(int count)
+        {
+            return GetEnumerable(count, "(.*?)");
         }
 
         public static IEnumerable<string> GetRandomUserAgents(int count = 0)

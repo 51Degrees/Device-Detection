@@ -24,7 +24,7 @@ using Microsoft.VisualStudio.TestTools.UnitTesting;
 using FiftyOne.UnitTests;
 using System.Collections.Specialized;
 
-namespace UnitTests.API.Enterprise
+namespace UnitTests.API.Premium
 {
     [TestClass]
     public class Pattern : PatternBase
@@ -43,7 +43,7 @@ namespace UnitTests.API.Enterprise
 
         [TestMethod]
         [TestCategory("API"), TestCategory("Premium")]
-        public void PatternPatternAPI_NullUserAgent()
+        public void PremiumPatternAPI_NullUserAgent()
         {
             using (var result = _wrapper.Match((string)null))
             {
@@ -53,7 +53,7 @@ namespace UnitTests.API.Enterprise
 
         [TestMethod]
         [TestCategory("API"), TestCategory("Premium")]
-        public void PatternPatternAPI_EmptyUserAgent()
+        public void PremiumPatternAPI_EmptyUserAgent()
         {
             using (var result = _wrapper.Match(String.Empty))
             {
@@ -63,7 +63,7 @@ namespace UnitTests.API.Enterprise
 
         [TestMethod]
         [TestCategory("API"), TestCategory("Premium")]
-        public void PatternPatternAPI_LongUserAgent()
+        public void PremiumPatternAPI_LongUserAgent()
         {
             var userAgent = String.Join(" ", UserAgentGenerator.GetEnumerable(10, 10));
             using (var result = _wrapper.Match(userAgent))
@@ -112,6 +112,23 @@ namespace UnitTests.API.Enterprise
             }
         }
 
+        [TestMethod]
+        [TestCategory("API"), TestCategory("Premium")]
+        public void PremiumPatternAPI_ProviderMemory()
+        {
+            string properties = "IsMobile,BrowserName,PlatformName";
+            var provider = CreateWrapper(properties, true);
+            provider.Dispose();
+        }
+
+        [TestMethod]
+        [TestCategory("API"), TestCategory("Premium")]
+        public void PremiumPatternAPI_ProviderMemoryEmptyProperties()
+        {
+            string properties = "";
+            var provider = CreateWrapper(properties, true);
+            provider.Dispose();
+        }
         protected override string DataFile
         {
             get { return Constants.PREMIUM_PATTERN_V32; }

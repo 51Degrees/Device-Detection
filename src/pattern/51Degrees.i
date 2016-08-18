@@ -208,4 +208,11 @@ class Provider {
 
 	void reloadFromFile();
 	void reloadFromMemory(const std::string &source, int length);
+
+	int getCacheHits();
+	int getCacheMisses();
+	int getCacheMaxIterations();
+
+	Provider(const std::string &fileName, const std::string &propertyString, int cacheSize, int poolSize, bool validate);
+
 };

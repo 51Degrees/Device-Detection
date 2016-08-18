@@ -25,7 +25,7 @@ using FiftyOne.UnitTests;
 using System.Text;
 using System.Collections.Specialized;
 
-namespace UnitTests.API.Premium
+namespace UnitTests.API.Enterprise
 {
     [TestClass]
     public class Pattern : PatternBase
@@ -111,6 +111,24 @@ namespace UnitTests.API.Premium
                     }
                 }
             }
+        }
+
+        [TestMethod]
+        [TestCategory("API"), TestCategory("Enterprise")]
+        public void EnterprisePatternAPI_ProviderMemory()
+        {
+            string properties = "IsMobile,BrowserName,PlatformName";
+            var provider = CreateWrapper(properties, true);
+            provider.Dispose();
+        }
+
+        [TestMethod]
+        [TestCategory("API"), TestCategory("Enterprise")]
+        public void EnterprisePatternAPI_ProviderMemoryEmptyProperties()
+        {
+            string properties = "";
+            var provider = CreateWrapper(properties, true);
+            provider.Dispose();
         }
 
         protected override string DataFile

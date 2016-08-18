@@ -96,8 +96,10 @@ namespace FiftyOne.UnitTests
         /// <param name="provider"></param>
         /// <param name="userAgents"></param>
         /// <param name="method"></param>
+        /// <param name="state"></param>
+        /// <param name="silent"></param>
         /// <returns>Counts for each of the methods used</returns>
-        internal static Results DetectLoopSingleThreaded(IWrapper provider, IEnumerable<string> userAgents, ProcessMatch method, object state)
+        internal static Results DetectLoopSingleThreaded(IWrapper provider, IEnumerable<string> userAgents, ProcessMatch method, object state, bool silent = false)
         {
             var results = new Results();
             foreach (var line in userAgents)
@@ -117,7 +119,10 @@ namespace FiftyOne.UnitTests
                 }
                 results.Count++;
             }
-            ReportTime(results);
+            if (!silent)
+            {
+                ReportTime(results);
+            }
             return results;
         }
         
@@ -129,8 +134,10 @@ namespace FiftyOne.UnitTests
         /// <param name="provider"></param>
         /// <param name="userAgents"></param>
         /// <param name="method"></param>
+        /// <param name="state"></param>
+        /// <param name="silent"></param>
         /// <returns>Counts for each of the methods used</returns>
-        internal static Results DetectLoopMultiThreaded(IWrapper provider, IEnumerable<string> userAgents, ProcessMatch method, object state)
+        internal static Results DetectLoopMultiThreaded(IWrapper provider, IEnumerable<string> userAgents, ProcessMatch method, object state, bool silent = false)
         {
             var results = new Results();
             Parallel.ForEach(userAgents, line =>
@@ -150,7 +157,9 @@ namespace FiftyOne.UnitTests
                     Console.WriteLine(ex.StackTrace);
                 }
             });
-            ReportTime(results);
+            if (!silent) {
+                ReportTime(results);
+            }
             return results;
         }
 

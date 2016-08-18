@@ -210,7 +210,7 @@ void run(fiftyoneDegreesProvider *provider) {
 
     if (cache != NULL) {
         printf("\r\n\t\t\t*** Cache Results ***\r\n");
-        printf("Switches:\t%d\r\n", cache->switches);
+		printf("Max Iterations:\t%d\r\n", cache->maxIterations);
         printf("Hits:\t\t%d\r\n", cache->hits);
         printf("Misses:\t\t%d\r\n", cache->misses);
     }

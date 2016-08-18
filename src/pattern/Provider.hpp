@@ -23,6 +23,7 @@
 #include <vector>
 #include <map>
 #include <stdexcept>
+#include <stdlib.h>
 #include <sstream>
 #include "Match.hpp"
 #include "Profiles.hpp"
@@ -91,6 +92,13 @@ class Provider {
 		void reloadFromMemory(const char *source, int length);
 		void reloadFromMemory(const string &source, int length);
 
+		int getCacheHits();
+		int getCacheMisses();
+		int getCacheMaxIterations();
+
+		Provider(const string &fileName, const string &propertyString,
+			int cacheSize, int poolSize, bool validate);
+
 protected:
 
 	private:
@@ -113,6 +121,9 @@ protected:
 			map<string, vector<string> > *result);
 		void matchForHttpHeaders(fiftyoneDegreesWorkset *ws,
 			const map<string, string> *headers);
+
+		int64_t initWithValidate(const string &fileName,
+			const string &properties, int cacheSize, int poolSize);
 
 		fiftyoneDegreesProvider provider;
 };
