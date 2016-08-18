@@ -192,3 +192,10 @@ int Match::getDifference() {
 int Match::getMethod() {
     return ws->method;
 }
+
+/**
+ * Manual dispose method for node.
+ */
+void Match::close() {
+    fiftyoneDegreesWorksetRelease(ws);
+}

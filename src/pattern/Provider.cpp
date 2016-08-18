@@ -486,6 +486,13 @@ Match* Provider::getMatch(const map<string, string>& headers) {
 	return result;
 }
 
+Match* Provider::getMatchForHttpHeaders(const map<string, string>& headers) {
+	Match *result = new Match();
+	initMatch(result);
+	matchForHttpHeaders(result->ws, &headers);
+	return result;
+}
+
 /**
  * Completes device detection for the User-Agent provided.
  * @param User-Agent whose results need to be obtained
