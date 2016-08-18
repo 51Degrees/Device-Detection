@@ -1,6 +1,6 @@
 {
     "name": "fiftyonedegreeslitepattern",
-    "version": "3.2.1",
+    "version": "3.2.7",
     "description": "51degrees pattern data for nodejs",
     "main": "fiftyonedegreeslitepattern.js",
     "repository": {

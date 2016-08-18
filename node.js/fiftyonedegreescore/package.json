@@ -1,12 +1,11 @@
 {
     "name": "fiftyonedegreescore",
-    "version": "3.2.1",
+    "version": "3.2.7",
     "description": "51degrees device detection for nodejs",
     "main": "fiftyonedegreescore.js",
     "scripts": {
         "test": "mocha test.js --pattern",
-        "install": "node-gyp configure && node-gyp build",
-        "postinstall": "node postInstall.js"
+        "install": "node-gyp configure && node-gyp build"
     },
     "repository": {
         "type": "git",
@@ -18,5 +17,9 @@
     "bugs": {
         "url": "https://github.com/51Degrees/Device-Detection/issues"
     },
+    "dependencies" : {
+        "fiftyonedegreeslitepattern" : ">=3.2.7",
+        "fiftyonedegreeslitetrie" : ">=3.2.7"
+        },
     "homepage": "https://github.com/51Degrees/Device-Detection"
 }
