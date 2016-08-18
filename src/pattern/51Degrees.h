@@ -96,6 +96,42 @@ typedef struct fiftyoneDegreesRange_t {
  * DATA FILE MAPPED STRUCTURES - DO NOT ALTER
  */
 
+#define FIFTYONE_DEGREES_COMMON_SET_FIELDS \
+	/* A pointer to the data set to use for the match */ \
+	const fiftyoneDegreesDataSet *dataSet; \
+	/* An array of bytes representing the target user agent */ \
+	byte *targetUserAgentArray; \
+	/* The length of the target user agent */ \
+	uint16_t targetUserAgentArrayLength; \
+	/* The hash code of the target user agent */ \
+	uint64_t targetUserAgentHashCode; \
+	/* 0 if the hash code has not been calculated */ \
+	byte hashCodeSet; \
+	/* The method used to provide the match result */ \
+	fiftyoneDegreesMatchMethod method; \
+	/* The difference score between the signature found and the target */ \
+	int32_t difference; \
+	/* The number of root nodes evaluated */ \
+	int32_t rootNodesEvaluated; \
+	/* The number of strings read */ \
+	int32_t stringsRead; \
+	/* The number of nodes read during the detection */ \
+	int32_t nodesEvaluated; \
+	/* The number of signatures read in full and compared to the target */ \
+	int32_t signaturesCompared; \
+	/* The number of signatures read in full */ \
+	int32_t signaturesRead; \
+	/* The total number of closest signatures available */ \
+	int32_t closestSignatures; \
+	/* Pointer to a list of profiles returned for the match */ \
+	const fiftyoneDegreesProfile **profiles; \
+	/* The number of profiles the match contains */ \
+	int32_t profileCount; \
+	/* The signature found if only one exists */ \
+	byte *signature; \
+	/* Pointer to the cache associated with the set */ \
+	const struct fiftyoneDegrees_resultset_cache_t *cache;
+
 #pragma pack(push, 1)
 typedef struct fiftyoneDegrees_ascii_string_t {
 	const int16_t length;
@@ -372,69 +408,40 @@ typedef struct fiftyoneDegrees_linked_signature_list_t {
 	fiftyoneDegreesLinkedSignatureListItem *current; /* Pointer to the current item in the list when navigating */
 } fiftyoneDegreesLinkedSignatureList;
 
+typedef struct fiftyoneDegrees_resultset_cache_t fiftyoneDegreesResultsetCache;
+
 #pragma pack(push, 1)
 typedef struct fiftyoneDegrees_resultset_t {
-	const fiftyoneDegreesDataSet *dataSet; /* A pointer to the data set to use for the match */
-	byte *targetUserAgentArray; /* An array of bytes representing the target user agent */
-	uint16_t targetUserAgentArrayLength; /* The length of the target user agent */
-	uint64_t targetUserAgentHashCode; /* The hash code of the target user agent */
-	byte hashCodeSet; /* 0 if the hash code has not been calculated */
-	fiftyoneDegreesMatchMethod method; /* The method used to provide the match result */
-	int32_t difference; /* The difference score between the signature found and the target */
-	int32_t rootNodesEvaluated; /* The number of root nodes evaluated */
-	int32_t stringsRead; /* The number of strings read */
-	int32_t nodesEvaluated; /* The number of nodes read during the detection */
-	int32_t signaturesCompared; /* The number of signatures read in full and compared to the target */
-	int32_t signaturesRead; /* The number of signatures read in full */
-	int32_t closestSignatures; /* The total number of closest signatures available */
-	const fiftyoneDegreesProfile *profiles; /* Pointer to a list of profiles returned for the match */
-	int32_t profileCount; /* The number of profiles the match contains */
-	byte *signature; /* The signature found if only one exists */
-	struct fiftyoneDegrees_resultset_t *previous; /* The previous item in the linked list, or NULL if first */
-	struct fiftyoneDegrees_resultset_t *next; /* The next item in the linked list, or NULL if last */
-	fiftyoneDegreesResultsetCacheState state; /* Indicates if the result set is in the active, background or both lists */
+	FIFTYONE_DEGREES_COMMON_SET_FIELDS
+	struct fiftyoneDegrees_resultset_t *listPrevious; /* The previous item in the linked list, or NULL if first */
+	struct fiftyoneDegrees_resultset_t *listNext; /* The next item in the linked list, or NULL if last */
+	struct fiftyoneDegrees_resultset_t *treeParent; /* Pointer to the parent item, or NULL if the root */
+	struct fiftyoneDegrees_resultset_t *treeLeft; /* Pointer to the item to the left of this one, or NULL if none */
+	struct fiftyoneDegrees_resultset_t *treeRight; /* Pointer to the item to the right of this one, or NULL if none */
+	byte colour; /* The colour of the resultset in the red black tree */
 } fiftyoneDegreesResultset;
 #pragma pack(pop)
 
 #pragma pack(push, 4)
-typedef struct fiftyoneDegrees_resultset_cache_t fiftyoneDegreesResultsetCache;
-#pragma pack(pop)
-
-#pragma pack(push, 4)
-typedef struct fiftyoneDegrees_resultset_cache_list_t {
-	struct fiftyoneDegrees_resultset_cache_t *cache; /* Pointer to the cache the list is a part of */
-	fiftyoneDegreesResultset **resultSets; /* Hashcode ordered list of pointers to resultsets in the cache list */
-	int32_t allocated; /* The number of resultsets currently allocated in the list */
-} fiftyoneDegreesResultsetCacheList;
-#pragma pack(pop)
-
-#pragma pack(push, 4)
-typedef struct fiftyoneDegrees_resultset_cache_link_list_t {
-	fiftyoneDegreesResultset *first; /* Pointer to the first item in the linked list */
-	fiftyoneDegreesResultset *last; /* Pointer to the last item in the linked list */
-	int32_t count; /* Number of items in the linked list */
-} fiftyoneDegreesResultsetCacheLinkedList;
-#pragma pack(pop)
-
-#pragma pack(push, 4)
-struct fiftyoneDegrees_resultset_cache_t {
+typedef struct fiftyoneDegrees_resultset_cache_t {
 	const fiftyoneDegreesDataSet *dataSet; /* A pointer to the data set to use with the cache */
-	const fiftyoneDegreesResultset *resultSets; /* The start of the list of resultsets in the cache */
-	int32_t sizeOfResultset; /* The number of bytes used for each resultset */
-	int32_t total; /* The number of resultset items in the cache */
-	fiftyoneDegreesResultsetCacheLinkedList free; /* Linked list of pointers to free resultsets */
-	fiftyoneDegreesResultsetCacheLinkedList allocated; /* Linked list of pointers to allocated resultsets */
-	fiftyoneDegreesResultsetCacheList *active; /* List of cache items that are actively being checked */
-	fiftyoneDegreesResultsetCacheList *background; /* List of cache items that are being recorded as recently accessed */
-	int32_t switchLimit; /* The number of items that can be allocated before the caches are switched */
+	const fiftyoneDegreesResultset *resultSets; /* Pointer to the array of result sets */
+	const byte *targetUserAgentArrays; /* Pointer to memory used to store target user agents */
+	const fiftyoneDegreesProfile **profiles; /* Pointer to memory used to store profile pointers */
+	fiftyoneDegreesResultset *listFirst; /* Pointer to the first resultset in the linked list */
+	fiftyoneDegreesResultset *listLast; /* Pointer to the last resultset in the linked list */
+	fiftyoneDegreesResultset root; /* Root resultset of the red black tree */
+	fiftyoneDegreesResultset empty; /* Empty resultset - set to black */
+	int32_t total; /* Capacity of the cache */
+	int32_t allocated; /* Number of resultsets currently used in the cache */
 	int32_t hits; /* The number of times an item was found in the cache */
 	int32_t misses; /* The number of times an item was not found in the cache */
-	int32_t switches; /* The number of times the cache has been switched */
+	int32_t switches; /* Always xero and no longer used */
+	int32_t maxIterations; /* The maximum number of iterations needed to fetch */
 #ifndef FIFTYONEDEGREES_NO_THREADING
-	FIFTYONEDEGREES_MUTEX activeLock; /* Used to lock access to the active cache list */
-	FIFTYONEDEGREES_MUTEX backgroundLock; /* Used to lock access to the background cache list */
+	FIFTYONEDEGREES_MUTEX lock; /* Used to lock access to the cache */
 #endif
-};
+} fiftyoneDegreesResultsetCache;
 #pragma pack(pop)
 
 #pragma pack(push, 4)
@@ -451,22 +458,7 @@ typedef struct fiftyoneDegrees_workset_pool_t fiftyoneDegreesWorksetPool;
 
 #pragma pack(push, 1)
 typedef struct fiftyoneDegrees_workset_t {
-	const fiftyoneDegreesDataSet *dataSet; /* A pointer to the data set to use for the match */
-	char *targetUserAgentArray; /* An array of bytes representing the target user agent */
-	uint16_t targetUserAgentArrayLength; /* The length of the target user agent */
-	uint64_t targetUserAgentHashCode; /* The hash code of the target user agent */
-	byte hashCodeSet; /* 0 if the hash code has not been calculated */
-	fiftyoneDegreesMatchMethod method; /* The method used to provide the match result */
-	int32_t difference; /* The difference score between the signature found and the target */
-	int32_t rootNodesEvaluated; /* The number of root nodes evaluated */
-	int32_t stringsRead; /* The number of strings read */
-	int32_t nodesEvaluated; /* The number of nodes read during the detection */
-	int32_t signaturesCompared; /* The number of signatures read in full and compared to the target */
-	int32_t signaturesRead; /* The number of signatures read in full */
-	int32_t closestSignatures; /* The total number of closest signatures available */
-	const fiftyoneDegreesProfile **profiles; /* Pointer to a list of profiles returned for the match */
-	int32_t profileCount; /* The number of profiles the match contains */
-	byte *signature; /* The signature found if only one exists */
+	FIFTYONE_DEGREES_COMMON_SET_FIELDS
 	const fiftyoneDegreesValue **values; /* Pointers to values associated with the property requested */
 	int32_t valuesCount; /* Number of values available */
 	char *input; /* An input buffer large enough to store the User-Agent to be matched */
@@ -484,7 +476,6 @@ typedef struct fiftyoneDegrees_workset_t {
 	byte startWithInitialScore; /* True if the NEAREST and CLOSEST methods should start with an initial score */
 	int(*functionPtrGetScore)(struct fiftyoneDegrees_workset_t *ws, const fiftyoneDegreesNode *node); /* Returns scores for each different node between signature and match */
 	const byte* (*functionPtrNextClosestSignature)(struct fiftyoneDegrees_workset_t *ws); /* Returns the next closest signature */
-	const fiftyoneDegreesResultsetCache *cache; /* Pointer to the cache, or NULL if not available. */
 	const fiftyoneDegreesProfile **tempProfiles; /* Pointer to a list of working profiles used during a multi header match */
 	int32_t importantHeadersCount; /* Number of elements included in the important headers array */
 	fiftyoneDegreesHttpHeaderWorkset *importantHeaders; /* Array of headers that are available and are important to detection */

@@ -133,7 +133,7 @@ Provider::~Provider() {
  * @param poolSize the maximum number of worksets to create for the pool
  */
 void Provider::init(const string &fileName, int cacheSize, int poolSize) {
-	fiftyoneDegreesDataSetInitStatus status = 
+	fiftyoneDegreesDataSetInitStatus status =
 		fiftyoneDegreesInitProviderWithPropertyString(
 			fileName.c_str(),
 			&provider,
@@ -157,9 +157,9 @@ void Provider::init(
 		const string &propertyString,
 		int cacheSize,
 		int poolSize) {
-	fiftyoneDegreesDataSetInitStatus status = 
+	fiftyoneDegreesDataSetInitStatus status =
 		fiftyoneDegreesInitProviderWithPropertyString(
-			fileName.c_str(), 
+			fileName.c_str(),
 			&provider,
 			propertyString.c_str(),
 			poolSize,
@@ -648,9 +648,9 @@ Profiles* Provider::findProfiles(const string &propertyName, const string &value
 }
 
 /**
- * Initiates the data set reload process from the same file location that was 
- * used to create the current dataset. New dataset will be initialised with 
- * exactly the same set of properties, cache size and number of worksets in 
+ * Initiates the data set reload process from the same file location that was
+ * used to create the current dataset. New dataset will be initialised with
+ * exactly the same set of properties, cache size and number of worksets in
  * the workset pool.
  *
  * Function is not thread safe.
@@ -681,4 +681,142 @@ void Provider::reloadFromMemory(const char *source, int length) {
 */
 void Provider::reloadFromMemory(const string &source, int length) {
 	reloadFromMemory(source.c_str(), length);
+}
+
+/**
+* Returns the number of times the cache fetch has found what it's
+* looking for.
+* @returns int number of cache hits.
+*/
+int Provider::getCacheHits() {
+	return provider.activePool->cache->hits;
+}
+
+/**
+* Returns the number of times the cache fetch has not found what it's
+* looking for. The cache fetch function is called a second time to insert
+* a value that was not found.
+* @returns int number of cache misses.
+*/
+int Provider::getCacheMisses() {
+	return provider.activePool->cache->misses;
+}
+
+/**
+* Return the maximum number of iterations a cache fetch could take to find
+* a match. This is the depth of the binary tree.
+*/
+int Provider::getCacheMaxIterations() {
+	return provider.activePool->cache->maxIterations;
+}
+
+// The section below is entirely for testing purposes and is not written
+// for use in a production environment.
+
+// The actual size allocated for the provider.
+static int64_t _actualSize;
+
+/**
+* Overrides the malloc function so that the size being allocated can be
+* added up.
+* @param size to allocate in memory.
+* @returns void* pointer to the memory allocated.
+*/
+static void *validateMalloc(size_t __size) {
+	_actualSize += (int64_t)__size;
+	return malloc(__size);
+}
+
+/**
+* Modified constructor for the provider. If validate is true, then the
+* calculated value of the memory needed is compared to the actual amount
+* of memory allocated for the provider and an error thrown if the value is
+* too low.
+*
+* This function is used when testing the getProviderSize funtion and is NOT
+* THREAD SAFE as it accesses a static variable. For this reason it SHOULD
+* NOT BE USED IN PRODUCTION.
+* @param fileName of the data source
+* @param propertyString contains comma seperated property names to be available
+* to query from associated match results.
+* @param cacheSize the number of prior User-Agent detections to cache
+* @param poolSize the maximum number of worksets to create for the pool
+*/
+Provider::Provider(
+	const string &fileName,
+	const string &propertyString,
+	int cacheSize,
+	int poolSize,
+	bool validate) {
+	stringstream message;
+	int64_t difference;
+
+	if (validate == true)
+	{
+		// Get the difference between the calculated memory needed and the actual
+		// memory userd.
+		difference = initWithValidate(fileName, propertyString, cacheSize, poolSize);
+
+		// If the calculated memory is less than the actual memory then throw
+		// an error.
+		// Note: this will always be a slight overestimate as calculating the
+		// exact number of unique HTTP headers requires reading in the data
+		// file. For this reason the maximum is used.
+		if (difference < 0) {
+			message << "Predicted memory usage is below the actual usage by "
+				<< (0 - difference)
+				<< " bytes.";
+			throw runtime_error(message.str());
+		}
+	}
+	else {
+		// Validate is false so divert to the standard constructor.
+		Provider(fileName, propertyString, cacheSize, poolSize);
+	}
+}
+
+/**
+* Modified provider init function. This uses the standard init function,
+* but uses a modified malloc function to determine the size. It also uses
+* the getProviderSize function to get the estimated size and return the
+* difference.
+*
+* This function is NOT THREAD SAFE so should be used appropriately.
+* @param fileName of the data source
+* @param propertyString contains comma seperated property names to be available
+* to query from associated match results.
+* @param cacheSize the number of prior User-Agent detections to cache
+* @param poolSize the maximum number of worksets to create for the pool
+*/
+int64_t Provider::initWithValidate(
+	const string &fileName,
+	const string &propertyString,
+	int cacheSize,
+	int poolSize) {
+	int64_t predictedSize;
+
+	// Reset the actual size parameter as it is global and may have been set
+	// before.
+	_actualSize = 0;
+
+	// Use the getProviderSize function to get the predicted size that the
+	// provider will need.
+	predictedSize = (int64_t)fiftyoneDegreesGetProviderSizeWithPropertyString(fileName.c_str(), propertyString.c_str(), poolSize, cacheSize);
+
+	// Set the malloc function to use the function that increments _actualSize
+	// by the amount being allocated.
+	fiftyoneDegreesMalloc = validateMalloc;
+
+	// Use the standard init function to initialise the provider. This is the
+	// same function used by the standard constructor, however every memory
+	// allocation will be counted using the validateMalloc function.
+	init(fileName, propertyString, cacheSize, poolSize);
+
+	// Revert the malloc function so that future calls do not use the
+	// validateMalloc function.
+	fiftyoneDegreesMalloc = malloc;
+
+	// Return the difference between the predicted and actual sizes. A positive
+	// number is an overestimate, and a negative number is an underestimate.
+	return predictedSize - _actualSize;
 }

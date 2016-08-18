@@ -182,4 +182,7 @@ class Provider {
 
 	void reloadFromFile();
 	void reloadFromMemory(const std::string &source, int length);
+
+	Provider(const std::string &fileName, const std::string &propertyString, bool validate);
+
 };
