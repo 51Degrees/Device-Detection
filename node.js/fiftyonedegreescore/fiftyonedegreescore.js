@@ -182,13 +182,8 @@ FiftyOneDegrees.provider = function (configuration) {
             }
             // Loop through all the properties the provider has made available.
             returnedProvider.availableProperties.forEach(function (property) {
-                if (true === false && property.indexOf("JavascriptHardwareProfile") !== -1) {
-                    // Skip this property as it will break the API.
-                }
-                else {
-                    // Define the getter for this property.
-                    defineGetter(match, property);
-                }
+                // Define the getter for this property.
+                defineGetter(match, property);
             });
             // If the API is Pattern then set the match metrics getters.
             if (returnedProvider.config.Type !== 'Trie') {
