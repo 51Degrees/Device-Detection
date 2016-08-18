@@ -1,3 +1,0 @@
-﻿# FiftyOne.Tests
-
-

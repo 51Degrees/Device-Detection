@@ -189,7 +189,6 @@ void Provider::initComplete(
 		fiftyoneDegreesDataSetInitStatus initStatus,
 		const string &fileName) {
 	if (initStatus != DATA_SET_INIT_STATUS_SUCCESS)	{
-		fiftyoneDegreesProviderFree(&provider);
 		initException(initStatus, fileName);
 	}
 	else {
@@ -263,7 +262,7 @@ string Provider::getDataSetName() {
  */
 string Provider::getDataSetFormat() {
 	stringstream stream;
-	stream << provider.active->dataSet->version;
+	stream << *provider.active->dataSet->version;
 	return stream.str();
 }
 
