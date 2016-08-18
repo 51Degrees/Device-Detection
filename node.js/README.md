@@ -70,8 +70,8 @@ The config json object is where all the settings can be changed, it is also poss
 
 The most basic example using just a data file  can be seen below:
 ```js
-var pattern = require('fiftyonedegreeslitepattern);
-var trie = require('fiftyonedegreeslitetrie);
+var pattern = require('fiftyonedegreeslitepattern');
+var trie = require('fiftyonedegreeslitetrie');
 
 var config = {"dataFile" : pattern};
 
