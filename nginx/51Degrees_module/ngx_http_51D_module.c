@@ -232,7 +232,7 @@ ngx_http_51D_post_conf(ngx_conf_t *cf)
 	*h = ngx_http_51D_handler;
 
 	// Set default data file if necessary.
-	if ((int)fdmcf->dataFile.len < 0) {
+	if ((int)fdmcf->dataFile.len <= 0) {
 		fdmcf->dataFile.data = FIFTYONEDEGREES_DEFAULTFILE;
 		fdmcf->dataFile.len = ngx_strlen(fdmcf->dataFile.data);
 	}
