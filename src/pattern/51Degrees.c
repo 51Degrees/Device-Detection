@@ -1819,6 +1819,43 @@ static size_t getProviderSizeWithPropertyCount(size_t sizeOfFile, fiftyoneDegree
 	return size;
 }
 
+
+/**
+ * \cond
+ * Get the size of the file provided.
+ * @param fileName path to the file.
+ * @returns size_t the size the file will need in memory, or -1 if the file
+ * could not be opened.
+ * \endcond
+ */
+size_t getSizeOfFile(const char* fileName) {
+
+	size_t sizeOfFile;
+	FILE *inputFilePtr;
+
+	// Open the file and hold on to the pointer.
+#ifndef _MSC_FULL_VER
+	inputFilePtr = fopen(fileName, "rb");
+	if (inputFilePtr == NULL) {
+		return -1;
+	}
+#else
+	/* If using Microsoft use the fopen_s method to avoid warning */
+	if (fopen_s(&inputFilePtr, fileName, "rb") != 0) {
+		return -1;
+	}
+#endif
+	fseek(inputFilePtr, 0, SEEK_END);
+
+	// Add file size.
+	sizeOfFile = ftell(inputFilePtr);
+	fclose(inputFilePtr);
+
+	assert(sizeOfFile > 0);
+
+	return sizeOfFile;
+}
+
 /**
 * \cond
 * Calculates the amount of memory that the provider will need to allocate for
@@ -1838,59 +1875,56 @@ static size_t getProviderSizeWithPropertyCount(size_t sizeOfFile, fiftyoneDegree
 size_t fiftyoneDegreesGetProviderSizeWithPropertyString(const char *fileName, const char *properties, int poolSize, int cacheSize)
 {
 	int requiredPropertyCount;
-	size_t sizeOfFile, size;
-	FILE *inputFilePtr;
+	size_t size;
 	fiftyoneDegreesDataSetHeader *header = (fiftyoneDegreesDataSetHeader*)fiftyoneDegreesMalloc(sizeof(fiftyoneDegreesDataSetHeader));
 
-	// Open the file and hold on to the pointer.
-#ifndef _MSC_FULL_VER
-	inputFilePtr = fopen(fileName, "rb");
-	if (inputFilePtr == NULL) {
-		return -1;
-	}
-#else
-	/* If using Microsoft use the fopen_s method to avoid warning */
-	if (fopen_s(&inputFilePtr, fileName, "rb") != 0) {
-		return -1;
-	}
-#endif
+	size = getSizeOfFile(fileName);
 
-	// Read in header.
-	if (fread(header, sizeof(fiftyoneDegreesDataSetHeader), 1, inputFilePtr) != 1) {
-		return -1;
-	}
+	if ((int)size > 0) {
+		// Add file name.
+		size += (SIZE_OF_FILE_NAME(fileName));
 
-	fseek(inputFilePtr, 0, SEEK_END);
-
-	// Add file size.
-	sizeOfFile = ftell(inputFilePtr);
-	fclose(inputFilePtr);
-
-	assert(sizeOfFile > 0);
-
-	// Add file name.
-	sizeOfFile += (SIZE_OF_FILE_NAME(fileName));
-
-	// Get property count.
-	if (properties[0] == '\0') {
-		requiredPropertyCount = header->properties.count;
-	}
-	else {
+		// Get property count.
 		requiredPropertyCount = getSeparatorCount(properties);
+
+		// Add required properties array.
+		size += (SIZE_OF_REQUIRED_PROPERTIES_ARRAY);
+
+		// Return the total size needed for the provider.
+		size = getProviderSizeWithPropertyCount(size, *header, requiredPropertyCount, poolSize, cacheSize);
 	}
+	return size;
+}
 
-	assert(requiredPropertyCount > 0);
+/**
+* \cond
+* Calculates the amount of memory that the provider will need to allocate for
+* the given data file and initialisation parameters. This should be used with
+* the fiftyoneDegreesInitProviderWithPropertyArray function.
+* NOTE: This function will over estimate by about 10 bytes to account for a
+* possible increase in http headers.
+* @param fileName the file path of the data file.
+* @param propertyCount the number of properties in the properties array.
+* @param poolSize the number of worksets the pool will contain.
+* @param cacheSize the size of the resultset cache.
+* @return int the total size in bytes that is needed to initilaise the
+* provider with the given parameters.
+* \endcond
+*/
+size_t fiftyoneDegreesGetProviderSizeWithPropertyCount(const char *fileName, int propertyCount, int poolSize, int cacheSize)
+{
+	size_t size;
+	fiftyoneDegreesDataSetHeader *header = (fiftyoneDegreesDataSetHeader*)fiftyoneDegreesMalloc(sizeof(fiftyoneDegreesDataSetHeader));
 
-	// Add required properties array.
-	sizeOfFile += (SIZE_OF_REQUIRED_PROPERTIES_ARRAY);
+	size = getSizeOfFile(fileName);
 
-	// Get the final size that will be used in memory.
-	size = getProviderSizeWithPropertyCount(sizeOfFile, *header, requiredPropertyCount, poolSize, cacheSize);
+	if ((int)size > 0) {
+		// Add file name.
+		size += (SIZE_OF_FILE_NAME(fileName));
 
-	// Free the header that was allocated.
-	fiftyoneDegreesFree(header);
-
-	// Return the total size needed for the provider.
+		// Return the total size needed for the provider.
+		size = getProviderSizeWithPropertyCount(size, *header, propertyCount, poolSize, cacheSize);
+	}
 	return size;
 }
 
