@@ -24,10 +24,10 @@ using Microsoft.VisualStudio.TestTools.UnitTesting;
 using FiftyOne.UnitTests;
 using System.Collections.Specialized;
 
-namespace UnitTests.API.Lite
+namespace UnitTests.API.Premium
 {
     [TestClass]
-    public class Pattern : PatternBase
+    public class Trie : TrieBase
     {
         [TestInitialize]
         public void Initialise()
@@ -42,8 +42,8 @@ namespace UnitTests.API.Lite
         }
 
         [TestMethod]
-        [TestCategory("API"), TestCategory("Lite")]
-        public void LitePatternAPI_NullUserAgent()
+        [TestCategory("API"), TestCategory("Premium")]
+        public void PremiumTrieAPI_NullUserAgent()
         {
             using (var result = _wrapper.Match((string)null))
             {
@@ -52,8 +52,8 @@ namespace UnitTests.API.Lite
         }
 
         [TestMethod]
-        [TestCategory("API"), TestCategory("Lite")]
-        public void LitePatternAPI_EmptyUserAgent()
+        [TestCategory("API"), TestCategory("Premium")]
+        public void PremiumTrieAPI_EmptyUserAgent()
         {
             using (var result = _wrapper.Match(String.Empty))
             {
@@ -62,8 +62,8 @@ namespace UnitTests.API.Lite
         }
 
         [TestMethod]
-        [TestCategory("API"), TestCategory("Lite")]
-        public void LitePatternAPI_LongUserAgent()
+        [TestCategory("API"), TestCategory("Premium")]
+        public void PremiumTrieAPI_LongUserAgent()
         {
             var userAgent = String.Join(" ", UserAgentGenerator.GetEnumerable(10, 10));
             using (var result = _wrapper.Match(userAgent))
@@ -73,8 +73,8 @@ namespace UnitTests.API.Lite
         }
 
         [TestMethod]
-        [TestCategory("API"), TestCategory("Lite")]
-        public void LitePatternAPI_HttpHeaders()
+        [TestCategory("API"), TestCategory("Premium")]
+        public void PremiumTrieAPI_HttpHeaders()
         {
             var headers = new NameValueCollection();
             foreach (var header in _wrapper.HttpHeaders)
@@ -89,49 +89,10 @@ namespace UnitTests.API.Lite
                 }
             }
         }
-
+        
         [TestMethod]
-        [TestCategory("API"), TestCategory("Lite")]
-        public void LitePatternAPI_DeviceId()
-        {
-            using (var userAgentMatch = _wrapper.Match(UserAgentGenerator.GetRandomUserAgent(0)))
-            {
-                using (var deviceIdMatch = _wrapper.MatchForDeviceId(userAgentMatch.DeviceId))
-                {
-                    Assert.IsTrue(userAgentMatch.DeviceId.Equals(deviceIdMatch.DeviceId));
-                    foreach(var propertyName in _wrapper.AvailableProperties)
-                    {
-                        Assert.IsTrue(userAgentMatch[propertyName].Equals(deviceIdMatch[propertyName]));
-                    }
-                }
-            }
-        }
-
-        [TestMethod]
-        [TestCategory("API"), TestCategory("Lite")]
-        public void LitePatternAPI_FindProfiles()
-        {
-            string[] properties = new string[3] {"IsMobile", "BrowserName", "PlatformName"};
-            string[,] values = new string [3,2] { { "True", "False" }, { "Firefox", "Chrome" }, { "Android", "Windows" } };
-            for (int i = 0; i < 3; i++)
-            {
-                for (int j = 0; j < 2; j++)
-                {
-                    Console.WriteLine("Testing " + properties[i] + " " + values[i, j]);
-                    var profiles = _wrapper.FindProfiles(properties[i], values[i, j]);
-                    for (int k = 0; k < profiles.getCount(); k++)
-                    {
-                        Assert.IsNotNull(profiles.getProfileId(k));
-                        Assert.IsTrue(profiles.getProfileIndex(k) >= 0);
-                        Assert.IsTrue(profiles.getProfileId(k) >= 0);
-                    }
-                }
-            }
-        }
-
-        [TestMethod]
-        [TestCategory("API"), TestCategory("Lite")]
-        public void LitePatternAPI_ProviderMemory()
+        [TestCategory("API"), TestCategory("Premium")]
+        public void PremiumTrieAPI_ProviderMemory()
         {
             string properties = "IsMobile,BrowserName,PlatformName";
             var provider = CreateWrapper(properties, true);
@@ -139,17 +100,16 @@ namespace UnitTests.API.Lite
         }
 
         [TestMethod]
-        [TestCategory("API"), TestCategory("Lite")]
-        public void LitePatternAPI_ProviderMemoryEmptyProperties()
+        [TestCategory("API"), TestCategory("Premium")]
+        public void PremiumTrieAPI_ProviderMemoryEmptyProperties()
         {
             string properties = "";
             var provider = CreateWrapper(properties, true);
             provider.Dispose();
         }
-
         protected override string DataFile
         {
-            get { return Constants.LITE_PATTERN_V32; }
+            get { return Constants.PREMIUM_TRIE_V32; }
         }
     }
 }

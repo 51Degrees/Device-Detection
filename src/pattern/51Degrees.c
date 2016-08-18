@@ -5,6 +5,7 @@
 #include <math.h>
 #include <time.h>
 #include <ctype.h>
+#include <assert.h>
 #include "../cityhash/city.h"
 #include "51Degrees.h"
 /* *********************************************************************
@@ -94,16 +95,6 @@ void (FIFTYONEDEGREES_CALL_CONV *fiftyoneDegreesFree)(void *__ptr) = free;
 #define SIZE_OF_PROFILE_INDEXES_STRUCT(count) count * sizeof(fiftyoneDegreesProfileIndexesStruct)
 
 /**
-* CACHE MEMORY ALLOCATION SIZE MACROS
-*/
-#define SIZE_OF_RESULTSET_CACHE sizeof(fiftyoneDegreesResultsetCache)
-#define SIZE_OF_RESULTSET_CACHE_LIST sizeof(fiftyoneDegreesResultsetCacheList)
-#define SIZE_OF_RESULTSETS(size) size * sizeof(fiftyoneDegreesResultset*)
-#define SIZE_OF_RESULTSET_PROFILES(h) h.components.count * sizeof(const fiftyoneDegreesProfile*)
-#define SIZE_OF_RESULTSET_TARGET_USERAGENT_ARRAY(h) (h.maxUserAgentLength + 1) * sizeof(byte)
-#define SIZE_OF_CACHE_RESULTSET(count, h) count * (sizeof(fiftyoneDegreesResultset) + SIZE_OF_RESULTSET_TARGET_USERAGENT_ARRAY(h) + SIZE_OF_RESULTSET_PROFILES(h))
-
-/**
 * WORKSET MEMORY ALLOCATION SIZE MACROS
 */
 #define SIZE_OF_WORKSET_POOL sizeof(fiftyoneDegreesWorksetPool)
@@ -116,6 +107,16 @@ void (FIFTYONEDEGREES_CALL_CONV *fiftyoneDegreesFree)(void *__ptr) = free;
 #define SIZE_OF_WORKSET_SIG_AS_STRING(h) (h.maxUserAgentLength + 1) * sizeof(char)
 #define SIZE_OF_WORKSET_VALUES(h) h.maxValues * sizeof(const fiftyoneDegreesValue*)
 #define SIZE_OF_WORKSET_IMPORTANT_HEADERS(count) count * sizeof(fiftyoneDegreesHttpHeaderWorkset)
+#define SIZE_OF_WORKSET_PROFILES(h) h.components.count * sizeof(const fiftyoneDegreesProfile*)
+#define SIZE_OF_WORKSET_TARGET_USERAGENT_ARRAY(h) (h.maxUserAgentLength + 1) * sizeof(byte)
+
+/**
+* CACHE MEMORY ALLOCATION SIZE MACROS
+*/
+#define SIZE_OF_CACHE sizeof(fiftyoneDegreesResultsetCache)
+#define SIZE_OF_CACHE_RESULTSETS(c) c * (sizeof(fiftyoneDegreesResultset))
+#define SIZE_OF_CACHE_TARGET_USER_AGENTS(c, h) c * SIZE_OF_WORKSET_TARGET_USERAGENT_ARRAY(h)
+#define SIZE_OF_CACHE_PROFILES(c, h) c * SIZE_OF_WORKSET_PROFILES(h)
 
  /**
  * \cond
@@ -1790,10 +1791,10 @@ static size_t getProviderSizeWithPropertyCount(size_t sizeOfFile, fiftyoneDegree
 
 	// Add cache.
 	if (cacheSize > 0) {
-		size += (SIZE_OF_RESULTSET_CACHE);
-		size += (SIZE_OF_CACHE_RESULTSET(cacheSize, header));
-		size += (SIZE_OF_RESULTSET_CACHE_LIST)* 2;
-		size += (SIZE_OF_RESULTSETS(cacheSize)) * 2;
+		size += (SIZE_OF_CACHE);
+		size += (SIZE_OF_CACHE_RESULTSETS(cacheSize));
+		size += (SIZE_OF_CACHE_TARGET_USER_AGENTS(cacheSize, header));
+		size += (SIZE_OF_CACHE_PROFILES(cacheSize, header));
 	}
 
 	// Add workset pool.
@@ -1808,9 +1809,11 @@ static size_t getProviderSizeWithPropertyCount(size_t sizeOfFile, fiftyoneDegree
 	size += ((SIZE_OF_WORKSET_USED_NODES(header)) * poolSize * 2);
 	size += ((SIZE_OF_WORKSET_SIG_AS_STRING(header)) * poolSize);
 	size += ((SIZE_OF_WORKSET_VALUES(header)) * poolSize);
-	size += ((SIZE_OF_RESULTSET_PROFILES(header)) * poolSize * 2);
-	size += ((SIZE_OF_RESULTSET_TARGET_USERAGENT_ARRAY(header)) * poolSize);
+	size += ((SIZE_OF_WORKSET_PROFILES(header)) * poolSize * 2);
+	size += ((SIZE_OF_WORKSET_TARGET_USERAGENT_ARRAY(header)) * poolSize);
 	size += ((SIZE_OF_WORKSET_IMPORTANT_HEADERS(httpHeadersCount)) * poolSize);
+
+	assert(size > sizeOfFile);
 
 	// Return the total size needed for the provider.
 	return size;
@@ -1835,7 +1838,7 @@ static size_t getProviderSizeWithPropertyCount(size_t sizeOfFile, fiftyoneDegree
 size_t fiftyoneDegreesGetProviderSizeWithPropertyString(const char *fileName, const char *properties, int poolSize, int cacheSize)
 {
 	int requiredPropertyCount;
-	size_t sizeOfFile;
+	size_t sizeOfFile, size;
 	FILE *inputFilePtr;
 	fiftyoneDegreesDataSetHeader *header = (fiftyoneDegreesDataSetHeader*)fiftyoneDegreesMalloc(sizeof(fiftyoneDegreesDataSetHeader));
 
@@ -1863,17 +1866,32 @@ size_t fiftyoneDegreesGetProviderSizeWithPropertyString(const char *fileName, co
 	sizeOfFile = ftell(inputFilePtr);
 	fclose(inputFilePtr);
 
+	assert(sizeOfFile > 0);
+
 	// Add file name.
 	sizeOfFile += (SIZE_OF_FILE_NAME(fileName));
 
 	// Get property count.
-	requiredPropertyCount = getSeparatorCount(properties);
+	if (properties[0] == '\0') {
+		requiredPropertyCount = header->properties.count;
+	}
+	else {
+		requiredPropertyCount = getSeparatorCount(properties);
+	}
+
+	assert(requiredPropertyCount > 0);
 
 	// Add required properties array.
 	sizeOfFile += (SIZE_OF_REQUIRED_PROPERTIES_ARRAY);
 
+	// Get the final size that will be used in memory.
+	size = getProviderSizeWithPropertyCount(sizeOfFile, *header, requiredPropertyCount, poolSize, cacheSize);
+
+	// Free the header that was allocated.
+	fiftyoneDegreesFree(header);
+
 	// Return the total size needed for the provider.
-	return getProviderSizeWithPropertyCount(sizeOfFile, *header, requiredPropertyCount, poolSize, cacheSize);
+	return size;
 }
 
 /**
@@ -1893,7 +1911,7 @@ size_t fiftyoneDegreesGetProviderSizeWithPropertyString(const char *fileName, co
 */
 size_t fiftyoneDegreesGetProviderSizeWithPropertyCount(const char *fileName, int propertyCount, int poolSize, int cacheSize)
 {
-	size_t sizeOfFile;
+	size_t sizeOfFile, size;
 	FILE *inputFilePtr;
 	fiftyoneDegreesDataSetHeader *header = (fiftyoneDegreesDataSetHeader*)fiftyoneDegreesMalloc(sizeof(fiftyoneDegreesDataSetHeader));
 
@@ -1920,11 +1938,19 @@ size_t fiftyoneDegreesGetProviderSizeWithPropertyCount(const char *fileName, int
 	sizeOfFile = ftell(inputFilePtr);
 	fclose(inputFilePtr);
 
+	assert(sizeOfFile > 0);
+
 	// Add file name.
 	sizeOfFile += (SIZE_OF_FILE_NAME(fileName));
 
+	// Get the final size that will be used in memory.
+	size = getProviderSizeWithPropertyCount(sizeOfFile, *header, propertyCount, poolSize, cacheSize);
+
+	// Free the header that was allocated.
+	fiftyoneDegreesFree(header);
+	
 	// Return the total size needed for the provider.
-	return getProviderSizeWithPropertyCount(sizeOfFile, *header, propertyCount, poolSize, cacheSize);
+	return size;
 }
 
 /**
@@ -2269,57 +2295,6 @@ fiftyoneDegreesProfilesStruct *fiftyoneDegreesFindProfilesInProfiles(
 
  /**
  * \cond
- * RESULTSET METHODS
- * \endcond
- */
-
- /**
- * \cond
- * Copies the data associated with the source resultset to the destination.
- * @param src source result set
- * @param dst destination result set
- * \endcond
- */
-static void resultsetCopy(fiftyoneDegreesResultset *dst, const fiftyoneDegreesResultset *src) {
-	dst->dataSet = src->dataSet;
-	dst->closestSignatures = src->closestSignatures;
-	dst->difference = src->difference;
-	dst->hashCodeSet = src->hashCodeSet;
-	dst->method = src->method;
-	dst->nodesEvaluated = src->nodesEvaluated;
-	dst->profileCount = src->profileCount;
-	memcpy((void*)dst->profiles, (void*)src->profiles, SIZE_OF_RESULTSET_PROFILES(src->dataSet->header));
-	dst->rootNodesEvaluated = src->rootNodesEvaluated;
-	dst->signaturesCompared = src->signaturesCompared;
-	dst->signaturesRead = src->signaturesRead;
-	dst->stringsRead = src->stringsRead;
-	memcpy((void*)dst->targetUserAgentArray, (void*)src->targetUserAgentArray, SIZE_OF_RESULTSET_TARGET_USERAGENT_ARRAY(src->dataSet->header));
-	dst->targetUserAgentArrayLength = src->targetUserAgentArrayLength;
-	dst->targetUserAgentHashCode = src->targetUserAgentHashCode;
-	dst->signature = src->signature;
-}
-
- /**
- * \cond
- * Returns the hash code for the result set provided. If the hash code
- * has already been calculated then this value is used. Otherwise as new
- * value is calculated and set for the result set. This only works because
- * we know that the target user agent never changes once set.
- * @param rs resultset whose target user agent hash code is needed.
- * @returns the hash code associated with the target user agent.
- * \endcond
- */
-static uint64_t getResultsetHashCode(fiftyoneDegreesResultset *rs) {
-	if (rs->hashCodeSet == 0) {
-		rs->targetUserAgentHashCode = CityHash64((char*)rs->targetUserAgentArray,
-			rs->targetUserAgentArrayLength);
-		rs->hashCodeSet = 1;
-	}
-	return rs->targetUserAgentHashCode;
-}
-
- /**
- * \cond
  * WORKSET POOL METHODS
  * \endcond
  */
@@ -2569,28 +2544,497 @@ void fiftyoneDegreesWorksetPoolCacheDataSetFree(const fiftyoneDegreesWorksetPool
 
  /**
  * \cond
- * CACHE METHODS
+ * RED BLACK BINARY TREE METHODS - USED WITH CACHE
  * \endcond
  */
 
- /**
- * \cond
- * Macros used to get the position of referenced memory items.
- * \endcond
+/**
+ * Implementation of a classic red black binary tree adapted to support the 
+ * resultset structure used in the LRU cache. Several important considerations
+ * should be noted with this implementation.
+ * 
+ * 1. The maximum number of entries in the tree is known when the tree is 
+ *    created. All memory allocation is performed at initialisation.
+ * 2. Once the tree is full it will remain full and never shrinks. The memory
+ *    used is freed when the cache is freed.
+ * 3. The node in the tree also contains other data such as the linked list
+ *    pointers used to identify the first and last entry in the cache, and 
+ *    the cache data itself. See structure fiftyoneDegreesResultset.
+ * 4. The cache structure fiftyoneDegreesResultsetCache contains special 
+ *    fields "empty" and "root". "Empty" is used inplace of NULL to indicate 
+ *    that the left, right or parent pointer of the node has no data. The use 
+ *    of "empty" makes the algorithm more efficient as the data structure used
+ *    to indicate no data is the same as a valid data structure and therefore 
+ *    does not require custom logic. The "root" fields left pointer is used as
+ *    the start of the tree. Similarly the parent element being a valid data
+ *    structure simplifies the algorithm.
+ *
+ * Developers modifying this section of code should be familiar with the red 
+ * black tree design template. Code comments assume an understanding of the 
+ * principles involved. For further information see:
+ * https://en.wikipedia.org/wiki/Red%E2%80%93black_tree
+ *
+ * In future major versions of 51Degrees which can support breaking changes 
+ * this code should be split out into separate files for easier maintenance. 
  */
-#define CACHED_RESULTSET_TARGET_USERAGENT_ARRAY_OFFSET(h) sizeof(fiftyoneDegreesResultset)
-#define CACHED_RESULTSET_PROFILES_OFFSET(h) CACHED_RESULTSET_TARGET_USERAGENT_ARRAY_OFFSET(h) + SIZE_OF_RESULTSET_TARGET_USERAGENT_ARRAY(h)
-#define CACHED_RESULTSET_INDEX(rsc, i) (fiftyoneDegreesResultset*)((void*)rsc->resultSets + (i * rsc->sizeOfResultset))
+
+ /**
+ * Macros used in the binary tree.
+ */
+
+#define TREE_COLOUR_RED  1 // Indicates the resultset is black
+#define TREE_COLOUR_BLACK 0 // Indicates the resultset is red
+
+// Gets the root of the tree. The TREE_FIRST macro gets the first resultset.
+#define TREE_ROOT(c) (fiftyoneDegreesResultset*)(&c->root) 
+
+// Gets the empry resultset used to indicate no further data.
+#define TREE_EMPTY(c) (fiftyoneDegreesResultset*)(&c->empty)
+
+// Gets the first resultset under the root.
+#define TREE_FIRST(c) ((fiftyoneDegreesResultset*)TREE_ROOT(c))->treeLeft 
 
  /**
  * \cond
- * Releases the memory used by the cache list for itself and pointers to resultsets.
- * @param rscl pointer to the cache list created previously
+ * Used by assert statements to validate the number of entries in the cache for
+ * debugging should any changes be made to the logic. Should not be compiled in
+ * release builds.
+ * @param current pointer to the resultset being counted.
+ * @returns the number of children plus 1 for this current resulset.
  * \endcond
  */
-static void resultsetCacheListFree(const fiftyoneDegreesResultsetCacheList *rscl) {
-	fiftyoneDegreesFree((void*)rscl->resultSets);
-	fiftyoneDegreesFree((void*)rscl);
+static int32_t resultsetCacheTreeCount(fiftyoneDegreesResultset *current) {
+	int32_t count = 0;
+	if (current != TREE_EMPTY(current->cache)) {
+		count = 1;
+		if (current->treeLeft != TREE_EMPTY(current->cache)) {
+			count += resultsetCacheTreeCount(current->treeLeft);
+			assert(current->targetUserAgentHashCode > current->treeLeft->targetUserAgentHashCode);
+		}
+		if (current->treeRight != TREE_EMPTY(current->cache)) {
+			count += resultsetCacheTreeCount(current->treeRight);
+			assert(current->targetUserAgentHashCode < current->treeRight->targetUserAgentHashCode);
+		}
+	}
+	return count;
+}
+
+/**
+* \cond
+* Rotates the red black tree resultset to the left.
+* @param rs pointer to the resultset being rotated.
+* \endcond
+*/
+static void resultsetCacheTreeRotateLeft(fiftyoneDegreesResultset *rs) {
+	fiftyoneDegreesResultset *child = rs->treeRight;
+	rs->treeRight = child->treeLeft;
+
+	if (child->treeLeft != TREE_EMPTY(rs->cache)) {
+		child->treeLeft->treeParent = rs;
+	}
+	child->treeParent = rs->treeParent;
+
+	if (rs == rs->treeParent->treeLeft) {
+		rs->treeParent->treeLeft = child;
+	}
+	else {
+		rs->treeParent->treeRight = child;
+	}
+
+	child->treeLeft = rs;
+	rs->treeParent = child;
+}
+
+/**
+* \cond
+* Rotates the red black tree resultset to the right.
+* @param rs pointer to the resultset being rotated.
+* \endcond
+*/
+static void resultsetCacheTreeRotateRight(fiftyoneDegreesResultset *rs) {
+	fiftyoneDegreesResultset *child = rs->treeLeft;
+	rs->treeLeft = child->treeRight;
+
+	if (child->treeRight != TREE_EMPTY(rs->cache)) {
+		child->treeRight->treeParent = rs;
+	}
+	child->treeParent = rs->treeParent;
+
+	if (rs == rs->treeParent->treeLeft) {
+		rs->treeParent->treeLeft = child;
+	}
+	else {
+		rs->treeParent->treeRight = child;
+	}
+
+	child->treeRight = rs;
+	rs->treeParent = child;
+}
+
+/**
+* \cond
+* Maintains the properties of the binary tree following an insert.
+* @param rs pointer to the resultset being repaired after insert.
+* \endcond
+*/
+static void resultsetCacheTreeInsertRepair(fiftyoneDegreesResultset *rs) {
+	fiftyoneDegreesResultset *uncle;
+
+	while (rs->treeParent->colour == TREE_COLOUR_RED) {
+		if (rs->treeParent == rs->treeParent->treeParent->treeLeft) {
+			uncle = rs->treeParent->treeParent->treeRight;
+			if (uncle->colour == TREE_COLOUR_RED) {
+				rs->treeParent->colour = TREE_COLOUR_BLACK;
+				uncle->colour = TREE_COLOUR_BLACK;
+				rs->treeParent->treeParent->colour = TREE_COLOUR_RED;
+				rs = rs->treeParent->treeParent;
+			}
+			else {
+				if (rs == rs->treeParent->treeRight) {
+					rs = rs->treeParent;
+					resultsetCacheTreeRotateLeft(rs);
+				}
+				rs->treeParent->colour = TREE_COLOUR_BLACK;
+				rs->treeParent->treeParent->colour = TREE_COLOUR_RED;
+				resultsetCacheTreeRotateRight(rs->treeParent->treeParent);
+			}
+		}
+		else {
+			uncle = rs->treeParent->treeParent->treeLeft;
+			if (uncle->colour == TREE_COLOUR_RED) {
+				rs->treeParent->colour = TREE_COLOUR_BLACK;
+				uncle->colour = TREE_COLOUR_BLACK;
+				rs->treeParent->treeParent->colour = TREE_COLOUR_RED;
+				rs = rs->treeParent->treeParent;
+			}
+			else {
+				if (rs == rs->treeParent->treeLeft) {
+					rs = rs->treeParent;
+					resultsetCacheTreeRotateRight(rs);
+				}
+				rs->treeParent->colour = TREE_COLOUR_BLACK;
+				rs->treeParent->treeParent->colour = TREE_COLOUR_RED;
+				resultsetCacheTreeRotateLeft(rs->treeParent->treeParent);
+			}
+		}
+	}
+}
+
+/**
+* \cond
+* Inserts the resultset into the red black tree.
+* @param rs pointer to the resultset being inserted.
+* \endcond
+*/
+static void resultsetCacheTreeInsert(const fiftyoneDegreesResultset *rs) {
+	fiftyoneDegreesResultsetCache *cache = 
+		(fiftyoneDegreesResultsetCache*)rs->cache;
+	fiftyoneDegreesResultset *current = TREE_FIRST(cache);
+	fiftyoneDegreesResultset *parent = TREE_ROOT(cache);
+	
+
+	// Work out the correct point to insert the resultset.
+	while (current != TREE_EMPTY(cache)) {
+		parent = current;
+		assert(rs->targetUserAgentHashCode != current->targetUserAgentHashCode);
+		current = rs->targetUserAgentHashCode < current->targetUserAgentHashCode
+			? current->treeLeft
+			: current->treeRight;
+	}
+
+	// Set up the resultset being inserted in the tree.
+	current = (fiftyoneDegreesResultset*)rs;
+	current->treeLeft = TREE_EMPTY(cache);
+	current->treeRight = TREE_EMPTY(cache);
+	current->treeParent = parent;
+	if (parent == TREE_ROOT(cache) ||
+		current->targetUserAgentHashCode < parent->targetUserAgentHashCode) {
+		parent->treeLeft = current;
+	}
+	else {
+		parent->treeRight = current;
+	}
+	current->colour = TREE_COLOUR_RED;
+
+	resultsetCacheTreeInsertRepair(current);
+
+	TREE_FIRST(cache)->colour = TREE_COLOUR_BLACK;
+}
+
+/**
+* \cond
+* Returns the resulset that matches the hash code of the workset provided.
+* @param ws pointer initialised with the hash code required.
+* @returns the corresponding resultset if it exists in the cache, otherwise 
+* null.
+* \endcond
+*/
+static fiftyoneDegreesResultset* resultsetCacheTreeFind(
+	const fiftyoneDegreesWorkset *ws) {
+	int32_t iterations = 0;
+	fiftyoneDegreesResultset *current = TREE_ROOT(ws->cache)->treeLeft;
+
+	while (current != TREE_EMPTY(ws->cache)) {
+		iterations++;
+		if (ws->targetUserAgentHashCode == current->targetUserAgentHashCode) {
+			return current;
+		}
+		current = ws->targetUserAgentHashCode < current->targetUserAgentHashCode
+			? current->treeLeft
+			: current->treeRight;
+	}
+
+	if (iterations > ws->cache->maxIterations) {
+		((fiftyoneDegreesResultsetCache*)ws->cache)->maxIterations = iterations;
+	}
+
+	return NULL;
+}
+
+/**
+* \cond
+* Finds the sucessor for the resultset provided.
+* @param rs pointer to the resultset whose successor is required.
+* @returns the successor for the resultset which may be empty.
+* \endcond
+*/
+static fiftyoneDegreesResultset* resultsetCacheTreeSuccessor(
+	fiftyoneDegreesResultset *rs) {
+	const fiftyoneDegreesResultsetCache *cache = rs->cache;
+	fiftyoneDegreesResultset *successor = rs->treeRight;
+	if (successor != TREE_EMPTY(cache)) {
+		while (successor->treeLeft != TREE_EMPTY(cache)) {
+			successor = successor->treeLeft;
+		}
+	}
+	else {
+		for (successor = rs->treeParent;
+			rs == successor->treeRight;
+			successor = successor->treeParent) {
+			rs = successor;
+		}
+		if (successor == TREE_ROOT(cache)) {
+			successor = TREE_EMPTY(cache);
+		}
+	}
+	return successor;
+}
+
+/**
+* \cond
+* Following a deletion repairs the section of the tree impacted.
+* @param rs pointer to the resultset below the one deleted.
+* \endcond
+*/
+static void resultsetCacheTreeDeleteRepair(fiftyoneDegreesResultset *rs) {
+	const fiftyoneDegreesResultsetCache *cache = rs->cache;
+	fiftyoneDegreesResultset *sibling;
+
+	while (rs->colour == TREE_COLOUR_BLACK && rs != TREE_FIRST(cache)) {
+		if (rs == rs->treeParent->treeLeft) {
+			sibling = rs->treeParent->treeRight;
+			if (sibling->colour == TREE_COLOUR_RED) {
+				sibling->colour = TREE_COLOUR_BLACK;
+				rs->treeParent->colour = TREE_COLOUR_RED;
+				resultsetCacheTreeRotateLeft(rs->treeParent);
+				sibling = rs->treeParent->treeRight;
+			}
+			if (sibling->treeRight->colour == TREE_COLOUR_BLACK &&
+				sibling->treeLeft->colour == TREE_COLOUR_BLACK) {
+				sibling->colour = TREE_COLOUR_RED;
+				rs = rs->treeParent;
+			}
+			else {
+				if (sibling->treeRight->colour == TREE_COLOUR_BLACK) {
+					sibling->treeLeft->colour = TREE_COLOUR_BLACK;
+					sibling->colour = TREE_COLOUR_RED;
+					resultsetCacheTreeRotateRight(sibling);
+					sibling = rs->treeParent->treeRight;
+				}
+				sibling->colour = rs->treeParent->colour;
+				rs->treeParent->colour = TREE_COLOUR_BLACK;
+				sibling->treeRight->colour = TREE_COLOUR_BLACK;
+				resultsetCacheTreeRotateLeft(rs->treeParent);
+				rs = TREE_FIRST(cache);
+			}
+		}
+		else {
+			sibling = rs->treeParent->treeLeft;
+			if (sibling->colour == TREE_COLOUR_RED) {
+				sibling->colour = TREE_COLOUR_BLACK;
+				rs->treeParent->colour = TREE_COLOUR_RED;
+				resultsetCacheTreeRotateRight(rs->treeParent);
+				sibling = rs->treeParent->treeLeft;
+			}
+			if (sibling->treeRight->colour == TREE_COLOUR_BLACK &&
+				sibling->treeLeft->colour == TREE_COLOUR_BLACK) {
+				sibling->colour = TREE_COLOUR_RED;
+				rs = rs->treeParent;
+			}
+			else {
+				if (sibling->treeLeft->colour == TREE_COLOUR_BLACK) {
+					sibling->treeRight->colour = TREE_COLOUR_BLACK;
+					sibling->colour = TREE_COLOUR_RED;
+					resultsetCacheTreeRotateLeft(sibling);
+					sibling = rs->treeParent->treeLeft;
+				}
+				sibling->colour = rs->treeParent->colour;
+				rs->treeParent->colour = TREE_COLOUR_BLACK;
+				sibling->treeLeft->colour = TREE_COLOUR_BLACK;
+				resultsetCacheTreeRotateRight(rs->treeParent);
+				rs = TREE_FIRST(cache);
+			}
+		}
+	}
+	rs->colour = TREE_COLOUR_BLACK;
+}
+
+/**
+* \cond
+* Removes the resultset from the tree so that it can be used again to store
+* another result. The resultset will come from the last item in the cache's
+* linked list.
+* @param rs pointer to be deleted.
+* \endcond
+*/
+static void resultsetCacheTreeDelete(fiftyoneDegreesResultset *rs) {
+	fiftyoneDegreesResultsetCache *cache = 
+		(fiftyoneDegreesResultsetCache*)rs->cache;
+	fiftyoneDegreesResultset *x, *y;
+
+	if (rs->treeLeft == TREE_EMPTY(cache) ||
+		rs->treeRight == TREE_EMPTY(cache)) {
+		y = rs;
+	}
+	else {
+		y = resultsetCacheTreeSuccessor(rs);
+	}
+	x = y->treeLeft == TREE_EMPTY(cache) ? y->treeRight : y->treeLeft;
+
+	x->treeParent = y->treeParent;
+	if (x->treeParent == TREE_ROOT(cache)) {
+		TREE_FIRST(cache) = x;
+	}
+	else {
+		if (y == y->treeParent->treeLeft) {
+			y->treeParent->treeLeft = x;
+		}
+		else {
+			y->treeParent->treeRight = x;
+		}
+	}
+
+	if (y->colour == TREE_COLOUR_BLACK) {
+		resultsetCacheTreeDeleteRepair(x);
+	}
+	if (y != rs) {
+		y->treeLeft = rs->treeLeft;
+		y->treeRight = rs->treeRight;
+		y->treeParent = rs->treeParent;
+		y->colour = rs->colour;
+		rs->treeLeft->treeParent = y;
+		rs->treeRight->treeParent = y;
+		if (rs == rs->treeParent->treeLeft) {
+			rs->treeParent->treeLeft = y;
+		}
+		else {
+			rs->treeParent->treeRight = y;
+		}
+	}
+}
+
+/**
+* \cond
+* CACHE METHODS
+* \endcond
+*/
+
+/**
+* \cond
+* Validates the cache by checking the number of entries in the linked list and 
+* the tree. Used by assert statements to validate the integrity of the cache 
+* during development. Should not be compiled in release builds.
+* @param cache pointer to the cache being validated.
+* @returns always return 0 as the purpose is to execute assets in debug builds.
+* \endcond
+*/
+static int resultsetCacheValidate(const fiftyoneDegreesResultsetCache *cache) {
+	int linkedListEntriesForward = 0;
+	int linkedListEntriesBackwards = 0;
+	int binaryTreeEntries = 0;
+	fiftyoneDegreesResultset *node;
+	
+	// Check the list from first to last.
+	node = cache->listFirst;
+	while (node != NULL &&
+		linkedListEntriesForward <= cache->allocated) {
+		linkedListEntriesForward++;
+		node = node->listNext;
+	}
+	assert(linkedListEntriesForward == cache->allocated ||
+		   linkedListEntriesForward == cache->allocated - 1);
+
+	// Check the list from last to first.
+	node = cache->listLast;
+	while (node != NULL &&
+		linkedListEntriesBackwards <= cache->allocated) {
+		linkedListEntriesBackwards++;
+		node = node->listPrevious;
+	}
+	assert(linkedListEntriesBackwards == cache->allocated ||
+		linkedListEntriesBackwards == cache->allocated - 1);
+
+	// Check the binary tree. We need to remove one because the root
+	// resultset doesn't contain any data.
+	binaryTreeEntries = resultsetCacheTreeCount(TREE_FIRST(cache));
+	assert(binaryTreeEntries == cache->allocated ||
+		binaryTreeEntries == cache->allocated - 1);
+
+	return 0;
+}
+
+/**
+* \cond
+* Copies the data associated with the source resultset to the destination.
+* @param src source result set
+* @param dst destination result set
+* \endcond
+*/
+static void resultsetCacheCopy(fiftyoneDegreesResultset *dst, const fiftyoneDegreesResultset *src) {
+	int profileIndex;
+	dst->closestSignatures = src->closestSignatures;
+	dst->difference = src->difference;
+	dst->hashCodeSet = src->hashCodeSet;
+	dst->method = src->method;
+	dst->nodesEvaluated = src->nodesEvaluated;
+	dst->rootNodesEvaluated = src->rootNodesEvaluated;
+	dst->signaturesCompared = src->signaturesCompared;
+	dst->signaturesRead = src->signaturesRead;
+	dst->stringsRead = src->stringsRead;
+	dst->targetUserAgentArrayLength = src->targetUserAgentArrayLength;
+	dst->targetUserAgentHashCode = src->targetUserAgentHashCode;
+	dst->signature = src->signature;
+	memcpy((void*)dst->targetUserAgentArray, (void*)src->targetUserAgentArray, src->targetUserAgentArrayLength + 1);
+	for (profileIndex = 0; profileIndex < src->profileCount; profileIndex++) {
+		dst->profiles[profileIndex] = src->profiles[profileIndex];
+	}
+	dst->profileCount = src->profileCount;
+}
+
+/**
+* \cond
+* Sets the hash code for the result set provided if the hash code has not
+* already been calculated. This only works because we know that the target
+* user agent never changes once set.
+* @param rs resultset whose target user agent hash code needs to be set.
+* \endcond
+*/
+static void setResultsetHashCode(fiftyoneDegreesResultset *rs) {
+	if (rs->hashCodeSet == 0) {
+		rs->targetUserAgentHashCode = CityHash64((const char*)rs->targetUserAgentArray,
+			rs->targetUserAgentArrayLength);
+		rs->hashCodeSet = 1;
+	}
 }
 
  /**
@@ -2601,12 +3045,11 @@ static void resultsetCacheListFree(const fiftyoneDegreesResultsetCacheList *rscl
  */
 void fiftyoneDegreesResultsetCacheFree(const fiftyoneDegreesResultsetCache *rsc) {
 	if (rsc != NULL) {
-		resultsetCacheListFree(rsc->active);
-		resultsetCacheListFree(rsc->background);
 #ifndef FIFTYONEDEGREES_NO_THREADING
-		FIFTYONEDEGREES_MUTEX_CLOSE(rsc->activeLock);
-		FIFTYONEDEGREES_MUTEX_CLOSE(rsc->backgroundLock);
+		FIFTYONEDEGREES_MUTEX_CLOSE(rsc->lock);
 #endif
+		fiftyoneDegreesFree((void*)rsc->targetUserAgentArrays);
+		fiftyoneDegreesFree((void*)rsc->profiles);
 		fiftyoneDegreesFree((void*)rsc->resultSets);
 		fiftyoneDegreesFree((void*)rsc);
 	}
@@ -2614,67 +3057,65 @@ void fiftyoneDegreesResultsetCacheFree(const fiftyoneDegreesResultsetCache *rsc)
 
  /**
  * \cond
- * Initialises the cache by setting pointers for linked lists and memory.
+ * Initialises the cache by setting pointers for the linked list and binary 
+ * tree.
  * @param rsc pointer to the cache to be initialised.
  * \endcond
  */
-static void resultsetCacheInit(fiftyoneDegreesResultsetCache *rsc) {
-	int i, profileOffset, targetUserAgentOffset;
-	fiftyoneDegreesResultset *current = NULL, *next, *previous = NULL;
+static void resultsetCacheInit(fiftyoneDegreesResultsetCache *cache) {
+	int i;
+	int targetUserAgentArraySize = 
+		SIZE_OF_WORKSET_TARGET_USERAGENT_ARRAY(cache->dataSet->header);
+	fiftyoneDegreesResultset *current = NULL;
 
-	// Set the pointers back to the cache.
-	rsc->active->cache = rsc;
-	rsc->background->cache = rsc;
+	// Configure the empty not.
+	current = TREE_EMPTY(cache);
+	current->treeLeft = TREE_EMPTY(cache);
+	current->treeRight = TREE_EMPTY(cache);
+	current->treeParent = TREE_EMPTY(cache);
+	current->colour = TREE_COLOUR_BLACK;
+	current->targetUserAgentHashCode = 0;
+	current->dataSet = cache->dataSet;
+	current->cache = cache;
 
-	// Set the number of resultsets allocated.
-	rsc->active->allocated = 0;
-	rsc->background->allocated = 0;
+	// Configure the fake root node to avoid spliting the root.
+	current = TREE_ROOT(cache);
+	current->treeLeft = TREE_EMPTY(cache);
+	current->treeRight = TREE_EMPTY(cache);
+	current->treeParent = TREE_EMPTY(cache);
+	current->colour = TREE_COLOUR_BLACK;
+	current->targetUserAgentHashCode = 0;
+	current->dataSet = cache->dataSet;
+	current->cache = cache;
 
-	// Set the pointers for the result sets to form a complete linked list
-	// with locations for profiles and target user agent data.
-	profileOffset = CACHED_RESULTSET_PROFILES_OFFSET(rsc->dataSet->header);
-	targetUserAgentOffset = CACHED_RESULTSET_TARGET_USERAGENT_ARRAY_OFFSET(rsc->dataSet->header);
-	next = (fiftyoneDegreesResultset*)rsc->resultSets;
-	for (i = 0; i < rsc->total && next != NULL; i++) {
-		current = next;
-		next = i < rsc->total - 1 ? (fiftyoneDegreesResultset*)((char*)current + rsc->sizeOfResultset) : NULL;
-		current->next = next;
-		current->previous = previous;
-		current->profiles = (fiftyoneDegreesProfile*)((char*)current + profileOffset);
-		current->targetUserAgentArray = (byte*)((char*)current + targetUserAgentOffset);
-		previous = current;
+	// Set the pointers for storing target User-Agents and Profiles. The pointer
+	// field is cast to remove the const. Setting the pointer is the only time
+	// the operation is required as the memory space pointed to does not change
+	// after initialisation.
+	for (i = 0; i < cache->total; i++) {
+		current = &((fiftyoneDegreesResultset*)cache->resultSets)[i];
+
+		// Point to the data set and resultset cache which the item is part of.
+		current->dataSet = cache->dataSet;
+		current->cache = cache;
+
+		// Point to the nth block of profiles memory.
+		current->profiles = cache->profiles + (
+				i * cache->dataSet->header.components.count);
+
+		// Point to the nth block of target User-Agent memory.
+		current->targetUserAgentArray = (byte*)(cache->targetUserAgentArrays + (
+				i * targetUserAgentArraySize));
 	}
 
-	// Set the free and allocated linked lists.
-	rsc->allocated.count = 0;
-	rsc->allocated.first = NULL;
-	rsc->allocated.last = NULL;
-	rsc->free.count = rsc->total;
-	rsc->free.first = (fiftyoneDegreesResultset*)rsc->resultSets;
-	rsc->free.last = current;
+	// Set the default values for an empty cache.
+	cache->allocated = 0;
+	cache->maxIterations = 0;
+	cache->listFirst = NULL;
+	cache->listLast = NULL;
 }
 
- /**
- * \cond
- * Creates a new cache list of the size provided.
- * @param size the number of items in the cache
- * @returns a new uninitialised cache list for use as an active or background
- cache
- * \endcond
- */
-static fiftyoneDegreesResultsetCacheList* resultsetCacheListCreate(int32_t size) {
-	fiftyoneDegreesResultsetCacheList* rscl = (fiftyoneDegreesResultsetCacheList*)fiftyoneDegreesMalloc(SIZE_OF_RESULTSET_CACHE_LIST);
-	if (rscl != NULL) {
-		rscl->resultSets = (fiftyoneDegreesResultset **)fiftyoneDegreesMalloc(SIZE_OF_RESULTSETS(size));
-		if (rscl->resultSets == NULL) {
-			fiftyoneDegreesFree((void*)rscl);
-			rscl = NULL;
-		}
-	}
-	return rscl;
-}
-
- /**
+/**
  * \cond
  * Creates a new cache used to speed up duplicate detections.
  * The cache must be destroyed with the fiftyoneDegreesFreeCache method.
@@ -2685,271 +3126,198 @@ static fiftyoneDegreesResultsetCacheList* resultsetCacheListCreate(int32_t size)
  * \endcond
  */
 fiftyoneDegreesResultsetCache *fiftyoneDegreesResultsetCacheCreate(const fiftyoneDegreesDataSet *dataSet, int32_t size) {
-	fiftyoneDegreesResultsetCache *rsc = size >= MIN_CACHE_SIZE ? (fiftyoneDegreesResultsetCache*)fiftyoneDegreesMalloc(SIZE_OF_RESULTSET_CACHE) : NULL;
-	if (rsc != NULL) {
-		rsc->dataSet = dataSet;
-		rsc->hits = 0;
-		rsc->misses = 0;
-		rsc->switches = 0;
-		rsc->total = size;
-		rsc->switchLimit = size / 2;
+	fiftyoneDegreesResultsetCache *cache = size >= MIN_CACHE_SIZE
+		? (fiftyoneDegreesResultsetCache*)fiftyoneDegreesMalloc(SIZE_OF_CACHE)
+		: NULL;
 
-		// Initialise the memory used for the list of result sets.
-		rsc->sizeOfResultset = SIZE_OF_CACHE_RESULTSET(1, dataSet->header);
-		rsc->resultSets = (const fiftyoneDegreesResultset*)fiftyoneDegreesMalloc(SIZE_OF_CACHE_RESULTSET(size, dataSet->header));
-		rsc->active = resultsetCacheListCreate(size);
-		rsc->background = resultsetCacheListCreate(size);
+	if (cache != NULL) {
+		cache->dataSet = dataSet;
+		cache->hits = 0;
+		cache->misses = 0;
+		cache->switches = 0;
+		cache->total = size;
+		cache->allocated = 0;
+
+		// Initialise the memory used for the list of result sets, profiles and 
+		// target User-Agents.
+		cache->profiles = (const fiftyoneDegreesProfile**)fiftyoneDegreesMalloc(SIZE_OF_CACHE_PROFILES(size, dataSet->header));
+		cache->targetUserAgentArrays = (const byte*)fiftyoneDegreesMalloc(SIZE_OF_CACHE_TARGET_USER_AGENTS(size, dataSet->header));
+		cache->resultSets = (const fiftyoneDegreesResultset*)fiftyoneDegreesMalloc(SIZE_OF_CACHE_RESULTSETS(size));
+
 #ifndef FIFTYONEDEGREES_NO_THREADING
-		FIFTYONEDEGREES_MUTEX_CREATE(rsc->activeLock);
-		FIFTYONEDEGREES_MUTEX_CREATE(rsc->backgroundLock);
+		FIFTYONEDEGREES_MUTEX_CREATE(cache->lock);
 #endif
 
 		// Check memory was allocated and if there was a problem free that which
 		// was allocated.
-		if (rsc->resultSets == NULL ||
-			rsc->active == NULL ||
-			rsc->background == NULL) {
-			if (rsc->resultSets != NULL) { fiftyoneDegreesFree((void*)rsc->resultSets); }
-			if (rsc->active != NULL) { resultsetCacheListFree(rsc->active); }
-			if (rsc->background != NULL) { resultsetCacheListFree(rsc->background); }
-			fiftyoneDegreesFree((void*)rsc);
-			rsc = NULL;
+		if (cache->resultSets == NULL ||
+			cache->profiles == NULL ||
+			cache->targetUserAgentArrays == NULL) {
+			if (cache->resultSets != NULL) { fiftyoneDegreesFree((void*)cache->resultSets); }
+			if (cache->profiles != NULL) { fiftyoneDegreesFree((void*)cache->profiles); }
+			if (cache->targetUserAgentArrays != NULL) { fiftyoneDegreesFree((void*)cache->targetUserAgentArrays); }
+			fiftyoneDegreesFree((void*)cache);
+			cache = NULL;
 		}
 		else {
-			// Initialise the linked lists for allocated and free.
-			resultsetCacheInit(rsc);
+			// Initialise the linked lists and binary tree.
+			resultsetCacheInit(cache);
 		}
 	}
-	return rsc;
+	return cache;
 }
 
- /**
- * \cond
- * Takes an empty resultset from the free linked list and adds it to the
- * allocated linked list copying the resultset provided to the empty
- * location.
- * @param rsc pointer to the resultset cache
- * @param rs pointer to the resultSet to be added
- * @returns pointer to the new result set added to the list
- * \endcond
- */
-static fiftyoneDegreesResultset *resultsetCacheAdd(fiftyoneDegreesResultsetCache *rsc, const fiftyoneDegreesResultset *rs) {
-	fiftyoneDegreesResultset *empty;
+/**
+* \cond
+* Returns the next free resultset from the cache which can be used to add a 
+* new entry to. Once the cache is full then the resultset returned is the one
+* at the end of the linked list which will contain the least recently used
+* data.
+* @param cache cache to return the next free resultset from.
+* @returns a pointer to a free resultset.
+* \endcond
+*/
+static fiftyoneDegreesResultset *resultsetCacheGetNextFree(
+	fiftyoneDegreesResultsetCache *cache) {
+	int countBefore, countAfter;
+	fiftyoneDegreesResultset *last; // The oldest resultset in the cache.
 
-	// Get the next empty resultset from the free list.
-	empty = rsc->free.first;
-	rsc->free.first = empty->next;
-	if (rsc->free.first != NULL) {
-		rsc->free.first->previous = NULL;
+	if (cache->allocated < cache->total) {
+		// Return the free element at the end of the cache and update
+		// the number of allocated elements.
+		last = (fiftyoneDegreesResultset*)&cache->resultSets[cache->allocated++];
 	}
 	else {
-		rsc->free.last = NULL;
-	}
-	rsc->free.count--;
+		// Remove the last resultset from the linked list.
+		last = cache->listLast;
+		last->listPrevious->listNext = NULL;
+		cache->listLast = last->listPrevious;
 
-	if (rsc->allocated.count == 0) {
-		// Make this resultset the only item in the linked list.
-		rsc->allocated.first = empty;
-		rsc->allocated.last = empty;
-		empty->previous = NULL;
-		empty->next = NULL;
+		// Remove the last result from the binary tree.
+		countBefore = resultsetCacheTreeCount(TREE_FIRST(cache));
+		resultsetCacheTreeDelete(last);
+		countAfter = resultsetCacheTreeCount(TREE_FIRST(cache));
+		assert(countBefore - 1 == countAfter);
+	}
+
+	// Set the pointers of the resultset to null indicating that the
+	// entry is not part of the cache anymore.
+	last->listNext = NULL;
+	last->listPrevious = NULL;
+	last->treeLeft = NULL;
+	last->treeRight = NULL;
+	last->treeParent = NULL;
+	last->colour = 0;
+	return last;
+}
+
+/**
+* \cond
+* Moves the resultset to the head of the linked list. Used when a resultset 
+* which is already in the cache is being returned and the cache needs to know
+* that is has recently been used and shouldn't be considered for removal. Also
+* used when a new entry is added to the cache.
+* @param rs pointer to the resultset to move to the head of the linked list.
+* \endcond
+*/
+static void resultsetCacheMoveToHead(fiftyoneDegreesResultset *rs) {
+	fiftyoneDegreesResultsetCache *cache = 
+		(fiftyoneDegreesResultsetCache*)rs->cache;
+	
+	// Only consider moving if not already the first entry.
+	if (cache->listFirst != rs) {
+
+		// If the entry is the last one in the list then set the last pointer
+		// to the entry before the last one.
+		if (rs == cache->listLast) {
+			cache->listLast = cache->listLast->listPrevious;
+			cache->listLast->listNext = NULL;
+		}
+
+		// Remove the entry from the linked list.
+		if (rs->listPrevious != NULL) {
+			rs->listPrevious->listNext = rs->listNext;
+		}
+		if (rs->listNext != NULL) {
+			rs->listNext->listPrevious = rs->listPrevious;
+		}
+
+		// Move to become the first entry. 
+		if (rs->cache->listFirst != NULL) {
+			rs->cache->listFirst->listPrevious = rs;
+		}
+		rs->listNext = cache->listFirst;
+		cache->listFirst = rs;
+		cache->listFirst->listPrevious = NULL;
+	}
+
+	// Validate the state of the list.
+	assert(cache->listFirst == rs);
+	assert(cache->listFirst->listPrevious == NULL);
+}
+
+/**
+* \cond
+* Updates the binary tree and the linked list with the provided resultset.
+* @param rs pointer to the resultset to add to the cache.
+* \endcond
+*/
+static void resultsetCacheAdd(fiftyoneDegreesResultset *rs) {
+	fiftyoneDegreesResultsetCache *cache = 
+		(fiftyoneDegreesResultsetCache*)rs->cache;
+
+	assert(resultsetCacheValidate(cache) == 0);
+
+	resultsetCacheTreeInsert(rs);
+
+	assert(resultsetCacheValidate(cache) == 0);
+
+	if (cache->listFirst == NULL) {
+		cache->listLast = rs;
+		cache->listFirst = rs;
 	}
 	else {
-		// Add this resultset to the end of the linked list.
-		rsc->allocated.last->next = empty;
-		empty->previous = rsc->allocated.last;
-		empty->next = NULL;
-		rsc->allocated.last = empty;
+		resultsetCacheMoveToHead(rs);
 	}
-	rsc->allocated.count++;
 
-	// Copy the provided resultset to the empty location.
-	resultsetCopy(empty, rs);
-
-	return empty;
+	assert(resultsetCacheValidate(cache) == 0);
 }
 
- /**
- * \cond
- * Removes the resultset from the allocated linked list and returns it to the
- * free linked list.
- * @param rsc pointer to the resultset cache
- * @param rs pointer to the resultSet to be removed
- * \endcond
- */
-static void resultsetCacheRemove(fiftyoneDegreesResultsetCache *rsc, fiftyoneDegreesResultset *rs) {
+/**
+* \cond
+* If the cache contains a resultset that matches the provided workset the 
+* entry is returned. In addition to returning the entry the linked list in the
+* cache is updated to indicate that the item returned has recently been 
+* retrieved.
+* @param ws pointer initialised with the hash code required.
+* \endcond
+*/
+static fiftyoneDegreesResultset *resultsetCacheFetch(const fiftyoneDegreesWorkset *ws) {
+	fiftyoneDegreesResultsetCache *cache = (fiftyoneDegreesResultsetCache*)ws->cache;
+	fiftyoneDegreesResultset *found;
 
-	rsc->allocated.count--;
+	assert(resultsetCacheValidate(cache) == 0);
 
-	if (rsc->free.count == 0) {
-		// Make this resultset the only item in the linked list.
-		rsc->free.first = rs;
-		rsc->free.last = rs;
-		rs->previous = NULL;
-		rs->next = NULL;
+	// Find the resultset that matches the value requested.
+	found = resultsetCacheTreeFind(ws);
+
+	// If the target is already in the cache move the entry to the head of the
+	// linked list. No need to change the binary tree. Update the cache 
+	// statistics for both misses and hits.
+	if (found != NULL) {
+		resultsetCacheMoveToHead(found);
+		cache->hits++;
 	}
 	else {
-		// Add this resultset to the end of the linked list.
-		rsc->free.last->next = rs;
-		rs->previous = rsc->free.last;
-		rs->next = NULL;
-		rsc->free.last = rs;
-	}
-	rsc->free.count++;
-}
-
- /**
- * \cond
- * If the target hash code is in the cache returns the index of the item.
- * @param cache pointer to a cache data structure.
- * @param hashcode the hash code of the target user agent.
- * @returns index of the item if present, otherwise the twos complement
- *          of the index to insert at.
- * \endcond
- */
-static int32_t resultsetCacheFetchIndex(const fiftyoneDegreesResultsetCacheList *rscl, uint64_t hashcode) {
-	int32_t upper = rscl->allocated - 1, lower = 0, middle;
-
-	if (upper >= 0)
-	{
-		while (lower <= upper)
-		{
-			middle = lower + (upper - lower) / 2;
-			if (hashcode == rscl->resultSets[middle]->targetUserAgentHashCode) {
-				return middle;
-			}
-			else if (hashcode < rscl->resultSets[middle]->targetUserAgentHashCode) {
-				upper = middle - 1;
-			}
-			else {
-				lower = middle + 1;
-			}
-		}
+		cache->misses++;
 	}
 
-	return ~lower;
-}
-
- /**
- * \cond
- * Inserts the result set into the cache items list at the index provided
- * shifting all subsequent result sets in the cache down by one item. The
- * number of allocated items is also increased by 1.
- * @param rscl a resultset cache list (either active or background).
- * @param rs the resultset to be inserted.
- * @param index where the resultset should be copied to.
- * \endcond
- */
-static void cacheItemsInsert(fiftyoneDegreesResultsetCacheList *rscl, fiftyoneDegreesResultset *rs, int32_t index) {
-	int32_t i;
-
-	// Make room for the new item to be added at the index by
-	// shifting later items down the list.
-	for (i = rscl->allocated; i > index; i--) {
-		rscl->resultSets[i] = rscl->resultSets[i - 1];
-	}
-
-	// Add the new item at the index.
-	rscl->resultSets[index] = rs;
-
-	// Increase the number of allocated items.
-	rscl->allocated++;
-}
-
- /**
- * \cond
- * Inserts the result set into the cache items list at the index provided
- * shifting all subsequent result sets in the cache down by one item. A copy
- * of the result set is made which will only be used by the cache. The number
- * of allocated items is also increased by 1.
- * @param rscl a resultset cache list (either active or background).
- * @param rs the resultset to be inserted.
- * @param index where the resultset should be copied to.
- * @returns a copy of the result set added to the list.
- * \endcond
- */
-static fiftyoneDegreesResultset *cacheItemsInsertWithCopy(fiftyoneDegreesResultsetCacheList *rscl, fiftyoneDegreesResultset *src, int32_t index) {
-	fiftyoneDegreesResultset *rs;
-
-	// Get the pointer to the next item in the list of resultsets
-	// copy the source resultset into the linked list.
-	rs = resultsetCacheAdd(rscl->cache, src);
-
-	// Insert the copy at the index provided.
-	cacheItemsInsert(rscl, rs, index);
-
-	return rs;
-}
-
- /**
- * \cond
- * Sets the result into the cache items by making a copy of it. If the hashcode
- * exists already then it is overwritten. This could happen if there is a hashcode
- * collision, but due to the nature of the data being cached isn't critical.
- * @param rscl a resultset cache list (either active or background).
- * @param rs resultset to be added to the cache.
- * @returns a pointer the resultset in the cache, otherwise NULL.
- * \endcond
- */
-static void cacheItemsSet(fiftyoneDegreesResultsetCacheList *rscl, fiftyoneDegreesResultset *rs) {
-	int32_t index;
-
-	// Find the index of the existing hashcode, or where we should insert
-	// the new resultset.
-	index = resultsetCacheFetchIndex(rscl, getResultsetHashCode((fiftyoneDegreesResultset*)rs));
-
-	if (index < 0) {
-		// The item doesn't exist so add it at the index
-		// returned from the fetch index method.
-		cacheItemsInsert(rscl, rs, ~index);
-	}
-}
-
- /**
- * \cond
- * Switches the active and background caches if the background
- * cache is 1/2 full and ready to take over. The new background
- * cache is reset.
- * @param rsc pointer to the cache
- * @returns non zero if the caches were switched, otherwise 0
- * \endcond
- */
-static void cacheSwitch(fiftyoneDegreesResultsetCache *rsc) {
-	fiftyoneDegreesResultsetCacheList* temp;
-	fiftyoneDegreesResultset* rs;
-	int i;
-
-	// Do the background and active items need to be switched?
-	if (rsc->background->allocated >= rsc->switchLimit) {
-
-		// Switch the caches so that the background cache is now
-		// active and ready to service requests.
-		temp = rsc->active;
-		rsc->active = rsc->background;
-		rsc->background = temp;
-
-		// Clean out the background list with anything that's still there marked
-		// as active only as it's not been accessed since the last switch.
-		for (i = 0; i < rsc->background->allocated; i++) {
-			rs = rsc->background->resultSets[i];
-			if (rs->state == ACTIVE_CACHE_LIST_ONLY) {
-				resultsetCacheRemove(rsc, rs);
-			}
-		}
-
-		// Empty the new background cache as all joint entries are
-		// now only in the active cache.
-		rsc->background->allocated = 0;
-
-		// Any resultset that is in the active list should only appear
-		// in that list now.
-		for (i = 0; i < rsc->active->allocated; i++) {
-			rsc->active->resultSets[i]->state = ACTIVE_CACHE_LIST_ONLY;
-		}
-
-		// Increase the number of times the cache has been switched.
-		rsc->switches++;
-	}
+	assert(resultsetCacheValidate(cache) == 0);
+	
+	// Return the found item even if there was a miss. This is the entry that the
+	// results of the device detection that will follow if a miss occured will be
+	// set in before the result set is added back into the cache.
+	return found;
 }
 
  /**
@@ -2976,7 +3344,7 @@ fiftyoneDegreesWorkset *fiftyoneDegreesWorksetCreate(
 	if (ws != NULL) {
 		// Initialise all the parameters of the workset.
 		ws->dataSet = dataSet;
-		ws->cache = cache;
+		ws->cache = (fiftyoneDegreesResultsetCache*)cache;
 		ws->associatedPool = NULL;
 
 		// Allocate all the memory needed to the workset.
@@ -2988,9 +3356,9 @@ fiftyoneDegreesWorkset *fiftyoneDegreesWorksetCreate(
 		ws->closestNodes = (char*)fiftyoneDegreesMalloc(SIZE_OF_WORKSET_USED_NODES(dataSet->header));
 		ws->signatureAsString = (char*)fiftyoneDegreesMalloc(SIZE_OF_WORKSET_SIG_AS_STRING(dataSet->header));
 		ws->values = (const fiftyoneDegreesValue**)fiftyoneDegreesMalloc(SIZE_OF_WORKSET_VALUES(dataSet->header));
-		ws->profiles = (const fiftyoneDegreesProfile**)fiftyoneDegreesMalloc(SIZE_OF_RESULTSET_PROFILES(dataSet->header));
-		ws->tempProfiles = (const fiftyoneDegreesProfile**)fiftyoneDegreesMalloc(SIZE_OF_RESULTSET_PROFILES(dataSet->header));
-		ws->targetUserAgentArray = (char*)fiftyoneDegreesMalloc(SIZE_OF_RESULTSET_TARGET_USERAGENT_ARRAY(dataSet->header));
+		ws->profiles = (const fiftyoneDegreesProfile**)fiftyoneDegreesMalloc(SIZE_OF_WORKSET_PROFILES(dataSet->header));
+		ws->tempProfiles = (const fiftyoneDegreesProfile**)fiftyoneDegreesMalloc(SIZE_OF_WORKSET_PROFILES(dataSet->header));
+		ws->targetUserAgentArray = (byte*)fiftyoneDegreesMalloc(SIZE_OF_WORKSET_TARGET_USERAGENT_ARRAY(dataSet->header));
 		ws->importantHeaders = (fiftyoneDegreesHttpHeaderWorkset*)fiftyoneDegreesMalloc(SIZE_OF_WORKSET_IMPORTANT_HEADERS(ws->dataSet->httpHeadersCount));
 
 		// Check all the memory was allocated correctly and also
@@ -3282,7 +3650,7 @@ static void setTargetUserAgentArray(fiftyoneDegreesWorkset *ws, const char* user
  * @return the difference between the characters, or 0 if equal
  * \endcond
  */
-static int32_t compareTo(const char* targetUserAgentArray, int32_t startIndex, fiftyoneDegreesString *string) {
+static int32_t compareTo(const byte* targetUserAgentArray, int32_t startIndex, fiftyoneDegreesString *string) {
 	int32_t i, o, difference;
 	for (i = string->length - 1, o = startIndex + string->length - 1; i >= 0; i--, o--)
 	{
@@ -3556,7 +3924,7 @@ static void resetNextCharacterPositionIndex(fiftyoneDegreesWorkset *ws) {
  * @return the numeric integer of the characters specified
  * \endcond
  */
-static int32_t getNumber(const char *array, int32_t start, int32_t length) {
+static int32_t getNumber(const byte *array, int32_t start, int32_t length) {
 	int32_t i, p;
 	int32_t value = 0;
 	for (i = start + length - 1, p = 0; i >= start && p < (int32_t)(POWERS_COUNT); i--, p++)
@@ -4068,7 +4436,7 @@ static void fillClosestSignatures(fiftyoneDegreesWorkset *ws) {
  * @return 1 if the value is numeric, otherwise 0
  * \endcond
  */
-static byte getIsNumeric(const char *value) {
+static byte getIsNumeric(const byte *value) {
 	return (*value >= (char)'0' && *value <= (char)'9');
 }
 
@@ -4091,7 +4459,7 @@ static int32_t calculateNumericDifference(const fiftyoneDegreesAsciiString *char
 	while (newNodeIndex < characters->length &&
 		newTargetIndex < ws->targetUserAgentArrayLength &&
 		getIsNumeric(ws->targetUserAgentArray + newTargetIndex) &&
-		getIsNumeric(&(characters->firstByte) + newNodeIndex))
+		getIsNumeric((byte*)&(characters->firstByte) + newNodeIndex))
 	{
 		newNodeIndex++;
 		newTargetIndex++;
@@ -4103,7 +4471,7 @@ static int32_t calculateNumericDifference(const fiftyoneDegreesAsciiString *char
 	while (
 		(int64_t) nodeIndex >= 0 &&
 		getIsNumeric(ws->targetUserAgentArray + *targetIndex) &&
-		getIsNumeric(&(characters->firstByte) + *nodeIndex))
+		getIsNumeric((byte*)&(characters->firstByte) + *nodeIndex))
 	{
 		(*nodeIndex)--;
 		(*targetIndex)--;
@@ -4116,7 +4484,7 @@ static int32_t calculateNumericDifference(const fiftyoneDegreesAsciiString *char
 	{
 		return abs(
 			getNumber(ws->targetUserAgentArray, *targetIndex + 1, count) -
-			getNumber(&(characters->firstByte), *nodeIndex + 1, count));
+			getNumber((byte*)&(characters->firstByte), *nodeIndex + 1, count));
 	}
 
 	return 0;
@@ -4483,86 +4851,6 @@ static void setMatch(fiftyoneDegreesWorkset *ws) {
 	setRelevantNodes(ws);
 }
 
- /**
- * \cond
- * Checks to see if a result set exists for the target user agent. If
- * one is present it's result set is returned. The active cache list
- * must be locked before this method is called.
- * @param ws pointer to a work set to be used for the match created via
- *        createWorkset function
- * @returns a pointer to the result set, otherwise NULL
- * \endcond
- */
-static fiftyoneDegreesResultset *checkCache(fiftyoneDegreesWorkset *ws) {
-	int32_t cacheIndex;
-	fiftyoneDegreesResultset *rs;
-	fiftyoneDegreesResultsetCache *cache = (fiftyoneDegreesResultsetCache*)ws->cache;
-
-	// Does the hashcode for the user agent already exist in the cache?
-	cacheIndex = resultsetCacheFetchIndex(ws->cache->active, getResultsetHashCode((fiftyoneDegreesResultset*)ws));
-
-	if (cacheIndex < 0) {
-		// Not in the cache so set the result to NULL.
-		rs = NULL;
-		cache->misses++;
-	}
-	else if (ws->targetUserAgentArrayLength == ws->cache->active->resultSets[cacheIndex]->targetUserAgentArrayLength &&
-		memcmp(ws->targetUserAgentArray, ws->cache->active->resultSets[cacheIndex]->targetUserAgentArray, ws->targetUserAgentArrayLength) != 0) {
-		// The hashcode matched but the user agents didn't. This does
-		// count as a valid result.
-		rs = NULL;
-		cache->misses++;
-	}
-	else {
-		// Fetch from the cache and record the hit.
-		rs = ws->cache->active->resultSets[cacheIndex];
-		resultsetCopy((fiftyoneDegreesResultset*)ws, rs);
-		cache->hits++;
-	}
-
-	return rs;
-}
-
-/**
- * \cond
- * Adds the workset to the active cache. The cache must be locked before
- * the method is called.
- * @param ws pointer to a work set to be used for the match created via
- *        createWorkset function
- * @returns a pointer to the result set, otherwise NULL
- * \endcond
- */
-static fiftyoneDegreesResultset *addToCache(fiftyoneDegreesWorkset *ws) {
-	int32_t cacheIndex;
-	fiftyoneDegreesResultset *rs;
-
-	// Does the hashcode for the user agent already exist in the cache?
-	cacheIndex = resultsetCacheFetchIndex(ws->cache->active, getResultsetHashCode((fiftyoneDegreesResultset*)ws));
-
-	if (cacheIndex < 0) {
-		// The item doesn't exist in the cache so add it at the position returned.
-		rs = cacheItemsInsertWithCopy(ws->cache->active, (fiftyoneDegreesResultset*)ws, ~cacheIndex);
-	}
-	else if (ws->targetUserAgentArrayLength == ws->cache->active->resultSets[cacheIndex]->targetUserAgentArrayLength &&
-		memcmp(ws->targetUserAgentArray, ws->cache->active->resultSets[cacheIndex]->targetUserAgentArray, ws->targetUserAgentArrayLength) != 0) {
-		// The hashcode matched but the user agents didn't. This does
-		// count as a valid result so we'll update the existing entry
-		// for the hashcode with these results.
-		resultsetCopy(ws->cache->active->resultSets[cacheIndex], (fiftyoneDegreesResultset*)ws);
-
-		// Return the new value from the resultset.
-		rs = ws->cache->active->resultSets[cacheIndex];
-	}
-	else {
-		// Another thread managed to get the item into the cache already
-		// so we just return that one.
-		rs = ws->cache->active->resultSets[cacheIndex];
-	}
-
-	// Return the resultset from the cache.
-	return rs;
-}
-
 /**
  * \cond
  * First the cache is checked to determine if the userAgent has already been
@@ -4583,59 +4871,56 @@ static void internalMatch(fiftyoneDegreesWorkset *ws, const char* userAgent, int
 			// Calculate the hash code for the target user agent before
 			// locking thing active list to improve performance over
 			// performing the hashcode calculation in the lock.
-			getResultsetHashCode((fiftyoneDegreesResultset*)ws);
+			setResultsetHashCode((fiftyoneDegreesResultset*)ws);
 
 #ifndef FIFTYONEDEGREES_NO_THREADING
-			// Lock the active list to stop other threads altering the
+			// Lock the cache to stop other threads altering the
 			// cache whilst this thread is checking it.
-			FIFTYONEDEGREES_MUTEX_LOCK(&ws->cache->activeLock);
+			FIFTYONEDEGREES_MUTEX_LOCK(&ws->cache->lock);
 #endif
 
 			// Does the target exist in the cache?
-			rs = checkCache(ws);
+			rs = resultsetCacheFetch(ws);
 
 			// If the item couldn't be retrieved from the cache then perform
 			// a match and then cache this result.
 			if (rs == NULL) {
 
 #ifndef FIFTYONEDEGREES_NO_THREADING
-				// Unlock the cache whilst the detection is performed. The active
-				// list will be checked again after detection and may has already
-				// been altered by another thread, or the lists may have been
-				// switched.
-				FIFTYONEDEGREES_MUTEX_UNLOCK(&ws->cache->activeLock);
+				// Unlock the cache whilst the detection is performed. The cache
+				// will be checked again after detection and may has already
+				// been altered by another thread.
+				FIFTYONEDEGREES_MUTEX_UNLOCK(&ws->cache->lock);
 #endif
 
 				// Get the results of the detection process.
 				setMatch(ws);
 
 #ifndef FIFTYONEDEGREES_NO_THREADING
-				// Lock the cache again whilst the result is added to the active
+				// Lock the cache again whilst the result is added to the cache
 				// list and the resulset from the cache copied into the result
-				FIFTYONEDEGREES_MUTEX_LOCK(&ws->cache->activeLock);
+				FIFTYONEDEGREES_MUTEX_LOCK(&ws->cache->lock);
 #endif
+				// Does the entry still not exist in the cache.
+				rs = resultsetCacheFetch(ws);
 
-				// Add the match result to the cache.
-				rs = addToCache(ws);
+				if (rs == NULL) {
+					// Get an empty resultset from the cache, copy the workset into
+					// the entry and then add the entry back into the cache.
+					rs = resultsetCacheGetNextFree((fiftyoneDegreesResultsetCache*)ws->cache);
+					resultsetCacheCopy(rs, (fiftyoneDegreesResultset*)ws);
+					resultsetCacheAdd(rs);
+				}
+			}
+			else {
+
+				// The cache does have the resultset. Copy this to the work set.
+				resultsetCacheCopy((fiftyoneDegreesResultset*)ws, rs);
 			}
 
 #ifndef FIFTYONEDEGREES_NO_THREADING
-			// Lock the background cache whilst it's updated
-			// and possibly switched.
-			FIFTYONEDEGREES_MUTEX_LOCK(&ws->cache->backgroundLock);
-#endif
-
-			// Make sure this result is in the background cache.
-			cacheItemsSet(ws->cache->background, rs);
-			rs->state = BOTH_CACHE_LISTS;
-
-			// See if the caches now need to be switched.
-			cacheSwitch((fiftyoneDegreesResultsetCache*)ws->cache);
-
-#ifndef FIFTYONEDEGREES_NO_THREADING
-			// Unlock the cache lists in reverse order.
-			FIFTYONEDEGREES_MUTEX_UNLOCK(&ws->cache->backgroundLock);
-			FIFTYONEDEGREES_MUTEX_UNLOCK(&ws->cache->activeLock);
+			// Unlock the cache.
+			FIFTYONEDEGREES_MUTEX_UNLOCK(&ws->cache->lock);
 #endif
 		}
 		else {
@@ -4734,7 +5019,7 @@ void fiftyoneDegreesMatchForHttpHeaders(fiftyoneDegreesWorkset *ws) {
 		// for each of the components.
 		for (componentIndex = 0; componentIndex < ws->dataSet->header.components.count; componentIndex++) {
 			if (ws->tempProfiles[componentIndex] != NULL) {
-				ws->profiles[profileIndex] = ws->tempProfiles[componentIndex];
+				ws->profiles[profileIndex] = (fiftyoneDegreesProfile*)ws->tempProfiles[componentIndex];
 				profileIndex++;
 			}
 		}
@@ -5081,7 +5366,7 @@ int32_t fiftyoneDegreesGetDeviceId(fiftyoneDegreesWorkset *ws, char *deviceId, i
  * corresponding profile.
  * \endcond
  */
-static const fiftyoneDegreesProfile* findProfileForProfileId(
+static fiftyoneDegreesProfile* findProfileForProfileId(
 		const fiftyoneDegreesDataSet *dataSet, const int profileId) {
 	int32_t upper = dataSet->header.profileOffsets.count - 1;
 	int32_t lower = 0, middle;
@@ -5115,7 +5400,7 @@ static const fiftyoneDegreesProfile* findProfileForProfileId(
 void fiftyoneDegreesMatchForDeviceId(fiftyoneDegreesWorkset *ws, const char *deviceId) {
 	char *start = ws->input, *current = ws->input;
 	int lastId = 0, profileId;
-	const fiftyoneDegreesProfile *profile;
+	fiftyoneDegreesProfile *profile;
 	resetCounters(ws);
 	ws->profileCount = 0;
 	if (strncpy(ws->input, deviceId, strlen(deviceId) + 1) == ws->input) {
@@ -5127,6 +5412,7 @@ void fiftyoneDegreesMatchForDeviceId(fiftyoneDegreesWorkset *ws, const char *dev
 				if (profileId != 0) {
 					profile = findProfileForProfileId(ws->dataSet, profileId);
 					if (profile != NULL) {
+						assert(profile->profileId == profileId);
 						ws->profiles[ws->profileCount] = profile;
 						ws->profileCount++;
 					}
@@ -5194,7 +5480,7 @@ int32_t fiftyoneDegreesSetValues(fiftyoneDegreesWorkset *ws, int32_t requiredPro
 		propertyIndex = getPropertyIndex(ws->dataSet, property);
 		while (profileIndex < ws->profileCount &&
 			ws->valuesCount == 0) {
-			profile = *(ws->profiles + profileIndex);
+			profile = ws->profiles[profileIndex];
 			if (profile->componentIndex == property->componentIndex) {
 				profileValueIndexes = (int32_t*)((byte*)profile + sizeof(fiftyoneDegreesProfile));
 				valueIndex = 0;
@@ -5262,7 +5548,7 @@ int32_t fiftyoneDegreesProcessDeviceCSV(fiftyoneDegreesWorkset *ws, char* csv) {
 				currentPos,
 				(int32_t)(endPos - currentPos),
 				"%d",
-				(*(ws->profiles + profileIndex))->profileId);
+				ws->profiles[profileIndex]->profileId);
 			if (profileIndex < ws->profileCount - 1) {
 				currentPos += snprintf(
 					currentPos,
@@ -5412,7 +5698,7 @@ int32_t fiftyoneDegreesProcessDeviceJSON(fiftyoneDegreesWorkset *ws, char* json)
 				currentPos,
 				(int32_t)(endPos - currentPos),
 				"%d",
-				(*(ws->profiles + profileIndex))->profileId);
+				ws->profiles[profileIndex]->profileId);
 			if (profileIndex < ws->profileCount - 1) {
 				*currentPos = '-';
 				currentPos++;

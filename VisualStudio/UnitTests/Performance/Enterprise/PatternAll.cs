@@ -59,7 +59,7 @@ namespace FiftyOne.UnitTests.Performance.Enterprise
         [TestCategory("Enterprise"), TestCategory("Pattern"), TestCategory("Performance"), TestCategory("Multi"), TestCategory("Bad"), TestCategory("All")]
         public void EnterpriseV32Pattern_Performance_BadUserAgentsMultiAll()
         {
-            BadUserAgentsMulti(2);
+            BadUserAgentsMulti(1);
         }
 
         [TestMethod]

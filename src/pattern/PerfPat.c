@@ -31,6 +31,17 @@
 // Number of detection to complete between reporting progress.
 #define PROGRESS_MARKS 40
 
+// Memory leak detection code.
+#ifdef _DEBUG
+#ifdef _MSC_VER
+#define _CRTDBG_MAP_ALLOC
+#include <stdlib.h>
+#include <crtdbg.h>
+#else
+#include "dmalloc.h"
+#endif
+#endif
+
 // Number of threads to start for performance analysis.
 #ifndef FIFTYONEDEGREES_NO_THREADING
 #define THREAD_COUNT 4
@@ -290,6 +301,13 @@ int main(int argc, char* argv[]) {
 	fiftyoneDegreesResultsetCache *cache;
 	fiftyoneDegreesWorksetPool *pool;
 
+	// Memory leak detection code.
+	#ifdef _DEBUG
+	#ifndef _MSC_VER
+		dmalloc_debug_setup("log-stats,log-non-free,check-fence,log=dmalloc.log");
+	#endif
+	#endif
+
 	char *dataSetFileName = argc > 1 ? argv[1] : "../../../data/51Degrees-LiteV3.2.dat";
 	char *inputFileName = argc > 2 ? argv[2] : "../../../data/20000 User Agents.csv";
     char *requiredProperties = argc > 3 ? argv[3] : NULL;
@@ -355,5 +373,14 @@ int main(int argc, char* argv[]) {
         }
         break;
     }
+
+#ifdef _DEBUG
+#ifdef _MSC_VER
+	_CrtDumpMemoryLeaks();
+#else
+	printf("Log file is %s\r\n", dmalloc_logpath);
+#endif
+#endif
+
 	return 0;
 }
