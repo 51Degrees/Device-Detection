@@ -50,7 +50,7 @@ if has_snprintf():
 
 setup(
     name='51degrees-mobile-detector-v3-wrapper',
-    version='3.2.4.2',
+    version='3.2.7.4',
     author='51Degrees.com',
     author_email='support@51degrees.com',
     packages=find_packages(),
