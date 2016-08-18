@@ -1930,65 +1930,6 @@ size_t fiftyoneDegreesGetProviderSizeWithPropertyCount(const char *fileName, int
 
 /**
 * \cond
-* Calculates the amount of memory that the provider will need to allocate for
-* the given data file and initialisation parameters. This should be used with
-* the fiftyoneDegreesInitProviderWithPropertyArray function.
-* NOTE: This function will over estimate by about 10 bytes to account for a
-* possible increase in http headers.
-* @param fileName the file path of the data file.
-* @param propertyCount the number of properties in the properties array.
-* @param poolSize the number of worksets the pool will contain.
-* @param cacheSize the size of the resultset cache.
-* @return int the total size in bytes that is needed to initilaise the
-* provider with the given parameters.
-* \endcond
-*/
-size_t fiftyoneDegreesGetProviderSizeWithPropertyCount(const char *fileName, int propertyCount, int poolSize, int cacheSize)
-{
-	size_t sizeOfFile, size;
-	FILE *inputFilePtr;
-	fiftyoneDegreesDataSetHeader *header = (fiftyoneDegreesDataSetHeader*)fiftyoneDegreesMalloc(sizeof(fiftyoneDegreesDataSetHeader));
-
-	// Open the file and hold on to the pointer.
-#ifndef _MSC_FULL_VER
-	inputFilePtr = fopen(fileName, "rb");
-	if (inputFilePtr == NULL) {
-		return -1;
-	}
-#else
-	/* If using Microsoft use the fopen_s method to avoid warning */
-	if (fopen_s(&inputFilePtr, fileName, "rb") != 0) {
-		return -1;
-	}
-#endif
-
-	// Read in header.
-	if (fread(header, sizeof(fiftyoneDegreesDataSetHeader), 1, inputFilePtr) != 1) {
-		return -1;
-	}
-	fseek(inputFilePtr, 0, SEEK_END);
-
-	// Add file size.
-	sizeOfFile = ftell(inputFilePtr);
-	fclose(inputFilePtr);
-
-	assert(sizeOfFile > 0);
-
-	// Add file name.
-	sizeOfFile += (SIZE_OF_FILE_NAME(fileName));
-
-	// Get the final size that will be used in memory.
-	size = getProviderSizeWithPropertyCount(sizeOfFile, *header, propertyCount, poolSize, cacheSize);
-
-	// Free the header that was allocated.
-	fiftyoneDegreesFree(header);
-	
-	// Return the total size needed for the provider.
-	return size;
-}
-
-/**
-* \cond
 * Finds the maximum string length of the values associated with the given
 * property name.
 * @param dataSet pointer to a fiftyoneDegreesDataSet.
