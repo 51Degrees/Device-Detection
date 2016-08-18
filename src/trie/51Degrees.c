@@ -1,4 +1,4 @@
-﻿#include <stdio.h>
+#include <stdio.h>
 #include <stdarg.h>
 #include <stdlib.h>
 #include <string.h>
@@ -640,7 +640,7 @@ fiftyoneDegreesDataSetInitStatus fiftyoneDegreesInitProviderWithPropertyString(c
 	}
 	status = fiftyoneDegreesInitWithPropertyString(fileName, dataSet, properties);
 	if (status != DATA_SET_INIT_STATUS_SUCCESS) {
-		fiftyoneDegreesDataSetFree(provider->active->dataSet);
+		fiftyoneDegreesFree(dataSet);
 		return status;
 	}
 #ifndef FIFTYONEDEGREES_NO_THREADING
@@ -670,7 +670,7 @@ fiftyoneDegreesDataSetInitStatus fiftyoneDegreesInitProviderWithPropertyArray(co
 	}
 	status = fiftyoneDegreesInitWithPropertyArray(fileName, dataSet, properties, propertyCount);
 	if (status != DATA_SET_INIT_STATUS_SUCCESS) {
-		fiftyoneDegreesDataSetFree(provider->active->dataSet);
+		fiftyoneDegreesFree(dataSet);
 		return status;
 	}
 #ifndef FIFTYONEDEGREES_NO_THREADING
@@ -904,7 +904,7 @@ fiftyoneDegreesDataSetInitStatus fiftyoneDegreesProviderReloadFromFile(fiftyoneD
 * \endcond
 */
 void fiftyoneDegreesProviderFree(fiftyoneDegreesProvider* provider) {
-	 fiftyoneDegreesActiveDataSetFree((fiftyoneDegreesActiveDataSet*)provider->active);
+	fiftyoneDegreesActiveDataSetFree((fiftyoneDegreesActiveDataSet*)provider->active);
 #ifndef FIFTYONEDEGREES_NO_THREADING
 	FIFTYONEDEGREES_MUTEX_CLOSE(provider->lock);
 #endif

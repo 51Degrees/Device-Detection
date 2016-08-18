@@ -22,7 +22,7 @@ defined by the Mozilla Public License, v. 2.0.
 
 '''
 <tutorial>
-Getting started example of using 51Degrees device detection. The example
+Find profiles example of using 51Degrees device detection. The example
 shows how to:
 <ol>
 <li>Import settings from the 51Degrees settings file
