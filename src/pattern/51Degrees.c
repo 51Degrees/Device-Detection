@@ -43,7 +43,7 @@
 
 /* Define INT32_MAX if not defined */
 #ifndef INT32_MAX
-#define INT32_MAX 2147483647i32
+#define INT32_MAX 2147483647L
 #endif
 
  /**
