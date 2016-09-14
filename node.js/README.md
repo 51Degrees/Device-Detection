@@ -32,7 +32,7 @@ All methods use an external data file which can easilly be updated.
 
 - node.js (https://nodejs.org/en/download/package-manager/)
 - node-gyp (https://github.com/nodejs/node-gyp)
-- g++
+- gcc/g++ >=4.7 *or* Visual C++ Build tools
 
 ## Install
 Install the core 51Degrees module with:
