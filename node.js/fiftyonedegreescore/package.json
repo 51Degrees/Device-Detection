@@ -5,6 +5,7 @@
     "main": "fiftyonedegreescore.js",
     "scripts": {
         "test": "mocha test.js --pattern",
+	"preinstall": "node gccCheck.js",
         "install": "node-gyp configure && node-gyp build"
     },
     "repository": {
