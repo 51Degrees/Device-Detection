@@ -43,7 +43,7 @@
 
 /* Define INT32_MAX if not defined */
 #ifndef INT32_MAX
-#define INT32_MAX 2147483647i32
+#define INT32_MAX 2147483647L
 #endif
 
  /**
@@ -1876,7 +1876,26 @@ size_t fiftyoneDegreesGetProviderSizeWithPropertyString(const char *fileName, co
 {
 	int requiredPropertyCount;
 	size_t size;
+	FILE *inputFilePtr;
 	fiftyoneDegreesDataSetHeader *header = (fiftyoneDegreesDataSetHeader*)fiftyoneDegreesMalloc(sizeof(fiftyoneDegreesDataSetHeader));
+
+	// Open the file and hold on to the pointer.
+#ifndef _MSC_FULL_VER
+	inputFilePtr = fopen(fileName, "rb");
+	if (inputFilePtr == NULL) {
+		return -1;
+	}
+#else
+	/* If using Microsoft use the fopen_s method to avoid warning */
+	if (fopen_s(&inputFilePtr, fileName, "rb") != 0) {
+		return -1;
+	}
+#endif
+
+	// Read in header.
+	if (fread(header, sizeof(fiftyoneDegreesDataSetHeader), 1, inputFilePtr) != 1) {
+		return -1;
+	}
 
 	size = getSizeOfFile(fileName);
 
@@ -1886,6 +1905,11 @@ size_t fiftyoneDegreesGetProviderSizeWithPropertyString(const char *fileName, co
 
 		// Get property count.
 		requiredPropertyCount = getSeparatorCount(properties);
+
+		// If property string is empty, all properties will be used.
+		if (requiredPropertyCount == 0) {
+			requiredPropertyCount = header->properties.count;
+		}
 
 		// Add required properties array.
 		size += (SIZE_OF_REQUIRED_PROPERTIES_ARRAY);
@@ -1914,7 +1938,26 @@ size_t fiftyoneDegreesGetProviderSizeWithPropertyString(const char *fileName, co
 size_t fiftyoneDegreesGetProviderSizeWithPropertyCount(const char *fileName, int propertyCount, int poolSize, int cacheSize)
 {
 	size_t size;
+	FILE *inputFilePtr;
 	fiftyoneDegreesDataSetHeader *header = (fiftyoneDegreesDataSetHeader*)fiftyoneDegreesMalloc(sizeof(fiftyoneDegreesDataSetHeader));
+
+	// Open the file and hold on to the pointer.
+#ifndef _MSC_FULL_VER
+	inputFilePtr = fopen(fileName, "rb");
+	if (inputFilePtr == NULL) {
+		return -1;
+	}
+#else
+	/* If using Microsoft use the fopen_s method to avoid warning */
+	if (fopen_s(&inputFilePtr, fileName, "rb") != 0) {
+		return -1;
+	}
+#endif
+
+	// Read in header.
+	if (fread(header, sizeof(fiftyoneDegreesDataSetHeader), 1, inputFilePtr) != 1) {
+		return -1;
+	}
 
 	size = getSizeOfFile(fileName);
 

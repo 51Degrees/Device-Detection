@@ -45,11 +45,11 @@ The PHP API is now built from the same source as every other C based API. This m
 - php5
 - php5-dev
 - git
-- SWIG 2.0
+- SWIG >= 2.0
 
 For Ubuntu based distributions these can be found on apt, use
 ```
-$ sudo apt-get install g++ make php5 php5-dev git swig2.0
+$ sudo apt-get install g++ make php5 php5-dev git swig
 ```
 
 ## Install
