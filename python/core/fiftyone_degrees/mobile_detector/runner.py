@@ -38,7 +38,7 @@ def update_premium_pattern_wrapper(args, help):
 
     if settings.LICENSE:
         # Build source URL.
-        url = 'https://51degrees.com/Products/Downloads/Premium.aspx?LicenseKeys=%s&Type=BinaryV3&Download=True' % (
+        url = 'https://51degrees.com/Products/Downloads/Premium.aspx?LicenseKeys=%s&Type=BinaryV32&Download=True' % (
             settings.LICENSE
         )
 
@@ -50,12 +50,11 @@ def update_premium_pattern_wrapper(args, help):
             try:
                 # Fetch URL (no verification of the server's certificate here).
                 uh = urllib2.urlopen(url, timeout=120)
-                meta = uh.info()
 
                 # Check server response.
-                if meta.getheader('Content-Disposition') is not None:
+                if uh.headers['Content-Disposition'] is not None:
                     # Download the package.
-                    file_size = int(meta.getheader('Content-Length'))
+                    file_size = int(uh.headers['Content-Length'])
                     sys.stdout.write('=> Downloading %s bytes... ' % file_size)
                     downloaded = 0
                     while True:
