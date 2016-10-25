@@ -190,7 +190,7 @@ A full explanation of these can be found within the files or at [PHP Tutorials](
 
 You can find an example PHP page within the Device-Detection/php/examples directory called example.php. It demonstrates the output of each of the above function presented in a neat form that lists HTTP headers and provides useful links.
 
-To use these examples, first make sure that all settings are set in `/etc/php5/cli/php.ini` and the ``enable_dl`` is set to ``On``. Then run
+To use these examples, first make sure that all settings (see [Configuration](#configure) for Pattern/Trie settings) are set in `/etc/php5/cli/php.ini` and the ``enable_dl`` line reads ``enable_dl=On``. Then run
 ```
 php -S localhost:8080
 ```
