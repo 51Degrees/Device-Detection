@@ -1069,15 +1069,15 @@ search_headers_in(ngx_http_request_t *r, u_char *name, size_t len) {
 }
 
 /**
- * Add value function. Appends a string to a comma separated list.
+ * Add value function. Appends a string to a pipe separated list.
  * @param val the string to add to the buffer.
  * @param buffer the string to append the val to.
  */
 static void add_value(char *val, char *buffer)
 {
-	// If the buffer already contains characters, append a comma.
+	// If the buffer already contains characters, append a pipe.
 	if (buffer[0] != '\0') {
-		strcat(buffer, ",");
+		strcat(buffer, "|");
 	}
 	// Append the value.
 	strcat(buffer, val);

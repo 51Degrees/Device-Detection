@@ -130,9 +130,9 @@ These settings are valid in the main configuration block and should only be set 
 
 #### Location Settings
 These settings are valid in a location configuration block and should only be set once per location.
- - ``51D_single`` (defaults to disabled). Gets device properties using a User-Agent. Takes the name the resultant header will be set as, and acomma separated list of properties to return.
+ - ``51D_match_single`` (defaults to disabled). Gets device properties using a User-Agent. Takes the name the resultant header will be set as, and acomma separated list of properties to return.
 
- - ``51D_all`` (defaults to disabled). Gets device properties using multiple HTTP headers. Takes the name the resultant header will be set as, and a comma separated list of properties to return.
+ - ``51D_match_all`` (defaults to disabled). Gets device properties using multiple HTTP headers. Takes the name the resultant header will be set as, and a comma separated list of properties to return.
 
 ## Usage
 ### The Config File
@@ -152,7 +152,7 @@ Within a location block is where the match settings are set. They can be set in 
 To get properties using the device's User-Agent use:
 ```
 location / {
-  51D_single x-user-agent-match HardwareName,DeviceType,BrowserName;
+  51D_match_single x-user-agent-match HardwareName,DeviceType,BrowserName;
   ...
 }
 ```
@@ -160,7 +160,7 @@ location / {
 To get properties from all the relevant HTTP headers from the device use:
 ```
 location / {
-  51D_all x-all-headers-match HardwareName,BrowserName,PlatformName;
+  51D_match_all x-all-headers-match HardwareName,BrowserName,PlatformName;
   ...
 }
 ```
@@ -170,15 +170,15 @@ When using the ``proxy_pass`` directive in a location block where a match direct
 Using ``include fastcgi_params;`` makes these additional headers available via the ``$_SERVER`` variable.
 
 ##### Output Format
-The value of the header is set to a comma separated list of values, these are in the same order the properties are listed in the config file. So setting a header with the line:
+The value of the header is set to a pipe separated list of values, these are in the same order the properties are listed in the config file. So setting a header with the line:
 ```
-51D_all x-device HardwareName,BrowserName,PlatformName;
+51D_match_all x-device HardwareName,BrowserName,PlatformName;
 ```
-will give a header named ``x-device`` with a value like ``Desktop,Firefox,Ubuntu``. Alternatively, headers can be set individually like:
+will give a header named ``x-device`` with a value like ``Desktop|Firefox|Ubuntu``. Alternatively, headers can be set individually like:
 ```
-51D_all x-hardware HardwareName;
-51D_all x-browser BrowserName;
-51D_all x-platform PlatformName;
+51D_match_all x-hardware HardwareName;
+51D_match_all x-browser BrowserName;
+51D_match_all x-platform PlatformName;
 ```
 giving three seperate headers.
 
@@ -204,7 +204,7 @@ which will give the following response:
 HTTP/1.1 200 OK
 Server: nginx/1.10.0
 ...
-x-device: Desktop,Firefox,Windows
+x-device: Desktop|Firefox|Windows
 x-mobile: False
 x-tablet: False
 x-smartphone: False
