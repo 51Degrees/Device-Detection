@@ -408,8 +408,6 @@ typedef struct fiftyoneDegrees_linked_signature_list_t {
 	fiftyoneDegreesLinkedSignatureListItem *current; /* Pointer to the current item in the list when navigating */
 } fiftyoneDegreesLinkedSignatureList;
 
-typedef struct fiftyoneDegrees_resultset_cache_t fiftyoneDegreesResultsetCache;
-
 #pragma pack(push, 1)
 typedef struct fiftyoneDegrees_resultset_t {
 	FIFTYONE_DEGREES_COMMON_SET_FIELDS
