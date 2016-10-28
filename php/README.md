@@ -45,11 +45,11 @@ The PHP API is now built from the same source as every other C based API. This m
 - php5
 - php5-dev
 - git
-- SWIG >= 2.0
+- SWIG 2.0
 
 For Ubuntu based distributions these can be found on apt, use
 ```
-$ sudo apt-get install g++ make php5 php5-dev git swig
+$ sudo apt-get install g++ make php5 php5-dev git swig2.0
 ```
 
 ## Install
@@ -188,4 +188,10 @@ In the examples folder, you can find examples of various functionalities that th
 
 A full explanation of these can be found within the files or at [PHP Tutorials](https://51Degrees/support/documentation/php/tutorials).
 
-You can find an example PHP page within the Device-Detection/php/examples directory called example.php. It demonstrates the output of each of the above function presented in a neat form that lists HTTP headers and provides useful links. To use this page copy it to your Web server public directory and access it through a Web browser.
+You can find an example PHP page within the Device-Detection/php/examples directory called example.php. It demonstrates the output of each of the above function presented in a neat form that lists HTTP headers and provides useful links.
+
+To use these examples, first make sure that all settings (see [Configuration](#configure) for Pattern/Trie settings) are set in `/etc/php5/cli/php.ini` and the ``enable_dl`` line reads ``enable_dl=On``. Then run
+```
+php -S localhost:8080
+```
+in the eamples directory to run start a server, and all examples will be available in a browser at, for example, `localhost:8080/example.php`. Or any of the other files in that directory.

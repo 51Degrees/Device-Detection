@@ -16,6 +16,8 @@ if test "$PHP_FIFTYONEDEGREESTRIEV3" = "yes"; then
   AC_CONFIG_COMMANDS_PRE(cp src/trie/FiftyOneDegreesTrieV3.php includes/)
 
   AC_DEFINE(HAVE_FIFTYONEDEGREESTRIEV3, 1, [Whether you have 51Degrees Detector Enabled])
+  CFLAGS="$CFLAGS -lrt"
+  PHP_SUBST([CFLAGS])
   PHP_SUBST(FIFTYONEDEGREESTRIEV3_LIBADD)
 
   PHP_NEW_EXTENSION(FiftyOneDegreesTrieV3, src/cityhash/city.c src/threading.c src/trie/51Degrees.c src/trie/51Degrees_PHP.cpp src/trie/Provider.cpp src/trie/Match.cpp, $ext_shared, ,,"yes")

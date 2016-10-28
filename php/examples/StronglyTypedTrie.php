@@ -49,7 +49,7 @@ and have FiftyOneDegreesTrieV3.php in this directory.
 </tutorial>
 */
 // Snippet Start
-require("FiftyOneDegreesTrieV3.php");
+require("../trie/FiftyOneDegreesTrieV3.php");
 
 $provider = FiftyOneDegreesTrieV3::provider_get();
 
