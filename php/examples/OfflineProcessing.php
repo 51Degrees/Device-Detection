@@ -70,7 +70,7 @@ write permissions.
 </tutorial>
 */
 // Snippet Start
-require("FiftyOneDegreesPatternV3.php");
+require("../pattern/FiftyOneDegreesPatternV3.php");
 
 /*
 Initialises the device detection provider with settings from php.ini.
