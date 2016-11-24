@@ -158,7 +158,7 @@ void initSpecificProperties(fiftyoneDegreesDataSet *dataSet, const char* propert
 
 	if (dataSet->requiredPropertiesCount > 0) {
 		// Create enough memory for the properties.
-		dataSet->requiredProperties = (uint32_t*)fiftyoneDegreesMalloc(dataSet->requiredPropertiesCount * sizeof(int));
+		dataSet->requiredProperties = (uint32_t*)fiftyoneDegreesMalloc(dataSet->requiredPropertiesCount * sizeof(uint32_t));
 		dataSet->requiredPropertiesNames = (const char**)fiftyoneDegreesMalloc(dataSet->requiredPropertiesCount * sizeof(const char*));
 
 		start = (char*)properties;
@@ -205,7 +205,7 @@ void initSpecificPropertiesFromArray(fiftyoneDegreesDataSet *dataSet, const char
 
 	if (dataSet->requiredPropertiesCount > 0) {
 		// Create enough memory for the properties.
-		dataSet->requiredProperties = (uint32_t*)fiftyoneDegreesMalloc(dataSet->requiredPropertiesCount * sizeof(int));
+		dataSet->requiredProperties = (uint32_t*)fiftyoneDegreesMalloc(dataSet->requiredPropertiesCount * sizeof(uint32_t));
 		dataSet->requiredPropertiesNames = (const char**)fiftyoneDegreesMalloc(dataSet->requiredPropertiesCount * sizeof(const char*));
 
 		// Initialise the requiredProperties array.
@@ -237,7 +237,7 @@ void initAllProperties(fiftyoneDegreesDataSet *dataSet) {
 
 	if (dataSet->requiredPropertiesCount > 0) {
 		// Create enough memory for the properties.
-		dataSet->requiredProperties = (uint32_t*)fiftyoneDegreesMalloc(dataSet->requiredPropertiesCount * sizeof(int));
+		dataSet->requiredProperties = (uint32_t*)fiftyoneDegreesMalloc(dataSet->requiredPropertiesCount * sizeof(uint32_t));
 		dataSet->requiredPropertiesNames = (const char**)fiftyoneDegreesMalloc(dataSet->requiredPropertiesCount * sizeof(const char*));
 
 		// Add all the available properties.
@@ -716,7 +716,7 @@ static fiftyoneDegreesDataSetInitStatus setPropertiesFromExistingDataset(
 	count = oldDataSet->requiredPropertiesCount;
 	newDataSet->requiredPropertiesCount = 0;
 	newDataSet->requiredProperties =
-		(uint32_t*)fiftyoneDegreesMalloc(count * sizeof(uint32_t*));
+		(uint32_t*)fiftyoneDegreesMalloc(count * sizeof(uint32_t));
 	if (newDataSet->requiredProperties == NULL) {
 		return DATA_SET_INIT_STATUS_INSUFFICIENT_MEMORY;
 	}
