@@ -12,6 +12,13 @@
                 "src/pattern/51Degrees_node.cpp"
             ],
             "cflags_cc!": ["-fno-exceptions"],
+            "conditions": [
+                            ['OS=="mac"', {
+                                "xcode_settings": {
+                                "GCC_ENABLE_CPP_EXCEPTIONS": "YES"
+                                }
+                            }]
+                        ],
             "cflags": ["<!(node -e \"\
                 var v8Version = process.versions.v8;\
                 var string = '-DSWIG_V8_VERSION=0x';\
@@ -36,6 +43,13 @@
                 "src/trie/51Degrees_node.cpp"
             ],
             "cflags_cc!": ["-fno-exceptions"],
+            "conditions": [
+                            ['OS=="mac"', {
+                                "xcode_settings": {
+                                "GCC_ENABLE_CPP_EXCEPTIONS": "YES"
+                                }
+                            }]
+                        ],
             "cflags": ["<!(node -e \"\
                 var v8Version = process.versions.v8;\
                 var string = '-DSWIG_V8_VERSION=0x';\

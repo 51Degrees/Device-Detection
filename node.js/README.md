@@ -64,6 +64,12 @@ copy the source and data files to the fiftyonedegreescore directory with
 ```
 $ node copySource.js
 ```
+install the local packages in order with
+```
+$ npm install ./fiftyonedegreeslitepattern
+$ npm install ./fiftyonedegreeslitetrie
+$ npm install ./fiftyonedegreescore
+```
 
 ## Configure
 The config json object is where all the settings can be changed, it is also possible to initialise the provider a path to a .json file in the same format.

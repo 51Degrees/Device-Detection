@@ -2,8 +2,6 @@ import sys
 
 DEBUG = True
 
-TEMPLATE_DEBUG = True
-
 DATABASES = {}
 
 ROOT_URLCONF = 'example.urls'
@@ -37,16 +35,23 @@ INSTALLED_APPS = (
     'example',
 )
 
-TEMPLATE_LOADERS = (
-    'django.template.loaders.app_directories.Loader',
-)
-
-TEMPLATE_CONTEXT_PROCESSORS = (
-    'django.core.context_processors.debug',
-    'django.core.context_processors.i18n',
-    'django.core.context_processors.request',
-    'fiftyone_degrees.mobile_detector.contrib.django.context_processors.device',
-)
+TEMPLATES = [
+    {
+        'BACKEND': 'django.template.backends.django.DjangoTemplates',
+        'DIRS': ['example/templates'],
+        'OPTIONS': {
+            'context_processors': [
+                'django.template.context_processors.debug',
+                'django.template.context_processors.i18n',
+                'django.template.context_processors.request',
+                'fiftyone_degrees.mobile_detector.contrib.django.context_processors.device',
+            ],
+            'loaders': [
+                'django.template.loaders.app_directories.Loader',
+            ]
+        },
+    },
+]
 
 LOGGING = {
     'version': 1,

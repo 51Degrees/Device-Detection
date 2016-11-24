@@ -135,6 +135,8 @@ Provider *provider;
 
 	delete provider;
 }
+
+%rename(findProfilesInProfiles) findProfiles(const std::string propertyName, const std::string valueName, Profiles *profiles);
 #endif
 
 class Match {
