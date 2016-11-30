@@ -1,0 +1,58 @@
+#
+# Copyright 51Degrees.mobi (c) 2016.
+#
+# This Source Code Form is copyright of 51Degrees Mobile Experts Limited.
+# Copyright 2015 51Degrees Mobile Experts Limited, 5 Charlotte Close,
+# Caversham, Reading, Berkshire, United Kingdom RG4 7BY
+#
+# This Source Code Form is the subject of the following patent
+# applications, owned by 51Degrees Mobile Experts Limited of 5 Charlotte
+# Close, Caversham, Reading, Berkshire, United Kingdom RG4 7BY:
+# European Patent Application No. 13192291.6; and
+# United States Patent Application Nos. 14/085,223 and 14/085,301.
+#
+# This Source Code Form is subject to the terms of the Mozilla Public
+# License, v. 2.0.
+#
+# If a copy of the MPL was not distributed with this file, You can obtain
+# one at http://mozilla.org/MPL/2.0/.
+#
+# This Source Code Form is "Incompatible With Secondary Licenses", as
+# defined by the Mozilla Public License, v. 2.0.
+#
+
+$Module fiftyonedegrees 3 51Degrees Device Detection VMOD
+
+DESCRIPTION
+===========
+
+Prototype 51Degrees device detection module for Varnish 4.0
+
+Implements the 51Degrees match functionality as a VMOD.
+Initialise the data set with
+fiftyonedegrees.start(datafilepath),
+then get a match property from a requesting device with
+fiftyonedegrees.match(propertyname).
+
+$Function VOID start(STRING)
+
+Return value
+	VOID
+Description
+	Initialises the 51Degrees provider with the data file path provided.
+Example
+        ::
+
+                fiftyonedegrees.start("/path/to/51Degrees.dat");
+
+$Function STRING match(STRING)
+
+
+Return value
+	STRING
+Description
+	Returns the value of property provided for the requesting device.
+Example
+        ::
+
+                set req.http.X-IsMobile = fiftyonedegrees.match("IsMobile");
