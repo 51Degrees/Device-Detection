@@ -1,0 +1,26 @@
+varnishtest "Test fiftyonedegrees vmod"
+
+server s1 {
+       rxreq
+       txresp
+} -start
+
+varnish v1 -vcl+backend {
+	import fiftyonedegrees from "${vmod_topbuild}/src/.libs/libvmod_fiftyonedegrees.so";
+
+	sub vcl_deliver {
+		set resp.http.test = fiftyonedegrees.match("IsMobile");
+	}
+	sub vcl_init {
+		fiftyonedegrees.start("${vmod_topbuild}/data/51Degrees-LiteV3.2.dat");
+	}
+
+} -start
+
+client c1 {
+	txreq -url "/" -hdr "User-Agent: Mozilla/5.0 (Windows NT 6.3; WOW64; rv:41.0) Gecko/20100101 Firefox/41.0"
+	rxresp
+	expect resp.http.test == "False"
+}
+
+client c1 -run

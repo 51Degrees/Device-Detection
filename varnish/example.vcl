@@ -23,5 +23,5 @@ sub vcl_deliver {
 }
 
 sub vcl_init {
-	fiftyonedegrees.start("/home/ben/Device-Detection/data/51Degrees-LiteV3.2.dat");
+	fiftyonedegrees.start("/home/ben/libvmod-fiftyonedegrees/data/51Degrees-LiteV3.2.dat");
 }
