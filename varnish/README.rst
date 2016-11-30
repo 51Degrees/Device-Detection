@@ -68,26 +68,26 @@ INSTALLATION
 The module structure and installation methods are based on the
 libvmod-example example.
 
+The quick shortcut way to install is to run:
+ ./build
+to install the module to an existing Varnish 4.0 service.
+
+Which can the be run on port 99 with the example config with:
+ ./run
+
+To view the manual run:
+ man vmod_fiftyonedegrees
+
 The source tree is based on autotools to configure the building, and
 does also have the necessary bits in place to do functional unit tests
 using the varnishtest tool.
 
-Usage::
+Manual install steps::
 
+ .autogen.sh
  ./configure VARNISHSRC=DIR [VMODDIR=DIR]
-
-`VARNISHSRC` is the directory of the Varnish source tree for which to
-compile your vmod. Both the `VARNISHSRC` and `VARNISHSRC/include`
-will be added to the include search paths for your module.
-
-Optionally you can also set the vmod install directory by adding
-`VMODDIR=DIR` (defaults to the pkg-config discovered directory from your
-Varnish installation).
-
-Make targets:
-
-* make - builds the vmod
-* make install - installs your vmod in `VMODDIR`
+ make
+ sudo make install
 
 In your VCL you could then use this vmod along the following lines::
         
