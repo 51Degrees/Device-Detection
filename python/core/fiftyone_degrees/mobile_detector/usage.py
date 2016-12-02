@@ -65,7 +65,7 @@ class UsageSharer(threading.Thread):
 
         '''
         # Enabled?
-        if settings.USAGE_SHARER_ENABLED:
+        if settings.USAGE_SHARER_ENABLED and self._stopping == False:
             # Launch background daemon data submission thread if not running.
             if not self.is_alive():
                 self.daemon = True
