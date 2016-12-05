@@ -83,7 +83,7 @@ class UsageSharer(threading.Thread):
 
         '''
         if self.is_alive():
-            settings.logger.info('Stopping 51Degrees.mobi UsageSharer.')
+            settings.logger.info('Stopping 51Degrees UsageSharer.')
             self._stopping = True
             self._event.set()
             self.join()
@@ -96,7 +96,7 @@ class UsageSharer(threading.Thread):
 
         '''
         # Log.
-        settings.logger.info('Starting 51Degrees.mobi UsageSharer.')
+        settings.logger.info('Starting 51Degrees UsageSharer.')
 
         # Submission loop.
         while not self._stopping:
@@ -114,7 +114,7 @@ class UsageSharer(threading.Thread):
             self._event.clear()
 
         # Log.
-        settings.logger.info('Stopped 51Degrees.mobi UsageSharer.')
+        settings.logger.info('Stopped 51Degrees UsageSharer.')
 
     def _is_local(self, address):
         return address in settings.USAGE_SHARER_LOCAL_ADDRESSES
@@ -162,7 +162,7 @@ class UsageSharer(threading.Thread):
         '''Sends all the data on the queue.
 
         '''
-        settings.logger.info('Submitting UsageSharer queued data to 51Degrees.mobi.')
+        settings.logger.info('Submitting UsageSharer queued data to %s.' % settings.USAGE_SHARER_SUBMISSION_URL)
 
         # Build output stream.
         stream = StringIO.StringIO()
