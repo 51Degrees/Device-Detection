@@ -20,7 +20,7 @@ var version,
 var stop = false;
 // Url to send device information to.
 var requestOptions = {
-    host: 'devices.51degrees.mobi',
+    host: 'devices.51degrees.com',
     path: '/new.ashx',
     method: 'POST',
     port: '443',
