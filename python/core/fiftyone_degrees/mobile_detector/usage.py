@@ -65,7 +65,7 @@ class UsageSharer(threading.Thread):
 
         '''
         # Enabled?
-        if settings.USAGE_SHARER_ENABLED:
+        if settings.USAGE_SHARER_ENABLED and self._stopping == False:
             # Launch background daemon data submission thread if not running.
             if not self.is_alive():
                 self.daemon = True
@@ -166,6 +166,7 @@ class UsageSharer(threading.Thread):
 
         # Build output stream.
         stream = StringIO.StringIO()
+        gzStream = StringIO.StringIO()
         devices = ET.Element('Devices')
         while len(self._queue) > 0:
             devices.append(self._queue.pop())
@@ -173,11 +174,15 @@ class UsageSharer(threading.Thread):
             stream,
             encoding='utf8',
             xml_declaration=True)
-
+        stream.seek(0,0)
+        # Gzip the data.
+        with gzip.GzipFile(fileobj=gzStream, mode='wb') as gzObj:
+            gzObj.write(stream.read())
+        gzStream.seek(0,0)
         # Submit gzipped data.
         request = urllib2.Request(
             url=settings.USAGE_SHARER_SUBMISSION_URL,
-            data=gzip.GzipFile(fileobj=stream).read(),
+            data=gzStream.read(),
             headers={
                 'Content-Type': 'text/xml; charset=utf-8',
                 'Content-Encoding': 'gzip',
