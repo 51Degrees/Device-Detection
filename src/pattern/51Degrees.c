@@ -1063,6 +1063,26 @@ const char* fiftyoneDegreesGetPropertyName(const fiftyoneDegreesDataSet *dataSet
 	return (const char*)&(fiftyoneDegreesGetString(dataSet, property->nameOffset)->firstByte);
 }
 
+/**
+* \cond
+* Returns whether or not the property is a list property or not as an integer
+* i.e. 1=true 0=false, or -1 if the property cannot be found.
+* @param dataSet pointer to an initialised dataset.
+* @param propertyName pointer to the name of the property required.
+* @return 1 if the property can return a list, 0 if not, or -1 if the property
+*         does not exist.
+* \endcond
+*/
+int32_t fiftyoneDegreesGetPropertyIsList(const fiftyoneDegreesDataSet *dataSet, char *propertyName) {
+	const fiftyoneDegreesProperty *property;
+
+	property = getPropertyByName(dataSet, propertyName);
+	if (property == NULL)
+		return -1;
+	else
+		return (int32_t)property->isList;
+}
+
  /**
  * \cond
  * Returns the first numeric index for the node provided.

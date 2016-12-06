@@ -27,6 +27,9 @@
 #ifndef FIFTYONEDEGREES_MAX_STRING
 #define FIFTYONEDEGREES_MAX_STRING 500
 #endif // FIFTYONEDEGREES_MAX_STRING
+#ifndef FIFTYONEDEGREES_MAX_VALUES_LIST
+#define FIFTYONEDEGREES_MAX_VALUES_LIST 20
+#endif // FIFTYONEDEGREES_MAX_VALUES_LIST
 #define FIFTYONEDEGREES_IMPORTANT_HEADERS_COUNT 5
 
 // Module declaration.
@@ -874,12 +877,18 @@ ngx_http_51D_set_max_string(ngx_http_51D_main_conf_t *fdmcf, ngx_http_51D_header
 		}
 		tmpLength = fiftyoneDegreesGetMaxValueLength(dataSet, (char*)header->property[i]->data);
 		if ((int)tmpLength > 0) {
-			length += (int)tmpLength;
+			if ((int)fiftyoneDegreesGetPropertyIsList(dataSet, (char*)header->property[i]->data) == 1)
+				// The property is a list property, so can return multiple
+				// values. Account for this within a reasonable limit.
+				length += (int)tmpLength * FIFTYONEDEGREES_MAX_VALUES_LIST;
+			else
+				length += (int)tmpLength;
 		}
 		else {
 			length += ngx_strlen(FIFTYONEDEGREES_PROPERTY_NOT_AVAILABLE);
 		}
 	}
+
 	header->maxString = (size_t) length * sizeof(char);
 }
 #endif // FIFTYONEDEGREES_PATTERN
@@ -1207,8 +1216,8 @@ void ngx_http_51D_get_value(ngx_http_51D_main_conf_t *fdmcf, char *values_string
 	fiftyoneDegreesWorkset *ws = fdmcf->ws;
 	char *valueDelimiter = (char*)fdmcf->valueSeparator.data;
 	char *methodName, *propertyName;
-	char buffer[24];
-	int i, found = 0;
+	char buffer[1000];
+	int i, j, found = 0;
 	if (ngx_strcmp("Method", requiredPropertyName) == 0) {
 		switch(ws->method) {
 			case EXACT: methodName = "Exact"; break;
@@ -1242,7 +1251,12 @@ void ngx_http_51D_get_value(ngx_http_51D_main_conf_t *fdmcf, char *values_string
 			propertyName = (char*)fiftyoneDegreesGetPropertyName(ws->dataSet, ws->dataSet->requiredProperties[i]);
 			if (ngx_strcmp(propertyName, requiredPropertyName) == 0) {
 				fiftyoneDegreesSetValues(ws, i);
-				add_value(valueDelimiter, (char*)fiftyoneDegreesGetValueName(ws->dataSet, *ws->values), values_string);
+				buffer[0] = '\0';
+				for (j = 0; j < ws->valuesCount; j++)
+				{
+					add_value("|", (char*)fiftyoneDegreesGetValueName(ws->dataSet, *(ws->values + j)), buffer);
+				}
+				add_value(valueDelimiter, buffer, values_string);
 				found = 1;
 				break;
 			}
@@ -1456,7 +1470,7 @@ ngx_http_51D_set_header(ngx_conf_t *cf, ngx_http_51D_header_to_set *header, ngx_
 #endif // FIFTYONEDEGREES_PATTERN
 #ifdef FIFTYONEDEGREES_TRIE
 	// Set the max string.
-	header->maxString = (size_t)FIFTYONEDEGREES_MAX_STRING;
+	header->maxString = (size_t)FIFTYONEDEGREES_MAX_STRING * sizeof(char*);
 #endif // FIFTYONEDEGREES_TRIE
 
 	// Set the name of the header.
