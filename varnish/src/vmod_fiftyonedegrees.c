@@ -66,16 +66,35 @@ vmod_match(const struct vrt_ctx *ctx, VCL_STRING name)
 
 	fiftyoneDegreesMatch(fodws, userAgent);
 
-	for (i = 0; i < fodws->dataSet->requiredPropertyCount; i++)
-	{
-		propertyName = (char*)fiftyoneDegreesGetPropertyName(fodws->dataSet, fodws->dataSet->requiredProperties[i]);
-		if (strcmp(propertyName, name) == 0)
-		{
-			fiftyoneDegreesSetValues(fodws, i);
-			valueName = fiftyoneDegreesGetValueName(fodws->dataSet, *fodws->values);
-			break;
+    if (strcmp(name, "Method") == 0)
+    {
+		switch(fodws->method) {
+			case EXACT: valueName = "Exact"; break;
+			case NUMERIC: valueName = "Numeric"; break;
+			case NEAREST: valueName = "Nearest"; break;
+			case CLOSEST: valueName = "Closest"; break;
+			default:
+			case NONE: valueName = "None"; break;
 		}
-	}
+    }
+    else if (strcmp(name, "Difference") == 0)
+    {
+        char buffer[10];
+        sprintf(buffer, "%d", fodws->difference);
+        valueName = buffer;
+    }
+	else {
+        for (i = 0; i < fodws->dataSet->requiredPropertyCount; i++)
+        {
+            propertyName = (char*)fiftyoneDegreesGetPropertyName(fodws->dataSet, fodws->dataSet->requiredProperties[i]);
+            if (strcmp(propertyName, name) == 0)
+            {
+                fiftyoneDegreesSetValues(fodws, i);
+                valueName = fiftyoneDegreesGetValueName(fodws->dataSet, *fodws->values);
+                break;
+            }
+        }
+    }
 
 	u = WS_Reserve(ctx->ws, 0); /* Reserve some work space */
 	p = ctx->ws->f;		/* Front of workspace area */
