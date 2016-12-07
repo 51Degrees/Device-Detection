@@ -31,11 +31,13 @@
 
 typedef enum { false, true } bool;
 
+// Global provider available to the module.
 fiftyoneDegreesProvider *provider;
 
 void
 vmod_start(const struct vrt_ctx *ctx, VCL_STRING name)
 {
+    // Allocate and initialise the provider.
 	provider = (fiftyoneDegreesProvider*)malloc(sizeof(fiftyoneDegreesProvider));
 	fiftyoneDegreesInitProviderWithPropertyString(name,
 															provider,
@@ -52,10 +54,13 @@ vmod_match(const struct vrt_ctx *ctx, VCL_STRING name)
 	const char *propertyName, *valueName;
 	int i;
     char buffer[24];
-	fiftyoneDegreesWorkset *fodws = fiftyoneDegreesWorksetCreate(provider->activePool->dataSet, NULL);
-    bool found = false;
 	const char *userAgent = "";
+    bool found = false;
 
+    // Create a workset to use for the match.
+	fiftyoneDegreesWorkset *fodws = fiftyoneDegreesWorksetCreate(provider->activePool->dataSet, NULL);
+    
+    // Get the User-Agent from the request.
 	for (i = 0; i < ctx->http_req->nhd; i++)
 	{
 		if (ctx->http_req->hd[i].b != NULL
@@ -66,8 +71,10 @@ vmod_match(const struct vrt_ctx *ctx, VCL_STRING name)
 		}
 	}
 
+    // Get a match from the User-Agent.
 	fiftyoneDegreesMatch(fodws, userAgent);
 
+    // Get the requested property value from the match.
     if (strcmp(name, "Method") == 0)
     {
 		switch(fodws->method) {
@@ -95,6 +102,7 @@ vmod_match(const struct vrt_ctx *ctx, VCL_STRING name)
         valueName = buffer;
     }
 	else {
+        // Property is not a match metric, so search the required properties.
         for (i = 0; i < fodws->dataSet->requiredPropertyCount; i++)
         {
             propertyName = (char*)fiftyoneDegreesGetPropertyName(fodws->dataSet, fodws->dataSet->requiredProperties[i]);
@@ -107,6 +115,7 @@ vmod_match(const struct vrt_ctx *ctx, VCL_STRING name)
             }
         }
         if (!found)
+            // Property was not found, so set value accordingly.
             valueName = "N/A";
     }
 
@@ -115,6 +124,8 @@ vmod_match(const struct vrt_ctx *ctx, VCL_STRING name)
 	v = snprintf(p, u, "%s", valueName);
 
 	v++;
+    
+    // Free the workset.
 	fiftyoneDegreesWorksetFree(fodws);
 
 	if (v > u) {
