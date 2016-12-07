@@ -29,6 +29,8 @@
 
 #include "vcc_if.h"
 
+typedef enum { false, true } bool;
+
 fiftyoneDegreesProvider *provider;
 
 void
@@ -49,9 +51,9 @@ vmod_match(const struct vrt_ctx *ctx, VCL_STRING name)
 	unsigned u, v;
 	const char *propertyName, *valueName;
 	int i;
-
+    char buffer[24];
 	fiftyoneDegreesWorkset *fodws = fiftyoneDegreesWorksetCreate(provider->activePool->dataSet, NULL);
-
+    bool found = false;
 	const char *userAgent = "";
 
 	for (i = 0; i < ctx->http_req->nhd; i++)
@@ -79,8 +81,17 @@ vmod_match(const struct vrt_ctx *ctx, VCL_STRING name)
     }
     else if (strcmp(name, "Difference") == 0)
     {
-        char buffer[10];
         sprintf(buffer, "%d", fodws->difference);
+        valueName = buffer;
+    }
+    else if (strcmp(name, "DeviceId") == 0)
+    {
+        fiftyoneDegreesGetDeviceId(fodws, buffer, 24);
+        valueName = buffer;
+    }
+    else if (strcmp(name, "Rank") == 0)
+    {
+        sprintf(buffer, "%d", fiftyoneDegreesGetSignatureRank(fodws));
         valueName = buffer;
     }
 	else {
@@ -91,9 +102,12 @@ vmod_match(const struct vrt_ctx *ctx, VCL_STRING name)
             {
                 fiftyoneDegreesSetValues(fodws, i);
                 valueName = fiftyoneDegreesGetValueName(fodws->dataSet, *fodws->values);
+                found = true;
                 break;
             }
         }
+        if (!found)
+            valueName = "N/A";
     }
 
 	u = WS_Reserve(ctx->ws, 0); /* Reserve some work space */

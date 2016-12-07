@@ -18,13 +18,18 @@ sub vcl_recv {
 	set req.http.X-PlatformName = fiftyonedegrees.match("PlatformName");
 	set req.http.X-Difference = fiftyonedegrees.match("Difference");
 	set req.http.X-Method = fiftyonedegrees.match("Method");
+	set req.http.X-Rank = fiftyonedegrees.match("Rank");
+	set req.http.X-DeviceId = fiftyonedegrees.match("DeviceId");
 }
 
 sub vcl_deliver {
 	set resp.http.X-IsMobile = fiftyonedegrees.match("IsMobile");
 	set resp.http.X-BrowserName = fiftyonedegrees.match("BrowserName");
+	set resp.http.X-PlatformName = fiftyonedegrees.match("PlatformName");
 	set resp.http.X-Difference = fiftyonedegrees.match("Difference");
 	set resp.http.X-Method = fiftyonedegrees.match("Method");
+	set resp.http.X-Rank = fiftyonedegrees.match("Rank");
+	set resp.http.X-ID = fiftyonedegrees.match("DeviceId");
 }
 
 sub vcl_init {
