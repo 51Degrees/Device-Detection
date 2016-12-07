@@ -35,19 +35,20 @@ typedef enum { false, true } bool;
 fiftyoneDegreesProvider *provider;
 
 void
-vmod_start(const struct vrt_ctx *ctx, VCL_STRING name)
+vmod_start(const struct vrt_ctx *ctx, VCL_STRING filePath)
 {
     // Allocate and initialise the provider.
 	provider = (fiftyoneDegreesProvider*)malloc(sizeof(fiftyoneDegreesProvider));
-	fiftyoneDegreesInitProviderWithPropertyString(name,
-															provider,
-															"",
-															0,
-															0);
+	fiftyoneDegreesInitProviderWithPropertyString(
+        filePath,
+        provider,
+        "",
+        0,
+        0);
 }
 
 VCL_STRING
-vmod_match(const struct vrt_ctx *ctx, VCL_STRING name)
+vmod_match(const struct vrt_ctx *ctx, VCL_STRING propertyInputString)
 {
 	char *p;
 	unsigned u, v;
@@ -75,7 +76,7 @@ vmod_match(const struct vrt_ctx *ctx, VCL_STRING name)
 	fiftyoneDegreesMatch(fodws, userAgent);
 
     // Get the requested property value from the match.
-    if (strcmp(name, "Method") == 0)
+    if (strcmp(propertyInputString, "Method") == 0)
     {
 		switch(fodws->method) {
 			case EXACT: valueName = "Exact"; break;
@@ -86,17 +87,17 @@ vmod_match(const struct vrt_ctx *ctx, VCL_STRING name)
 			case NONE: valueName = "None"; break;
 		}
     }
-    else if (strcmp(name, "Difference") == 0)
+    else if (strcmp(propertyInputString, "Difference") == 0)
     {
         sprintf(buffer, "%d", fodws->difference);
         valueName = buffer;
     }
-    else if (strcmp(name, "DeviceId") == 0)
+    else if (strcmp(propertyInputString, "DeviceId") == 0)
     {
         fiftyoneDegreesGetDeviceId(fodws, buffer, 24);
         valueName = buffer;
     }
-    else if (strcmp(name, "Rank") == 0)
+    else if (strcmp(propertyInputString, "Rank") == 0)
     {
         sprintf(buffer, "%d", fiftyoneDegreesGetSignatureRank(fodws));
         valueName = buffer;
@@ -106,7 +107,7 @@ vmod_match(const struct vrt_ctx *ctx, VCL_STRING name)
         for (i = 0; i < fodws->dataSet->requiredPropertyCount; i++)
         {
             propertyName = (char*)fiftyoneDegreesGetPropertyName(fodws->dataSet, fodws->dataSet->requiredProperties[i]);
-            if (strcmp(propertyName, name) == 0)
+            if (strcmp(propertyName, propertyInputString) == 0)
             {
                 fiftyoneDegreesSetValues(fodws, i);
                 valueName = fiftyoneDegreesGetValueName(fodws->dataSet, *fodws->values);
