@@ -34,6 +34,16 @@ typedef enum { false, true } bool;
 // Global provider available to the module.
 fiftyoneDegreesProvider *provider;
 
+static void
+addValue(const char *delimiter, char *buffer, const char *str)
+{
+	if (buffer[0] != '\0')
+	{
+		strcat(buffer, delimiter);
+	}
+	strcat(buffer, str);
+}
+
 void
 vmod_start(const struct vrt_ctx *ctx, VCL_STRING filePath)
 {
@@ -53,14 +63,14 @@ vmod_match(const struct vrt_ctx *ctx, VCL_STRING propertyInputString)
 	char *p;
 	unsigned u, v;
 	const char *propertyName, *valueName;
-	int i;
-    char buffer[24];
+	int i, j;
+    char buffer[1000];
 	const char *userAgent = "";
     bool found = false;
 
     // Create a workset to use for the match.
 	fiftyoneDegreesWorkset *fodws = fiftyoneDegreesWorksetCreate(provider->activePool->dataSet, NULL);
-    
+
     // Get the User-Agent from the request.
 	for (i = 0; i < ctx->http_req->nhd; i++)
 	{
@@ -109,8 +119,13 @@ vmod_match(const struct vrt_ctx *ctx, VCL_STRING propertyInputString)
             propertyName = (char*)fiftyoneDegreesGetPropertyName(fodws->dataSet, fodws->dataSet->requiredProperties[i]);
             if (strcmp(propertyName, propertyInputString) == 0)
             {
+            	buffer[0] = '\0';
                 fiftyoneDegreesSetValues(fodws, i);
-                valueName = fiftyoneDegreesGetValueName(fodws->dataSet, *fodws->values);
+                for (j = 0; j < fodws->valuesCount; j++)
+                {
+                	addValue("|", buffer, fiftyoneDegreesGetValueName(fodws->dataSet, fodws->values[j]));
+                }
+                valueName = buffer;
                 found = true;
                 break;
             }
@@ -121,11 +136,11 @@ vmod_match(const struct vrt_ctx *ctx, VCL_STRING propertyInputString)
     }
 
 	u = WS_Reserve(ctx->ws, 0); /* Reserve some work space */
-	p = ctx->ws->f;		/* Front of workspace area */
+	p = ctx->ws->f;	            /* Front of workspace area */
 	v = snprintf(p, u, "%s", valueName);
 
 	v++;
-    
+
     // Free the workset.
 	fiftyoneDegreesWorksetFree(fodws);
 
