@@ -10,8 +10,7 @@ File Name | Description
 Makefile | makes the distribution using setup.py, installs and cleans.
 setupt.py | makes python package using setuptools.
 MANIFEST.in | tells setup.py which files to include in the package.
-examples/console.py | example console app. Returns properties from set User-Agent and http headers.
-examples/server.py | example server app. Returns properties from browser User-Agent and http headers.
 FiftyOneDegrees/\__init\__.py | placeholder, tells setup.py this folder is used for the python wrapper.
 README.md | this readme file.
 LICENCE.txt | a copy of the licence.
+
