@@ -932,6 +932,19 @@ EXTERNAL const char* fiftyoneDegreesGetPropertyName(
 	const fiftyoneDegreesProperty *property);
 
 /**
+* \ingroup FiftyOneDegreesFunctions
+* Returns whether or not the property is a list property or not as an integer
+* i.e. 1=true 0=false, or -1 if the property cannot be found.
+* @param dataSet pointer to an initialised dataset.
+* @param propertyName pointer to the name of the property required.
+* @return 1 if the property can return a list, 0 if not, or -1 if the property
+*         does not exist.
+*/
+EXTERNAL int32_t fiftyoneDegreesGetPropertyIsList(
+	const fiftyoneDegreesDataSet *dataSet,
+	char *propertyName);
+
+/**
  * \ingroup FiftyOneDegreesFunctions
  * Gets the required property name at the index provided.
  * @param dataset pointer to an initialised dataset
