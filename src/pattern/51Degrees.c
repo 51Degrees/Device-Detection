@@ -86,7 +86,7 @@ void (FIFTYONEDEGREES_CALL_CONV *fiftyoneDegreesFree)(void *__ptr) = free;
  * DATASET MEMORY ALLOCATION SIZE MACROS
  */
 #define SIZE_OF_ROOT_NODES(h) h.rootNodes.count * sizeof(fiftyoneDegreesNode*)
-#define SIZE_OF_REQUIRED_PROPERTIES_ARRAY requiredPropertyCount * sizeof(char*)
+#define SIZE_OF_REQUIRED_PROPERTIES_ARRAY(count) count * sizeof(char*)
 #define SIZE_OF_FILE_NAME(fileName) sizeof(char) * (strlen(fileName) + 1)
 #define SIZE_OF_COMPONENTS(h) h.components.count * sizeof(fiftyoneDegreesComponent*)
 #define SIZE_OF_HTTP_HEADERS(count) count * sizeof(fiftyoneDegreesHttpHeader)
@@ -1588,7 +1588,8 @@ fiftyoneDegreesDataSetInitStatus fiftyoneDegreesInitWithPropertyString(
 		copyRequiredProperties = strdup(requiredProperties);
 		if (copyRequiredProperties != NULL) {
 			// Allocate pointers for each of the properties.
-			requiredPropertiesArray = (const char**)fiftyoneDegreesMalloc(SIZE_OF_REQUIRED_PROPERTIES_ARRAY);
+			requiredPropertiesArray = (const char**)fiftyoneDegreesMalloc(
+				SIZE_OF_REQUIRED_PROPERTIES_ARRAY(requiredPropertyCount));
 			currentProperty = copyRequiredProperties;
 			if (requiredPropertiesArray != NULL) {
 				// Change the input string so that the separators are changed to nulls.
@@ -1912,7 +1913,7 @@ size_t fiftyoneDegreesGetProviderSizeWithPropertyString(const char *fileName, co
 		}
 
 		// Add required properties array.
-		size += (SIZE_OF_REQUIRED_PROPERTIES_ARRAY);
+		size += (SIZE_OF_REQUIRED_PROPERTIES_ARRAY(requiredPropertyCount));
 
 		// Return the total size needed for the provider.
 		size = getProviderSizeWithPropertyCount(size, *header, requiredPropertyCount, poolSize, cacheSize);
