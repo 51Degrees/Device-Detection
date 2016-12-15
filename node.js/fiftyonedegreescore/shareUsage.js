@@ -1,5 +1,5 @@
 var zlib = require("zlib");
-var http = require("http");
+var https = require("https");
 // Share usage object to return.
 var shareUsage = {};
 // Is a share usage worker already running?
@@ -20,10 +20,10 @@ var version,
 var stop = false;
 // Url to send device information to.
 var requestOptions = {
-    host: 'devices.51degrees.mobi',
+    host: 'devices.51degrees.com',
     path: '/new.ashx',
     method: 'POST',
-    port: '80',
+    port: '443',
     headers: {
         'Content-Type': 'text/xml; charset=utf-8',
         'Content-Encoding': 'gzip'
@@ -42,7 +42,7 @@ var isLocal = function (address) {
 // Sends all the data in the queue.
 var sendData = function (outputStream) {
     log.emit('debug', 'Sending usage data to ' + requestOptions.host);
-    var request = http.request(requestOptions, function (response) {
+    var request = https.request(requestOptions, function (response) {
             switch (response.statusCode) {
             case 200: // OK
                 // Ok response, do nothing
@@ -53,7 +53,8 @@ var sendData = function (outputStream) {
                 break;
             default:
                 // Turn off functionality.
-                log.emit('error', 'Stopping usage sharing as remote ' + 'name ' + requestOptions.host + ' returned status ' + 'description ' + response.statusMessage);
+                log.emit('error', 'Stopping usage sharing as remote ' + 'name ' + requestOptions.host + ' returned status ' + 
+                         'description ' + response.statusMessage);
                 stop = true;
                 break;
             }
@@ -61,7 +62,14 @@ var sendData = function (outputStream) {
             if (err.code === 'ENOTFOUND') {
                 // The address was not found, stop sharing.
                 stop = true;
-                log.emit('error', 'Stopping usage sharing as remote name ' + requestOptions + ' generated ENOTFOUND exception.');
+                log.emit('error', 'Stopping usage sharing as remote name ' + requestOptions.host + ' could not be resolved ' +
+                         'and generated ENOTFOUND exception.');
+            }
+            else if (err.code === 'UNABLE_TO_VERIFY_LEAF_SIGNATURE') {
+                // The certificate was not trusted, stop sharing.
+                stop = true;
+                log.emit('error', 'Stopping usage sharing as secure connection to remote ' + requestOptions.host + ' could not ' +
+                         'be established and threw error ' + err.code);
             }
             else {
                 // Some other error occured, stop sharing.
