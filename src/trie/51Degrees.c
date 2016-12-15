@@ -150,7 +150,7 @@ void initSpecificProperties(fiftyoneDegreesDataSet *dataSet, const char* propert
 		if (*end == '|' || *end == ',' || *end == '\0') {
 			// Check the property we've just reached is valid and
 			// if it is then increase the count.
-			if (getPropertyIndexRange(dataSet, start, (end - start)) > 0)
+			if (getPropertyIndexRange(dataSet, start, (end - start)) >= 0)
 				dataSet->requiredPropertiesCount++;
 			start = (char*)end + 1;
 		}
