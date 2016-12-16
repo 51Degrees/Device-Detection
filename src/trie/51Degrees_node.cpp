@@ -1894,6 +1894,30 @@ v8::Handle<v8::Value> SWIG_From_int  (int value)
 }
 
 
+SWIGINTERN
+int SWIG_AsVal_long (v8::Handle<v8::Value> obj, long* val)
+{
+  if (!obj->IsNumber()) {
+    return SWIG_TypeError;
+  }
+  if(val) *val = (long) obj->IntegerValue();
+
+  return SWIG_OK;
+}
+
+
+SWIGINTERN
+int SWIG_AsVal_bool (v8::Handle<v8::Value> obj, bool *val)
+{
+  if(!obj->IsBoolean()) {
+    return SWIG_ERROR;
+  }
+
+  if (val) *val = obj->BooleanValue();
+  return SWIG_OK;
+}
+
+
 #define SWIGV8_INIT FiftyOneDegreesTrieV3_initialize
 
 
@@ -3764,80 +3788,6 @@ fail:
 }
 
 
-static SwigV8ReturnValue _wrap_new_Provider(const SwigV8Arguments &args) {
-  SWIGV8_HANDLESCOPE();
-  
-  OverloadErrorHandler errorHandler;
-  v8::Handle<v8::Value> self;
-  
-  // switch all cases by means of series of if-returns.
-  
-  if(args.Length() == 1) {
-    errorHandler.err.Clear();
-#if (V8_MAJOR_VERSION-0) < 4 && (SWIG_V8_VERSION < 0x031903)
-    self = _wrap_new_Provider__SWIG_0(args, errorHandler);
-    if(errorHandler.err.IsEmpty()) {
-      SWIGV8_ESCAPE(self);
-    } else {
-      goto fail;
-    }
-#else
-    _wrap_new_Provider__SWIG_0(args, errorHandler);
-    if(errorHandler.err.IsEmpty()) {
-      return;
-    } else {
-      goto fail;
-    }
-#endif
-  }
-  
-  if(args.Length() == 2) {
-    errorHandler.err.Clear();
-#if (V8_MAJOR_VERSION-0) < 4 && (SWIG_V8_VERSION < 0x031903)
-    self = _wrap_new_Provider__SWIG_1(args, errorHandler);
-    if(errorHandler.err.IsEmpty()) {
-      SWIGV8_ESCAPE(self);
-    } else {
-      goto fail;
-    }
-#else
-    _wrap_new_Provider__SWIG_1(args, errorHandler);
-    if(errorHandler.err.IsEmpty()) {
-      return;
-    } else {
-      goto fail;
-    }
-#endif
-  }
-  
-  if(args.Length() == 2) {
-    errorHandler.err.Clear();
-#if (V8_MAJOR_VERSION-0) < 4 && (SWIG_V8_VERSION < 0x031903)
-    self = _wrap_new_Provider__SWIG_2(args, errorHandler);
-    if(errorHandler.err.IsEmpty()) {
-      SWIGV8_ESCAPE(self);
-    } else {
-      goto fail;
-    }
-#else
-    _wrap_new_Provider__SWIG_2(args, errorHandler);
-    if(errorHandler.err.IsEmpty()) {
-      return;
-    } else {
-      goto fail;
-    }
-#endif
-  }
-  
-  
-  // default:
-  SWIG_exception_fail(SWIG_ERROR, "Illegal arguments for construction of _exports_Provider");
-  
-fail:
-  SWIGV8_RETURN(SWIGV8_UNDEFINED());
-}
-
-
 #if (V8_MAJOR_VERSION-0) < 4 && (SWIG_V8_VERSION < 0x031710)
 static void _wrap_delete_Provider(v8::Persistent<v8::Value> object, void *parameter) {
   SWIGV8_Proxy *proxy = static_cast<SWIGV8_Proxy *>(parameter);
@@ -4562,6 +4512,165 @@ static SwigV8ReturnValue _wrap_Provider_reloadFromMemory(const SwigV8Arguments &
   SWIGV8_RETURN(jsresult);
   
   goto fail;
+fail:
+  SWIGV8_RETURN(SWIGV8_UNDEFINED());
+}
+
+
+static SwigV8ReturnValue _wrap_new_Provider__SWIG_3(const SwigV8Arguments &args, V8ErrorHandler &SWIGV8_ErrorHandler) {
+  SWIGV8_HANDLESCOPE();
+  
+  v8::Handle<v8::Object> self = args.Holder();
+  std::string *arg1 = 0 ;
+  std::string *arg2 = 0 ;
+  bool arg3 ;
+  int res1 = SWIG_OLDOBJ ;
+  int res2 = SWIG_OLDOBJ ;
+  bool val3 ;
+  int ecode3 = 0 ;
+  Provider *result;
+  if(args.Length() != 3) SWIG_exception_fail(SWIG_ERROR, "Illegal number of arguments for _wrap_new_Provider__SWIG_3.");
+  {
+    std::string *ptr = (std::string *)0;
+    res1 = SWIG_AsPtr_std_string(args[0], &ptr);
+    if (!SWIG_IsOK(res1)) {
+      SWIG_exception_fail(SWIG_ArgError(res1), "in method '" "new_Provider" "', argument " "1"" of type '" "std::string const &""'"); 
+    }
+    if (!ptr) {
+      SWIG_exception_fail(SWIG_ValueError, "invalid null reference " "in method '" "new_Provider" "', argument " "1"" of type '" "std::string const &""'"); 
+    }
+    arg1 = ptr;
+  }
+  {
+    std::string *ptr = (std::string *)0;
+    res2 = SWIG_AsPtr_std_string(args[1], &ptr);
+    if (!SWIG_IsOK(res2)) {
+      SWIG_exception_fail(SWIG_ArgError(res2), "in method '" "new_Provider" "', argument " "2"" of type '" "std::string const &""'"); 
+    }
+    if (!ptr) {
+      SWIG_exception_fail(SWIG_ValueError, "invalid null reference " "in method '" "new_Provider" "', argument " "2"" of type '" "std::string const &""'"); 
+    }
+    arg2 = ptr;
+  }
+  ecode3 = SWIG_AsVal_bool(args[2], &val3);
+  if (!SWIG_IsOK(ecode3)) {
+    SWIG_exception_fail(SWIG_ArgError(ecode3), "in method '" "new_Provider" "', argument " "3"" of type '" "bool""'");
+  } 
+  arg3 = (bool)(val3);
+  {
+    try {
+      result = (Provider *)new Provider((std::string const &)*arg1,(std::string const &)*arg2,arg3);;
+    }
+    catch(runtime_error& e) {
+      SWIG_exception(SWIG_RuntimeError, e.what());
+    }
+    catch(invalid_argument& e) {
+      SWIG_exception(SWIG_ValueError, e.what());
+    }
+  }
+  
+  if (SWIG_IsNewObj(res1)) delete arg1;
+  if (SWIG_IsNewObj(res2)) delete arg2;
+  
+  
+  
+  SWIGV8_SetPrivateData(self, result, SWIGTYPE_p_Provider, SWIG_POINTER_OWN);
+  SWIGV8_RETURN(self);
+  
+  goto fail;
+fail:
+  SWIGV8_RETURN(SWIGV8_UNDEFINED());
+}
+
+
+static SwigV8ReturnValue _wrap_new_Provider(const SwigV8Arguments &args) {
+  SWIGV8_HANDLESCOPE();
+  
+  OverloadErrorHandler errorHandler;
+  v8::Handle<v8::Value> self;
+  
+  // switch all cases by means of series of if-returns.
+  
+  if(args.Length() == 1) {
+    errorHandler.err.Clear();
+#if (V8_MAJOR_VERSION-0) < 4 && (SWIG_V8_VERSION < 0x031903)
+    self = _wrap_new_Provider__SWIG_0(args, errorHandler);
+    if(errorHandler.err.IsEmpty()) {
+      SWIGV8_ESCAPE(self);
+    } else {
+      goto fail;
+    }
+#else
+    _wrap_new_Provider__SWIG_0(args, errorHandler);
+    if(errorHandler.err.IsEmpty()) {
+      return;
+    } else {
+      goto fail;
+    }
+#endif
+  }
+  
+  if(args.Length() == 2) {
+    errorHandler.err.Clear();
+#if (V8_MAJOR_VERSION-0) < 4 && (SWIG_V8_VERSION < 0x031903)
+    self = _wrap_new_Provider__SWIG_1(args, errorHandler);
+    if(errorHandler.err.IsEmpty()) {
+      SWIGV8_ESCAPE(self);
+    } else {
+      goto fail;
+    }
+#else
+    _wrap_new_Provider__SWIG_1(args, errorHandler);
+    if(errorHandler.err.IsEmpty()) {
+      return;
+    } else {
+      goto fail;
+    }
+#endif
+  }
+  
+  if(args.Length() == 2) {
+    errorHandler.err.Clear();
+#if (V8_MAJOR_VERSION-0) < 4 && (SWIG_V8_VERSION < 0x031903)
+    self = _wrap_new_Provider__SWIG_2(args, errorHandler);
+    if(errorHandler.err.IsEmpty()) {
+      SWIGV8_ESCAPE(self);
+    } else {
+      goto fail;
+    }
+#else
+    _wrap_new_Provider__SWIG_2(args, errorHandler);
+    if(errorHandler.err.IsEmpty()) {
+      return;
+    } else {
+      goto fail;
+    }
+#endif
+  }
+  
+  if(args.Length() == 3) {
+    errorHandler.err.Clear();
+#if (V8_MAJOR_VERSION-0) < 4 && (SWIG_V8_VERSION < 0x031903)
+    self = _wrap_new_Provider__SWIG_3(args, errorHandler);
+    if(errorHandler.err.IsEmpty()) {
+      SWIGV8_ESCAPE(self);
+    } else {
+      goto fail;
+    }
+#else
+    _wrap_new_Provider__SWIG_3(args, errorHandler);
+    if(errorHandler.err.IsEmpty()) {
+      return;
+    } else {
+      goto fail;
+    }
+#endif
+  }
+  
+  
+  // default:
+  SWIG_exception_fail(SWIG_ERROR, "Illegal arguments for construction of _exports_Provider");
+  
 fail:
   SWIGV8_RETURN(SWIGV8_UNDEFINED());
 }

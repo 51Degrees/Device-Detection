@@ -1552,10 +1552,10 @@ static swig_module_info swig_module = {swig_types, 12, 0, 0, 0, 0};
 
 /* -------- TYPES TABLE (END) -------- */
 
-#define SWIG_init    boot_FiftyOneDegrees__TrieV3
+#define SWIG_init    boot_FiftyOneDegreesTrieV3
 
-#define SWIG_name   "FiftyOneDegrees::TrieV3c::boot_FiftyOneDegrees__TrieV3"
-#define SWIG_prefix "FiftyOneDegrees::TrieV3c::"
+#define SWIG_name   "FiftyOneDegreesTrieV3c::boot_FiftyOneDegreesTrieV3"
+#define SWIG_prefix "FiftyOneDegreesTrieV3c::"
 
 #define SWIGVERSION 0x030010 
 #define SWIG_VERSION SWIGVERSION
@@ -2036,13 +2036,29 @@ SWIG_From_int  SWIG_PERL_DECL_ARGS_1(int value)
   return SWIG_From_long  SWIG_PERL_CALL_ARGS_1(value);
 }
 
+
+SWIGINTERN int
+SWIG_AsVal_bool SWIG_PERL_DECL_ARGS_2(SV *obj, bool* val)
+{
+  if (obj == &PL_sv_yes) {
+    if (val) *val = true;
+    return SWIG_OK;
+  } else if (obj == &PL_sv_no) { 
+    if (val) *val = false;
+    return SWIG_OK;
+  } else {
+    if (val) *val = SvTRUE(obj) ? true : false;
+    return SWIG_AddCast(SWIG_OK);    
+  }
+}
+
 #ifdef __cplusplus
 extern "C" {
 #endif
 
 #ifdef PERL_OBJECT
-#define MAGIC_CLASS _wrap_FiftyOneDegrees__TrieV3_var::
-class _wrap_FiftyOneDegrees__TrieV3_var : public CPerlObj {
+#define MAGIC_CLASS _wrap_FiftyOneDegreesTrieV3_var::
+class _wrap_FiftyOneDegreesTrieV3_var : public CPerlObj {
 public:
 #else
 #define MAGIC_CLASS
@@ -4223,105 +4239,6 @@ XS(_wrap_new_Provider__SWIG_2) {
 }
 
 
-XS(_wrap_new_Provider) {
-  dXSARGS;
-  
-  {
-    unsigned long _index = 0;
-    SWIG_TypeRank _rank = 0; 
-    if (items == 1) {
-      SWIG_TypeRank _ranki = 0;
-      SWIG_TypeRank _rankm = 0;
-      SWIG_TypeRank _pi = 1;
-      int _v = 0;
-      {
-        int res = SWIG_AsPtr_std_string SWIG_PERL_CALL_ARGS_2(ST(0), (std::string**)(0));
-        _v = SWIG_CheckState(res);
-      }
-      if (!_v) goto check_1;
-      _ranki += _v*_pi;
-      _rankm += _pi;
-      _pi *= SWIG_MAXCASTRANK;
-      if (!_index || (_ranki < _rank)) {
-        _rank = _ranki; _index = 1;
-        if (_rank == _rankm) goto dispatch;
-      }
-    }
-  check_1:
-    
-    if (items == 2) {
-      SWIG_TypeRank _ranki = 0;
-      SWIG_TypeRank _rankm = 0;
-      SWIG_TypeRank _pi = 1;
-      int _v = 0;
-      {
-        int res = SWIG_AsPtr_std_string SWIG_PERL_CALL_ARGS_2(ST(0), (std::string**)(0));
-        _v = SWIG_CheckState(res);
-      }
-      if (!_v) goto check_2;
-      _ranki += _v*_pi;
-      _rankm += _pi;
-      _pi *= SWIG_MAXCASTRANK;
-      {
-        void *vptr = 0;
-        int res = SWIG_ConvertPtr(ST(1), &vptr, SWIGTYPE_p_std__vectorT_std__string_t, 0);
-        _v = SWIG_CheckState(res);
-      }
-      if (!_v) goto check_2;
-      _ranki += _v*_pi;
-      _rankm += _pi;
-      _pi *= SWIG_MAXCASTRANK;
-      if (!_index || (_ranki < _rank)) {
-        _rank = _ranki; _index = 2;
-        if (_rank == _rankm) goto dispatch;
-      }
-    }
-  check_2:
-    
-    if (items == 2) {
-      SWIG_TypeRank _ranki = 0;
-      SWIG_TypeRank _rankm = 0;
-      SWIG_TypeRank _pi = 1;
-      int _v = 0;
-      {
-        int res = SWIG_AsPtr_std_string SWIG_PERL_CALL_ARGS_2(ST(0), (std::string**)(0));
-        _v = SWIG_CheckState(res);
-      }
-      if (!_v) goto check_3;
-      _ranki += _v*_pi;
-      _rankm += _pi;
-      _pi *= SWIG_MAXCASTRANK;
-      {
-        int res = SWIG_AsPtr_std_string SWIG_PERL_CALL_ARGS_2(ST(1), (std::string**)(0));
-        _v = SWIG_CheckState(res);
-      }
-      if (!_v) goto check_3;
-      _ranki += _v*_pi;
-      _rankm += _pi;
-      _pi *= SWIG_MAXCASTRANK;
-      if (!_index || (_ranki < _rank)) {
-        _rank = _ranki; _index = 3;
-        if (_rank == _rankm) goto dispatch;
-      }
-    }
-  check_3:
-    
-  dispatch:
-    switch(_index) {
-    case 1:
-      PUSHMARK(MARK); SWIG_CALLXS(_wrap_new_Provider__SWIG_0); return;
-    case 2:
-      PUSHMARK(MARK); SWIG_CALLXS(_wrap_new_Provider__SWIG_2); return;
-    case 3:
-      PUSHMARK(MARK); SWIG_CALLXS(_wrap_new_Provider__SWIG_1); return;
-    }
-  }
-  
-  croak("No matching function for overloaded 'new_Provider'");
-  XSRETURN(0);
-}
-
-
 XS(_wrap_delete_Provider) {
   {
     Provider *arg1 = (Provider *) 0 ;
@@ -5152,20 +5069,227 @@ XS(_wrap_Provider_reloadFromMemory) {
 }
 
 
+XS(_wrap_new_Provider__SWIG_3) {
+  {
+    std::string *arg1 = 0 ;
+    std::string *arg2 = 0 ;
+    bool arg3 ;
+    int res1 = SWIG_OLDOBJ ;
+    int res2 = SWIG_OLDOBJ ;
+    bool val3 ;
+    int ecode3 = 0 ;
+    int argvi = 0;
+    Provider *result = 0 ;
+    dXSARGS;
+    
+    if ((items < 3) || (items > 3)) {
+      SWIG_croak("Usage: new_Provider(fileName,propertyString,validate);");
+    }
+    {
+      std::string *ptr = (std::string *)0;
+      res1 = SWIG_AsPtr_std_string SWIG_PERL_CALL_ARGS_2(ST(0), &ptr);
+      if (!SWIG_IsOK(res1)) {
+        SWIG_exception_fail(SWIG_ArgError(res1), "in method '" "new_Provider" "', argument " "1"" of type '" "std::string const &""'"); 
+      }
+      if (!ptr) {
+        SWIG_exception_fail(SWIG_ValueError, "invalid null reference " "in method '" "new_Provider" "', argument " "1"" of type '" "std::string const &""'"); 
+      }
+      arg1 = ptr;
+    }
+    {
+      std::string *ptr = (std::string *)0;
+      res2 = SWIG_AsPtr_std_string SWIG_PERL_CALL_ARGS_2(ST(1), &ptr);
+      if (!SWIG_IsOK(res2)) {
+        SWIG_exception_fail(SWIG_ArgError(res2), "in method '" "new_Provider" "', argument " "2"" of type '" "std::string const &""'"); 
+      }
+      if (!ptr) {
+        SWIG_exception_fail(SWIG_ValueError, "invalid null reference " "in method '" "new_Provider" "', argument " "2"" of type '" "std::string const &""'"); 
+      }
+      arg2 = ptr;
+    }
+    ecode3 = SWIG_AsVal_bool SWIG_PERL_CALL_ARGS_2(ST(2), &val3);
+    if (!SWIG_IsOK(ecode3)) {
+      SWIG_exception_fail(SWIG_ArgError(ecode3), "in method '" "new_Provider" "', argument " "3"" of type '" "bool""'");
+    } 
+    arg3 = static_cast< bool >(val3);
+    {
+      try {
+        result = (Provider *)new Provider((std::string const &)*arg1,(std::string const &)*arg2,arg3);;
+      }
+      catch(runtime_error& e) {
+        SWIG_exception(SWIG_RuntimeError, e.what());
+      }
+      catch(invalid_argument& e) {
+        SWIG_exception(SWIG_ValueError, e.what());
+      }
+    }
+    ST(argvi) = SWIG_NewPointerObj(SWIG_as_voidptr(result), SWIGTYPE_p_Provider, SWIG_OWNER | SWIG_SHADOW); argvi++ ;
+    if (SWIG_IsNewObj(res1)) delete arg1;
+    if (SWIG_IsNewObj(res2)) delete arg2;
+    
+    XSRETURN(argvi);
+  fail:
+    if (SWIG_IsNewObj(res1)) delete arg1;
+    if (SWIG_IsNewObj(res2)) delete arg2;
+    
+    SWIG_croak_null();
+  }
+}
+
+
+XS(_wrap_new_Provider) {
+  dXSARGS;
+  
+  {
+    unsigned long _index = 0;
+    SWIG_TypeRank _rank = 0; 
+    if (items == 1) {
+      SWIG_TypeRank _ranki = 0;
+      SWIG_TypeRank _rankm = 0;
+      SWIG_TypeRank _pi = 1;
+      int _v = 0;
+      {
+        int res = SWIG_AsPtr_std_string SWIG_PERL_CALL_ARGS_2(ST(0), (std::string**)(0));
+        _v = SWIG_CheckState(res);
+      }
+      if (!_v) goto check_1;
+      _ranki += _v*_pi;
+      _rankm += _pi;
+      _pi *= SWIG_MAXCASTRANK;
+      if (!_index || (_ranki < _rank)) {
+        _rank = _ranki; _index = 1;
+        if (_rank == _rankm) goto dispatch;
+      }
+    }
+  check_1:
+    
+    if (items == 2) {
+      SWIG_TypeRank _ranki = 0;
+      SWIG_TypeRank _rankm = 0;
+      SWIG_TypeRank _pi = 1;
+      int _v = 0;
+      {
+        int res = SWIG_AsPtr_std_string SWIG_PERL_CALL_ARGS_2(ST(0), (std::string**)(0));
+        _v = SWIG_CheckState(res);
+      }
+      if (!_v) goto check_2;
+      _ranki += _v*_pi;
+      _rankm += _pi;
+      _pi *= SWIG_MAXCASTRANK;
+      {
+        void *vptr = 0;
+        int res = SWIG_ConvertPtr(ST(1), &vptr, SWIGTYPE_p_std__vectorT_std__string_t, 0);
+        _v = SWIG_CheckState(res);
+      }
+      if (!_v) goto check_2;
+      _ranki += _v*_pi;
+      _rankm += _pi;
+      _pi *= SWIG_MAXCASTRANK;
+      if (!_index || (_ranki < _rank)) {
+        _rank = _ranki; _index = 2;
+        if (_rank == _rankm) goto dispatch;
+      }
+    }
+  check_2:
+    
+    if (items == 2) {
+      SWIG_TypeRank _ranki = 0;
+      SWIG_TypeRank _rankm = 0;
+      SWIG_TypeRank _pi = 1;
+      int _v = 0;
+      {
+        int res = SWIG_AsPtr_std_string SWIG_PERL_CALL_ARGS_2(ST(0), (std::string**)(0));
+        _v = SWIG_CheckState(res);
+      }
+      if (!_v) goto check_3;
+      _ranki += _v*_pi;
+      _rankm += _pi;
+      _pi *= SWIG_MAXCASTRANK;
+      {
+        int res = SWIG_AsPtr_std_string SWIG_PERL_CALL_ARGS_2(ST(1), (std::string**)(0));
+        _v = SWIG_CheckState(res);
+      }
+      if (!_v) goto check_3;
+      _ranki += _v*_pi;
+      _rankm += _pi;
+      _pi *= SWIG_MAXCASTRANK;
+      if (!_index || (_ranki < _rank)) {
+        _rank = _ranki; _index = 3;
+        if (_rank == _rankm) goto dispatch;
+      }
+    }
+  check_3:
+    
+    if (items == 3) {
+      SWIG_TypeRank _ranki = 0;
+      SWIG_TypeRank _rankm = 0;
+      SWIG_TypeRank _pi = 1;
+      int _v = 0;
+      {
+        int res = SWIG_AsPtr_std_string SWIG_PERL_CALL_ARGS_2(ST(0), (std::string**)(0));
+        _v = SWIG_CheckState(res);
+      }
+      if (!_v) goto check_4;
+      _ranki += _v*_pi;
+      _rankm += _pi;
+      _pi *= SWIG_MAXCASTRANK;
+      {
+        int res = SWIG_AsPtr_std_string SWIG_PERL_CALL_ARGS_2(ST(1), (std::string**)(0));
+        _v = SWIG_CheckState(res);
+      }
+      if (!_v) goto check_4;
+      _ranki += _v*_pi;
+      _rankm += _pi;
+      _pi *= SWIG_MAXCASTRANK;
+      {
+        {
+          int res = SWIG_AsVal_bool SWIG_PERL_CALL_ARGS_2(ST(2), NULL);
+          _v = SWIG_CheckState(res);
+        }
+      }
+      if (!_v) goto check_4;
+      _ranki += _v*_pi;
+      _rankm += _pi;
+      _pi *= SWIG_MAXCASTRANK;
+      if (!_index || (_ranki < _rank)) {
+        _rank = _ranki; _index = 4;
+        if (_rank == _rankm) goto dispatch;
+      }
+    }
+  check_4:
+    
+  dispatch:
+    switch(_index) {
+    case 1:
+      PUSHMARK(MARK); SWIG_CALLXS(_wrap_new_Provider__SWIG_0); return;
+    case 2:
+      PUSHMARK(MARK); SWIG_CALLXS(_wrap_new_Provider__SWIG_2); return;
+    case 3:
+      PUSHMARK(MARK); SWIG_CALLXS(_wrap_new_Provider__SWIG_1); return;
+    case 4:
+      PUSHMARK(MARK); SWIG_CALLXS(_wrap_new_Provider__SWIG_3); return;
+    }
+  }
+  
+  croak("No matching function for overloaded 'new_Provider'");
+  XSRETURN(0);
+}
+
+
 
 /* -------- TYPE CONVERSION AND EQUIVALENCE RULES (BEGIN) -------- */
 
-static swig_type_info _swigt__p_Match = {"_p_Match", "Match *", 0, 0, (void*)"FiftyOneDegrees::TrieV3::Match", 0};
-static swig_type_info _swigt__p_Provider = {"_p_Provider", "Provider *", 0, 0, (void*)"FiftyOneDegrees::TrieV3::Provider", 0};
+static swig_type_info _swigt__p_Match = {"_p_Match", "Match *", 0, 0, (void*)"FiftyOneDegreesTrieV3::Match", 0};
+static swig_type_info _swigt__p_Provider = {"_p_Provider", "Provider *", 0, 0, (void*)"FiftyOneDegreesTrieV3::Provider", 0};
 static swig_type_info _swigt__p_char = {"_p_char", "char *", 0, 0, (void*)0, 0};
 static swig_type_info _swigt__p_difference_type = {"_p_difference_type", "difference_type *", 0, 0, (void*)0, 0};
 static swig_type_info _swigt__p_key_type = {"_p_key_type", "key_type *", 0, 0, (void*)0, 0};
 static swig_type_info _swigt__p_mapped_type = {"_p_mapped_type", "mapped_type *", 0, 0, (void*)0, 0};
 static swig_type_info _swigt__p_size_type = {"_p_size_type", "size_type *", 0, 0, (void*)0, 0};
-static swig_type_info _swigt__p_std__mapT_std__string_std__string_t = {"_p_std__mapT_std__string_std__string_t", "std::map< std::string,std::string > *", 0, 0, (void*)"FiftyOneDegrees::TrieV3::MapStringString", 0};
+static swig_type_info _swigt__p_std__mapT_std__string_std__string_t = {"_p_std__mapT_std__string_std__string_t", "std::map< std::string,std::string > *", 0, 0, (void*)"FiftyOneDegreesTrieV3::MapStringString", 0};
 static swig_type_info _swigt__p_std__out_of_range = {"_p_std__out_of_range", "std::out_of_range *", 0, 0, (void*)0, 0};
 static swig_type_info _swigt__p_std__string = {"_p_std__string", "std::string *", 0, 0, (void*)0, 0};
-static swig_type_info _swigt__p_std__vectorT_std__string_t = {"_p_std__vectorT_std__string_t", "std::vector< std::string > *", 0, 0, (void*)"FiftyOneDegrees::TrieV3::VectorString", 0};
+static swig_type_info _swigt__p_std__vectorT_std__string_t = {"_p_std__vectorT_std__string_t", "std::vector< std::string > *", 0, 0, (void*)"FiftyOneDegreesTrieV3::VectorString", 0};
 static swig_type_info _swigt__p_value_type = {"_p_value_type", "value_type *", 0, 0, (void*)0, 0};
 
 static swig_type_info *swig_type_initial[] = {
@@ -5224,46 +5348,46 @@ static swig_variable_info swig_variables[] = {
 {0,0,0,0}
 };
 static swig_command_info swig_commands[] = {
-{"FiftyOneDegrees::TrieV3c::new_MapStringString", _wrap_new_MapStringString},
-{"FiftyOneDegrees::TrieV3c::MapStringString_size", _wrap_MapStringString_size},
-{"FiftyOneDegrees::TrieV3c::MapStringString_empty", _wrap_MapStringString_empty},
-{"FiftyOneDegrees::TrieV3c::MapStringString_clear", _wrap_MapStringString_clear},
-{"FiftyOneDegrees::TrieV3c::MapStringString_get", _wrap_MapStringString_get},
-{"FiftyOneDegrees::TrieV3c::MapStringString_set", _wrap_MapStringString_set},
-{"FiftyOneDegrees::TrieV3c::MapStringString_del", _wrap_MapStringString_del},
-{"FiftyOneDegrees::TrieV3c::MapStringString_has_key", _wrap_MapStringString_has_key},
-{"FiftyOneDegrees::TrieV3c::delete_MapStringString", _wrap_delete_MapStringString},
-{"FiftyOneDegrees::TrieV3c::new_VectorString", _wrap_new_VectorString},
-{"FiftyOneDegrees::TrieV3c::VectorString_size", _wrap_VectorString_size},
-{"FiftyOneDegrees::TrieV3c::VectorString_empty", _wrap_VectorString_empty},
-{"FiftyOneDegrees::TrieV3c::VectorString_clear", _wrap_VectorString_clear},
-{"FiftyOneDegrees::TrieV3c::VectorString_push", _wrap_VectorString_push},
-{"FiftyOneDegrees::TrieV3c::VectorString_pop", _wrap_VectorString_pop},
-{"FiftyOneDegrees::TrieV3c::VectorString_get", _wrap_VectorString_get},
-{"FiftyOneDegrees::TrieV3c::VectorString_set", _wrap_VectorString_set},
-{"FiftyOneDegrees::TrieV3c::delete_VectorString", _wrap_delete_VectorString},
-{"FiftyOneDegrees::TrieV3c::delete_Match", _wrap_delete_Match},
-{"FiftyOneDegrees::TrieV3c::Match_getValues", _wrap_Match_getValues},
-{"FiftyOneDegrees::TrieV3c::Match_getValue", _wrap_Match_getValue},
-{"FiftyOneDegrees::TrieV3c::Match_getDeviceId", _wrap_Match_getDeviceId},
-{"FiftyOneDegrees::TrieV3c::Match_getRank", _wrap_Match_getRank},
-{"FiftyOneDegrees::TrieV3c::Match_getDifference", _wrap_Match_getDifference},
-{"FiftyOneDegrees::TrieV3c::Match_getMethod", _wrap_Match_getMethod},
-{"FiftyOneDegrees::TrieV3c::Match_getUserAgent", _wrap_Match_getUserAgent},
-{"FiftyOneDegrees::TrieV3c::new_Provider", _wrap_new_Provider},
-{"FiftyOneDegrees::TrieV3c::delete_Provider", _wrap_delete_Provider},
-{"FiftyOneDegrees::TrieV3c::Provider_getHttpHeaders", _wrap_Provider_getHttpHeaders},
-{"FiftyOneDegrees::TrieV3c::Provider_getAvailableProperties", _wrap_Provider_getAvailableProperties},
-{"FiftyOneDegrees::TrieV3c::Provider_getDataSetName", _wrap_Provider_getDataSetName},
-{"FiftyOneDegrees::TrieV3c::Provider_getDataSetFormat", _wrap_Provider_getDataSetFormat},
-{"FiftyOneDegrees::TrieV3c::Provider_getDataSetPublishedDate", _wrap_Provider_getDataSetPublishedDate},
-{"FiftyOneDegrees::TrieV3c::Provider_getDataSetNextUpdateDate", _wrap_Provider_getDataSetNextUpdateDate},
-{"FiftyOneDegrees::TrieV3c::Provider_getDataSetSignatureCount", _wrap_Provider_getDataSetSignatureCount},
-{"FiftyOneDegrees::TrieV3c::Provider_getDataSetDeviceCombinations", _wrap_Provider_getDataSetDeviceCombinations},
-{"FiftyOneDegrees::TrieV3c::Provider_getMatch", _wrap_Provider_getMatch},
-{"FiftyOneDegrees::TrieV3c::Provider_getMatchJson", _wrap_Provider_getMatchJson},
-{"FiftyOneDegrees::TrieV3c::Provider_reloadFromFile", _wrap_Provider_reloadFromFile},
-{"FiftyOneDegrees::TrieV3c::Provider_reloadFromMemory", _wrap_Provider_reloadFromMemory},
+{"FiftyOneDegreesTrieV3c::new_MapStringString", _wrap_new_MapStringString},
+{"FiftyOneDegreesTrieV3c::MapStringString_size", _wrap_MapStringString_size},
+{"FiftyOneDegreesTrieV3c::MapStringString_empty", _wrap_MapStringString_empty},
+{"FiftyOneDegreesTrieV3c::MapStringString_clear", _wrap_MapStringString_clear},
+{"FiftyOneDegreesTrieV3c::MapStringString_get", _wrap_MapStringString_get},
+{"FiftyOneDegreesTrieV3c::MapStringString_set", _wrap_MapStringString_set},
+{"FiftyOneDegreesTrieV3c::MapStringString_del", _wrap_MapStringString_del},
+{"FiftyOneDegreesTrieV3c::MapStringString_has_key", _wrap_MapStringString_has_key},
+{"FiftyOneDegreesTrieV3c::delete_MapStringString", _wrap_delete_MapStringString},
+{"FiftyOneDegreesTrieV3c::new_VectorString", _wrap_new_VectorString},
+{"FiftyOneDegreesTrieV3c::VectorString_size", _wrap_VectorString_size},
+{"FiftyOneDegreesTrieV3c::VectorString_empty", _wrap_VectorString_empty},
+{"FiftyOneDegreesTrieV3c::VectorString_clear", _wrap_VectorString_clear},
+{"FiftyOneDegreesTrieV3c::VectorString_push", _wrap_VectorString_push},
+{"FiftyOneDegreesTrieV3c::VectorString_pop", _wrap_VectorString_pop},
+{"FiftyOneDegreesTrieV3c::VectorString_get", _wrap_VectorString_get},
+{"FiftyOneDegreesTrieV3c::VectorString_set", _wrap_VectorString_set},
+{"FiftyOneDegreesTrieV3c::delete_VectorString", _wrap_delete_VectorString},
+{"FiftyOneDegreesTrieV3c::delete_Match", _wrap_delete_Match},
+{"FiftyOneDegreesTrieV3c::Match_getValues", _wrap_Match_getValues},
+{"FiftyOneDegreesTrieV3c::Match_getValue", _wrap_Match_getValue},
+{"FiftyOneDegreesTrieV3c::Match_getDeviceId", _wrap_Match_getDeviceId},
+{"FiftyOneDegreesTrieV3c::Match_getRank", _wrap_Match_getRank},
+{"FiftyOneDegreesTrieV3c::Match_getDifference", _wrap_Match_getDifference},
+{"FiftyOneDegreesTrieV3c::Match_getMethod", _wrap_Match_getMethod},
+{"FiftyOneDegreesTrieV3c::Match_getUserAgent", _wrap_Match_getUserAgent},
+{"FiftyOneDegreesTrieV3c::delete_Provider", _wrap_delete_Provider},
+{"FiftyOneDegreesTrieV3c::Provider_getHttpHeaders", _wrap_Provider_getHttpHeaders},
+{"FiftyOneDegreesTrieV3c::Provider_getAvailableProperties", _wrap_Provider_getAvailableProperties},
+{"FiftyOneDegreesTrieV3c::Provider_getDataSetName", _wrap_Provider_getDataSetName},
+{"FiftyOneDegreesTrieV3c::Provider_getDataSetFormat", _wrap_Provider_getDataSetFormat},
+{"FiftyOneDegreesTrieV3c::Provider_getDataSetPublishedDate", _wrap_Provider_getDataSetPublishedDate},
+{"FiftyOneDegreesTrieV3c::Provider_getDataSetNextUpdateDate", _wrap_Provider_getDataSetNextUpdateDate},
+{"FiftyOneDegreesTrieV3c::Provider_getDataSetSignatureCount", _wrap_Provider_getDataSetSignatureCount},
+{"FiftyOneDegreesTrieV3c::Provider_getDataSetDeviceCombinations", _wrap_Provider_getDataSetDeviceCombinations},
+{"FiftyOneDegreesTrieV3c::Provider_getMatch", _wrap_Provider_getMatch},
+{"FiftyOneDegreesTrieV3c::Provider_getMatchJson", _wrap_Provider_getMatchJson},
+{"FiftyOneDegreesTrieV3c::Provider_reloadFromFile", _wrap_Provider_reloadFromFile},
+{"FiftyOneDegreesTrieV3c::Provider_reloadFromMemory", _wrap_Provider_reloadFromMemory},
+{"FiftyOneDegreesTrieV3c::new_Provider", _wrap_new_Provider},
 {0,0}
 };
 /* -----------------------------------------------------------------------------
@@ -5558,10 +5682,10 @@ XS(SWIG_init) {
     SvREADONLY_on(sv);
   }
   
-  SWIG_TypeClientData(SWIGTYPE_p_std__mapT_std__string_std__string_t, (void*) "FiftyOneDegrees::TrieV3::MapStringString");
-  SWIG_TypeClientData(SWIGTYPE_p_std__vectorT_std__string_t, (void*) "FiftyOneDegrees::TrieV3::VectorString");
-  SWIG_TypeClientData(SWIGTYPE_p_Match, (void*) "FiftyOneDegrees::TrieV3::Match");
-  SWIG_TypeClientData(SWIGTYPE_p_Provider, (void*) "FiftyOneDegrees::TrieV3::Provider");
+  SWIG_TypeClientData(SWIGTYPE_p_std__mapT_std__string_std__string_t, (void*) "FiftyOneDegreesTrieV3::MapStringString");
+  SWIG_TypeClientData(SWIGTYPE_p_std__vectorT_std__string_t, (void*) "FiftyOneDegreesTrieV3::VectorString");
+  SWIG_TypeClientData(SWIGTYPE_p_Match, (void*) "FiftyOneDegreesTrieV3::Match");
+  SWIG_TypeClientData(SWIGTYPE_p_Provider, (void*) "FiftyOneDegreesTrieV3::Provider");
   ST(0) = &PL_sv_yes;
   XSRETURN(1);
 }
