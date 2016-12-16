@@ -1553,10 +1553,10 @@ static swig_module_info swig_module = {swig_types, 13, 0, 0, 0, 0};
 
 /* -------- TYPES TABLE (END) -------- */
 
-#define SWIG_init    boot_FiftyOneDegrees__PatternV3
+#define SWIG_init    boot_FiftyOneDegreesPatternV3
 
-#define SWIG_name   "FiftyOneDegrees::PatternV3c::boot_FiftyOneDegrees__PatternV3"
-#define SWIG_prefix "FiftyOneDegrees::PatternV3c::"
+#define SWIG_name   "FiftyOneDegreesPatternV3c::boot_FiftyOneDegreesPatternV3"
+#define SWIG_prefix "FiftyOneDegreesPatternV3c::"
 
 #define SWIGVERSION 0x030010 
 #define SWIG_VERSION SWIGVERSION
@@ -2060,8 +2060,8 @@ extern "C" {
 #endif
 
 #ifdef PERL_OBJECT
-#define MAGIC_CLASS _wrap_FiftyOneDegrees__PatternV3_var::
-class _wrap_FiftyOneDegrees__PatternV3_var : public CPerlObj {
+#define MAGIC_CLASS _wrap_FiftyOneDegreesPatternV3_var::
+class _wrap_FiftyOneDegreesPatternV3_var : public CPerlObj {
 public:
 #else
 #define MAGIC_CLASS
@@ -5778,6 +5778,120 @@ XS(_wrap_Provider_reloadFromMemory) {
 }
 
 
+XS(_wrap_Provider_getCacheHits) {
+  {
+    Provider *arg1 = (Provider *) 0 ;
+    void *argp1 = 0 ;
+    int res1 = 0 ;
+    int argvi = 0;
+    int result;
+    dXSARGS;
+    
+    if ((items < 1) || (items > 1)) {
+      SWIG_croak("Usage: Provider_getCacheHits(self);");
+    }
+    res1 = SWIG_ConvertPtr(ST(0), &argp1,SWIGTYPE_p_Provider, 0 |  0 );
+    if (!SWIG_IsOK(res1)) {
+      SWIG_exception_fail(SWIG_ArgError(res1), "in method '" "Provider_getCacheHits" "', argument " "1"" of type '" "Provider *""'"); 
+    }
+    arg1 = reinterpret_cast< Provider * >(argp1);
+    {
+      try {
+        result = (int)(arg1)->getCacheHits();;
+      }
+      catch(runtime_error& e) {
+        SWIG_exception(SWIG_RuntimeError, e.what());
+      }
+      catch(invalid_argument& e) {
+        SWIG_exception(SWIG_ValueError, e.what());
+      }
+    }
+    ST(argvi) = SWIG_From_int  SWIG_PERL_CALL_ARGS_1(static_cast< int >(result)); argvi++ ;
+    
+    XSRETURN(argvi);
+  fail:
+    
+    SWIG_croak_null();
+  }
+}
+
+
+XS(_wrap_Provider_getCacheMisses) {
+  {
+    Provider *arg1 = (Provider *) 0 ;
+    void *argp1 = 0 ;
+    int res1 = 0 ;
+    int argvi = 0;
+    int result;
+    dXSARGS;
+    
+    if ((items < 1) || (items > 1)) {
+      SWIG_croak("Usage: Provider_getCacheMisses(self);");
+    }
+    res1 = SWIG_ConvertPtr(ST(0), &argp1,SWIGTYPE_p_Provider, 0 |  0 );
+    if (!SWIG_IsOK(res1)) {
+      SWIG_exception_fail(SWIG_ArgError(res1), "in method '" "Provider_getCacheMisses" "', argument " "1"" of type '" "Provider *""'"); 
+    }
+    arg1 = reinterpret_cast< Provider * >(argp1);
+    {
+      try {
+        result = (int)(arg1)->getCacheMisses();;
+      }
+      catch(runtime_error& e) {
+        SWIG_exception(SWIG_RuntimeError, e.what());
+      }
+      catch(invalid_argument& e) {
+        SWIG_exception(SWIG_ValueError, e.what());
+      }
+    }
+    ST(argvi) = SWIG_From_int  SWIG_PERL_CALL_ARGS_1(static_cast< int >(result)); argvi++ ;
+    
+    XSRETURN(argvi);
+  fail:
+    
+    SWIG_croak_null();
+  }
+}
+
+
+XS(_wrap_Provider_getCacheMaxIterations) {
+  {
+    Provider *arg1 = (Provider *) 0 ;
+    void *argp1 = 0 ;
+    int res1 = 0 ;
+    int argvi = 0;
+    int result;
+    dXSARGS;
+    
+    if ((items < 1) || (items > 1)) {
+      SWIG_croak("Usage: Provider_getCacheMaxIterations(self);");
+    }
+    res1 = SWIG_ConvertPtr(ST(0), &argp1,SWIGTYPE_p_Provider, 0 |  0 );
+    if (!SWIG_IsOK(res1)) {
+      SWIG_exception_fail(SWIG_ArgError(res1), "in method '" "Provider_getCacheMaxIterations" "', argument " "1"" of type '" "Provider *""'"); 
+    }
+    arg1 = reinterpret_cast< Provider * >(argp1);
+    {
+      try {
+        result = (int)(arg1)->getCacheMaxIterations();;
+      }
+      catch(runtime_error& e) {
+        SWIG_exception(SWIG_RuntimeError, e.what());
+      }
+      catch(invalid_argument& e) {
+        SWIG_exception(SWIG_ValueError, e.what());
+      }
+    }
+    ST(argvi) = SWIG_From_int  SWIG_PERL_CALL_ARGS_1(static_cast< int >(result)); argvi++ ;
+    
+    XSRETURN(argvi);
+  fail:
+    
+    SWIG_croak_null();
+  }
+}
+
+
 XS(_wrap_new_Provider__SWIG_6) {
   {
     std::string *arg1 = 0 ;
@@ -6171,18 +6285,18 @@ XS(_wrap_new_Provider) {
 
 /* -------- TYPE CONVERSION AND EQUIVALENCE RULES (BEGIN) -------- */
 
-static swig_type_info _swigt__p_Match = {"_p_Match", "Match *", 0, 0, (void*)"FiftyOneDegrees::PatternV3::Match", 0};
-static swig_type_info _swigt__p_Profiles = {"_p_Profiles", "Profiles *", 0, 0, (void*)"FiftyOneDegrees::PatternV3::Profiles", 0};
-static swig_type_info _swigt__p_Provider = {"_p_Provider", "Provider *", 0, 0, (void*)"FiftyOneDegrees::PatternV3::Provider", 0};
+static swig_type_info _swigt__p_Match = {"_p_Match", "Match *", 0, 0, (void*)"FiftyOneDegreesPatternV3::Match", 0};
+static swig_type_info _swigt__p_Profiles = {"_p_Profiles", "Profiles *", 0, 0, (void*)"FiftyOneDegreesPatternV3::Profiles", 0};
+static swig_type_info _swigt__p_Provider = {"_p_Provider", "Provider *", 0, 0, (void*)"FiftyOneDegreesPatternV3::Provider", 0};
 static swig_type_info _swigt__p_char = {"_p_char", "char *", 0, 0, (void*)0, 0};
 static swig_type_info _swigt__p_difference_type = {"_p_difference_type", "difference_type *", 0, 0, (void*)0, 0};
 static swig_type_info _swigt__p_key_type = {"_p_key_type", "key_type *", 0, 0, (void*)0, 0};
 static swig_type_info _swigt__p_mapped_type = {"_p_mapped_type", "mapped_type *", 0, 0, (void*)0, 0};
 static swig_type_info _swigt__p_size_type = {"_p_size_type", "size_type *", 0, 0, (void*)0, 0};
-static swig_type_info _swigt__p_std__mapT_std__string_std__string_t = {"_p_std__mapT_std__string_std__string_t", "std::map< std::string,std::string > *", 0, 0, (void*)"FiftyOneDegrees::PatternV3::MapStringString", 0};
+static swig_type_info _swigt__p_std__mapT_std__string_std__string_t = {"_p_std__mapT_std__string_std__string_t", "std::map< std::string,std::string > *", 0, 0, (void*)"FiftyOneDegreesPatternV3::MapStringString", 0};
 static swig_type_info _swigt__p_std__out_of_range = {"_p_std__out_of_range", "std::out_of_range *", 0, 0, (void*)0, 0};
 static swig_type_info _swigt__p_std__string = {"_p_std__string", "std::string *", 0, 0, (void*)0, 0};
-static swig_type_info _swigt__p_std__vectorT_std__string_t = {"_p_std__vectorT_std__string_t", "std::vector< std::string > *", 0, 0, (void*)"FiftyOneDegrees::PatternV3::VectorString", 0};
+static swig_type_info _swigt__p_std__vectorT_std__string_t = {"_p_std__vectorT_std__string_t", "std::vector< std::string > *", 0, 0, (void*)"FiftyOneDegreesPatternV3::VectorString", 0};
 static swig_type_info _swigt__p_value_type = {"_p_value_type", "value_type *", 0, 0, (void*)0, 0};
 
 static swig_type_info *swig_type_initial[] = {
@@ -6244,53 +6358,56 @@ static swig_variable_info swig_variables[] = {
 {0,0,0,0}
 };
 static swig_command_info swig_commands[] = {
-{"FiftyOneDegrees::PatternV3c::new_MapStringString", _wrap_new_MapStringString},
-{"FiftyOneDegrees::PatternV3c::MapStringString_size", _wrap_MapStringString_size},
-{"FiftyOneDegrees::PatternV3c::MapStringString_empty", _wrap_MapStringString_empty},
-{"FiftyOneDegrees::PatternV3c::MapStringString_clear", _wrap_MapStringString_clear},
-{"FiftyOneDegrees::PatternV3c::MapStringString_get", _wrap_MapStringString_get},
-{"FiftyOneDegrees::PatternV3c::MapStringString_set", _wrap_MapStringString_set},
-{"FiftyOneDegrees::PatternV3c::MapStringString_del", _wrap_MapStringString_del},
-{"FiftyOneDegrees::PatternV3c::MapStringString_has_key", _wrap_MapStringString_has_key},
-{"FiftyOneDegrees::PatternV3c::delete_MapStringString", _wrap_delete_MapStringString},
-{"FiftyOneDegrees::PatternV3c::new_VectorString", _wrap_new_VectorString},
-{"FiftyOneDegrees::PatternV3c::VectorString_size", _wrap_VectorString_size},
-{"FiftyOneDegrees::PatternV3c::VectorString_empty", _wrap_VectorString_empty},
-{"FiftyOneDegrees::PatternV3c::VectorString_clear", _wrap_VectorString_clear},
-{"FiftyOneDegrees::PatternV3c::VectorString_push", _wrap_VectorString_push},
-{"FiftyOneDegrees::PatternV3c::VectorString_pop", _wrap_VectorString_pop},
-{"FiftyOneDegrees::PatternV3c::VectorString_get", _wrap_VectorString_get},
-{"FiftyOneDegrees::PatternV3c::VectorString_set", _wrap_VectorString_set},
-{"FiftyOneDegrees::PatternV3c::delete_VectorString", _wrap_delete_VectorString},
-{"FiftyOneDegrees::PatternV3c::delete_Match", _wrap_delete_Match},
-{"FiftyOneDegrees::PatternV3c::Match_getValues", _wrap_Match_getValues},
-{"FiftyOneDegrees::PatternV3c::Match_getValue", _wrap_Match_getValue},
-{"FiftyOneDegrees::PatternV3c::Match_getDeviceId", _wrap_Match_getDeviceId},
-{"FiftyOneDegrees::PatternV3c::Match_getRank", _wrap_Match_getRank},
-{"FiftyOneDegrees::PatternV3c::Match_getDifference", _wrap_Match_getDifference},
-{"FiftyOneDegrees::PatternV3c::Match_getMethod", _wrap_Match_getMethod},
-{"FiftyOneDegrees::PatternV3c::Match_getUserAgent", _wrap_Match_getUserAgent},
-{"FiftyOneDegrees::PatternV3c::delete_Profiles", _wrap_delete_Profiles},
-{"FiftyOneDegrees::PatternV3c::new_Profiles", _wrap_new_Profiles},
-{"FiftyOneDegrees::PatternV3c::Profiles_getCount", _wrap_Profiles_getCount},
-{"FiftyOneDegrees::PatternV3c::Profiles_getProfileIndex", _wrap_Profiles_getProfileIndex},
-{"FiftyOneDegrees::PatternV3c::Profiles_getProfileId", _wrap_Profiles_getProfileId},
-{"FiftyOneDegrees::PatternV3c::delete_Provider", _wrap_delete_Provider},
-{"FiftyOneDegrees::PatternV3c::Provider_getHttpHeaders", _wrap_Provider_getHttpHeaders},
-{"FiftyOneDegrees::PatternV3c::Provider_getAvailableProperties", _wrap_Provider_getAvailableProperties},
-{"FiftyOneDegrees::PatternV3c::Provider_getDataSetName", _wrap_Provider_getDataSetName},
-{"FiftyOneDegrees::PatternV3c::Provider_getDataSetFormat", _wrap_Provider_getDataSetFormat},
-{"FiftyOneDegrees::PatternV3c::Provider_getDataSetPublishedDate", _wrap_Provider_getDataSetPublishedDate},
-{"FiftyOneDegrees::PatternV3c::Provider_getDataSetNextUpdateDate", _wrap_Provider_getDataSetNextUpdateDate},
-{"FiftyOneDegrees::PatternV3c::Provider_getDataSetSignatureCount", _wrap_Provider_getDataSetSignatureCount},
-{"FiftyOneDegrees::PatternV3c::Provider_getDataSetDeviceCombinations", _wrap_Provider_getDataSetDeviceCombinations},
-{"FiftyOneDegrees::PatternV3c::Provider_getMatch", _wrap_Provider_getMatch},
-{"FiftyOneDegrees::PatternV3c::Provider_getMatchJson", _wrap_Provider_getMatchJson},
-{"FiftyOneDegrees::PatternV3c::Provider_getMatchForDeviceId", _wrap_Provider_getMatchForDeviceId},
-{"FiftyOneDegrees::PatternV3c::Provider_findProfiles", _wrap_Provider_findProfiles},
-{"FiftyOneDegrees::PatternV3c::Provider_reloadFromFile", _wrap_Provider_reloadFromFile},
-{"FiftyOneDegrees::PatternV3c::Provider_reloadFromMemory", _wrap_Provider_reloadFromMemory},
-{"FiftyOneDegrees::PatternV3c::new_Provider", _wrap_new_Provider},
+{"FiftyOneDegreesPatternV3c::new_MapStringString", _wrap_new_MapStringString},
+{"FiftyOneDegreesPatternV3c::MapStringString_size", _wrap_MapStringString_size},
+{"FiftyOneDegreesPatternV3c::MapStringString_empty", _wrap_MapStringString_empty},
+{"FiftyOneDegreesPatternV3c::MapStringString_clear", _wrap_MapStringString_clear},
+{"FiftyOneDegreesPatternV3c::MapStringString_get", _wrap_MapStringString_get},
+{"FiftyOneDegreesPatternV3c::MapStringString_set", _wrap_MapStringString_set},
+{"FiftyOneDegreesPatternV3c::MapStringString_del", _wrap_MapStringString_del},
+{"FiftyOneDegreesPatternV3c::MapStringString_has_key", _wrap_MapStringString_has_key},
+{"FiftyOneDegreesPatternV3c::delete_MapStringString", _wrap_delete_MapStringString},
+{"FiftyOneDegreesPatternV3c::new_VectorString", _wrap_new_VectorString},
+{"FiftyOneDegreesPatternV3c::VectorString_size", _wrap_VectorString_size},
+{"FiftyOneDegreesPatternV3c::VectorString_empty", _wrap_VectorString_empty},
+{"FiftyOneDegreesPatternV3c::VectorString_clear", _wrap_VectorString_clear},
+{"FiftyOneDegreesPatternV3c::VectorString_push", _wrap_VectorString_push},
+{"FiftyOneDegreesPatternV3c::VectorString_pop", _wrap_VectorString_pop},
+{"FiftyOneDegreesPatternV3c::VectorString_get", _wrap_VectorString_get},
+{"FiftyOneDegreesPatternV3c::VectorString_set", _wrap_VectorString_set},
+{"FiftyOneDegreesPatternV3c::delete_VectorString", _wrap_delete_VectorString},
+{"FiftyOneDegreesPatternV3c::delete_Match", _wrap_delete_Match},
+{"FiftyOneDegreesPatternV3c::Match_getValues", _wrap_Match_getValues},
+{"FiftyOneDegreesPatternV3c::Match_getValue", _wrap_Match_getValue},
+{"FiftyOneDegreesPatternV3c::Match_getDeviceId", _wrap_Match_getDeviceId},
+{"FiftyOneDegreesPatternV3c::Match_getRank", _wrap_Match_getRank},
+{"FiftyOneDegreesPatternV3c::Match_getDifference", _wrap_Match_getDifference},
+{"FiftyOneDegreesPatternV3c::Match_getMethod", _wrap_Match_getMethod},
+{"FiftyOneDegreesPatternV3c::Match_getUserAgent", _wrap_Match_getUserAgent},
+{"FiftyOneDegreesPatternV3c::delete_Profiles", _wrap_delete_Profiles},
+{"FiftyOneDegreesPatternV3c::new_Profiles", _wrap_new_Profiles},
+{"FiftyOneDegreesPatternV3c::Profiles_getCount", _wrap_Profiles_getCount},
+{"FiftyOneDegreesPatternV3c::Profiles_getProfileIndex", _wrap_Profiles_getProfileIndex},
+{"FiftyOneDegreesPatternV3c::Profiles_getProfileId", _wrap_Profiles_getProfileId},
+{"FiftyOneDegreesPatternV3c::delete_Provider", _wrap_delete_Provider},
+{"FiftyOneDegreesPatternV3c::Provider_getHttpHeaders", _wrap_Provider_getHttpHeaders},
+{"FiftyOneDegreesPatternV3c::Provider_getAvailableProperties", _wrap_Provider_getAvailableProperties},
+{"FiftyOneDegreesPatternV3c::Provider_getDataSetName", _wrap_Provider_getDataSetName},
+{"FiftyOneDegreesPatternV3c::Provider_getDataSetFormat", _wrap_Provider_getDataSetFormat},
+{"FiftyOneDegreesPatternV3c::Provider_getDataSetPublishedDate", _wrap_Provider_getDataSetPublishedDate},
+{"FiftyOneDegreesPatternV3c::Provider_getDataSetNextUpdateDate", _wrap_Provider_getDataSetNextUpdateDate},
+{"FiftyOneDegreesPatternV3c::Provider_getDataSetSignatureCount", _wrap_Provider_getDataSetSignatureCount},
+{"FiftyOneDegreesPatternV3c::Provider_getDataSetDeviceCombinations", _wrap_Provider_getDataSetDeviceCombinations},
+{"FiftyOneDegreesPatternV3c::Provider_getMatch", _wrap_Provider_getMatch},
+{"FiftyOneDegreesPatternV3c::Provider_getMatchJson", _wrap_Provider_getMatchJson},
+{"FiftyOneDegreesPatternV3c::Provider_getMatchForDeviceId", _wrap_Provider_getMatchForDeviceId},
+{"FiftyOneDegreesPatternV3c::Provider_findProfiles", _wrap_Provider_findProfiles},
+{"FiftyOneDegreesPatternV3c::Provider_reloadFromFile", _wrap_Provider_reloadFromFile},
+{"FiftyOneDegreesPatternV3c::Provider_reloadFromMemory", _wrap_Provider_reloadFromMemory},
+{"FiftyOneDegreesPatternV3c::Provider_getCacheHits", _wrap_Provider_getCacheHits},
+{"FiftyOneDegreesPatternV3c::Provider_getCacheMisses", _wrap_Provider_getCacheMisses},
+{"FiftyOneDegreesPatternV3c::Provider_getCacheMaxIterations", _wrap_Provider_getCacheMaxIterations},
+{"FiftyOneDegreesPatternV3c::new_Provider", _wrap_new_Provider},
 {0,0}
 };
 /* -----------------------------------------------------------------------------
@@ -6585,11 +6702,11 @@ XS(SWIG_init) {
     SvREADONLY_on(sv);
   }
   
-  SWIG_TypeClientData(SWIGTYPE_p_std__mapT_std__string_std__string_t, (void*) "FiftyOneDegrees::PatternV3::MapStringString");
-  SWIG_TypeClientData(SWIGTYPE_p_std__vectorT_std__string_t, (void*) "FiftyOneDegrees::PatternV3::VectorString");
-  SWIG_TypeClientData(SWIGTYPE_p_Match, (void*) "FiftyOneDegrees::PatternV3::Match");
-  SWIG_TypeClientData(SWIGTYPE_p_Profiles, (void*) "FiftyOneDegrees::PatternV3::Profiles");
-  SWIG_TypeClientData(SWIGTYPE_p_Provider, (void*) "FiftyOneDegrees::PatternV3::Provider");
+  SWIG_TypeClientData(SWIGTYPE_p_std__mapT_std__string_std__string_t, (void*) "FiftyOneDegreesPatternV3::MapStringString");
+  SWIG_TypeClientData(SWIGTYPE_p_std__vectorT_std__string_t, (void*) "FiftyOneDegreesPatternV3::VectorString");
+  SWIG_TypeClientData(SWIGTYPE_p_Match, (void*) "FiftyOneDegreesPatternV3::Match");
+  SWIG_TypeClientData(SWIGTYPE_p_Profiles, (void*) "FiftyOneDegreesPatternV3::Profiles");
+  SWIG_TypeClientData(SWIGTYPE_p_Provider, (void*) "FiftyOneDegreesPatternV3::Provider");
   ST(0) = &PL_sv_yes;
   XSRETURN(1);
 }
