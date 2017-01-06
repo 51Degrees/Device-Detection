@@ -34,6 +34,8 @@ typedef enum { false, true } bool;
 // Global provider available to the module.
 fiftyoneDegreesProvider *provider;
 
+const char **importantHeaders;
+
 static void
 addValue(const char *delimiter, char *buffer, const char *str)
 {
@@ -42,6 +44,17 @@ addValue(const char *delimiter, char *buffer, const char *str)
 		strcat(buffer, delimiter);
 	}
 	strcat(buffer, str);
+}
+
+static void
+initHttpHeaders()
+{
+	importantHeaders = (const char**)malloc(sizeof(char*) * provider->activePool->dataSet->httpHeadersCount);
+	for (int httpHeaderIndex = 0;
+		httpHeaderIndex < provider->activePool->dataSet->httpHeadersCount;
+		httpHeaderIndex++) {
+			importantHeaders[httpHeaderIndex] = provider->activePool->dataSet->httpHeaders[httpHeaderIndex].headerName;
+	}
 }
 
 void
@@ -55,69 +68,69 @@ vmod_start(const struct vrt_ctx *ctx, VCL_STRING filePath)
         "",
         0,
         0);
+
+	initHttpHeaders();
 }
 
-VCL_STRING
-vmod_match(const struct vrt_ctx *ctx, VCL_STRING propertyInputString)
+char*
+searchHeaders(const struct vrt_ctx *ctx, const char *headerName)
 {
-	char *p;
-	unsigned u, v;
-	const char *propertyName, *valueName;
-	int i, j;
-    char buffer[1000];
-	const char *userAgent = "";
-    bool found = false;
-
-    // Create a workset to use for the match.
-	fiftyoneDegreesWorkset *fodws = fiftyoneDegreesWorksetCreate(provider->activePool->dataSet, NULL);
-
-    // Get the User-Agent from the request.
+	char *currentHeader;
+	int i;
 	for (i = 0; i < ctx->http_req->nhd; i++)
 	{
-		if (ctx->http_req->hd[i].b != NULL
-			&& strncmp(ctx->http_req->hd[i].b, "User-Agent", 10) == 0)
+		currentHeader = ctx->http_req->hd[i].b;
+		if (currentHeader != NULL
+			&& strncmp(currentHeader, headerName, strlen(headerName)) == 0)
 		{
-			userAgent = ctx->http_req->hd[i].b + 12;
-			break;
+			return currentHeader + strlen(headerName) + 2;
 		}
 	}
 
-    // Get a match from the User-Agent.
-	fiftyoneDegreesMatch(fodws, userAgent);
+	return NULL;
+}
 
-    // Get the requested property value from the match.
-    if (strcmp(propertyInputString, "Method") == 0)
+void
+getValue(fiftyoneDegreesWorkset *fodws, const char **valueName, const char *requiredPropertyName)
+{
+	int i, j;
+    // TODO set max buffer length properly.
+    char buffer[1000];
+	bool found = false;
+	char *currentPropertyName;
+	    // Get the requested property value from the match.
+    if (strcmp(requiredPropertyName, "Method") == 0)
     {
 		switch(fodws->method) {
-			case EXACT: valueName = "Exact"; break;
-			case NUMERIC: valueName = "Numeric"; break;
-			case NEAREST: valueName = "Nearest"; break;
-			case CLOSEST: valueName = "Closest"; break;
+			case EXACT: *valueName = "Exact"; break;
+			case NUMERIC: *valueName = "Numeric"; break;
+			case NEAREST: *valueName = "Nearest"; break;
+			case CLOSEST: *valueName = "Closest"; break;
 			default:
-			case NONE: valueName = "None"; break;
+			case NONE: *valueName = "None"; break;
 		}
     }
-    else if (strcmp(propertyInputString, "Difference") == 0)
+    else if (strcmp(requiredPropertyName, "Difference") == 0)
     {
         sprintf(buffer, "%d", fodws->difference);
-        valueName = buffer;
+        *valueName = buffer;
     }
-    else if (strcmp(propertyInputString, "DeviceId") == 0)
+    else if (strcmp(requiredPropertyName, "DeviceId") == 0)
     {
         fiftyoneDegreesGetDeviceId(fodws, buffer, 24);
-        valueName = buffer;
+        *valueName = buffer;
     }
-    else if (strcmp(propertyInputString, "Rank") == 0)
+    else if (strcmp(requiredPropertyName, "Rank") == 0)
     {
         sprintf(buffer, "%d", fiftyoneDegreesGetSignatureRank(fodws));
-        valueName = buffer;
+        *valueName = buffer;
     }
 	else {
         // Property is not a match metric, so search the required properties.
         for (i = 0; i < fodws->dataSet->requiredPropertyCount; i++)
         {
-            propertyName = (char*)fiftyoneDegreesGetPropertyName(fodws->dataSet, fodws->dataSet->requiredProperties[i]);
-            if (strcmp(propertyName, propertyInputString) == 0)
+            currentPropertyName = (char*)fiftyoneDegreesGetPropertyName(fodws->dataSet, fodws->dataSet->requiredProperties[i]);
+            if (strcmp(currentPropertyName, requiredPropertyName) == 0)
             {
             	buffer[0] = '\0';
                 fiftyoneDegreesSetValues(fodws, i);
@@ -125,15 +138,77 @@ vmod_match(const struct vrt_ctx *ctx, VCL_STRING propertyInputString)
                 {
                 	addValue("|", buffer, fiftyoneDegreesGetValueName(fodws->dataSet, fodws->values[j]));
                 }
-                valueName = buffer;
+                *valueName = buffer;
                 found = true;
                 break;
             }
         }
         if (!found)
             // Property was not found, so set value accordingly.
-            valueName = "N/A";
+            *valueName = "N/A";
     }
+}
+
+VCL_STRING
+vmod_match_single(const struct vrt_ctx *ctx, VCL_STRING userAgent, VCL_STRING propertyInputString)
+{
+
+	char *p;
+	unsigned u, v;
+	const char *valueName;
+
+    // Create a workset to use for the match.
+	fiftyoneDegreesWorkset *fodws = fiftyoneDegreesWorksetCreate(provider->activePool->dataSet, NULL);
+
+	fiftyoneDegreesMatch(fodws, userAgent);
+
+	getValue(fodws, &valueName, propertyInputString);
+
+	u = WS_Reserve(ctx->ws, 0); /* Reserve some work space */
+	p = ctx->ws->f;	            /* Front of workspace area */
+	v = snprintf(p, u, "%s", valueName);
+
+	v++;
+
+    // Free the workset.
+	fiftyoneDegreesWorksetFree(fodws);
+
+	if (v > u) {
+		/* No space, reset and leave */
+		WS_Release(ctx->ws, 0);
+		return (NULL);
+	}
+	/* Update work space with what we've used */
+	WS_Release(ctx->ws, v);
+	return (p);
+}
+
+VCL_STRING
+vmod_match_all(const struct vrt_ctx *ctx, VCL_STRING propertyInputString)
+{
+	char *p;
+	unsigned u, v;
+	const char *valueName;
+
+    // Create a workset to use for the match.
+	fiftyoneDegreesWorkset *fodws = fiftyoneDegreesWorksetCreate(provider->activePool->dataSet, NULL);
+
+	int headerIndex;
+	char *searchResult;
+    // Get a match from the HTTP headers.
+	fodws->importantHeadersCount = 0;
+	for (headerIndex = 0; headerIndex < fodws->dataSet->httpHeadersCount; headerIndex++) {
+		searchResult = searchHeaders(ctx, fodws->dataSet->httpHeaders[headerIndex].headerName);
+		if (searchResult) {
+			fodws->importantHeaders[fodws->importantHeadersCount].header = fodws->dataSet->httpHeaders + headerIndex;
+			fodws->importantHeaders[fodws->importantHeadersCount].headerValue = (const char*)searchResult;
+			fodws->importantHeaders[fodws->importantHeadersCount].headerValueLength = strlen(searchResult);
+			fodws->importantHeadersCount++;
+		}
+		fiftyoneDegreesMatchForHttpHeaders(fodws);
+	}
+
+	getValue(fodws, &valueName, propertyInputString);
 
 	u = WS_Reserve(ctx->ws, 0); /* Reserve some work space */
 	p = ctx->ws->f;	            /* Front of workspace area */

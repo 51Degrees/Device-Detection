@@ -34,7 +34,7 @@ fiftyonedegrees.start(datafilepath),
 then get a match property from a requesting device with
 fiftyonedegrees.match(propertyname).
 
-$Function VOID start(STRING)
+$Function VOID start(STRING fileName)
 
 Return value
 	VOID
@@ -45,14 +45,27 @@ Example
 
                 fiftyonedegrees.start("/path/to/51Degrees.dat");
 
-$Function STRING match(STRING)
-
+$Function STRING match_all(STRING property)
 
 Return value
 	STRING
 Description
-	Returns the value of property provided for the requesting device.
+	Returns the value of property provided for the requesting device
+	using all important HTTP headers.
 Example
         ::
 
-                set req.http.X-IsMobile = fiftyonedegrees.match("IsMobile");
+                set req.http.X-IsMobile = fiftyonedegrees.match_all("IsMobile");
+
+$Function STRING match_single(STRING userAgent, STRING property)
+
+Return value
+	STRING
+Description
+	Returns the value of property provided for the requesting device
+	using the User-Agent provided.
+Example
+        ::
+
+                set req.http.X-IsMobile = fiftyonedegrees.match_singe(req.http.user-agent, "IsMobile");
+
