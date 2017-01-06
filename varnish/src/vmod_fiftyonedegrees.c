@@ -34,10 +34,13 @@ typedef enum { false, true } bool;
 // Global provider available to the module.
 fiftyoneDegreesProvider *provider;
 
+// Array of pointers to the important header name strings.
 const char **importantHeaders;
 
 static void
-addValue(const char *delimiter, char *buffer, const char *str)
+addValue(
+		const char *delimiter,
+		char *buffer, const char *str)
 {
 	if (buffer[0] != '\0')
 	{
@@ -58,7 +61,9 @@ initHttpHeaders()
 }
 
 void
-vmod_start(const struct vrt_ctx *ctx, VCL_STRING filePath)
+vmod_start(
+		const struct vrt_ctx *ctx,
+		VCL_STRING filePath)
 {
     // Allocate and initialise the provider.
 	provider = (fiftyoneDegreesProvider*)malloc(sizeof(fiftyoneDegreesProvider));
@@ -69,6 +74,7 @@ vmod_start(const struct vrt_ctx *ctx, VCL_STRING filePath)
         0,
         0);
 
+	// Get the names of the important headers from the data set.
 	initHttpHeaders();
 }
 
@@ -91,7 +97,10 @@ searchHeaders(const struct vrt_ctx *ctx, const char *headerName)
 }
 
 void
-getValue(fiftyoneDegreesWorkset *fodws, const char **valueName, const char *requiredPropertyName)
+getValue(
+		fiftyoneDegreesWorkset *fodws,
+		const char **valueName,
+		const char *requiredPropertyName)
 {
 	int i, j;
     // TODO set max buffer length properly.
@@ -129,7 +138,8 @@ getValue(fiftyoneDegreesWorkset *fodws, const char **valueName, const char *requ
         // Property is not a match metric, so search the required properties.
         for (i = 0; i < fodws->dataSet->requiredPropertyCount; i++)
         {
-            currentPropertyName = (char*)fiftyoneDegreesGetPropertyName(fodws->dataSet, fodws->dataSet->requiredProperties[i]);
+            currentPropertyName
+            = (char*)fiftyoneDegreesGetPropertyName(fodws->dataSet, fodws->dataSet->requiredProperties[i]);
             if (strcmp(currentPropertyName, requiredPropertyName) == 0)
             {
             	buffer[0] = '\0';
@@ -150,7 +160,10 @@ getValue(fiftyoneDegreesWorkset *fodws, const char **valueName, const char *requ
 }
 
 VCL_STRING
-vmod_match_single(const struct vrt_ctx *ctx, VCL_STRING userAgent, VCL_STRING propertyInputString)
+vmod_match_single(
+				const struct vrt_ctx *ctx,
+				VCL_STRING userAgent,
+				VCL_STRING propertyInputString)
 {
 
 	char *p;
@@ -158,14 +171,20 @@ vmod_match_single(const struct vrt_ctx *ctx, VCL_STRING userAgent, VCL_STRING pr
 	const char *valueName;
 
     // Create a workset to use for the match.
-	fiftyoneDegreesWorkset *fodws = fiftyoneDegreesWorksetCreate(provider->activePool->dataSet, NULL);
+	fiftyoneDegreesWorkset *fodws
+		= fiftyoneDegreesWorksetCreate(provider->activePool->dataSet, NULL);
 
+	// Get a match for the User-Agent supplied and store in the workset.
 	fiftyoneDegreesMatch(fodws, userAgent);
 
+	// Get the value of the requested property and store as valueName.
 	getValue(fodws, &valueName, propertyInputString);
 
-	u = WS_Reserve(ctx->ws, 0); /* Reserve some work space */
-	p = ctx->ws->f;	            /* Front of workspace area */
+	// Reserve some work space.
+	u = WS_Reserve(ctx->ws, 0);
+	// Get pointer to the front of the work space.
+	p = ctx->ws->f;
+	// Print the value to memory that has been reserved.
 	v = snprintf(p, u, "%s", valueName);
 
 	v++;
@@ -174,44 +193,65 @@ vmod_match_single(const struct vrt_ctx *ctx, VCL_STRING userAgent, VCL_STRING pr
 	fiftyoneDegreesWorksetFree(fodws);
 
 	if (v > u) {
-		/* No space, reset and leave */
+		// No space, reset and leave.
 		WS_Release(ctx->ws, 0);
 		return (NULL);
 	}
-	/* Update work space with what we've used */
+	// Update work space with what has been used.
 	WS_Release(ctx->ws, v);
 	return (p);
 }
 
 VCL_STRING
-vmod_match_all(const struct vrt_ctx *ctx, VCL_STRING propertyInputString)
+vmod_match_all(
+			const struct vrt_ctx *ctx,
+			VCL_STRING propertyInputString)
 {
 	char *p;
 	unsigned u, v;
 	const char *valueName;
-
-    // Create a workset to use for the match.
-	fiftyoneDegreesWorkset *fodws = fiftyoneDegreesWorksetCreate(provider->activePool->dataSet, NULL);
-
 	int headerIndex;
 	char *searchResult;
-    // Get a match from the HTTP headers.
+
+    // Create a workset to use for the match.
+	fiftyoneDegreesWorkset *fodws
+		= fiftyoneDegreesWorksetCreate(provider->activePool->dataSet, NULL);
+
+    // Reset the headers count before adding any to the workset.
 	fodws->importantHeadersCount = 0;
-	for (headerIndex = 0; headerIndex < fodws->dataSet->httpHeadersCount; headerIndex++) {
-		searchResult = searchHeaders(ctx, fodws->dataSet->httpHeaders[headerIndex].headerName);
+	// Loop over all important headers.
+	for (headerIndex = 0;
+	     headerIndex < fodws->dataSet->httpHeadersCount;
+	     headerIndex++)
+	{
+		// Look for the current header in the request.
+		searchResult
+			= searchHeaders(ctx, fodws->dataSet->httpHeaders[headerIndex].headerName);
 		if (searchResult) {
-			fodws->importantHeaders[fodws->importantHeadersCount].header = fodws->dataSet->httpHeaders + headerIndex;
-			fodws->importantHeaders[fodws->importantHeadersCount].headerValue = (const char*)searchResult;
-			fodws->importantHeaders[fodws->importantHeadersCount].headerValueLength = strlen(searchResult);
+			// The request contains the header, so add it to the important
+			// headers in the workset.
+			fodws->importantHeaders[fodws->importantHeadersCount].header
+				= fodws->dataSet->httpHeaders + headerIndex;
+			fodws->importantHeaders[fodws->importantHeadersCount].headerValue
+				= (const char*)searchResult;
+			fodws->importantHeaders[fodws->importantHeadersCount].headerValueLength
+				= strlen(searchResult);
 			fodws->importantHeadersCount++;
 		}
-		fiftyoneDegreesMatchForHttpHeaders(fodws);
 	}
 
+	// Get a match for the headers that have just been added and store in
+	// the workset.
+	fiftyoneDegreesMatchForHttpHeaders(fodws);
+
+	// Get the value for the requested property and store as valueName.
 	getValue(fodws, &valueName, propertyInputString);
 
-	u = WS_Reserve(ctx->ws, 0); /* Reserve some work space */
-	p = ctx->ws->f;	            /* Front of workspace area */
+	// Reserve some work space.
+	u = WS_Reserve(ctx->ws, 0);
+	// Pointer to the front of work space area.
+	p = ctx->ws->f;
+	// Print the value to the memory that has been reserved.
 	v = snprintf(p, u, "%s", valueName);
 
 	v++;
@@ -220,11 +260,11 @@ vmod_match_all(const struct vrt_ctx *ctx, VCL_STRING propertyInputString)
 	fiftyoneDegreesWorksetFree(fodws);
 
 	if (v > u) {
-		/* No space, reset and leave */
+		// No space, reset and leave.
 		WS_Release(ctx->ws, 0);
 		return (NULL);
 	}
-	/* Update work space with what we've used */
+	// Update work space with what has been used.
 	WS_Release(ctx->ws, v);
 	return (p);
 }
