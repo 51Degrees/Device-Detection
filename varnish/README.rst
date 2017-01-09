@@ -75,3 +75,11 @@ In your VCL you could then use this vmod along the following lines::
 		# Initialise the provider with the data file.
 		fiftyonedegrees.start("/home/51Degrees/data/51Degrees.dat");
 	}
+
+TESTING
+=======
+
+After installing you can tests the module by running
+ make check
+
+This will run all the tests defined in src/tests
