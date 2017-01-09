@@ -9,7 +9,7 @@ varnish v1 -vcl+backend {
 	import fiftyonedegrees from "${vmod_topbuild}/src/.libs/libvmod_fiftyonedegrees.so";
 
 	sub vcl_deliver {
-		set resp.http.test = fiftyonedegrees.match("IsMobile");
+		set resp.http.version = fiftyonedegrees.get_version();
 	}
 	sub vcl_init {
 		fiftyonedegrees.start("${vmod_topbuild}/data/51Degrees-LiteV3.2.dat");
@@ -18,9 +18,9 @@ varnish v1 -vcl+backend {
 } -start
 
 client c1 {
-	txreq -url "/" -hdr "User-Agent: Mozilla/5.0 (iPhone; CPU iPhone OS 7_1 like Mac OS X) AppleWebKit/537.51.2 (KHTML, like Gecko) 'Version/7.0 Mobile/11D167 Safari/9537.53"
+	txreq -url "/" -hdr "User-Agent: Mozilla/5.0 (Windows NT 6.3; WOW64; rv:41.0) Gecko/20100101 Firefox/41.0"
 	rxresp
-	expect resp.http.test == "True"
+	expect resp.http.version == "3.2.0.0"
 }
 
 client c1 -run
