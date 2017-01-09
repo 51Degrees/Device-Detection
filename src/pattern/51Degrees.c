@@ -86,7 +86,7 @@ void (FIFTYONEDEGREES_CALL_CONV *fiftyoneDegreesFree)(void *__ptr) = free;
  * DATASET MEMORY ALLOCATION SIZE MACROS
  */
 #define SIZE_OF_ROOT_NODES(h) h.rootNodes.count * sizeof(fiftyoneDegreesNode*)
-#define SIZE_OF_REQUIRED_PROPERTIES_ARRAY requiredPropertyCount * sizeof(char*)
+#define SIZE_OF_REQUIRED_PROPERTIES_ARRAY(count) count * sizeof(char*)
 #define SIZE_OF_FILE_NAME(fileName) sizeof(char) * (strlen(fileName) + 1)
 #define SIZE_OF_COMPONENTS(h) h.components.count * sizeof(fiftyoneDegreesComponent*)
 #define SIZE_OF_HTTP_HEADERS(count) count * sizeof(fiftyoneDegreesHttpHeader)
@@ -535,7 +535,7 @@ static fiftyoneDegreesDataSetInitStatus readDataSetFromMemoryLocation(
 	dataSet->properties = (const fiftyoneDegreesProperty*)current;
 	status = advancePointer(&current, lastByte, dataSet->header.properties.length);
 	if (status != DATA_SET_INIT_STATUS_SUCCESS) return status;
-
+	
 	dataSet->values = (const fiftyoneDegreesValue*)current;
 	status = advancePointer(&current, lastByte, dataSet->header.values.length);
 	if (status != DATA_SET_INIT_STATUS_SUCCESS) return status;
@@ -593,24 +593,133 @@ static fiftyoneDegreesDataSetInitStatus readDataSetFromMemoryLocation(
  * @param dataSet pointer to a 51Degrees data set.
  * \endcond
  */
-static void ensureValueProfilesSet(fiftyoneDegreesDataSet *dataSet) {
+static fiftyoneDegreesDataSetInitStatus ensureValueProfilesSet(fiftyoneDegreesDataSet *dataSet) {
 	fiftyoneDegreesProperty *property;
 	int propertyIndex, valuesCount;
+
 	// Allocate an array element for each property.
 	dataSet->valuePointersArray =
 		(fiftyoneDegreesProfilesStructArray*)fiftyoneDegreesMalloc(SIZE_OF_PROFILES_STRUCT_ARRAY(dataSet->header));
+	if (dataSet->valuePointersArray == NULL) {
+		return DATA_SET_INIT_STATUS_INSUFFICIENT_MEMORY;
+	}
+
 	for (propertyIndex = 0; propertyIndex < dataSet->header.properties.count; propertyIndex++) {
 		property = (fiftyoneDegreesProperty*)(dataSet->properties + (int32_t)propertyIndex);
 		valuesCount = property->lastValueIndex - property->firstValueIndex + 1;
+
 		// Set the initialised flag to 0;
 		dataSet->valuePointersArray[propertyIndex].initialised = 0;
+
 		// Allocate an array element for each value of the current property.
 		dataSet->valuePointersArray[propertyIndex].profilesStructs =
 			(fiftyoneDegreesProfileIndexesStruct*)fiftyoneDegreesMalloc(SIZE_OF_PROFILE_INDEXES_STRUCT(valuesCount));
+		if (dataSet->valuePointersArray[propertyIndex].profilesStructs == NULL) {
+			return DATA_SET_INIT_STATUS_INSUFFICIENT_MEMORY;
+		}
+
 #ifndef FIFTYONEDEGREES_NO_THREADING
 		FIFTYONEDEGREES_MUTEX_CREATE(dataSet->valuePointersArray[propertyIndex].lock);
 #endif
 	}
+
+	return DATA_SET_INIT_STATUS_SUCCESS;
+}
+
+// Define these here as they are needed in the below function.
+static fiftyoneDegreesProfile* getProfileByIndex(const fiftyoneDegreesDataSet *dataSet, int32_t index);
+static int32_t getPropertyIndex(const fiftyoneDegreesDataSet *dataSet, const fiftyoneDegreesProperty *property);
+static const fiftyoneDegreesProperty* getPropertyByName(const fiftyoneDegreesDataSet *dataSet, char *name);
+
+/**
+* \cond
+* Finds the maximum string length of the values associated with the given
+* property name.
+* @param dataSet pointer to a fiftyoneDegreesDataSet.
+* @param propertyName the name of the property to find the value length for.
+* @returns int32_t the maximum string length of the values associated with the
+* given property or -1 if the property was not found.
+* \endcond
+*/
+EXTERNAL int32_t fiftyoneDegreesGetMaxPropertyValueLength(const fiftyoneDegreesDataSet *dataSet, char *propertyName)
+{
+	if (strcmp(propertyName, "Method") == 0) {
+		return 7;
+	}
+	if (strcmp(propertyName, "Rank") == 0) {
+		return 6;
+	}
+	if (strcmp(propertyName, "Difference") == 0) {
+		return 6;
+	}
+	if (strcmp(propertyName, "DeviceId") == 0) {
+		return dataSet->header.components.count * (5 + 1);
+	}
+
+	const fiftyoneDegreesProperty *property = getPropertyByName(dataSet, propertyName);
+	if (property == NULL) {
+		return -1;
+	}
+
+	int32_t propertyIndex = getPropertyIndex(dataSet, property);
+	return dataSet->maxPropertyValueLength[propertyIndex];
+}
+
+static fiftyoneDegreesDataSetInitStatus setMaxPropertyValueLength(fiftyoneDegreesDataSet *dataSet)
+{
+	int32_t requiredPropertyIndex;
+	fiftyoneDegreesProperty *property;
+	fiftyoneDegreesProfile *profile;
+
+
+	int32_t profileIndex, valueIndex, propertyIndex;
+	int32_t *profileValueIndexes;
+	const fiftyoneDegreesValue *value;
+	const char *valueName;
+	int32_t lengthNeeded;
+
+	dataSet->maxPropertyValueLength = (int32_t*)fiftyoneDegreesMalloc(dataSet->header.properties.count * sizeof(int32_t));
+	if (dataSet->maxPropertyValueLength == NULL)
+		return DATA_SET_INIT_STATUS_INSUFFICIENT_MEMORY;
+
+	for (propertyIndex = 0; propertyIndex < dataSet->header.properties.count; propertyIndex++)
+	{
+		property = (fiftyoneDegreesProperty*)dataSet->properties + propertyIndex;
+		dataSet->maxPropertyValueLength[propertyIndex] = 0;
+	}
+
+	for (profileIndex = 0; profileIndex < dataSet->header.profiles.count; profileIndex++)
+	{
+		// Set the profile.
+		profile = getProfileByIndex(dataSet, profileIndex);
+
+		profileValueIndexes = (int32_t*)((byte*)profile + sizeof(fiftyoneDegreesProfile));
+		valueIndex = 0;
+		value = dataSet->values + profileValueIndexes[valueIndex];
+
+		while (valueIndex < profile->valueCount)
+		{
+			propertyIndex = value->propertyIndex;
+			property = (fiftyoneDegreesProperty*)dataSet->properties + propertyIndex;
+			lengthNeeded = 0;
+			while (value->propertyIndex == propertyIndex)
+			{
+				valueName = fiftyoneDegreesGetValueName(dataSet, value);
+				if (lengthNeeded != 0)
+					lengthNeeded++;
+				lengthNeeded += (int32_t)strlen(valueName);
+
+				valueIndex++;
+				value = dataSet->values + profileValueIndexes[valueIndex];
+				if (valueIndex >= profile->valueCount)
+					break;
+			}
+			if (lengthNeeded > dataSet->maxPropertyValueLength[propertyIndex])
+				dataSet->maxPropertyValueLength[propertyIndex] = lengthNeeded;
+		}
+	}
+
+	return DATA_SET_INIT_STATUS_SUCCESS;
 }
 
 /**
@@ -653,9 +762,16 @@ static fiftyoneDegreesDataSetInitStatus initFromMemory(
 	// be freed when the data set is destroyed.
 	dataSet->prefixedUpperHttpHeaders = NULL;
 
+	// Determine the maximum string length that the getValues function
+	// can return for each property in the data set.
+	status = setMaxPropertyValueLength(dataSet);
+	if (status != DATA_SET_INIT_STATUS_SUCCESS) {
+		return status;
+	}
+
 	// Initialise the memory for the properties and values structures
 	// which point to profiles structures.
-	ensureValueProfilesSet(dataSet);
+	status = ensureValueProfilesSet(dataSet);
 
 	return status;
 }
@@ -1063,6 +1179,26 @@ const char* fiftyoneDegreesGetPropertyName(const fiftyoneDegreesDataSet *dataSet
 	return (const char*)&(fiftyoneDegreesGetString(dataSet, property->nameOffset)->firstByte);
 }
 
+/**
+* \cond
+* Returns whether or not the property is a list property or not as an integer
+* i.e. 1=true 0=false, or -1 if the property cannot be found.
+* @param dataSet pointer to an initialised dataset.
+* @param propertyName pointer to the name of the property required.
+* @return 1 if the property can return a list, 0 if not, or -1 if the property
+*         does not exist.
+* \endcond
+*/
+int32_t fiftyoneDegreesGetPropertyIsList(const fiftyoneDegreesDataSet *dataSet, char *propertyName) {
+	const fiftyoneDegreesProperty *property;
+
+	property = getPropertyByName(dataSet, propertyName);
+	if (property == NULL)
+		return -1;
+	else
+		return (int32_t)property->isList;
+}
+
  /**
  * \cond
  * Returns the first numeric index for the node provided.
@@ -1420,7 +1556,9 @@ static void freeProfilesStructs(const fiftyoneDegreesDataSet *dataSet) {
 				fiftyoneDegreesFree((void*)dataSet->valuePointersArray[propertyIndex].profilesStructs[valueIndex].indexes);
 			}
 		}
-		fiftyoneDegreesFree((void*)dataSet->valuePointersArray[propertyIndex].profilesStructs);
+		if (dataSet->valuePointersArray[propertyIndex].profilesStructs != NULL) {
+			fiftyoneDegreesFree((void*)dataSet->valuePointersArray[propertyIndex].profilesStructs);
+		}
 	}
 	fiftyoneDegreesFree((void*)dataSet->valuePointersArray);
 }
@@ -1444,6 +1582,10 @@ void fiftyoneDegreesDataSetFree(const fiftyoneDegreesDataSet *dataSet) {
 			}
 		}
 		fiftyoneDegreesFree((void*)dataSet->prefixedUpperHttpHeaders);
+	}
+
+	if (dataSet->maxPropertyValueLength != NULL) {
+		fiftyoneDegreesFree(dataSet->maxPropertyValueLength);
 	}
 
 	if (dataSet->fileName != NULL) {
@@ -1588,7 +1730,8 @@ fiftyoneDegreesDataSetInitStatus fiftyoneDegreesInitWithPropertyString(
 		copyRequiredProperties = strdup(requiredProperties);
 		if (copyRequiredProperties != NULL) {
 			// Allocate pointers for each of the properties.
-			requiredPropertiesArray = (const char**)fiftyoneDegreesMalloc(SIZE_OF_REQUIRED_PROPERTIES_ARRAY);
+			requiredPropertiesArray = (const char**)fiftyoneDegreesMalloc(
+				SIZE_OF_REQUIRED_PROPERTIES_ARRAY(requiredPropertyCount));
 			currentProperty = copyRequiredProperties;
 			if (requiredPropertiesArray != NULL) {
 				// Change the input string so that the separators are changed to nulls.
@@ -1701,7 +1844,7 @@ fiftyoneDegreesDataSetInitStatus fiftyoneDegreesInitWithPropertyArray(
 	else {
 		setProperties(dataSet, requiredProperties, count);
 	}
-
+	
 	return status;
 }
 
@@ -1912,7 +2055,7 @@ size_t fiftyoneDegreesGetProviderSizeWithPropertyString(const char *fileName, co
 		}
 
 		// Add required properties array.
-		size += (SIZE_OF_REQUIRED_PROPERTIES_ARRAY);
+		size += (SIZE_OF_REQUIRED_PROPERTIES_ARRAY(requiredPropertyCount));
 
 		// Return the total size needed for the provider.
 		size = getProviderSizeWithPropertyCount(size, *header, requiredPropertyCount, poolSize, cacheSize);
@@ -1969,52 +2112,6 @@ size_t fiftyoneDegreesGetProviderSizeWithPropertyCount(const char *fileName, int
 		size = getProviderSizeWithPropertyCount(size, *header, propertyCount, poolSize, cacheSize);
 	}
 	return size;
-}
-
-/**
-* \cond
-* Finds the maximum string length of the values associated with the given
-* property name.
-* @param dataSet pointer to a fiftyoneDegreesDataSet.
-* @param propertyName the name of the property to find the value length for.
-* @returns int the maximum string length of the values associated with the
-* given property.
-* \endcond
-*/
-size_t fiftyoneDegreesGetMaxValueLength(const fiftyoneDegreesDataSet *dataSet, char *propertyName)
-{
-	const fiftyoneDegreesProperty *property;
-	const fiftyoneDegreesValue *value;
-	int32_t valueIndex;
-	const char* valueName;
-	size_t maxLength = 0;
-
-	if (strcmp(propertyName, "Method") == 0) {
-		return 7;
-	}
-	if (strcmp(propertyName, "Rank") == 0) {
-		return 6;
-	}
-	if (strcmp(propertyName, "Difference") == 0) {
-		return 6;
-	}
-	if (strcmp(propertyName, "DeviceId") == 0) {
-		return dataSet->header.components.count * (5 + 1);
-	}
-	property = getPropertyByName(dataSet, propertyName);
-
-	if (property == NULL) {
-		return -1;
-	}
-
-	for (valueIndex = property->firstValueIndex; valueIndex <= property->lastValueIndex; valueIndex++) {
-		value = dataSet->values + valueIndex;
-		valueName = fiftyoneDegreesGetValueName(dataSet, value);
-		if (strlen(valueName) > maxLength) {
-			maxLength = strlen(valueName);
-		}
-	}
-	return maxLength;
 }
 
 /**

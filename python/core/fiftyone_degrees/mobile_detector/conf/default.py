@@ -78,7 +78,7 @@ USAGE_SHARER_MAXIMUM_DETAIL = True
 
 # URL to send new device data to.
 # Modification not required for most users.
-USAGE_SHARER_SUBMISSION_URL = 'http://devices.51degrees.com/new.ashx'
+USAGE_SHARER_SUBMISSION_URL = 'https://devices.51degrees.com/new.ashx'
 
 # Data submission timeout (seconds).
 USAGE_SHARER_SUBMISSION_TIMEOUT = 10
