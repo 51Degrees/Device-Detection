@@ -60,6 +60,46 @@ initHttpHeaders()
 	}
 }
 
+int cacheSize = 0;
+const char *requiredProperties = "";
+
+VCL_STRING vmod_get_version(const struct vrt_ctx *ctx)
+{
+	char *p;
+	unsigned u, v;
+
+	// Reserve some work space.
+	u = WS_Reserve(ctx->ws, 0);
+	// Get pointer to the front of the work space.
+	p = ctx->ws->f;
+	// Print the value to memory that has been reserved.
+	v = snprintf(p, u, "%d.%d.%d.%d", provider->activePool->dataSet->header.versionMajor,
+				provider->activePool->dataSet->header.versionMinor,
+				provider->activePool->dataSet->header.versionBuild,
+				provider->activePool->dataSet->header.versionRevision);
+
+	v++;
+
+	if (v > u) {
+		// No space, reset and leave.
+		WS_Release(ctx->ws, 0);
+		return (NULL);
+	}
+	// Update work space with what has been used.
+	WS_Release(ctx->ws, v);
+	return (p);
+}
+
+void vmod_set_cache(const struct vrt_ctx *ctx, VCL_INT size)
+{
+	cacheSize = size;
+}
+
+void vmod_set_properties(const struct vrt_ctx *ctx, VCL_STRING properties)
+{
+	requiredProperties = properties;
+}
+
 void
 vmod_start(
 		const struct vrt_ctx *ctx,
@@ -70,9 +110,9 @@ vmod_start(
 	fiftyoneDegreesInitProviderWithPropertyString(
         filePath,
         provider,
-        "",
+        requiredProperties,
         0,
-        0);
+        cacheSize);
 
 	// Get the names of the important headers from the data set.
 	initHttpHeaders();
@@ -165,7 +205,6 @@ vmod_match_single(
 				VCL_STRING userAgent,
 				VCL_STRING propertyInputString)
 {
-
 	char *p;
 	unsigned u, v;
 	const char *valueName;

@@ -34,6 +34,30 @@ fiftyonedegrees.start(datafilepath),
 then get a match property from a requesting device with
 fiftyonedegrees.match(propertyname).
 
+$Function VOID set_cache(INT cacheSize)
+
+Description
+	Sets the size of the cache created by the provider.
+
+$Function VOID set_properties(STRING properties)
+
+Description
+	Limits the properties which are initialised to the ones set
+	in this function. The function takes a comma sepparated list
+	of properties.
+Example
+        ::
+
+                fiftyonedegrees.set_properties("IsMobile,BrowserName");
+
+
+$Function STRING get_version()
+
+Return value
+	STRING The version number in the format "x.x.x.x".
+Description
+	Returns the version number of the data set being used.
+
 $Function VOID start(STRING fileName)
 
 Return value
@@ -48,7 +72,7 @@ Example
 $Function STRING match_all(STRING property)
 
 Return value
-	STRING
+	STRING The value of the requested property for the matched device.
 Description
 	Returns the value of property provided for the requesting device
 	using all important HTTP headers.
@@ -60,7 +84,7 @@ Example
 $Function STRING match_single(STRING userAgent, STRING property)
 
 Return value
-	STRING
+	STRING The value of the requested property for the matched device.
 Description
 	Returns the value of property provided for the requesting device
 	using the User-Agent provided.
