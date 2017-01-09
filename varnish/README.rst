@@ -25,42 +25,15 @@ Implements the 51Degrees match functionality as a VMOD.
 Initialise the data set with
 fiftyonedegrees.start(datafilepath),
 then get a match property from a requesting device with
-fiftyonedegrees.match(propertyname).
+fiftyonedegrees.match_all(propertyname).
 
 FUNCTIONS
 =========
 
-start
------
+To review functions and usage, use
+ man vmod_fiftyonedegrees
+after installing.
 
-Prototype
-        ::
-
-                start(STRING DS)
-Return value
-	VOID
-Description
-	Initialises the 51Degrees provider with the data set DS.
-Example
-        ::
-
-                fiftyonedegrees.start("/path/to/51Degrees.dat");
-
-match
------
-
-Prototype
-        ::
-
-                match(STRING P)
-Return value
-	STRING
-Description
-	Returns the value of property P for the requesting device.
-Example
-        ::
-
-                set req.http.X-IsMobile = fiftyonedegrees.match("IsMobile");
 
 INSTALLATION
 ============
@@ -95,7 +68,7 @@ In your VCL you could then use this vmod along the following lines::
 
         sub vcl_deliver {
                 # This sets resp.http.X-IsMobile to "True"/"False".
-                set resp.http.X-IsMobile = fiftyonedegrees.match("IsMobile");
+                set resp.http.X-IsMobile = fiftyonedegrees.match_all("IsMobile");
         }
 
 	sub vcl_init {
