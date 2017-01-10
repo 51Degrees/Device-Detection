@@ -60,8 +60,10 @@ initHttpHeaders()
 	}
 }
 
-int cacheSize = 0;
+int cacheSize = 0,
+poolSize = 20;
 const char *requiredProperties = "";
+const char *propertyDelimiter = ",";
 
 VCL_STRING vmod_get_version(const struct vrt_ctx *ctx)
 {
@@ -100,6 +102,16 @@ void vmod_set_properties(const struct vrt_ctx *ctx, VCL_STRING properties)
 	requiredProperties = properties;
 }
 
+void vmod_set_pool(const struct vrt_ctx *ctx, VCL_INT size)
+{
+	poolSize = size;
+}
+
+void vmod_set_delimiter(const struct vrt_ctx *ctx, VCL_STRING delimiter)
+{
+	propertyDelimiter = delimiter;
+}
+
 void
 vmod_start(
 		const struct vrt_ctx *ctx,
@@ -111,7 +123,7 @@ vmod_start(
         filePath,
         provider,
         requiredProperties,
-        0,
+        poolSize,
         cacheSize);
 
 	// Get the names of the important headers from the data set.
@@ -136,43 +148,40 @@ searchHeaders(const struct vrt_ctx *ctx, const char *headerName)
 	return NULL;
 }
 
-void
+char*
 getValue(
 		fiftyoneDegreesWorkset *fodws,
-		const char **valueName,
 		const char *requiredPropertyName)
 {
 	int i, j;
     // TODO set max buffer length properly.
-    char buffer[1000];
+    char *valueName = malloc(sizeof(char) * fiftyoneDegreesGetMaxPropertyValueLength(provider->activePool->dataSet, (char*)requiredPropertyName));
+    valueName[0] = '\0';
 	bool found = false;
 	char *currentPropertyName;
 	    // Get the requested property value from the match.
     if (strcmp(requiredPropertyName, "Method") == 0)
     {
 		switch(fodws->method) {
-			case EXACT: *valueName = "Exact"; break;
-			case NUMERIC: *valueName = "Numeric"; break;
-			case NEAREST: *valueName = "Nearest"; break;
-			case CLOSEST: *valueName = "Closest"; break;
+			case EXACT: sprintf(valueName, "Exact"); break;
+			case NUMERIC: sprintf(valueName, "Numeric"); break;
+			case NEAREST: sprintf(valueName, "Nearest"); break;
+			case CLOSEST: sprintf(valueName, "Closest"); break;
 			default:
-			case NONE: *valueName = "None"; break;
+			case NONE: sprintf(valueName, "None"); break;
 		}
     }
     else if (strcmp(requiredPropertyName, "Difference") == 0)
     {
-        sprintf(buffer, "%d", fodws->difference);
-        *valueName = buffer;
+        sprintf(valueName, "%d", fodws->difference);
     }
     else if (strcmp(requiredPropertyName, "DeviceId") == 0)
     {
-        fiftyoneDegreesGetDeviceId(fodws, buffer, 24);
-        *valueName = buffer;
+        fiftyoneDegreesGetDeviceId(fodws, valueName, 24);
     }
     else if (strcmp(requiredPropertyName, "Rank") == 0)
     {
-        sprintf(buffer, "%d", fiftyoneDegreesGetSignatureRank(fodws));
-        *valueName = buffer;
+        sprintf(valueName, "%d", fiftyoneDegreesGetSignatureRank(fodws));
     }
 	else {
         // Property is not a match metric, so search the required properties.
@@ -182,21 +191,20 @@ getValue(
             = (char*)fiftyoneDegreesGetPropertyName(fodws->dataSet, fodws->dataSet->requiredProperties[i]);
             if (strcmp(currentPropertyName, requiredPropertyName) == 0)
             {
-            	buffer[0] = '\0';
                 fiftyoneDegreesSetValues(fodws, i);
                 for (j = 0; j < fodws->valuesCount; j++)
                 {
-                	addValue("|", buffer, fiftyoneDegreesGetValueName(fodws->dataSet, fodws->values[j]));
+                	addValue("|", valueName, fiftyoneDegreesGetValueName(fodws->dataSet, fodws->values[j]));
                 }
-                *valueName = buffer;
                 found = true;
                 break;
             }
         }
         if (!found)
             // Property was not found, so set value accordingly.
-            *valueName = "N/A";
+            sprintf(valueName, FIFTYONEDEGREES_PROPERTY_NOT_FOUND);
     }
+    return valueName;
 }
 
 VCL_STRING
@@ -207,17 +215,16 @@ vmod_match_single(
 {
 	char *p;
 	unsigned u, v;
-	const char *valueName;
 
     // Create a workset to use for the match.
 	fiftyoneDegreesWorkset *fodws
-		= fiftyoneDegreesWorksetCreate(provider->activePool->dataSet, NULL);
+		= fiftyoneDegreesProviderWorksetGet(provider);
 
 	// Get a match for the User-Agent supplied and store in the workset.
 	fiftyoneDegreesMatch(fodws, userAgent);
 
 	// Get the value of the requested property and store as valueName.
-	getValue(fodws, &valueName, propertyInputString);
+	char *valueName = getValue(fodws, propertyInputString);
 
 	// Reserve some work space.
 	u = WS_Reserve(ctx->ws, 0);
@@ -225,11 +232,12 @@ vmod_match_single(
 	p = ctx->ws->f;
 	// Print the value to memory that has been reserved.
 	v = snprintf(p, u, "%s", valueName);
+	free(valueName);
 
 	v++;
 
     // Free the workset.
-	fiftyoneDegreesWorksetFree(fodws);
+    fiftyoneDegreesWorksetRelease(fodws);
 
 	if (v > u) {
 		// No space, reset and leave.
@@ -248,13 +256,12 @@ vmod_match_all(
 {
 	char *p;
 	unsigned u, v;
-	const char *valueName;
 	int headerIndex;
 	char *searchResult;
 
     // Create a workset to use for the match.
 	fiftyoneDegreesWorkset *fodws
-		= fiftyoneDegreesWorksetCreate(provider->activePool->dataSet, NULL);
+		= fiftyoneDegreesProviderWorksetGet(provider);
 
     // Reset the headers count before adding any to the workset.
 	fodws->importantHeadersCount = 0;
@@ -284,7 +291,7 @@ vmod_match_all(
 	fiftyoneDegreesMatchForHttpHeaders(fodws);
 
 	// Get the value for the requested property and store as valueName.
-	getValue(fodws, &valueName, propertyInputString);
+	char *valueName = getValue(fodws, propertyInputString);
 
 	// Reserve some work space.
 	u = WS_Reserve(ctx->ws, 0);
@@ -292,11 +299,12 @@ vmod_match_all(
 	p = ctx->ws->f;
 	// Print the value to the memory that has been reserved.
 	v = snprintf(p, u, "%s", valueName);
+	free(valueName);
 
 	v++;
 
     // Free the workset.
-	fiftyoneDegreesWorksetFree(fodws);
+    fiftyoneDegreesWorksetRelease(fodws);
 
 	if (v > u) {
 		// No space, reset and leave.
