@@ -87,29 +87,95 @@ const char *requiredProperties = "";
 const char *propertyDelimiter = ",";
 fiftyoneDegreesDataSetInitStatus status = DATA_SET_INIT_STATUS_NOT_SET;
 
-VCL_STRING vmod_get_version(const struct vrt_ctx *ctx)
+VCL_STRING vmod_get_dataset_name(const struct vrt_ctx *ctx)
 {
 	char *p;
 	unsigned u, v;
 
-	// Reserve some work space.
 	u = WS_Reserve(ctx->ws, 0);
-	// Get pointer to the front of the work space.
 	p = ctx->ws->f;
-	// Print the value to memory that has been reserved.
-	v = snprintf(p, u, "%d.%d.%d.%d", provider->activePool->dataSet->header.versionMajor,
-				provider->activePool->dataSet->header.versionMinor,
-				provider->activePool->dataSet->header.versionBuild,
-				provider->activePool->dataSet->header.versionRevision);
 
+	v = snprintf(p, u, "%s", &fiftyoneDegreesGetString(provider->activePool->dataSet, provider->activePool->dataSet->header.nameOffset)->firstByte);
 	v++;
-
 	if (v > u) {
-		// No space, reset and leave.
 		WS_Release(ctx->ws, 0);
-		return (NULL);
+		return(NULL);
 	}
-	// Update work space with what has been used.
+	WS_Release(ctx->ws, v);
+	return (p);
+}
+
+VCL_STRING vmod_get_dataset_format(const struct vrt_ctx *ctx)
+{
+	char *p;
+	unsigned u, v;
+
+	u = WS_Reserve(ctx->ws, 0);
+	p = ctx->ws->f;
+
+	v = snprintf(p, u, "%s", &fiftyoneDegreesGetString(provider->activePool->dataSet, provider->activePool->dataSet->header.formatOffset)->firstByte);
+	v++;
+	if (v > u) {
+		WS_Release(ctx->ws, 0);
+		return(NULL);
+	}
+	WS_Release(ctx->ws, v);
+	return (p);
+}
+
+VCL_STRING vmod_get_dataset_published_date(const struct vrt_ctx *ctx)
+{
+	char *p;
+	unsigned u, v;
+
+	u = WS_Reserve(ctx->ws, 0);
+	p = ctx->ws->f;
+
+	v = snprintf(p, u, "%d-%d-%d",
+				provider->activePool->dataSet->header.published.year,
+				(int)provider->activePool->dataSet->header.published.month,
+				(int)provider->activePool->dataSet->header.published.day);
+	v++;
+	if (v > u) {
+		WS_Release(ctx->ws, 0);
+		return(NULL);
+	}
+	WS_Release(ctx->ws, v);
+	return (p);
+}
+
+VCL_STRING vmod_get_dataset_signature_count(const struct vrt_ctx *ctx)
+{
+	char *p;
+	unsigned u, v;
+
+	u = WS_Reserve(ctx->ws, 0);
+	p = ctx->ws->f;
+
+	v = snprintf(p, u, "%d", provider->activePool->dataSet->header.signatures.count);
+	v++;
+	if (v > u) {
+		WS_Release(ctx->ws, 0);
+		return(NULL);
+	}
+	WS_Release(ctx->ws, v);
+	return (p);
+}
+
+VCL_STRING vmod_get_dataset_device_combinations(const struct vrt_ctx *ctx)
+{
+	char *p;
+	unsigned u, v;
+
+	u = WS_Reserve(ctx->ws, 0);
+	p = ctx->ws->f;
+
+	v = snprintf(p, u, "%d", provider->activePool->dataSet->header.deviceCombinations);
+	v++;
+	if (v > u) {
+		WS_Release(ctx->ws, 0);
+		return(NULL);
+	}
 	WS_Release(ctx->ws, v);
 	return (p);
 }

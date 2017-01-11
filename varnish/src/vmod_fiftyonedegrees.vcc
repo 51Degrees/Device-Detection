@@ -116,16 +116,29 @@ Example
 
               fiftyonedegrees.set_delimiter("/");
 
-$Function STRING get_version()
+$Function STRING get_dataset_name()
 
-Return value
-	STRING The version number in the format "x.x.x.x".
 Description
-	Returns the version number of the data set being used.
+	Returns the name of the dataset being used e.g. Premium.
 
-Example
-	::
+$Function STRING get_dataset_format()
 
-             set req.http.X-51D-Version = fiftyonedegrees.get_version();
+Desciption
+	Returns the format of the dataset being used e.g. 3.2.
+
+$Function STRING get_dataset_published_date()
+
+Description
+	Returns the date the dataset was published in the format YYYY-MM-DD
+
+$Function STRING get_dataset_signature_count()
+
+Description
+	Returns the number of signatures in the dataset being used.
+
+$Function STRING get_dataset_device_combinations()
+
+Description
+	Returns the number of device combinations in the dataset being used. 
 
 $Init init_function
