@@ -127,3 +127,5 @@ Example
 	::
 
              set req.http.X-51D-Version = fiftyonedegrees.get_version();
+
+$Init init_function

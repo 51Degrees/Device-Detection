@@ -36,7 +36,7 @@
 typedef enum { false, true } bool;
 
 // Global provider available to the module.
-fiftyoneDegreesProvider *provider;
+fiftyoneDegreesProvider *provider = NULL;
 
 // Array of pointers to the important header name strings.
 const char **importantHeaders;
@@ -85,6 +85,7 @@ int cacheSize = 0,
 poolSize = 20;
 const char *requiredProperties = "";
 const char *propertyDelimiter = ",";
+fiftyoneDegreesDataSetInitStatus status = DATA_SET_INIT_STATUS_NOT_SET;
 
 VCL_STRING vmod_get_version(const struct vrt_ctx *ctx)
 {
@@ -133,19 +134,36 @@ void vmod_set_delimiter(const struct vrt_ctx *ctx, VCL_STRING delimiter)
 	propertyDelimiter = delimiter;
 }
 
+void privProviderFree(void *ptr)
+{
+	if (status == DATA_SET_INIT_STATUS_SUCCESS)
+		fiftyoneDegreesProviderFree((fiftyoneDegreesProvider*)ptr);
+	free(ptr);
+}
+
+int init_function(struct vmod_priv *priv, const struct VCL_conf *cfg)
+{
+	(void)cfg;
+
+	priv->priv = malloc(sizeof(fiftyoneDegreesProvider));
+	provider = (fiftyoneDegreesProvider*) priv->priv;
+	priv->free = privProviderFree;
+	return (0);
+}
+
 void
 vmod_start(
 		const struct vrt_ctx *ctx,
 		VCL_STRING filePath)
 {
-    // Allocate and initialise the provider.
-	provider = (fiftyoneDegreesProvider*)malloc(sizeof(fiftyoneDegreesProvider));
-	fiftyoneDegreesInitProviderWithPropertyString(
+	status = fiftyoneDegreesInitProviderWithPropertyString(
         filePath,
         provider,
         requiredProperties,
         poolSize,
         cacheSize);
+
+	// TODO log the status.
 
 	// Get the names of the important headers from the data set.
 	initHttpHeaders();
@@ -273,7 +291,7 @@ unsigned printValuesToWorkspace(
 		if (i != 0) {
 			v += snprintf(p + v, u, "%s", propertyDelimiter);
 			if (v > u) {
-					// Break now as we will only be printing to another workspace.
+				// Break now as we will only be printing to another workspace.
 				return v;
 			}
 		}
