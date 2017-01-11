@@ -29,6 +29,10 @@
 
 #include "vcc_if.h"
 
+#ifndef FIFTYONEDEGREES_PROPERTY_NOT_FOUND
+#define FIFTYONEDEGREES_PROPERTY_NOT_FOUND "N/A"
+#endif // FIFTYONEDEGREES_PROPERTY_NOT_FOUND
+
 typedef enum { false, true } bool;
 
 // Global provider available to the module.
@@ -36,7 +40,7 @@ fiftyoneDegreesProvider *provider;
 
 // Array of pointers to the important header name strings.
 const char **importantHeaders;
-
+/*
 static void
 addValue(
 		const char *delimiter,
@@ -47,6 +51,23 @@ addValue(
 		strcat(buffer, delimiter);
 	}
 	strcat(buffer, str);
+}
+*/
+
+static int32_t getSeparatorCount(const char* input) {
+	int32_t index = 0, count = 0;
+	if (input != NULL && *input != 0) {
+		while (*(input + index) != 0) {
+			if (*(input + index) == ',' ||
+				*(input + index) == '|' ||
+				*(input + index) == ' ' ||
+				*(input + index) == '\t')
+				count++;
+			index++;
+		}
+		return count + 1;
+	}
+	return 0;
 }
 
 static void
@@ -148,42 +169,64 @@ searchHeaders(const struct vrt_ctx *ctx, const char *headerName)
 	return NULL;
 }
 
-char*
+char** getProperties(char *propertiesString, int propertiesCount)
+{
+	int charPos, index;
+	int propertiesStringLength = strlen(propertiesString);
+
+	// TODO use workspace memory instead of malloc.
+	char **propertiesArray = (char**)malloc(sizeof(char*) * propertiesCount);
+	index = 0;
+	propertiesArray[index++] = propertiesString;
+
+	for (charPos = 0; charPos < propertiesStringLength; charPos++)
+	{
+		if (propertiesString[charPos] == ',') {
+			propertiesString[charPos] = '\0';
+			propertiesArray[index++] = propertiesString + charPos + 1;
+		}
+	}
+
+	return propertiesArray;
+}
+
+unsigned
 getValue(
 		fiftyoneDegreesWorkset *fodws,
-		const char *requiredPropertyName)
+		char *requiredPropertyName,
+		char *p,
+		unsigned u)
 {
 	int i, j;
-    // TODO set max buffer length properly.
-    char *valueName = malloc(sizeof(char) * fiftyoneDegreesGetMaxPropertyValueLength(provider->activePool->dataSet, (char*)requiredPropertyName));
-    valueName[0] = '\0';
-	bool found = false;
+	unsigned v;
 	char *currentPropertyName;
-	    // Get the requested property value from the match.
+	bool found = false;
+
     if (strcmp(requiredPropertyName, "Method") == 0)
     {
 		switch(fodws->method) {
-			case EXACT: sprintf(valueName, "Exact"); break;
-			case NUMERIC: sprintf(valueName, "Numeric"); break;
-			case NEAREST: sprintf(valueName, "Nearest"); break;
-			case CLOSEST: sprintf(valueName, "Closest"); break;
+			case EXACT: v = snprintf(p, u, "Exact"); break;
+			case NUMERIC: v = snprintf(p, u, "Numeric"); break;
+			case NEAREST: v = snprintf(p, u, "Nearest"); break;
+			case CLOSEST: v = snprintf(p, u, "Closest"); break;
 			default:
-			case NONE: sprintf(valueName, "None"); break;
+			case NONE: v = snprintf(p, u, "None"); break;
 		}
     }
     else if (strcmp(requiredPropertyName, "Difference") == 0)
     {
-        sprintf(valueName, "%d", fodws->difference);
+        v = snprintf(p, u, "%d", fodws->difference);
     }
     else if (strcmp(requiredPropertyName, "DeviceId") == 0)
     {
-        fiftyoneDegreesGetDeviceId(fodws, valueName, 24);
+        v = fiftyoneDegreesGetDeviceId(fodws, p, 24);
     }
     else if (strcmp(requiredPropertyName, "Rank") == 0)
     {
-        sprintf(valueName, "%d", fiftyoneDegreesGetSignatureRank(fodws));
+        v = snprintf(p, u, "%d", fiftyoneDegreesGetSignatureRank(fodws));
     }
 	else {
+		v = 0;
         // Property is not a match metric, so search the required properties.
         for (i = 0; i < fodws->dataSet->requiredPropertyCount; i++)
         {
@@ -191,77 +234,63 @@ getValue(
             = (char*)fiftyoneDegreesGetPropertyName(fodws->dataSet, fodws->dataSet->requiredProperties[i]);
             if (strcmp(currentPropertyName, requiredPropertyName) == 0)
             {
+            	// This if the property we want, so set the values and go
+            	// through them all.
                 fiftyoneDegreesSetValues(fodws, i);
                 for (j = 0; j < fodws->valuesCount; j++)
                 {
-                	addValue("|", valueName, fiftyoneDegreesGetValueName(fodws->dataSet, fodws->values[j]));
+                	if (j != 0) {
+						// Print a separator between values.
+						v += snprintf(p + v, u, "|");
+                	}
+                	// Print the value to the values string.
+                	v += snprintf(p + v, u, "%s", fiftyoneDegreesGetValueName(fodws->dataSet, fodws->values[j]));
+
                 }
+                // Found the property, so stop looking.
                 found = true;
                 break;
             }
         }
         if (!found)
             // Property was not found, so set value accordingly.
-            sprintf(valueName, FIFTYONEDEGREES_PROPERTY_NOT_FOUND);
+            v = snprintf(p, u, FIFTYONEDEGREES_PROPERTY_NOT_FOUND);
     }
-    return valueName;
+    return v;
 }
 
-VCL_STRING
-vmod_match_single(
-				const struct vrt_ctx *ctx,
-				VCL_STRING userAgent,
-				VCL_STRING propertyInputString)
+unsigned printValuesToWorkspace(
+								char *p,
+								unsigned u,
+								fiftyoneDegreesWorkset *fodws,
+								char **propertiesArray,
+								int propertiesCount)
 {
-	char *p;
-	unsigned u, v;
-
-    // Create a workset to use for the match.
-	fiftyoneDegreesWorkset *fodws
-		= fiftyoneDegreesProviderWorksetGet(provider);
-
-	// Get a match for the User-Agent supplied and store in the workset.
-	fiftyoneDegreesMatch(fodws, userAgent);
-
-	// Get the value of the requested property and store as valueName.
-	char *valueName = getValue(fodws, propertyInputString);
-
-	// Reserve some work space.
-	u = WS_Reserve(ctx->ws, 0);
-	// Get pointer to the front of the work space.
-	p = ctx->ws->f;
-	// Print the value to memory that has been reserved.
-	v = snprintf(p, u, "%s", valueName);
-	free(valueName);
-
-	v++;
-
-    // Free the workset.
-    fiftyoneDegreesWorksetRelease(fodws);
-
-	if (v > u) {
-		// No space, reset and leave.
-		WS_Release(ctx->ws, 0);
-		return (NULL);
+	int i;
+	unsigned v = 0;
+	for (i = 0; i < propertiesCount; i++)
+	{
+		if (i != 0) {
+			v += snprintf(p + v, u, "%s", propertyDelimiter);
+			if (v > u) {
+					// Break now as we will only be printing to another workspace.
+				return v;
+			}
+		}
+		v += getValue(fodws, propertiesArray[i], p + v, u);
+		if (v > u) {
+			// Break now as we will only be printing to another workspace.
+			return v;
+		}
 	}
-	// Update work space with what has been used.
-	WS_Release(ctx->ws, v);
-	return (p);
+
+	return v;
 }
 
-VCL_STRING
-vmod_match_all(
-			const struct vrt_ctx *ctx,
-			VCL_STRING propertyInputString)
+void setImportantHeaders(const struct vrt_ctx *ctx, fiftyoneDegreesWorkset *fodws)
 {
-	char *p;
-	unsigned u, v;
 	int headerIndex;
 	char *searchResult;
-
-    // Create a workset to use for the match.
-	fiftyoneDegreesWorkset *fodws
-		= fiftyoneDegreesProviderWorksetGet(provider);
 
     // Reset the headers count before adding any to the workset.
 	fodws->importantHeadersCount = 0;
@@ -285,26 +314,65 @@ vmod_match_all(
 			fodws->importantHeadersCount++;
 		}
 	}
+}
 
-	// Get a match for the headers that have just been added and store in
-	// the workset.
-	fiftyoneDegreesMatchForHttpHeaders(fodws);
+VCL_STRING
+vmod_match_single(
+				const struct vrt_ctx *ctx,
+				VCL_STRING userAgent,
+				VCL_STRING propertyInputString)
+{
+	// The pointer in workspace memory to print to.
+	char *p;
+	// The length of memory reserved, and the length that has been
+	// printed respectively.
+	unsigned u, v = 0;
 
-	// Get the value for the requested property and store as valueName.
-	char *valueName = getValue(fodws, propertyInputString);
+	int propertiesCount;
+	char **propertiesArray;
+	char *propertiesString, *returnString;
 
 	// Reserve some work space.
 	u = WS_Reserve(ctx->ws, 0);
-	// Pointer to the front of work space area.
+	// Get pointer to the front of the work space.
 	p = ctx->ws->f;
-	// Print the value to the memory that has been reserved.
-	v = snprintf(p, u, "%s", valueName);
-	free(valueName);
 
+	// Copy the properties string to the workspace memory.
+	v += snprintf(p, u, "%s", propertyInputString);
+	if (v > u) {
+		WS_Release(ctx->ws, 0);
+		return (NULL);
+	}
+	// Skip over the null terminator.
 	v++;
 
-    // Free the workset.
+	// This string is modifiable unlike propertyInputString, so getProperties
+	// can replace separators with null terminators.
+	propertiesString = p;
+	returnString = p + v;
+
+	// Get the number of properties in the properties string.
+	propertiesCount = getSeparatorCount(propertiesString);
+	// Create a properties array by using pointers to the correct point in the
+	// properties string.
+	propertiesArray = getProperties(propertiesString, propertiesCount);
+
+    // Get a workset from the pool to use for the match.
+	fiftyoneDegreesWorkset *fodws
+		= fiftyoneDegreesProviderWorksetGet(provider);
+
+	// Get a match for the User-Agent supplied and store in the workset.
+	fiftyoneDegreesMatch(fodws, userAgent);
+
+	// Print the values to the workspace memory that has been reserved.
+	v += printValuesToWorkspace(p + v, u, fodws, propertiesArray, propertiesCount);
+	// Skip over the null terminator.
+	v++;
+
+    // Return the workset to the pool.
     fiftyoneDegreesWorksetRelease(fodws);
+
+    free(propertiesArray);
 
 	if (v > u) {
 		// No space, reset and leave.
@@ -313,5 +381,78 @@ vmod_match_all(
 	}
 	// Update work space with what has been used.
 	WS_Release(ctx->ws, v);
-	return (p);
+	return (returnString);
+}
+
+VCL_STRING
+vmod_match_all(
+			const struct vrt_ctx *ctx,
+			VCL_STRING propertyInputString)
+{
+	// The pointer in workspace memory to print to.
+	char *p;
+	// The length of memory reserved, and the length that has been
+	// printed respectively.
+	unsigned u, v = 0;
+
+	char *propertiesString, *returnString;
+	int propertiesCount;
+	char **propertiesArray;
+
+	// Reserve some work space.
+	u = WS_Reserve(ctx->ws, 0);
+	// Pointer to the front of work space area.
+	p = ctx->ws->f;
+
+	// Copy the properties string the the workspace memory.
+	v += snprintf(p, u, "%s", propertyInputString);
+	if (v > u) {
+		WS_Release(ctx->ws, 0);
+		return (NULL);
+	}
+	// Skip over the null terminator.
+	v++;
+
+	// This string is modifiable unlike propertyInputString, so getProperties
+	// can replace separators with null terminators.
+	propertiesString = p;
+	returnString = p + v;
+
+    // Fetch a workset to use for the match.
+	fiftyoneDegreesWorkset *fodws
+		= fiftyoneDegreesProviderWorksetGet(provider);
+
+	// Set the headers in the workset ready for the match.
+	setImportantHeaders(ctx, fodws);
+
+	// Get a match for the headers that have just been added and store in
+	// the workset.
+	fiftyoneDegreesMatchForHttpHeaders(fodws);
+
+	// Get the number of properties in the properties string.
+	propertiesCount = getSeparatorCount(propertiesString);
+	// Create a properties array by using pointers to the correct point in the
+	// properties string.
+	propertiesArray = getProperties(propertiesString, propertiesCount);
+
+	// Print the values to the workspace memory that has been reserved.
+	v += printValuesToWorkspace(p + v, u, fodws, propertiesArray, propertiesCount);
+
+	// Skip over the null terminator.
+	v++;
+
+    // Return the workset to the pool.
+    fiftyoneDegreesWorksetRelease(fodws);
+
+    free(propertiesArray);
+
+	if (v > u) {
+		// No space, reset and leave.
+		WS_Release(ctx->ws, 0);
+		return (NULL);
+	}
+
+	// Update work space with what has been used.
+	WS_Release(ctx->ws, v);
+	return (returnString);
 }
