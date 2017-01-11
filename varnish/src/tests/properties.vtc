@@ -12,6 +12,7 @@ varnish v1 -vcl+backend {
 		set resp.http.ismobile = fiftyonedegrees.match_all("IsMobile");
 		set resp.http.browsername = fiftyonedegrees.match_all("BrowserName");
 		set resp.http.platformname = fiftyonedegrees.match_all("PlatformName");
+		set resp.http.allproperties = fiftyonedegrees.match_all("IsMobile,BrowserName,PlatformName");
 	}
 	sub vcl_init {
 		fiftyonedegrees.set_properties("BrowserName,PlatformName");
@@ -26,6 +27,7 @@ client c1 {
 	expect resp.http.ismobile == "N/A"
 	expect resp.http.browsername == "Firefox"
 	expect resp.http.platformname == "Windows"
+	expect resp.http.allproperties == "N/A,Firefox,Windows"
 }
 
 client c1 -run
