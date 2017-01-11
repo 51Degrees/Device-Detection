@@ -83,6 +83,7 @@ Description
 	Sets the size of the cache created by the provider.
 Example
 	::
+
                fiftyonedegrees.set_cache(1000);
 
 $Function VOID set_pool(INT poolSize)
@@ -91,6 +92,7 @@ Description
 	Sets the size of the workset pool created by the provider.
 Example
 	::
+
               fiftyonedegrees.set_pool(20);
 
 $Function VOID set_properties(STRING properties)
@@ -111,6 +113,7 @@ Description
 	If not set, then a comma is used by default.
 Example
 	::
+
               fiftyonedegrees.set_delimiter("/");
 
 $Function STRING get_version()
@@ -120,4 +123,7 @@ Return value
 Description
 	Returns the version number of the data set being used.
 
+Example
+	::
 
+             set req.http.X-51D-Version = fiftyonedegrees.get_version();
