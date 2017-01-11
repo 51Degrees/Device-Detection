@@ -34,30 +34,6 @@ fiftyonedegrees.start(datafilepath),
 then get a match property from a requesting device with
 fiftyonedegrees.match(propertyname).
 
-$Function VOID set_cache(INT cacheSize)
-
-Description
-	Sets the size of the cache created by the provider.
-
-$Function VOID set_properties(STRING properties)
-
-Description
-	Limits the properties which are initialised to the ones set
-	in this function. The function takes a comma sepparated list
-	of properties.
-Example
-        ::
-
-                fiftyonedegrees.set_properties("IsMobile,BrowserName");
-
-
-$Function STRING get_version()
-
-Return value
-	STRING The version number in the format "x.x.x.x".
-Description
-	Returns the version number of the data set being used.
-
 $Function VOID start(STRING fileName)
 
 Return value
@@ -69,27 +45,79 @@ Example
 
                 fiftyonedegrees.start("/path/to/51Degrees.dat");
 
-$Function STRING match_all(STRING property)
+$Function STRING match_all(STRING properties)
 
 Return value
-	STRING The value of the requested property for the matched device.
+	STRING The value of the requested property or properties for the
+	matched device. Multiple values for the same property are separated
+	with "|", and values for different properties are separated by the
+	delimiter set with set_delimiter or "," by default.
 Description
-	Returns the value of property provided for the requesting device
-	using all important HTTP headers.
+	Returns the value(s) of property provided for the requesting device
+	using all important HTTP headers. Multiple properties should be
+	separated with a comma.
 Example
         ::
 
                 set req.http.X-IsMobile = fiftyonedegrees.match_all("IsMobile");
 
-$Function STRING match_single(STRING userAgent, STRING property)
+$Function STRING match_single(STRING userAgent, STRING properties)
 
 Return value
-	STRING The value of the requested property for the matched device.
+	STRING The value of the requested property or properties for the
+	matched device. Multiple values for the same property are separated
+	with "|", and values for different properties are separated by the
+	delimiter set with set_delimiter or "," by default.
 Description
 	Returns the value of property provided for the requesting device
-	using the User-Agent provided.
+	using the User-Agent provided. Multiple properties should be
+	separated with a comma.
 Example
         ::
 
                 set req.http.X-IsMobile = fiftyonedegrees.match_singe(req.http.user-agent, "IsMobile");
+
+$Function VOID set_cache(INT cacheSize)
+
+Description
+	Sets the size of the cache created by the provider.
+Example
+	::
+               fiftyonedegrees.set_cache(1000);
+
+$Function VOID set_pool(INT poolSize)
+
+Description
+	Sets the size of the workset pool created by the provider.
+Example
+	::
+              fiftyonedegrees.set_pool(20);
+
+$Function VOID set_properties(STRING properties)
+
+Description
+	Limits the properties which are initialised to the ones set
+	in this function. The function takes a comma sepparated list
+	of properties.
+Example
+        ::
+
+               fiftyonedegrees.set_properties("IsMobile,BrowserName");
+
+$Function VOID set_delimiter(STRING delimiter)
+
+Description
+	Sets the delimiter to use when returning values for multiple properties.
+	If not set, then a comma is used by default.
+Example
+	::
+              fiftyonedegrees.set_delimiter("/");
+
+$Function STRING get_version()
+
+Return value
+	STRING The version number in the format "x.x.x.x".
+Description
+	Returns the version number of the data set being used.
+
 
