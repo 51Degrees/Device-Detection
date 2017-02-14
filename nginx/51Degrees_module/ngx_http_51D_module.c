@@ -872,7 +872,7 @@ ngx_http_51D_set_max_string(ngx_http_51D_main_conf_t *fdmcf, ngx_http_51D_header
 		if (i != 0) {
 			length += (int)fdmcf->valueSeparator.len;
 		}
-		tmpLength = fiftyoneDegreesGetMaxValueLength(dataSet, (char*)header->property[i]->data);
+		tmpLength = fiftyoneDegreesGetMaxPropertyValueLength(dataSet, (char*)header->property[i]->data);
 		if ((int)tmpLength > 0) {
 			length += (int)tmpLength;
 		}

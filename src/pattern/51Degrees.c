@@ -682,8 +682,7 @@ EXTERNAL int32_t fiftyoneDegreesGetMaxPropertyValueLength(const fiftyoneDegreesD
  */
 static fiftyoneDegreesDataSetInitStatus setMaxPropertyValueLength(fiftyoneDegreesDataSet *dataSet)
 {
-	int32_t requiredPropertyIndex,
-		profileIndex,
+	int32_t profileIndex,
 		*profileValueIndexes,
 		valueIndex,
 		propertyIndex,
