@@ -591,6 +591,7 @@ static fiftyoneDegreesDataSetInitStatus readDataSetFromMemoryLocation(
  * one containing a pointer to an empty array with the size equal to the
  * number of values for the corresponding property.
  * @param dataSet pointer to a 51Degrees data set.
+ * @return dataSet initialisation status.
  * \endcond
  */
 static fiftyoneDegreesDataSetInitStatus ensureValueProfilesSet(fiftyoneDegreesDataSet *dataSet) {
@@ -637,12 +638,16 @@ static const fiftyoneDegreesProperty* getPropertyByName(const fiftyoneDegreesDat
 * property name.
 * @param dataSet pointer to a fiftyoneDegreesDataSet.
 * @param propertyName the name of the property to find the value length for.
-* @returns int32_t the maximum string length of the values associated with the
+* @return int32_t the maximum string length of the values associated with the
 * given property or -1 if the property was not found.
 * \endcond
 */
 EXTERNAL int32_t fiftyoneDegreesGetMaxPropertyValueLength(const fiftyoneDegreesDataSet *dataSet, char *propertyName)
 {
+	const fiftyoneDegreesProperty *property;
+	int32_t propertyIndex;
+
+	// Check for any match metrics.
 	if (strcmp(propertyName, "Method") == 0) {
 		return 7;
 	}
@@ -656,64 +661,95 @@ EXTERNAL int32_t fiftyoneDegreesGetMaxPropertyValueLength(const fiftyoneDegreesD
 		return dataSet->header.components.count * (5 + 1);
 	}
 
-	const fiftyoneDegreesProperty *property = getPropertyByName(dataSet, propertyName);
+	// Property is not a match metric, so get the property.
+	property = getPropertyByName(dataSet, propertyName);
 	if (property == NULL) {
 		return -1;
 	}
 
-	int32_t propertyIndex = getPropertyIndex(dataSet, property);
+	// The property exists, so get the index and return the max value length.
+	propertyIndex = getPropertyIndex(dataSet, property);
 	return dataSet->maxPropertyValueLength[propertyIndex];
 }
-
+/*
+ * \cond
+ * Go through all the properties in the dataset, calculate and set the maximum
+ * length of value each one can return. These values are stored in the
+ * dataSet->maxPropertyValueLength array with the coresponding property index.
+ * @param dataSet pointer to 51Degrees dataset.
+ * @return fiftyoneDegreesDataSetInitStatus indicating the result.
+ * \endcond
+ */
 static fiftyoneDegreesDataSetInitStatus setMaxPropertyValueLength(fiftyoneDegreesDataSet *dataSet)
 {
-	int32_t requiredPropertyIndex;
-	fiftyoneDegreesProperty *property;
+	int32_t requiredPropertyIndex,
+		profileIndex,
+		*profileValueIndexes,
+		valueIndex,
+		propertyIndex,
+		lengthNeeded;
 	fiftyoneDegreesProfile *profile;
-
-
-	int32_t profileIndex, valueIndex, propertyIndex;
-	int32_t *profileValueIndexes;
 	const fiftyoneDegreesValue *value;
 	const char *valueName;
-	int32_t lengthNeeded;
 
+	// Allocate the array.
 	dataSet->maxPropertyValueLength = (int32_t*)fiftyoneDegreesMalloc(dataSet->header.properties.count * sizeof(int32_t));
 	if (dataSet->maxPropertyValueLength == NULL)
 		return DATA_SET_INIT_STATUS_INSUFFICIENT_MEMORY;
 
+	// Initialize the array by setting all values to zero.
 	for (propertyIndex = 0; propertyIndex < dataSet->header.properties.count; propertyIndex++)
 	{
-		property = (fiftyoneDegreesProperty*)dataSet->properties + propertyIndex;
 		dataSet->maxPropertyValueLength[propertyIndex] = 0;
 	}
 
+	// Loop through all profiles in the data set.
 	for (profileIndex = 0; profileIndex < dataSet->header.profiles.count; profileIndex++)
 	{
 		// Set the profile.
 		profile = getProfileByIndex(dataSet, profileIndex);
 
+		// Get the array of value indexes for the profile.
 		profileValueIndexes = (int32_t*)((byte*)profile + sizeof(fiftyoneDegreesProfile));
+
+		// Start with the first value.
 		valueIndex = 0;
 		value = dataSet->values + profileValueIndexes[valueIndex];
 
+		// Loop over the rest.
 		while (valueIndex < profile->valueCount)
 		{
+			// Get the property index which relates to the current value.
 			propertyIndex = value->propertyIndex;
-			property = (fiftyoneDegreesProperty*)dataSet->properties + propertyIndex;
+
+			// Reset the length.
 			lengthNeeded = 0;
+
+			// Multiple values can relate to one property, so keep adding the length
+			// of values until we reach a value for a new property.
 			while (value->propertyIndex == propertyIndex)
 			{
+				// Get the value string.
 				valueName = fiftyoneDegreesGetValueName(dataSet, value);
+				// Account for a delimiter if needed.
 				if (lengthNeeded != 0)
 					lengthNeeded++;
+				// Add the length of the current value to the total for this
+				// property
 				lengthNeeded += (int32_t)strlen(valueName);
 
+				// Get the next value.
 				valueIndex++;
 				value = dataSet->values + profileValueIndexes[valueIndex];
+
+				// Check we haven't reached the end of the values for this profile.
+				// (remember, we are inside a second while loop).
 				if (valueIndex >= profile->valueCount)
 					break;
 			}
+
+			// If the total length for this profile + property combination is
+			// greater that the current max length, then update it.
 			if (lengthNeeded > dataSet->maxPropertyValueLength[propertyIndex])
 				dataSet->maxPropertyValueLength[propertyIndex] = lengthNeeded;
 		}
