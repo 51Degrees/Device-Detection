@@ -38,7 +38,7 @@ def update_premium_pattern_wrapper(args, help):
 
     if settings.LICENSE:
         # Build source URL.
-        url = 'https://51degrees.com/Products/Downloads/Premium.aspx?LicenseKeys=%s&Type=BinaryV32&Download=True' % (
+        url = 'https://distributor.51degrees.com/api/v2/download?LicenseKeys=%s&Type=BinaryV32&Download=True' % (
             settings.LICENSE
         )
 
