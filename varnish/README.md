@@ -71,9 +71,9 @@ first clone 51Degrees/Device-Detection repository with
 ```
 $ git clone https://github.com/51Degrees/Device-Detection.git
 ```
-Move to the Nginx directory with
+Move to the Varnish directory with
 ```
-$ cd Device-Detection/nginx
+$ cd Device-Detection/varnish
 ```
 and install the module with
 ```
