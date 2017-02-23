@@ -4163,41 +4163,67 @@ static const fiftyoneDegreesNodeNumericIndex* getNextNumericNode(fiftyoneDegrees
  * \endcond
  */
 static const fiftyoneDegreesNode* getCompleteNumericNode(fiftyoneDegreesWorkset *ws, const fiftyoneDegreesNode *node) {
-	const fiftyoneDegreesNode *foundNode = NULL, *nextNode = getNextNode(ws, node);
+	const fiftyoneDegreesNode *foundNode = NULL, *numericNode, *nextNode = getNextNode(ws, node);
 	const fiftyoneDegreesNodeNumericIndex *nodeNumericIndex;
 	int32_t difference;
 	fiftyoneDegreesNumericNodeState state;
 
-	// Check to see if there's a next node which matches
+	// Get the next child node that matches the target User-Agent
 	// exactly.
-	if (nextNode != NULL)
+	if (nextNode != NULL) {
+		// An exact matching child node was found. Evaluate it for
+		// a numeric child. 
 		foundNode = getCompleteNumericNode(ws, nextNode);
+    }
 
 	if (foundNode == NULL && node->numericChildrenCount > 0)
 	{
-		// No. So try each of the numeric matches in ascending order of
-		// difference.
+		// There is either no exact matching normal child or there are
+		// no children that generated a numeric match. This node does 
+		// have numeric children that should be evaluated. Get the 
+		// numeric value of the current position from the target 
+		// User-Agent.
 		if (getCurrentPositionAsNumeric(ws, node, &state) > 0 &&
 			state.target >= 0)
 		{
+			// Return the numeric nodes in the ascending order from 
+			// the target value. i.e. if the target is 10 and the 
+			// numeric nodes are ordered 5, 8, 11, 15 they would be
+			// provided in the order 11, 8, 5, 15 by the enumerator.
 			setNumericNodeState(node, &state);
 			nodeNumericIndex = getNextNumericNode(&state);
 			while (nodeNumericIndex != NULL)
 			{
-				foundNode = getCompleteNumericNode(ws,
-					getNodeByOffset(ws->dataSet, abs(nodeNumericIndex->relatedNodeOffset)));
-				if (foundNode != NULL)
-				{
-					difference = abs(state.target - nodeNumericIndex->value);
-					ws->difference += difference;
-					break;
+                numericNode = getNodeByOffset(
+					ws->dataSet, 
+					abs(nodeNumericIndex->relatedNodeOffset));
+
+				// Evaluate the node from the enumerator if it has
+				// not already been evaluated earlier in the method
+				// when it was found as the nextNode.
+				if (nextNode == NULL || numericNode != nextNode) {
+
+					// Check if there is a complete numeric node under
+					// this node. If there is then calculate and record
+					// the difference value before returning it.
+					foundNode = getCompleteNumericNode(ws, numericNode);
+					if (foundNode != NULL)
+					{
+						difference = abs(state.target - nodeNumericIndex->value);
+						ws->difference += difference;
+						break;
+					}
 				}
 				nodeNumericIndex = getNextNumericNode(&state);
 			}
 		}
 	}
-	if (foundNode == NULL && getIsNodeComplete(node))
+
+	// If no suitable child node could be found and this node is a 
+	// complete node then return this node.
+	if (foundNode == NULL && getIsNodeComplete(node)) {
 		foundNode = node;
+	}
 	return foundNode;
 }
 
