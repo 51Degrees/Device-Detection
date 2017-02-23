@@ -649,16 +649,16 @@ EXTERNAL int32_t fiftyoneDegreesGetMaxPropertyValueLength(const fiftyoneDegreesD
 
 	// Check for any match metrics.
 	if (strcmp(propertyName, "Method") == 0) {
-		return 7;
+		return dataSet->maxPropertyValueLength[dataSet->header.properties.count];
 	}
 	if (strcmp(propertyName, "Rank") == 0) {
-		return 6;
+		return dataSet->maxPropertyValueLength[dataSet->header.properties.count + 1];
 	}
 	if (strcmp(propertyName, "Difference") == 0) {
-		return 6;
+		return dataSet->maxPropertyValueLength[dataSet->header.properties.count + 2];
 	}
 	if (strcmp(propertyName, "DeviceId") == 0) {
-		return dataSet->header.components.count * (5 + 1);
+		return dataSet->maxPropertyValueLength[dataSet->header.properties.count + 3];
 	}
 
 	// Property is not a match metric, so get the property.
@@ -691,8 +691,8 @@ static fiftyoneDegreesDataSetInitStatus setMaxPropertyValueLength(fiftyoneDegree
 	const fiftyoneDegreesValue *value;
 	const char *valueName;
 
-	// Allocate the array.
-	dataSet->maxPropertyValueLength = (int32_t*)fiftyoneDegreesMalloc(dataSet->header.properties.count * sizeof(int32_t));
+	// Allocate the array. This is the number of properties, plus 4 for the match metrics.
+	dataSet->maxPropertyValueLength = (int32_t*)fiftyoneDegreesMalloc(dataSet->header.properties.count * sizeof(int32_t) + 4);
 	if (dataSet->maxPropertyValueLength == NULL)
 		return DATA_SET_INIT_STATUS_INSUFFICIENT_MEMORY;
 
@@ -753,6 +753,32 @@ static fiftyoneDegreesDataSetInitStatus setMaxPropertyValueLength(fiftyoneDegree
 				dataSet->maxPropertyValueLength[propertyIndex] = lengthNeeded;
 		}
 	}
+
+	// Now do the match metrics.
+	// Fist the Method, this is hard coded as it is not likely to change.
+	dataSet->maxPropertyValueLength[dataSet->header.properties.count] = 7;
+
+	// Get the maximum length of an integer.
+	if (INT_MAX < 10000) lengthNeeded = 4;
+	else if (INT_MAX < 100000) lengthNeeded = 5;
+	else if (INT_MAX < 1000000) lengthNeeded = 6;
+	else if (INT_MAX < 10000000) lengthNeeded = 7;
+	else if (INT_MAX < 100000000) lengthNeeded = 8;
+	else if (INT_MAX < 1000000000) lengthNeeded = 9;
+	else if (INT_MAX < 10000000000) lengthNeeded = 10;
+	else if (INT_MAX < 100000000000) lengthNeeded = 11;
+	else if (INT_MAX < 1000000000000) lengthNeeded = 12;
+	else if (INT_MAX < 10000000000000) lengthNeeded = 13;
+	else lengthNeeded = 20;
+
+	// The Rank, this is the maximum number string
+	dataSet->maxPropertyValueLength[dataSet->header.properties.count + 1] = lengthNeeded;
+	// The Difference, this is also the maximum number string.
+	dataSet->maxPropertyValueLength[dataSet->header.properties.count + 2] = lengthNeeded;
+	// The Device-Id, using max 5 digits per profile id,
+	//and a separator per component.
+	dataSet->maxPropertyValueLength[dataSet->header.properties.count + 3]
+		=  dataSet->header.components.count * (5 + 1);
 
 	return DATA_SET_INIT_STATUS_SUCCESS;
 }
