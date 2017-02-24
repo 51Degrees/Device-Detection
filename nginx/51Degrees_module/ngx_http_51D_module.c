@@ -27,9 +27,6 @@
 #ifndef FIFTYONEDEGREES_MAX_STRING
 #define FIFTYONEDEGREES_MAX_STRING 500
 #endif // FIFTYONEDEGREES_MAX_STRING
-#ifndef FIFTYONEDEGREES_MAX_VALUES_LIST
-#define FIFTYONEDEGREES_MAX_VALUES_LIST 20
-#endif // FIFTYONEDEGREES_MAX_VALUES_LIST
 #define FIFTYONEDEGREES_IMPORTANT_HEADERS_COUNT 5
 
 // Module declaration.
@@ -875,14 +872,9 @@ ngx_http_51D_set_max_string(ngx_http_51D_main_conf_t *fdmcf, ngx_http_51D_header
 		if (i != 0) {
 			length += (int)fdmcf->valueSeparator.len;
 		}
-		tmpLength = fiftyoneDegreesGetMaxValueLength(dataSet, (char*)header->property[i]->data);
+		tmpLength = fiftyoneDegreesGetMaxPropertyValueLength(dataSet, (char*)header->property[i]->data);
 		if ((int)tmpLength > 0) {
-			if ((int)fiftyoneDegreesGetPropertyIsList(dataSet, (char*)header->property[i]->data) == 1)
-				// The property is a list property, so can return multiple
-				// values. Account for this within a reasonable limit.
-				length += (int)tmpLength * FIFTYONEDEGREES_MAX_VALUES_LIST;
-			else
-				length += (int)tmpLength;
+			length += (int)tmpLength;
 		}
 		else {
 			length += ngx_strlen(FIFTYONEDEGREES_PROPERTY_NOT_AVAILABLE);
