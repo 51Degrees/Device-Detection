@@ -692,7 +692,7 @@ static fiftyoneDegreesDataSetInitStatus setMaxPropertyValueLength(fiftyoneDegree
 	const char *valueName;
 
 	// Allocate the array. This is the number of properties, plus 4 for the match metrics.
-	dataSet->maxPropertyValueLength = (int32_t*)fiftyoneDegreesMalloc(dataSet->header.properties.count * sizeof(int32_t) + 4);
+	dataSet->maxPropertyValueLength = (int32_t*)fiftyoneDegreesMalloc((dataSet->header.properties.count + 4) * sizeof(int32_t));
 	if (dataSet->maxPropertyValueLength == NULL)
 		return DATA_SET_INIT_STATUS_INSUFFICIENT_MEMORY;
 
