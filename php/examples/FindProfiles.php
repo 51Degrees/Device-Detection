@@ -37,7 +37,7 @@ $profiles = $provider->findProfiles("IsMobile", "True");
 </pre></p>
 <li>Search within a list of profiles for another property value pair.
 <p><pre class="prettyprint lang-php">
-$profiles = $provider->findProfiles("ScreenPixelsWidth", "1080", $profiles);
+$profiles = $provider->findProfilesInProfiles("ScreenPixelsWidth", "1080", $profiles);
 </pre></p>
 </ol>
 This example assumes you have the 51Degrees PHP API installed correctly,
@@ -56,16 +56,16 @@ $profiles = $provider->findProfiles("IsMobile", "True");
 echo "There are ".$profiles->getCount()." mobile profiles in the ".
 	$provider->getDataSetName()." data set.<br>\n";
 // Find how many have a screen width of 1080 pixels.
-$profiles = $provider->findProfiles("ScreenPixelsWidth", "1080", $profiles);
-echo $profiles.getCount()." of them have a screen width of 1080 pixels.<br>\n";
+$profiles = $provider->findProfilesInProfiles("ScreenPixelsWidth", "1080", $profiles);
+echo $profiles->getCount()." of them have a screen width of 1080 pixels.<br>\n";
 
 // Retrive all the non-mobile profiles.
 $profiles = $provider->findProfiles("IsMobile", "False");
 echo "There are ".$profiles->getCount()." non-mobile profiles in the ".
 	$provider->getDataSetName()." data set.<br>\n";
 // Find how many have a screen width of 1080 pixels.
-$profiles = $provider->findProfiles("ScreenPixelsWidth", "1080", $profiles);
-echo $profiles.getCount()." of them have a screen width of 1080 pixels.<br>\n";
+$profiles = $provider->findProfilesInProfiles("ScreenPixelsWidth", "1080", $profiles);
+echo $profiles->getCount()." of them have a screen width of 1080 pixels.<br>\n";
 
 // Snippet End
 ?>
