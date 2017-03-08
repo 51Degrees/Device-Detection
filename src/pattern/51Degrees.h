@@ -389,6 +389,7 @@ typedef struct fiftyoneDegrees_dataset_t {
 	fiftyoneDegreesHttpHeader *httpHeaders; /* Array of HTTP headers the data set can process */
 	const char **prefixedUpperHttpHeaders; /* Array of HTTP header strings in upper case form prefixed with HTTP_ */
 	fiftyoneDegreesProfilesStructArray *valuePointersArray;
+	int32_t *maxPropertyValueLength;
 	const char *fileName; /* Path to the data file used to create the data set */
 } fiftyoneDegreesDataSet;
 #pragma pack(pop)
@@ -1174,10 +1175,10 @@ EXTERNAL size_t fiftyoneDegreesGetProviderSizeWithPropertyCount(
 * property name.
 * @param dataSet pointer to a fiftyoneDegreesDataSet.
 * @param propertyName the name of the property to find the value length for.
-* @returns size_t the maximum string length of the values associated with the
-* given property.
+* @returns int32_t the maximum string length of the values associated with the
+* given property or -1 if the property was not found.
 */
-EXTERNAL size_t fiftyoneDegreesGetMaxValueLength(const fiftyoneDegreesDataSet *dataSet, char *propertyName);
+EXTERNAL int32_t fiftyoneDegreesGetMaxPropertyValueLength(const fiftyoneDegreesDataSet *dataSet, char *propertyName);
 
 /**
  * OBSOLETE METHODS - RETAINED FOR BACKWARDS COMPAITABILITY
