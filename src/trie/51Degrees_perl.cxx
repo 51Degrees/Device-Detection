@@ -1552,10 +1552,10 @@ static swig_module_info swig_module = {swig_types, 12, 0, 0, 0, 0};
 
 /* -------- TYPES TABLE (END) -------- */
 
-#define SWIG_init    boot_FiftyOneDegreesTrieV3
+#define SWIG_init    boot_FiftyOneDegrees__TrieV3
 
-#define SWIG_name   "FiftyOneDegreesTrieV3c::boot_FiftyOneDegreesTrieV3"
-#define SWIG_prefix "FiftyOneDegreesTrieV3c::"
+#define SWIG_name   "FiftyOneDegrees::TrieV3c::boot_FiftyOneDegrees__TrieV3"
+#define SWIG_prefix "FiftyOneDegrees::TrieV3c::"
 
 #define SWIGVERSION 0x030010 
 #define SWIG_VERSION SWIGVERSION
@@ -2057,8 +2057,8 @@ extern "C" {
 #endif
 
 #ifdef PERL_OBJECT
-#define MAGIC_CLASS _wrap_FiftyOneDegreesTrieV3_var::
-class _wrap_FiftyOneDegreesTrieV3_var : public CPerlObj {
+#define MAGIC_CLASS _wrap_FiftyOneDegrees__TrieV3_var::
+class _wrap_FiftyOneDegrees__TrieV3_var : public CPerlObj {
 public:
 #else
 #define MAGIC_CLASS
@@ -5279,17 +5279,17 @@ XS(_wrap_new_Provider) {
 
 /* -------- TYPE CONVERSION AND EQUIVALENCE RULES (BEGIN) -------- */
 
-static swig_type_info _swigt__p_Match = {"_p_Match", "Match *", 0, 0, (void*)"FiftyOneDegreesTrieV3::Match", 0};
-static swig_type_info _swigt__p_Provider = {"_p_Provider", "Provider *", 0, 0, (void*)"FiftyOneDegreesTrieV3::Provider", 0};
+static swig_type_info _swigt__p_Match = {"_p_Match", "Match *", 0, 0, (void*)"FiftyOneDegrees::TrieV3::Match", 0};
+static swig_type_info _swigt__p_Provider = {"_p_Provider", "Provider *", 0, 0, (void*)"FiftyOneDegrees::TrieV3::Provider", 0};
 static swig_type_info _swigt__p_char = {"_p_char", "char *", 0, 0, (void*)0, 0};
 static swig_type_info _swigt__p_difference_type = {"_p_difference_type", "difference_type *", 0, 0, (void*)0, 0};
 static swig_type_info _swigt__p_key_type = {"_p_key_type", "key_type *", 0, 0, (void*)0, 0};
 static swig_type_info _swigt__p_mapped_type = {"_p_mapped_type", "mapped_type *", 0, 0, (void*)0, 0};
 static swig_type_info _swigt__p_size_type = {"_p_size_type", "size_type *", 0, 0, (void*)0, 0};
-static swig_type_info _swigt__p_std__mapT_std__string_std__string_t = {"_p_std__mapT_std__string_std__string_t", "std::map< std::string,std::string > *", 0, 0, (void*)"FiftyOneDegreesTrieV3::MapStringString", 0};
+static swig_type_info _swigt__p_std__mapT_std__string_std__string_t = {"_p_std__mapT_std__string_std__string_t", "std::map< std::string,std::string > *", 0, 0, (void*)"FiftyOneDegrees::TrieV3::MapStringString", 0};
 static swig_type_info _swigt__p_std__out_of_range = {"_p_std__out_of_range", "std::out_of_range *", 0, 0, (void*)0, 0};
 static swig_type_info _swigt__p_std__string = {"_p_std__string", "std::string *", 0, 0, (void*)0, 0};
-static swig_type_info _swigt__p_std__vectorT_std__string_t = {"_p_std__vectorT_std__string_t", "std::vector< std::string > *", 0, 0, (void*)"FiftyOneDegreesTrieV3::VectorString", 0};
+static swig_type_info _swigt__p_std__vectorT_std__string_t = {"_p_std__vectorT_std__string_t", "std::vector< std::string > *", 0, 0, (void*)"FiftyOneDegrees::TrieV3::VectorString", 0};
 static swig_type_info _swigt__p_value_type = {"_p_value_type", "value_type *", 0, 0, (void*)0, 0};
 
 static swig_type_info *swig_type_initial[] = {
@@ -5348,46 +5348,46 @@ static swig_variable_info swig_variables[] = {
 {0,0,0,0}
 };
 static swig_command_info swig_commands[] = {
-{"FiftyOneDegreesTrieV3c::new_MapStringString", _wrap_new_MapStringString},
-{"FiftyOneDegreesTrieV3c::MapStringString_size", _wrap_MapStringString_size},
-{"FiftyOneDegreesTrieV3c::MapStringString_empty", _wrap_MapStringString_empty},
-{"FiftyOneDegreesTrieV3c::MapStringString_clear", _wrap_MapStringString_clear},
-{"FiftyOneDegreesTrieV3c::MapStringString_get", _wrap_MapStringString_get},
-{"FiftyOneDegreesTrieV3c::MapStringString_set", _wrap_MapStringString_set},
-{"FiftyOneDegreesTrieV3c::MapStringString_del", _wrap_MapStringString_del},
-{"FiftyOneDegreesTrieV3c::MapStringString_has_key", _wrap_MapStringString_has_key},
-{"FiftyOneDegreesTrieV3c::delete_MapStringString", _wrap_delete_MapStringString},
-{"FiftyOneDegreesTrieV3c::new_VectorString", _wrap_new_VectorString},
-{"FiftyOneDegreesTrieV3c::VectorString_size", _wrap_VectorString_size},
-{"FiftyOneDegreesTrieV3c::VectorString_empty", _wrap_VectorString_empty},
-{"FiftyOneDegreesTrieV3c::VectorString_clear", _wrap_VectorString_clear},
-{"FiftyOneDegreesTrieV3c::VectorString_push", _wrap_VectorString_push},
-{"FiftyOneDegreesTrieV3c::VectorString_pop", _wrap_VectorString_pop},
-{"FiftyOneDegreesTrieV3c::VectorString_get", _wrap_VectorString_get},
-{"FiftyOneDegreesTrieV3c::VectorString_set", _wrap_VectorString_set},
-{"FiftyOneDegreesTrieV3c::delete_VectorString", _wrap_delete_VectorString},
-{"FiftyOneDegreesTrieV3c::delete_Match", _wrap_delete_Match},
-{"FiftyOneDegreesTrieV3c::Match_getValues", _wrap_Match_getValues},
-{"FiftyOneDegreesTrieV3c::Match_getValue", _wrap_Match_getValue},
-{"FiftyOneDegreesTrieV3c::Match_getDeviceId", _wrap_Match_getDeviceId},
-{"FiftyOneDegreesTrieV3c::Match_getRank", _wrap_Match_getRank},
-{"FiftyOneDegreesTrieV3c::Match_getDifference", _wrap_Match_getDifference},
-{"FiftyOneDegreesTrieV3c::Match_getMethod", _wrap_Match_getMethod},
-{"FiftyOneDegreesTrieV3c::Match_getUserAgent", _wrap_Match_getUserAgent},
-{"FiftyOneDegreesTrieV3c::delete_Provider", _wrap_delete_Provider},
-{"FiftyOneDegreesTrieV3c::Provider_getHttpHeaders", _wrap_Provider_getHttpHeaders},
-{"FiftyOneDegreesTrieV3c::Provider_getAvailableProperties", _wrap_Provider_getAvailableProperties},
-{"FiftyOneDegreesTrieV3c::Provider_getDataSetName", _wrap_Provider_getDataSetName},
-{"FiftyOneDegreesTrieV3c::Provider_getDataSetFormat", _wrap_Provider_getDataSetFormat},
-{"FiftyOneDegreesTrieV3c::Provider_getDataSetPublishedDate", _wrap_Provider_getDataSetPublishedDate},
-{"FiftyOneDegreesTrieV3c::Provider_getDataSetNextUpdateDate", _wrap_Provider_getDataSetNextUpdateDate},
-{"FiftyOneDegreesTrieV3c::Provider_getDataSetSignatureCount", _wrap_Provider_getDataSetSignatureCount},
-{"FiftyOneDegreesTrieV3c::Provider_getDataSetDeviceCombinations", _wrap_Provider_getDataSetDeviceCombinations},
-{"FiftyOneDegreesTrieV3c::Provider_getMatch", _wrap_Provider_getMatch},
-{"FiftyOneDegreesTrieV3c::Provider_getMatchJson", _wrap_Provider_getMatchJson},
-{"FiftyOneDegreesTrieV3c::Provider_reloadFromFile", _wrap_Provider_reloadFromFile},
-{"FiftyOneDegreesTrieV3c::Provider_reloadFromMemory", _wrap_Provider_reloadFromMemory},
-{"FiftyOneDegreesTrieV3c::new_Provider", _wrap_new_Provider},
+{"FiftyOneDegrees::TrieV3c::new_MapStringString", _wrap_new_MapStringString},
+{"FiftyOneDegrees::TrieV3c::MapStringString_size", _wrap_MapStringString_size},
+{"FiftyOneDegrees::TrieV3c::MapStringString_empty", _wrap_MapStringString_empty},
+{"FiftyOneDegrees::TrieV3c::MapStringString_clear", _wrap_MapStringString_clear},
+{"FiftyOneDegrees::TrieV3c::MapStringString_get", _wrap_MapStringString_get},
+{"FiftyOneDegrees::TrieV3c::MapStringString_set", _wrap_MapStringString_set},
+{"FiftyOneDegrees::TrieV3c::MapStringString_del", _wrap_MapStringString_del},
+{"FiftyOneDegrees::TrieV3c::MapStringString_has_key", _wrap_MapStringString_has_key},
+{"FiftyOneDegrees::TrieV3c::delete_MapStringString", _wrap_delete_MapStringString},
+{"FiftyOneDegrees::TrieV3c::new_VectorString", _wrap_new_VectorString},
+{"FiftyOneDegrees::TrieV3c::VectorString_size", _wrap_VectorString_size},
+{"FiftyOneDegrees::TrieV3c::VectorString_empty", _wrap_VectorString_empty},
+{"FiftyOneDegrees::TrieV3c::VectorString_clear", _wrap_VectorString_clear},
+{"FiftyOneDegrees::TrieV3c::VectorString_push", _wrap_VectorString_push},
+{"FiftyOneDegrees::TrieV3c::VectorString_pop", _wrap_VectorString_pop},
+{"FiftyOneDegrees::TrieV3c::VectorString_get", _wrap_VectorString_get},
+{"FiftyOneDegrees::TrieV3c::VectorString_set", _wrap_VectorString_set},
+{"FiftyOneDegrees::TrieV3c::delete_VectorString", _wrap_delete_VectorString},
+{"FiftyOneDegrees::TrieV3c::delete_Match", _wrap_delete_Match},
+{"FiftyOneDegrees::TrieV3c::Match_getValues", _wrap_Match_getValues},
+{"FiftyOneDegrees::TrieV3c::Match_getValue", _wrap_Match_getValue},
+{"FiftyOneDegrees::TrieV3c::Match_getDeviceId", _wrap_Match_getDeviceId},
+{"FiftyOneDegrees::TrieV3c::Match_getRank", _wrap_Match_getRank},
+{"FiftyOneDegrees::TrieV3c::Match_getDifference", _wrap_Match_getDifference},
+{"FiftyOneDegrees::TrieV3c::Match_getMethod", _wrap_Match_getMethod},
+{"FiftyOneDegrees::TrieV3c::Match_getUserAgent", _wrap_Match_getUserAgent},
+{"FiftyOneDegrees::TrieV3c::delete_Provider", _wrap_delete_Provider},
+{"FiftyOneDegrees::TrieV3c::Provider_getHttpHeaders", _wrap_Provider_getHttpHeaders},
+{"FiftyOneDegrees::TrieV3c::Provider_getAvailableProperties", _wrap_Provider_getAvailableProperties},
+{"FiftyOneDegrees::TrieV3c::Provider_getDataSetName", _wrap_Provider_getDataSetName},
+{"FiftyOneDegrees::TrieV3c::Provider_getDataSetFormat", _wrap_Provider_getDataSetFormat},
+{"FiftyOneDegrees::TrieV3c::Provider_getDataSetPublishedDate", _wrap_Provider_getDataSetPublishedDate},
+{"FiftyOneDegrees::TrieV3c::Provider_getDataSetNextUpdateDate", _wrap_Provider_getDataSetNextUpdateDate},
+{"FiftyOneDegrees::TrieV3c::Provider_getDataSetSignatureCount", _wrap_Provider_getDataSetSignatureCount},
+{"FiftyOneDegrees::TrieV3c::Provider_getDataSetDeviceCombinations", _wrap_Provider_getDataSetDeviceCombinations},
+{"FiftyOneDegrees::TrieV3c::Provider_getMatch", _wrap_Provider_getMatch},
+{"FiftyOneDegrees::TrieV3c::Provider_getMatchJson", _wrap_Provider_getMatchJson},
+{"FiftyOneDegrees::TrieV3c::Provider_reloadFromFile", _wrap_Provider_reloadFromFile},
+{"FiftyOneDegrees::TrieV3c::Provider_reloadFromMemory", _wrap_Provider_reloadFromMemory},
+{"FiftyOneDegrees::TrieV3c::new_Provider", _wrap_new_Provider},
 {0,0}
 };
 /* -----------------------------------------------------------------------------
@@ -5682,10 +5682,10 @@ XS(SWIG_init) {
     SvREADONLY_on(sv);
   }
   
-  SWIG_TypeClientData(SWIGTYPE_p_std__mapT_std__string_std__string_t, (void*) "FiftyOneDegreesTrieV3::MapStringString");
-  SWIG_TypeClientData(SWIGTYPE_p_std__vectorT_std__string_t, (void*) "FiftyOneDegreesTrieV3::VectorString");
-  SWIG_TypeClientData(SWIGTYPE_p_Match, (void*) "FiftyOneDegreesTrieV3::Match");
-  SWIG_TypeClientData(SWIGTYPE_p_Provider, (void*) "FiftyOneDegreesTrieV3::Provider");
+  SWIG_TypeClientData(SWIGTYPE_p_std__mapT_std__string_std__string_t, (void*) "FiftyOneDegrees::TrieV3::MapStringString");
+  SWIG_TypeClientData(SWIGTYPE_p_std__vectorT_std__string_t, (void*) "FiftyOneDegrees::TrieV3::VectorString");
+  SWIG_TypeClientData(SWIGTYPE_p_Match, (void*) "FiftyOneDegrees::TrieV3::Match");
+  SWIG_TypeClientData(SWIGTYPE_p_Provider, (void*) "FiftyOneDegrees::TrieV3::Provider");
   ST(0) = &PL_sv_yes;
   XSRETURN(1);
 }
