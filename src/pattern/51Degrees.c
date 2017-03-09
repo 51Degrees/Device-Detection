@@ -10,7 +10,7 @@
 #include "51Degrees.h"
 /* *********************************************************************
  * This Source Code Form is copyright of 51Degrees Mobile Experts Limited.
- * Copyright 2015 51Degrees Mobile Experts Limited, 5 Charlotte Close,
+ * Copyright 2017 51Degrees Mobile Experts Limited, 5 Charlotte Close,
  * Caversham, Reading, Berkshire, United Kingdom RG4 7BY
  *
  * This Source Code Form is the subject of the following patent
@@ -117,6 +117,21 @@ void (FIFTYONEDEGREES_CALL_CONV *fiftyoneDegreesFree)(void *__ptr) = free;
 #define SIZE_OF_CACHE_RESULTSETS(c) c * (sizeof(fiftyoneDegreesResultset))
 #define SIZE_OF_CACHE_TARGET_USER_AGENTS(c, h) c * SIZE_OF_WORKSET_TARGET_USERAGENT_ARRAY(h)
 #define SIZE_OF_CACHE_PROFILES(c, h) c * SIZE_OF_WORKSET_PROFILES(h)
+
+/**
+* METRIC INDEX MACROS
+*/
+#define FIFTYONEDEGREES_METRIC_COUNT 4
+#define FIFTYONEDEGREES_METRIC_METHOD_INDEX 0
+#define FIFTYONEDEGREES_METRIC_RANK_INDEX 1
+#define FIFTYONEDEGREES_METRIC_DIFFERENCE_INDEX 2
+#define FIFTYONEDEGREES_METRIC_ID_INDEX 3
+
+/**
+* MAX PROPERTY VALUE LENGTH MEMORY ALLOCATION MACROS
+*/
+#define SIZE_OF_MAX_PROPERTY_VALUES(h) (h.properties.count + FIFTYONEDEGREES_METRIC_COUNT) * sizeof(int32_t)
+
 
  /**
  * \cond
@@ -535,7 +550,7 @@ static fiftyoneDegreesDataSetInitStatus readDataSetFromMemoryLocation(
 	dataSet->properties = (const fiftyoneDegreesProperty*)current;
 	status = advancePointer(&current, lastByte, dataSet->header.properties.length);
 	if (status != DATA_SET_INIT_STATUS_SUCCESS) return status;
-
+	
 	dataSet->values = (const fiftyoneDegreesValue*)current;
 	status = advancePointer(&current, lastByte, dataSet->header.values.length);
 	if (status != DATA_SET_INIT_STATUS_SUCCESS) return status;
@@ -591,26 +606,206 @@ static fiftyoneDegreesDataSetInitStatus readDataSetFromMemoryLocation(
  * one containing a pointer to an empty array with the size equal to the
  * number of values for the corresponding property.
  * @param dataSet pointer to a 51Degrees data set.
+ * @return dataSet initialisation status.
  * \endcond
  */
-static void ensureValueProfilesSet(fiftyoneDegreesDataSet *dataSet) {
+static fiftyoneDegreesDataSetInitStatus ensureValueProfilesSet(fiftyoneDegreesDataSet *dataSet) {
 	fiftyoneDegreesProperty *property;
 	int propertyIndex, valuesCount;
+
 	// Allocate an array element for each property.
 	dataSet->valuePointersArray =
 		(fiftyoneDegreesProfilesStructArray*)fiftyoneDegreesMalloc(SIZE_OF_PROFILES_STRUCT_ARRAY(dataSet->header));
+	if (dataSet->valuePointersArray == NULL) {
+		return DATA_SET_INIT_STATUS_INSUFFICIENT_MEMORY;
+	}
+
 	for (propertyIndex = 0; propertyIndex < dataSet->header.properties.count; propertyIndex++) {
 		property = (fiftyoneDegreesProperty*)(dataSet->properties + (int32_t)propertyIndex);
 		valuesCount = property->lastValueIndex - property->firstValueIndex + 1;
+
 		// Set the initialised flag to 0;
 		dataSet->valuePointersArray[propertyIndex].initialised = 0;
+
 		// Allocate an array element for each value of the current property.
 		dataSet->valuePointersArray[propertyIndex].profilesStructs =
 			(fiftyoneDegreesProfileIndexesStruct*)fiftyoneDegreesMalloc(SIZE_OF_PROFILE_INDEXES_STRUCT(valuesCount));
+		if (dataSet->valuePointersArray[propertyIndex].profilesStructs == NULL) {
+			return DATA_SET_INIT_STATUS_INSUFFICIENT_MEMORY;
+		}
+
 #ifndef FIFTYONEDEGREES_NO_THREADING
 		FIFTYONEDEGREES_MUTEX_CREATE(dataSet->valuePointersArray[propertyIndex].lock);
 #endif
 	}
+
+	return DATA_SET_INIT_STATUS_SUCCESS;
+}
+
+// Define these here as they are needed in the below function.
+static fiftyoneDegreesProfile* getProfileByIndex(const fiftyoneDegreesDataSet *dataSet, int32_t index);
+static int32_t getPropertyIndex(const fiftyoneDegreesDataSet *dataSet, const fiftyoneDegreesProperty *property);
+static const fiftyoneDegreesProperty* getPropertyByName(const fiftyoneDegreesDataSet *dataSet, char *name);
+
+/**
+* \cond
+* Finds the maximum string length of the values associated with the given
+* property name.
+* @param dataSet pointer to a fiftyoneDegreesDataSet.
+* @param propertyName the name of the property to find the value length for.
+* @return int32_t the maximum string length of the values associated with the
+* given property or -1 if the property was not found.
+* \endcond
+*/
+EXTERNAL int32_t fiftyoneDegreesGetMaxPropertyValueLength(const fiftyoneDegreesDataSet *dataSet, char *propertyName)
+{
+	const fiftyoneDegreesProperty *property;
+	int32_t propertyIndex;
+
+	// Check for any match metrics.
+	if (strcmp(propertyName, "Method") == 0) {
+		return dataSet->maxPropertyValueLength[dataSet->header.properties.count
+			+ FIFTYONEDEGREES_METRIC_METHOD_INDEX];
+	}
+	if (strcmp(propertyName, "Rank") == 0) {
+		return dataSet->maxPropertyValueLength[dataSet->header.properties.count
+			+ FIFTYONEDEGREES_METRIC_RANK_INDEX];
+	}
+	if (strcmp(propertyName, "Difference") == 0) {
+		return dataSet->maxPropertyValueLength[dataSet->header.properties.count
+			+ FIFTYONEDEGREES_METRIC_DIFFERENCE_INDEX];
+	}
+	if (strcmp(propertyName, "DeviceId") == 0) {
+		return dataSet->maxPropertyValueLength[dataSet->header.properties.count
+			+ FIFTYONEDEGREES_METRIC_ID_INDEX];
+	}
+
+	// Property is not a match metric, so get the property.
+	property = getPropertyByName(dataSet, propertyName);
+	if (property == NULL) {
+		return -1;
+	}
+
+	// The property exists, so get the index and return the max value length.
+	propertyIndex = getPropertyIndex(dataSet, property);
+	return dataSet->maxPropertyValueLength[propertyIndex];
+}
+/*
+ * \cond
+ * Go through all the properties in the dataset, calculate and set the maximum
+ * length of value each one can return. These values are stored in the
+ * dataSet->maxPropertyValueLength array with the coresponding property index.
+ * @param dataSet pointer to 51Degrees dataset.
+ * @return fiftyoneDegreesDataSetInitStatus indicating the result.
+ * \endcond
+ */
+static fiftyoneDegreesDataSetInitStatus setMaxPropertyValueLength(fiftyoneDegreesDataSet *dataSet)
+{
+	int32_t profileIndex,
+		*profileValueIndexes,
+		valueIndex,
+		propertyIndex,
+		lengthNeeded;
+	fiftyoneDegreesProfile *profile;
+	const fiftyoneDegreesValue *value;
+	const char *valueName;
+
+	// Allocate the array. This is the number of properties, plus 4 for the match metrics.
+	dataSet->maxPropertyValueLength =
+		(int32_t*)fiftyoneDegreesMalloc(SIZE_OF_MAX_PROPERTY_VALUES(dataSet->header));
+
+	if (dataSet->maxPropertyValueLength == NULL)
+		return DATA_SET_INIT_STATUS_INSUFFICIENT_MEMORY;
+
+	// Initialize the array by setting all values to zero.
+	for (propertyIndex = 0; propertyIndex < dataSet->header.properties.count; propertyIndex++)
+	{
+		dataSet->maxPropertyValueLength[propertyIndex] = 0;
+	}
+
+	// Loop through all profiles in the data set.
+	for (profileIndex = 0; profileIndex < dataSet->header.profiles.count; profileIndex++)
+	{
+		// Set the profile.
+		profile = getProfileByIndex(dataSet, profileIndex);
+
+		// Get the array of value indexes for the profile.
+		profileValueIndexes = (int32_t*)((byte*)profile + sizeof(fiftyoneDegreesProfile));
+
+		// Start with the first value.
+		valueIndex = 0;
+		value = dataSet->values + profileValueIndexes[valueIndex];
+
+		// Loop over the rest.
+		while (valueIndex < profile->valueCount)
+		{
+			// Get the property index which relates to the current value.
+			propertyIndex = value->propertyIndex;
+
+			// Reset the length.
+			lengthNeeded = 0;
+
+			// Multiple values can relate to one property, so keep adding the length
+			// of values until we reach a value for a new property.
+			while (value->propertyIndex == propertyIndex)
+			{
+				// Get the value string.
+				valueName = fiftyoneDegreesGetValueName(dataSet, value);
+				// Account for a delimiter if needed.
+				if (lengthNeeded != 0)
+					lengthNeeded++;
+				// Add the length of the current value to the total for this
+				// property
+				lengthNeeded += (int32_t)strlen(valueName);
+
+				// Get the next value.
+				valueIndex++;
+				value = dataSet->values + profileValueIndexes[valueIndex];
+
+				// Check we haven't reached the end of the values for this profile.
+				// (remember, we are inside a second while loop).
+				if (valueIndex >= profile->valueCount)
+					break;
+			}
+
+			// If the total length for this profile + property combination is
+			// greater that the current max length, then update it.
+			if (lengthNeeded > dataSet->maxPropertyValueLength[propertyIndex])
+				dataSet->maxPropertyValueLength[propertyIndex] = lengthNeeded;
+		}
+	}
+
+	// Now do the match metrics.
+	// Fist the Method, this is hard coded as it is not likely to change.
+	dataSet->maxPropertyValueLength[dataSet->header.properties.count
+		+ FIFTYONEDEGREES_METRIC_METHOD_INDEX] = 7;
+
+	// Get the maximum length of an integer.
+	if (INT_MAX < 10000) lengthNeeded = 4;
+	else if (INT_MAX < 100000) lengthNeeded = 5;
+	else if (INT_MAX < 1000000) lengthNeeded = 6;
+	else if (INT_MAX < 10000000) lengthNeeded = 7;
+	else if (INT_MAX < 100000000) lengthNeeded = 8;
+	else if (INT_MAX < 1000000000) lengthNeeded = 9;
+	else if (INT_MAX < 10000000000) lengthNeeded = 10;
+	else if (INT_MAX < 100000000000) lengthNeeded = 11;
+	else if (INT_MAX < 1000000000000) lengthNeeded = 12;
+	else if (INT_MAX < 10000000000000) lengthNeeded = 13;
+	else lengthNeeded = 20;
+
+	// The Rank, this is the maximum number string
+	dataSet->maxPropertyValueLength[dataSet->header.properties.count
+		+ FIFTYONEDEGREES_METRIC_RANK_INDEX] = lengthNeeded;
+	// The Difference, this is also the maximum number string.
+	dataSet->maxPropertyValueLength[dataSet->header.properties.count
+		+ FIFTYONEDEGREES_METRIC_DIFFERENCE_INDEX] = lengthNeeded;
+	// The Device-Id, using max 5 digits per profile id,
+	// and a separator per component.
+	dataSet->maxPropertyValueLength[dataSet->header.properties.count
+		+ FIFTYONEDEGREES_METRIC_ID_INDEX]
+		=  dataSet->header.components.count * (5 + 1);
+
+	return DATA_SET_INIT_STATUS_SUCCESS;
 }
 
 /**
@@ -653,9 +848,16 @@ static fiftyoneDegreesDataSetInitStatus initFromMemory(
 	// be freed when the data set is destroyed.
 	dataSet->prefixedUpperHttpHeaders = NULL;
 
+	// Determine the maximum string length that the getValues function
+	// can return for each property in the data set.
+	status = setMaxPropertyValueLength(dataSet);
+	if (status != DATA_SET_INIT_STATUS_SUCCESS) {
+		return status;
+	}
+
 	// Initialise the memory for the properties and values structures
 	// which point to profiles structures.
-	ensureValueProfilesSet(dataSet);
+	status = ensureValueProfilesSet(dataSet);
 
 	return status;
 }
@@ -1440,7 +1642,9 @@ static void freeProfilesStructs(const fiftyoneDegreesDataSet *dataSet) {
 				fiftyoneDegreesFree((void*)dataSet->valuePointersArray[propertyIndex].profilesStructs[valueIndex].indexes);
 			}
 		}
-		fiftyoneDegreesFree((void*)dataSet->valuePointersArray[propertyIndex].profilesStructs);
+		if (dataSet->valuePointersArray[propertyIndex].profilesStructs != NULL) {
+			fiftyoneDegreesFree((void*)dataSet->valuePointersArray[propertyIndex].profilesStructs);
+		}
 	}
 	fiftyoneDegreesFree((void*)dataSet->valuePointersArray);
 }
@@ -1464,6 +1668,10 @@ void fiftyoneDegreesDataSetFree(const fiftyoneDegreesDataSet *dataSet) {
 			}
 		}
 		fiftyoneDegreesFree((void*)dataSet->prefixedUpperHttpHeaders);
+	}
+
+	if (dataSet->maxPropertyValueLength != NULL) {
+		fiftyoneDegreesFree(dataSet->maxPropertyValueLength);
 	}
 
 	if (dataSet->fileName != NULL) {
@@ -1722,7 +1930,7 @@ fiftyoneDegreesDataSetInitStatus fiftyoneDegreesInitWithPropertyArray(
 	else {
 		setProperties(dataSet, requiredProperties, count);
 	}
-
+	
 	return status;
 }
 
@@ -1809,6 +2017,9 @@ static size_t getProviderSizeWithPropertyCount(size_t sizeOfFile, fiftyoneDegree
 	// Add profile structures.
 	size += (SIZE_OF_PROFILES_STRUCT_ARRAY(header));
 	size += (SIZE_OF_PROFILE_INDEXES_STRUCT(header.values.count));
+
+	// Add max property value length values.
+	size += (SIZE_OF_MAX_PROPERTY_VALUES(header));
 
 	// Add cache.
 	if (cacheSize > 0) {
@@ -1990,52 +2201,6 @@ size_t fiftyoneDegreesGetProviderSizeWithPropertyCount(const char *fileName, int
 		size = getProviderSizeWithPropertyCount(size, *header, propertyCount, poolSize, cacheSize);
 	}
 	return size;
-}
-
-/**
-* \cond
-* Finds the maximum string length of the values associated with the given
-* property name.
-* @param dataSet pointer to a fiftyoneDegreesDataSet.
-* @param propertyName the name of the property to find the value length for.
-* @returns int the maximum string length of the values associated with the
-* given property.
-* \endcond
-*/
-size_t fiftyoneDegreesGetMaxValueLength(const fiftyoneDegreesDataSet *dataSet, char *propertyName)
-{
-	const fiftyoneDegreesProperty *property;
-	const fiftyoneDegreesValue *value;
-	int32_t valueIndex;
-	const char* valueName;
-	size_t maxLength = 0;
-
-	if (strcmp(propertyName, "Method") == 0) {
-		return 7;
-	}
-	if (strcmp(propertyName, "Rank") == 0) {
-		return 6;
-	}
-	if (strcmp(propertyName, "Difference") == 0) {
-		return 6;
-	}
-	if (strcmp(propertyName, "DeviceId") == 0) {
-		return dataSet->header.components.count * (5 + 1);
-	}
-	property = getPropertyByName(dataSet, propertyName);
-
-	if (property == NULL) {
-		return -1;
-	}
-
-	for (valueIndex = property->firstValueIndex; valueIndex <= property->lastValueIndex; valueIndex++) {
-		value = dataSet->values + valueIndex;
-		valueName = fiftyoneDegreesGetValueName(dataSet, value);
-		if (strlen(valueName) > maxLength) {
-			maxLength = strlen(valueName);
-		}
-	}
-	return maxLength;
 }
 
 /**
@@ -4163,41 +4328,67 @@ static const fiftyoneDegreesNodeNumericIndex* getNextNumericNode(fiftyoneDegrees
  * \endcond
  */
 static const fiftyoneDegreesNode* getCompleteNumericNode(fiftyoneDegreesWorkset *ws, const fiftyoneDegreesNode *node) {
-	const fiftyoneDegreesNode *foundNode = NULL, *nextNode = getNextNode(ws, node);
+	const fiftyoneDegreesNode *foundNode = NULL, *numericNode, *nextNode = getNextNode(ws, node);
 	const fiftyoneDegreesNodeNumericIndex *nodeNumericIndex;
 	int32_t difference;
 	fiftyoneDegreesNumericNodeState state;
 
-	// Check to see if there's a next node which matches
+	// Get the next child node that matches the target User-Agent
 	// exactly.
-	if (nextNode != NULL)
+	if (nextNode != NULL) {
+		// An exact matching child node was found. Evaluate it for
+		// a numeric child. 
 		foundNode = getCompleteNumericNode(ws, nextNode);
+    }
 
 	if (foundNode == NULL && node->numericChildrenCount > 0)
 	{
-		// No. So try each of the numeric matches in ascending order of
-		// difference.
+		// There is either no exact matching normal child or there are
+		// no children that generated a numeric match. This node does 
+		// have numeric children that should be evaluated. Get the 
+		// numeric value of the current position from the target 
+		// User-Agent.
 		if (getCurrentPositionAsNumeric(ws, node, &state) > 0 &&
 			state.target >= 0)
 		{
+			// Return the numeric nodes in the ascending order from 
+			// the target value. i.e. if the target is 10 and the 
+			// numeric nodes are ordered 5, 8, 11, 15 they would be
+			// provided in the order 11, 8, 5, 15 by the enumerator.
 			setNumericNodeState(node, &state);
 			nodeNumericIndex = getNextNumericNode(&state);
 			while (nodeNumericIndex != NULL)
 			{
-				foundNode = getCompleteNumericNode(ws,
-					getNodeByOffset(ws->dataSet, abs(nodeNumericIndex->relatedNodeOffset)));
-				if (foundNode != NULL)
-				{
-					difference = abs(state.target - nodeNumericIndex->value);
-					ws->difference += difference;
-					break;
+                numericNode = getNodeByOffset(
+					ws->dataSet, 
+					abs(nodeNumericIndex->relatedNodeOffset));
+
+				// Evaluate the node from the enumerator if it has
+				// not already been evaluated earlier in the method
+				// when it was found as the nextNode.
+				if (nextNode == NULL || numericNode != nextNode) {
+
+					// Check if there is a complete numeric node under
+					// this node. If there is then calculate and record
+					// the difference value before returning it.
+					foundNode = getCompleteNumericNode(ws, numericNode);
+					if (foundNode != NULL)
+					{
+						difference = abs(state.target - nodeNumericIndex->value);
+						ws->difference += difference;
+						break;
+					}
 				}
 				nodeNumericIndex = getNextNumericNode(&state);
 			}
 		}
 	}
-	if (foundNode == NULL && getIsNodeComplete(node))
+
+	// If no suitable child node could be found and this node is a 
+	// complete node then return this node.
+	if (foundNode == NULL && getIsNodeComplete(node)) {
 		foundNode = node;
+	}
 	return foundNode;
 }
 

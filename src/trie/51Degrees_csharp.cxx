@@ -547,7 +547,7 @@ SWIGINTERN bool std_vector_Sl_std_string_Sg__Remove(std::vector< std::string > *
 extern "C" {
 #endif
 
-SWIGEXPORT void * SWIGSTDCALL CSharp_new_MapStringString__SWIG_0() {
+SWIGEXPORT void * SWIGSTDCALL CSharp_FiftyOnefMobilefDetectionfProviderfInteropfTrie_new_MapStringString__SWIG_0___() {
   void * jresult ;
   std::map< std::string,std::string > *result = 0 ;
   
@@ -571,7 +571,7 @@ SWIGEXPORT void * SWIGSTDCALL CSharp_new_MapStringString__SWIG_0() {
 }
 
 
-SWIGEXPORT void * SWIGSTDCALL CSharp_new_MapStringString__SWIG_1(void * jarg1) {
+SWIGEXPORT void * SWIGSTDCALL CSharp_FiftyOnefMobilefDetectionfProviderfInteropfTrie_new_MapStringString__SWIG_1___(void * jarg1) {
   void * jresult ;
   std::map< std::string,std::string,std::less< std::string > > *arg1 = 0 ;
   std::map< std::string,std::string > *result = 0 ;
@@ -601,7 +601,7 @@ SWIGEXPORT void * SWIGSTDCALL CSharp_new_MapStringString__SWIG_1(void * jarg1) {
 }
 
 
-SWIGEXPORT unsigned long SWIGSTDCALL CSharp_MapStringString_size(void * jarg1) {
+SWIGEXPORT unsigned long SWIGSTDCALL CSharp_FiftyOnefMobilefDetectionfProviderfInteropfTrie_MapStringString_size___(void * jarg1) {
   unsigned long jresult ;
   std::map< std::string,std::string > *arg1 = (std::map< std::string,std::string > *) 0 ;
   std::map< std::string,std::string >::size_type result;
@@ -627,7 +627,7 @@ SWIGEXPORT unsigned long SWIGSTDCALL CSharp_MapStringString_size(void * jarg1) {
 }
 
 
-SWIGEXPORT unsigned int SWIGSTDCALL CSharp_MapStringString_empty(void * jarg1) {
+SWIGEXPORT unsigned int SWIGSTDCALL CSharp_FiftyOnefMobilefDetectionfProviderfInteropfTrie_MapStringString_empty___(void * jarg1) {
   unsigned int jresult ;
   std::map< std::string,std::string > *arg1 = (std::map< std::string,std::string > *) 0 ;
   bool result;
@@ -653,7 +653,7 @@ SWIGEXPORT unsigned int SWIGSTDCALL CSharp_MapStringString_empty(void * jarg1) {
 }
 
 
-SWIGEXPORT void SWIGSTDCALL CSharp_MapStringString_Clear(void * jarg1) {
+SWIGEXPORT void SWIGSTDCALL CSharp_FiftyOnefMobilefDetectionfProviderfInteropfTrie_MapStringString_Clear___(void * jarg1) {
   std::map< std::string,std::string > *arg1 = (std::map< std::string,std::string > *) 0 ;
   
   arg1 = (std::map< std::string,std::string > *)jarg1; 
@@ -675,7 +675,7 @@ SWIGEXPORT void SWIGSTDCALL CSharp_MapStringString_Clear(void * jarg1) {
 }
 
 
-SWIGEXPORT char * SWIGSTDCALL CSharp_MapStringString_getitem(void * jarg1, char * jarg2) {
+SWIGEXPORT char * SWIGSTDCALL CSharp_FiftyOnefMobilefDetectionfProviderfInteropfTrie_MapStringString_getitem___(void * jarg1, char * jarg2) {
   char * jresult ;
   std::map< std::string,std::string > *arg1 = (std::map< std::string,std::string > *) 0 ;
   std::map< std::string,std::string >::key_type *arg2 = 0 ;
@@ -715,7 +715,7 @@ SWIGEXPORT char * SWIGSTDCALL CSharp_MapStringString_getitem(void * jarg1, char 
 }
 
 
-SWIGEXPORT void SWIGSTDCALL CSharp_MapStringString_setitem(void * jarg1, char * jarg2, char * jarg3) {
+SWIGEXPORT void SWIGSTDCALL CSharp_FiftyOnefMobilefDetectionfProviderfInteropfTrie_MapStringString_setitem___(void * jarg1, char * jarg2, char * jarg3) {
   std::map< std::string,std::string > *arg1 = (std::map< std::string,std::string > *) 0 ;
   std::map< std::string,std::string >::key_type *arg2 = 0 ;
   std::map< std::string,std::string >::mapped_type *arg3 = 0 ;
@@ -751,7 +751,7 @@ SWIGEXPORT void SWIGSTDCALL CSharp_MapStringString_setitem(void * jarg1, char * 
 }
 
 
-SWIGEXPORT unsigned int SWIGSTDCALL CSharp_MapStringString_ContainsKey(void * jarg1, char * jarg2) {
+SWIGEXPORT unsigned int SWIGSTDCALL CSharp_FiftyOnefMobilefDetectionfProviderfInteropfTrie_MapStringString_ContainsKey___(void * jarg1, char * jarg2) {
   unsigned int jresult ;
   std::map< std::string,std::string > *arg1 = (std::map< std::string,std::string > *) 0 ;
   std::map< std::string,std::string >::key_type *arg2 = 0 ;
@@ -784,7 +784,7 @@ SWIGEXPORT unsigned int SWIGSTDCALL CSharp_MapStringString_ContainsKey(void * ja
 }
 
 
-SWIGEXPORT void SWIGSTDCALL CSharp_MapStringString_Add(void * jarg1, char * jarg2, char * jarg3) {
+SWIGEXPORT void SWIGSTDCALL CSharp_FiftyOnefMobilefDetectionfProviderfInteropfTrie_MapStringString_Add___(void * jarg1, char * jarg2, char * jarg3) {
   std::map< std::string,std::string > *arg1 = (std::map< std::string,std::string > *) 0 ;
   std::map< std::string,std::string >::key_type *arg2 = 0 ;
   std::map< std::string,std::string >::mapped_type *arg3 = 0 ;
@@ -827,7 +827,7 @@ SWIGEXPORT void SWIGSTDCALL CSharp_MapStringString_Add(void * jarg1, char * jarg
 }
 
 
-SWIGEXPORT unsigned int SWIGSTDCALL CSharp_MapStringString_Remove(void * jarg1, char * jarg2) {
+SWIGEXPORT unsigned int SWIGSTDCALL CSharp_FiftyOnefMobilefDetectionfProviderfInteropfTrie_MapStringString_Remove___(void * jarg1, char * jarg2) {
   unsigned int jresult ;
   std::map< std::string,std::string > *arg1 = (std::map< std::string,std::string > *) 0 ;
   std::map< std::string,std::string >::key_type *arg2 = 0 ;
@@ -860,7 +860,7 @@ SWIGEXPORT unsigned int SWIGSTDCALL CSharp_MapStringString_Remove(void * jarg1, 
 }
 
 
-SWIGEXPORT void * SWIGSTDCALL CSharp_MapStringString_create_iterator_begin(void * jarg1) {
+SWIGEXPORT void * SWIGSTDCALL CSharp_FiftyOnefMobilefDetectionfProviderfInteropfTrie_MapStringString_create_iterator_begin___(void * jarg1) {
   void * jresult ;
   std::map< std::string,std::string > *arg1 = (std::map< std::string,std::string > *) 0 ;
   std::map< std::string,std::string,std::less< std::string > >::iterator *result = 0 ;
@@ -886,7 +886,7 @@ SWIGEXPORT void * SWIGSTDCALL CSharp_MapStringString_create_iterator_begin(void 
 }
 
 
-SWIGEXPORT char * SWIGSTDCALL CSharp_MapStringString_get_next_key(void * jarg1, void * jarg2) {
+SWIGEXPORT char * SWIGSTDCALL CSharp_FiftyOnefMobilefDetectionfProviderfInteropfTrie_MapStringString_get_next_key___(void * jarg1, void * jarg2) {
   char * jresult ;
   std::map< std::string,std::string > *arg1 = (std::map< std::string,std::string > *) 0 ;
   std::map< std::string,std::string,std::less< std::string > >::iterator *arg2 = (std::map< std::string,std::string,std::less< std::string > >::iterator *) 0 ;
@@ -914,7 +914,7 @@ SWIGEXPORT char * SWIGSTDCALL CSharp_MapStringString_get_next_key(void * jarg1, 
 }
 
 
-SWIGEXPORT void SWIGSTDCALL CSharp_MapStringString_destroy_iterator(void * jarg1, void * jarg2) {
+SWIGEXPORT void SWIGSTDCALL CSharp_FiftyOnefMobilefDetectionfProviderfInteropfTrie_MapStringString_destroy_iterator___(void * jarg1, void * jarg2) {
   std::map< std::string,std::string > *arg1 = (std::map< std::string,std::string > *) 0 ;
   std::map< std::string,std::string,std::less< std::string > >::iterator *arg2 = (std::map< std::string,std::string,std::less< std::string > >::iterator *) 0 ;
   
@@ -938,7 +938,7 @@ SWIGEXPORT void SWIGSTDCALL CSharp_MapStringString_destroy_iterator(void * jarg1
 }
 
 
-SWIGEXPORT void SWIGSTDCALL CSharp_delete_MapStringString(void * jarg1) {
+SWIGEXPORT void SWIGSTDCALL CSharp_FiftyOnefMobilefDetectionfProviderfInteropfTrie_delete_MapStringString___(void * jarg1) {
   std::map< std::string,std::string > *arg1 = (std::map< std::string,std::string > *) 0 ;
   
   arg1 = (std::map< std::string,std::string > *)jarg1; 
@@ -960,7 +960,7 @@ SWIGEXPORT void SWIGSTDCALL CSharp_delete_MapStringString(void * jarg1) {
 }
 
 
-SWIGEXPORT void SWIGSTDCALL CSharp_VectorString_Clear(void * jarg1) {
+SWIGEXPORT void SWIGSTDCALL CSharp_FiftyOnefMobilefDetectionfProviderfInteropfTrie_VectorString_Clear___(void * jarg1) {
   std::vector< std::string > *arg1 = (std::vector< std::string > *) 0 ;
   
   arg1 = (std::vector< std::string > *)jarg1; 
@@ -982,7 +982,7 @@ SWIGEXPORT void SWIGSTDCALL CSharp_VectorString_Clear(void * jarg1) {
 }
 
 
-SWIGEXPORT void SWIGSTDCALL CSharp_VectorString_Add(void * jarg1, char * jarg2) {
+SWIGEXPORT void SWIGSTDCALL CSharp_FiftyOnefMobilefDetectionfProviderfInteropfTrie_VectorString_Add___(void * jarg1, char * jarg2) {
   std::vector< std::string > *arg1 = (std::vector< std::string > *) 0 ;
   std::string *arg2 = 0 ;
   
@@ -1011,7 +1011,7 @@ SWIGEXPORT void SWIGSTDCALL CSharp_VectorString_Add(void * jarg1, char * jarg2) 
 }
 
 
-SWIGEXPORT unsigned long SWIGSTDCALL CSharp_VectorString_size(void * jarg1) {
+SWIGEXPORT unsigned long SWIGSTDCALL CSharp_FiftyOnefMobilefDetectionfProviderfInteropfTrie_VectorString_size___(void * jarg1) {
   unsigned long jresult ;
   std::vector< std::string > *arg1 = (std::vector< std::string > *) 0 ;
   std::vector< std::string >::size_type result;
@@ -1037,7 +1037,7 @@ SWIGEXPORT unsigned long SWIGSTDCALL CSharp_VectorString_size(void * jarg1) {
 }
 
 
-SWIGEXPORT unsigned long SWIGSTDCALL CSharp_VectorString_capacity(void * jarg1) {
+SWIGEXPORT unsigned long SWIGSTDCALL CSharp_FiftyOnefMobilefDetectionfProviderfInteropfTrie_VectorString_capacity___(void * jarg1) {
   unsigned long jresult ;
   std::vector< std::string > *arg1 = (std::vector< std::string > *) 0 ;
   std::vector< std::string >::size_type result;
@@ -1063,7 +1063,7 @@ SWIGEXPORT unsigned long SWIGSTDCALL CSharp_VectorString_capacity(void * jarg1) 
 }
 
 
-SWIGEXPORT void SWIGSTDCALL CSharp_VectorString_reserve(void * jarg1, unsigned long jarg2) {
+SWIGEXPORT void SWIGSTDCALL CSharp_FiftyOnefMobilefDetectionfProviderfInteropfTrie_VectorString_reserve___(void * jarg1, unsigned long jarg2) {
   std::vector< std::string > *arg1 = (std::vector< std::string > *) 0 ;
   std::vector< std::string >::size_type arg2 ;
   
@@ -1087,7 +1087,7 @@ SWIGEXPORT void SWIGSTDCALL CSharp_VectorString_reserve(void * jarg1, unsigned l
 }
 
 
-SWIGEXPORT void * SWIGSTDCALL CSharp_new_VectorString__SWIG_0() {
+SWIGEXPORT void * SWIGSTDCALL CSharp_FiftyOnefMobilefDetectionfProviderfInteropfTrie_new_VectorString__SWIG_0___() {
   void * jresult ;
   std::vector< std::string > *result = 0 ;
   
@@ -1111,7 +1111,7 @@ SWIGEXPORT void * SWIGSTDCALL CSharp_new_VectorString__SWIG_0() {
 }
 
 
-SWIGEXPORT void * SWIGSTDCALL CSharp_new_VectorString__SWIG_1(void * jarg1) {
+SWIGEXPORT void * SWIGSTDCALL CSharp_FiftyOnefMobilefDetectionfProviderfInteropfTrie_new_VectorString__SWIG_1___(void * jarg1) {
   void * jresult ;
   std::vector< std::string > *arg1 = 0 ;
   std::vector< std::string > *result = 0 ;
@@ -1141,7 +1141,7 @@ SWIGEXPORT void * SWIGSTDCALL CSharp_new_VectorString__SWIG_1(void * jarg1) {
 }
 
 
-SWIGEXPORT void * SWIGSTDCALL CSharp_new_VectorString__SWIG_2(int jarg1) {
+SWIGEXPORT void * SWIGSTDCALL CSharp_FiftyOnefMobilefDetectionfProviderfInteropfTrie_new_VectorString__SWIG_2___(int jarg1) {
   void * jresult ;
   int arg1 ;
   std::vector< std::string > *result = 0 ;
@@ -1174,7 +1174,7 @@ SWIGEXPORT void * SWIGSTDCALL CSharp_new_VectorString__SWIG_2(int jarg1) {
 }
 
 
-SWIGEXPORT char * SWIGSTDCALL CSharp_VectorString_getitemcopy(void * jarg1, int jarg2) {
+SWIGEXPORT char * SWIGSTDCALL CSharp_FiftyOnefMobilefDetectionfProviderfInteropfTrie_VectorString_getitemcopy___(void * jarg1, int jarg2) {
   char * jresult ;
   std::vector< std::string > *arg1 = (std::vector< std::string > *) 0 ;
   int arg2 ;
@@ -1209,7 +1209,7 @@ SWIGEXPORT char * SWIGSTDCALL CSharp_VectorString_getitemcopy(void * jarg1, int 
 }
 
 
-SWIGEXPORT char * SWIGSTDCALL CSharp_VectorString_getitem(void * jarg1, int jarg2) {
+SWIGEXPORT char * SWIGSTDCALL CSharp_FiftyOnefMobilefDetectionfProviderfInteropfTrie_VectorString_getitem___(void * jarg1, int jarg2) {
   char * jresult ;
   std::vector< std::string > *arg1 = (std::vector< std::string > *) 0 ;
   int arg2 ;
@@ -1244,7 +1244,7 @@ SWIGEXPORT char * SWIGSTDCALL CSharp_VectorString_getitem(void * jarg1, int jarg
 }
 
 
-SWIGEXPORT void SWIGSTDCALL CSharp_VectorString_setitem(void * jarg1, int jarg2, char * jarg3) {
+SWIGEXPORT void SWIGSTDCALL CSharp_FiftyOnefMobilefDetectionfProviderfInteropfTrie_VectorString_setitem___(void * jarg1, int jarg2, char * jarg3) {
   std::vector< std::string > *arg1 = (std::vector< std::string > *) 0 ;
   int arg2 ;
   std::string *arg3 = 0 ;
@@ -1282,7 +1282,7 @@ SWIGEXPORT void SWIGSTDCALL CSharp_VectorString_setitem(void * jarg1, int jarg2,
 }
 
 
-SWIGEXPORT void SWIGSTDCALL CSharp_VectorString_AddRange(void * jarg1, void * jarg2) {
+SWIGEXPORT void SWIGSTDCALL CSharp_FiftyOnefMobilefDetectionfProviderfInteropfTrie_VectorString_AddRange___(void * jarg1, void * jarg2) {
   std::vector< std::string > *arg1 = (std::vector< std::string > *) 0 ;
   std::vector< std::string > *arg2 = 0 ;
   
@@ -1310,7 +1310,7 @@ SWIGEXPORT void SWIGSTDCALL CSharp_VectorString_AddRange(void * jarg1, void * ja
 }
 
 
-SWIGEXPORT void * SWIGSTDCALL CSharp_VectorString_GetRange(void * jarg1, int jarg2, int jarg3) {
+SWIGEXPORT void * SWIGSTDCALL CSharp_FiftyOnefMobilefDetectionfProviderfInteropfTrie_VectorString_GetRange___(void * jarg1, int jarg2, int jarg3) {
   void * jresult ;
   std::vector< std::string > *arg1 = (std::vector< std::string > *) 0 ;
   int arg2 ;
@@ -1351,7 +1351,7 @@ SWIGEXPORT void * SWIGSTDCALL CSharp_VectorString_GetRange(void * jarg1, int jar
 }
 
 
-SWIGEXPORT void SWIGSTDCALL CSharp_VectorString_Insert(void * jarg1, int jarg2, char * jarg3) {
+SWIGEXPORT void SWIGSTDCALL CSharp_FiftyOnefMobilefDetectionfProviderfInteropfTrie_VectorString_Insert___(void * jarg1, int jarg2, char * jarg3) {
   std::vector< std::string > *arg1 = (std::vector< std::string > *) 0 ;
   int arg2 ;
   std::string *arg3 = 0 ;
@@ -1389,7 +1389,7 @@ SWIGEXPORT void SWIGSTDCALL CSharp_VectorString_Insert(void * jarg1, int jarg2, 
 }
 
 
-SWIGEXPORT void SWIGSTDCALL CSharp_VectorString_InsertRange(void * jarg1, int jarg2, void * jarg3) {
+SWIGEXPORT void SWIGSTDCALL CSharp_FiftyOnefMobilefDetectionfProviderfInteropfTrie_VectorString_InsertRange___(void * jarg1, int jarg2, void * jarg3) {
   std::vector< std::string > *arg1 = (std::vector< std::string > *) 0 ;
   int arg2 ;
   std::vector< std::string > *arg3 = 0 ;
@@ -1426,7 +1426,7 @@ SWIGEXPORT void SWIGSTDCALL CSharp_VectorString_InsertRange(void * jarg1, int ja
 }
 
 
-SWIGEXPORT void SWIGSTDCALL CSharp_VectorString_RemoveAt(void * jarg1, int jarg2) {
+SWIGEXPORT void SWIGSTDCALL CSharp_FiftyOnefMobilefDetectionfProviderfInteropfTrie_VectorString_RemoveAt___(void * jarg1, int jarg2) {
   std::vector< std::string > *arg1 = (std::vector< std::string > *) 0 ;
   int arg2 ;
   
@@ -1457,7 +1457,7 @@ SWIGEXPORT void SWIGSTDCALL CSharp_VectorString_RemoveAt(void * jarg1, int jarg2
 }
 
 
-SWIGEXPORT void SWIGSTDCALL CSharp_VectorString_RemoveRange(void * jarg1, int jarg2, int jarg3) {
+SWIGEXPORT void SWIGSTDCALL CSharp_FiftyOnefMobilefDetectionfProviderfInteropfTrie_VectorString_RemoveRange___(void * jarg1, int jarg2, int jarg3) {
   std::vector< std::string > *arg1 = (std::vector< std::string > *) 0 ;
   int arg2 ;
   int arg3 ;
@@ -1494,7 +1494,7 @@ SWIGEXPORT void SWIGSTDCALL CSharp_VectorString_RemoveRange(void * jarg1, int ja
 }
 
 
-SWIGEXPORT void * SWIGSTDCALL CSharp_VectorString_Repeat(char * jarg1, int jarg2) {
+SWIGEXPORT void * SWIGSTDCALL CSharp_FiftyOnefMobilefDetectionfProviderfInteropfTrie_VectorString_Repeat___(char * jarg1, int jarg2) {
   void * jresult ;
   std::string *arg1 = 0 ;
   int arg2 ;
@@ -1534,7 +1534,7 @@ SWIGEXPORT void * SWIGSTDCALL CSharp_VectorString_Repeat(char * jarg1, int jarg2
 }
 
 
-SWIGEXPORT void SWIGSTDCALL CSharp_VectorString_Reverse__SWIG_0(void * jarg1) {
+SWIGEXPORT void SWIGSTDCALL CSharp_FiftyOnefMobilefDetectionfProviderfInteropfTrie_VectorString_Reverse__SWIG_0___(void * jarg1) {
   std::vector< std::string > *arg1 = (std::vector< std::string > *) 0 ;
   
   arg1 = (std::vector< std::string > *)jarg1; 
@@ -1556,7 +1556,7 @@ SWIGEXPORT void SWIGSTDCALL CSharp_VectorString_Reverse__SWIG_0(void * jarg1) {
 }
 
 
-SWIGEXPORT void SWIGSTDCALL CSharp_VectorString_Reverse__SWIG_1(void * jarg1, int jarg2, int jarg3) {
+SWIGEXPORT void SWIGSTDCALL CSharp_FiftyOnefMobilefDetectionfProviderfInteropfTrie_VectorString_Reverse__SWIG_1___(void * jarg1, int jarg2, int jarg3) {
   std::vector< std::string > *arg1 = (std::vector< std::string > *) 0 ;
   int arg2 ;
   int arg3 ;
@@ -1593,7 +1593,7 @@ SWIGEXPORT void SWIGSTDCALL CSharp_VectorString_Reverse__SWIG_1(void * jarg1, in
 }
 
 
-SWIGEXPORT void SWIGSTDCALL CSharp_VectorString_SetRange(void * jarg1, int jarg2, void * jarg3) {
+SWIGEXPORT void SWIGSTDCALL CSharp_FiftyOnefMobilefDetectionfProviderfInteropfTrie_VectorString_SetRange___(void * jarg1, int jarg2, void * jarg3) {
   std::vector< std::string > *arg1 = (std::vector< std::string > *) 0 ;
   int arg2 ;
   std::vector< std::string > *arg3 = 0 ;
@@ -1630,7 +1630,7 @@ SWIGEXPORT void SWIGSTDCALL CSharp_VectorString_SetRange(void * jarg1, int jarg2
 }
 
 
-SWIGEXPORT unsigned int SWIGSTDCALL CSharp_VectorString_Contains(void * jarg1, char * jarg2) {
+SWIGEXPORT unsigned int SWIGSTDCALL CSharp_FiftyOnefMobilefDetectionfProviderfInteropfTrie_VectorString_Contains___(void * jarg1, char * jarg2) {
   unsigned int jresult ;
   std::vector< std::string > *arg1 = (std::vector< std::string > *) 0 ;
   std::string *arg2 = 0 ;
@@ -1663,7 +1663,7 @@ SWIGEXPORT unsigned int SWIGSTDCALL CSharp_VectorString_Contains(void * jarg1, c
 }
 
 
-SWIGEXPORT int SWIGSTDCALL CSharp_VectorString_IndexOf(void * jarg1, char * jarg2) {
+SWIGEXPORT int SWIGSTDCALL CSharp_FiftyOnefMobilefDetectionfProviderfInteropfTrie_VectorString_IndexOf___(void * jarg1, char * jarg2) {
   int jresult ;
   std::vector< std::string > *arg1 = (std::vector< std::string > *) 0 ;
   std::string *arg2 = 0 ;
@@ -1696,7 +1696,7 @@ SWIGEXPORT int SWIGSTDCALL CSharp_VectorString_IndexOf(void * jarg1, char * jarg
 }
 
 
-SWIGEXPORT int SWIGSTDCALL CSharp_VectorString_LastIndexOf(void * jarg1, char * jarg2) {
+SWIGEXPORT int SWIGSTDCALL CSharp_FiftyOnefMobilefDetectionfProviderfInteropfTrie_VectorString_LastIndexOf___(void * jarg1, char * jarg2) {
   int jresult ;
   std::vector< std::string > *arg1 = (std::vector< std::string > *) 0 ;
   std::string *arg2 = 0 ;
@@ -1729,7 +1729,7 @@ SWIGEXPORT int SWIGSTDCALL CSharp_VectorString_LastIndexOf(void * jarg1, char * 
 }
 
 
-SWIGEXPORT unsigned int SWIGSTDCALL CSharp_VectorString_Remove(void * jarg1, char * jarg2) {
+SWIGEXPORT unsigned int SWIGSTDCALL CSharp_FiftyOnefMobilefDetectionfProviderfInteropfTrie_VectorString_Remove___(void * jarg1, char * jarg2) {
   unsigned int jresult ;
   std::vector< std::string > *arg1 = (std::vector< std::string > *) 0 ;
   std::string *arg2 = 0 ;
@@ -1762,7 +1762,7 @@ SWIGEXPORT unsigned int SWIGSTDCALL CSharp_VectorString_Remove(void * jarg1, cha
 }
 
 
-SWIGEXPORT void SWIGSTDCALL CSharp_delete_VectorString(void * jarg1) {
+SWIGEXPORT void SWIGSTDCALL CSharp_FiftyOnefMobilefDetectionfProviderfInteropfTrie_delete_VectorString___(void * jarg1) {
   std::vector< std::string > *arg1 = (std::vector< std::string > *) 0 ;
   
   arg1 = (std::vector< std::string > *)jarg1; 
@@ -1784,7 +1784,7 @@ SWIGEXPORT void SWIGSTDCALL CSharp_delete_VectorString(void * jarg1) {
 }
 
 
-SWIGEXPORT void SWIGSTDCALL CSharp_delete_Match(void * jarg1) {
+SWIGEXPORT void SWIGSTDCALL CSharp_FiftyOnefMobilefDetectionfProviderfInteropfTrie_delete_Match___(void * jarg1) {
   Match *arg1 = (Match *) 0 ;
   
   arg1 = (Match *)jarg1; 
@@ -1806,7 +1806,7 @@ SWIGEXPORT void SWIGSTDCALL CSharp_delete_Match(void * jarg1) {
 }
 
 
-SWIGEXPORT void * SWIGSTDCALL CSharp_Match_getValues__SWIG_0(void * jarg1, char * jarg2) {
+SWIGEXPORT void * SWIGSTDCALL CSharp_FiftyOnefMobilefDetectionfProviderfInteropfTrie_Match_getValues__SWIG_0___(void * jarg1, char * jarg2) {
   void * jresult ;
   Match *arg1 = (Match *) 0 ;
   char *arg2 = (char *) 0 ;
@@ -1834,7 +1834,7 @@ SWIGEXPORT void * SWIGSTDCALL CSharp_Match_getValues__SWIG_0(void * jarg1, char 
 }
 
 
-SWIGEXPORT void * SWIGSTDCALL CSharp_Match_getValues__SWIG_1(void * jarg1, void * jarg2) {
+SWIGEXPORT void * SWIGSTDCALL CSharp_FiftyOnefMobilefDetectionfProviderfInteropfTrie_Match_getValues__SWIG_1___(void * jarg1, void * jarg2) {
   void * jresult ;
   Match *arg1 = (Match *) 0 ;
   std::string *arg2 = 0 ;
@@ -1866,7 +1866,7 @@ SWIGEXPORT void * SWIGSTDCALL CSharp_Match_getValues__SWIG_1(void * jarg1, void 
 }
 
 
-SWIGEXPORT void * SWIGSTDCALL CSharp_Match_getValues__SWIG_2(void * jarg1, int jarg2) {
+SWIGEXPORT void * SWIGSTDCALL CSharp_FiftyOnefMobilefDetectionfProviderfInteropfTrie_Match_getValues__SWIG_2___(void * jarg1, int jarg2) {
   void * jresult ;
   Match *arg1 = (Match *) 0 ;
   int arg2 ;
@@ -1894,7 +1894,7 @@ SWIGEXPORT void * SWIGSTDCALL CSharp_Match_getValues__SWIG_2(void * jarg1, int j
 }
 
 
-SWIGEXPORT char * SWIGSTDCALL CSharp_Match_getValue__SWIG_0(void * jarg1, char * jarg2) {
+SWIGEXPORT char * SWIGSTDCALL CSharp_FiftyOnefMobilefDetectionfProviderfInteropfTrie_Match_getValue__SWIG_0___(void * jarg1, char * jarg2) {
   char * jresult ;
   Match *arg1 = (Match *) 0 ;
   char *arg2 = (char *) 0 ;
@@ -1922,7 +1922,7 @@ SWIGEXPORT char * SWIGSTDCALL CSharp_Match_getValue__SWIG_0(void * jarg1, char *
 }
 
 
-SWIGEXPORT char * SWIGSTDCALL CSharp_Match_getValue__SWIG_1(void * jarg1, void * jarg2) {
+SWIGEXPORT char * SWIGSTDCALL CSharp_FiftyOnefMobilefDetectionfProviderfInteropfTrie_Match_getValue__SWIG_1___(void * jarg1, void * jarg2) {
   char * jresult ;
   Match *arg1 = (Match *) 0 ;
   std::string *arg2 = 0 ;
@@ -1954,7 +1954,7 @@ SWIGEXPORT char * SWIGSTDCALL CSharp_Match_getValue__SWIG_1(void * jarg1, void *
 }
 
 
-SWIGEXPORT char * SWIGSTDCALL CSharp_Match_getValue__SWIG_2(void * jarg1, int jarg2) {
+SWIGEXPORT char * SWIGSTDCALL CSharp_FiftyOnefMobilefDetectionfProviderfInteropfTrie_Match_getValue__SWIG_2___(void * jarg1, int jarg2) {
   char * jresult ;
   Match *arg1 = (Match *) 0 ;
   int arg2 ;
@@ -1982,7 +1982,7 @@ SWIGEXPORT char * SWIGSTDCALL CSharp_Match_getValue__SWIG_2(void * jarg1, int ja
 }
 
 
-SWIGEXPORT char * SWIGSTDCALL CSharp_Match_getDeviceId(void * jarg1) {
+SWIGEXPORT char * SWIGSTDCALL CSharp_FiftyOnefMobilefDetectionfProviderfInteropfTrie_Match_getDeviceId___(void * jarg1) {
   char * jresult ;
   Match *arg1 = (Match *) 0 ;
   std::string result;
@@ -2008,7 +2008,7 @@ SWIGEXPORT char * SWIGSTDCALL CSharp_Match_getDeviceId(void * jarg1) {
 }
 
 
-SWIGEXPORT int SWIGSTDCALL CSharp_Match_getRank(void * jarg1) {
+SWIGEXPORT int SWIGSTDCALL CSharp_FiftyOnefMobilefDetectionfProviderfInteropfTrie_Match_getRank___(void * jarg1) {
   int jresult ;
   Match *arg1 = (Match *) 0 ;
   int result;
@@ -2034,7 +2034,7 @@ SWIGEXPORT int SWIGSTDCALL CSharp_Match_getRank(void * jarg1) {
 }
 
 
-SWIGEXPORT int SWIGSTDCALL CSharp_Match_getDifference(void * jarg1) {
+SWIGEXPORT int SWIGSTDCALL CSharp_FiftyOnefMobilefDetectionfProviderfInteropfTrie_Match_getDifference___(void * jarg1) {
   int jresult ;
   Match *arg1 = (Match *) 0 ;
   int result;
@@ -2060,7 +2060,7 @@ SWIGEXPORT int SWIGSTDCALL CSharp_Match_getDifference(void * jarg1) {
 }
 
 
-SWIGEXPORT int SWIGSTDCALL CSharp_Match_getMethod(void * jarg1) {
+SWIGEXPORT int SWIGSTDCALL CSharp_FiftyOnefMobilefDetectionfProviderfInteropfTrie_Match_getMethod___(void * jarg1) {
   int jresult ;
   Match *arg1 = (Match *) 0 ;
   int result;
@@ -2086,7 +2086,7 @@ SWIGEXPORT int SWIGSTDCALL CSharp_Match_getMethod(void * jarg1) {
 }
 
 
-SWIGEXPORT char * SWIGSTDCALL CSharp_Match_getUserAgent(void * jarg1) {
+SWIGEXPORT char * SWIGSTDCALL CSharp_FiftyOnefMobilefDetectionfProviderfInteropfTrie_Match_getUserAgent___(void * jarg1) {
   char * jresult ;
   Match *arg1 = (Match *) 0 ;
   std::string result;
@@ -2112,7 +2112,7 @@ SWIGEXPORT char * SWIGSTDCALL CSharp_Match_getUserAgent(void * jarg1) {
 }
 
 
-SWIGEXPORT void * SWIGSTDCALL CSharp_new_Provider__SWIG_0(char * jarg1) {
+SWIGEXPORT void * SWIGSTDCALL CSharp_FiftyOnefMobilefDetectionfProviderfInteropfTrie_new_Provider__SWIG_0___(char * jarg1) {
   void * jresult ;
   std::string *arg1 = 0 ;
   Provider *result = 0 ;
@@ -2143,7 +2143,7 @@ SWIGEXPORT void * SWIGSTDCALL CSharp_new_Provider__SWIG_0(char * jarg1) {
 }
 
 
-SWIGEXPORT void * SWIGSTDCALL CSharp_new_Provider__SWIG_1(char * jarg1, char * jarg2) {
+SWIGEXPORT void * SWIGSTDCALL CSharp_FiftyOnefMobilefDetectionfProviderfInteropfTrie_new_Provider__SWIG_1___(char * jarg1, char * jarg2) {
   void * jresult ;
   std::string *arg1 = 0 ;
   std::string *arg2 = 0 ;
@@ -2181,7 +2181,7 @@ SWIGEXPORT void * SWIGSTDCALL CSharp_new_Provider__SWIG_1(char * jarg1, char * j
 }
 
 
-SWIGEXPORT void * SWIGSTDCALL CSharp_new_Provider__SWIG_2(char * jarg1, void * jarg2) {
+SWIGEXPORT void * SWIGSTDCALL CSharp_FiftyOnefMobilefDetectionfProviderfInteropfTrie_new_Provider__SWIG_2___(char * jarg1, void * jarg2) {
   void * jresult ;
   std::string *arg1 = 0 ;
   std::vector< std::string > *arg2 = 0 ;
@@ -2218,7 +2218,7 @@ SWIGEXPORT void * SWIGSTDCALL CSharp_new_Provider__SWIG_2(char * jarg1, void * j
 }
 
 
-SWIGEXPORT void SWIGSTDCALL CSharp_delete_Provider(void * jarg1) {
+SWIGEXPORT void SWIGSTDCALL CSharp_FiftyOnefMobilefDetectionfProviderfInteropfTrie_delete_Provider___(void * jarg1) {
   Provider *arg1 = (Provider *) 0 ;
   
   arg1 = (Provider *)jarg1; 
@@ -2240,7 +2240,7 @@ SWIGEXPORT void SWIGSTDCALL CSharp_delete_Provider(void * jarg1) {
 }
 
 
-SWIGEXPORT void * SWIGSTDCALL CSharp_Provider_getHttpHeaders(void * jarg1) {
+SWIGEXPORT void * SWIGSTDCALL CSharp_FiftyOnefMobilefDetectionfProviderfInteropfTrie_Provider_getHttpHeaders___(void * jarg1) {
   void * jresult ;
   Provider *arg1 = (Provider *) 0 ;
   std::vector< std::string > result;
@@ -2266,7 +2266,7 @@ SWIGEXPORT void * SWIGSTDCALL CSharp_Provider_getHttpHeaders(void * jarg1) {
 }
 
 
-SWIGEXPORT void * SWIGSTDCALL CSharp_Provider_getAvailableProperties(void * jarg1) {
+SWIGEXPORT void * SWIGSTDCALL CSharp_FiftyOnefMobilefDetectionfProviderfInteropfTrie_Provider_getAvailableProperties___(void * jarg1) {
   void * jresult ;
   Provider *arg1 = (Provider *) 0 ;
   std::vector< std::string > result;
@@ -2292,7 +2292,7 @@ SWIGEXPORT void * SWIGSTDCALL CSharp_Provider_getAvailableProperties(void * jarg
 }
 
 
-SWIGEXPORT char * SWIGSTDCALL CSharp_Provider_getDataSetName(void * jarg1) {
+SWIGEXPORT char * SWIGSTDCALL CSharp_FiftyOnefMobilefDetectionfProviderfInteropfTrie_Provider_getDataSetName___(void * jarg1) {
   char * jresult ;
   Provider *arg1 = (Provider *) 0 ;
   std::string result;
@@ -2318,7 +2318,7 @@ SWIGEXPORT char * SWIGSTDCALL CSharp_Provider_getDataSetName(void * jarg1) {
 }
 
 
-SWIGEXPORT char * SWIGSTDCALL CSharp_Provider_getDataSetFormat(void * jarg1) {
+SWIGEXPORT char * SWIGSTDCALL CSharp_FiftyOnefMobilefDetectionfProviderfInteropfTrie_Provider_getDataSetFormat___(void * jarg1) {
   char * jresult ;
   Provider *arg1 = (Provider *) 0 ;
   std::string result;
@@ -2344,7 +2344,7 @@ SWIGEXPORT char * SWIGSTDCALL CSharp_Provider_getDataSetFormat(void * jarg1) {
 }
 
 
-SWIGEXPORT char * SWIGSTDCALL CSharp_Provider_getDataSetPublishedDate(void * jarg1) {
+SWIGEXPORT char * SWIGSTDCALL CSharp_FiftyOnefMobilefDetectionfProviderfInteropfTrie_Provider_getDataSetPublishedDate___(void * jarg1) {
   char * jresult ;
   Provider *arg1 = (Provider *) 0 ;
   std::string result;
@@ -2370,7 +2370,7 @@ SWIGEXPORT char * SWIGSTDCALL CSharp_Provider_getDataSetPublishedDate(void * jar
 }
 
 
-SWIGEXPORT char * SWIGSTDCALL CSharp_Provider_getDataSetNextUpdateDate(void * jarg1) {
+SWIGEXPORT char * SWIGSTDCALL CSharp_FiftyOnefMobilefDetectionfProviderfInteropfTrie_Provider_getDataSetNextUpdateDate___(void * jarg1) {
   char * jresult ;
   Provider *arg1 = (Provider *) 0 ;
   std::string result;
@@ -2396,7 +2396,7 @@ SWIGEXPORT char * SWIGSTDCALL CSharp_Provider_getDataSetNextUpdateDate(void * ja
 }
 
 
-SWIGEXPORT int SWIGSTDCALL CSharp_Provider_getDataSetSignatureCount(void * jarg1) {
+SWIGEXPORT int SWIGSTDCALL CSharp_FiftyOnefMobilefDetectionfProviderfInteropfTrie_Provider_getDataSetSignatureCount___(void * jarg1) {
   int jresult ;
   Provider *arg1 = (Provider *) 0 ;
   int result;
@@ -2422,7 +2422,7 @@ SWIGEXPORT int SWIGSTDCALL CSharp_Provider_getDataSetSignatureCount(void * jarg1
 }
 
 
-SWIGEXPORT int SWIGSTDCALL CSharp_Provider_getDataSetDeviceCombinations(void * jarg1) {
+SWIGEXPORT int SWIGSTDCALL CSharp_FiftyOnefMobilefDetectionfProviderfInteropfTrie_Provider_getDataSetDeviceCombinations___(void * jarg1) {
   int jresult ;
   Provider *arg1 = (Provider *) 0 ;
   int result;
@@ -2448,7 +2448,7 @@ SWIGEXPORT int SWIGSTDCALL CSharp_Provider_getDataSetDeviceCombinations(void * j
 }
 
 
-SWIGEXPORT void * SWIGSTDCALL CSharp_Provider_getMatch__SWIG_0(void * jarg1, char * jarg2) {
+SWIGEXPORT void * SWIGSTDCALL CSharp_FiftyOnefMobilefDetectionfProviderfInteropfTrie_Provider_getMatch__SWIG_0___(void * jarg1, char * jarg2) {
   void * jresult ;
   Provider *arg1 = (Provider *) 0 ;
   std::string *arg2 = 0 ;
@@ -2481,7 +2481,7 @@ SWIGEXPORT void * SWIGSTDCALL CSharp_Provider_getMatch__SWIG_0(void * jarg1, cha
 }
 
 
-SWIGEXPORT void * SWIGSTDCALL CSharp_Provider_getMatch__SWIG_1(void * jarg1, void * jarg2) {
+SWIGEXPORT void * SWIGSTDCALL CSharp_FiftyOnefMobilefDetectionfProviderfInteropfTrie_Provider_getMatch__SWIG_1___(void * jarg1, void * jarg2) {
   void * jresult ;
   Provider *arg1 = (Provider *) 0 ;
   std::map< std::string,std::string,std::less< std::string > > *arg2 = 0 ;
@@ -2513,7 +2513,7 @@ SWIGEXPORT void * SWIGSTDCALL CSharp_Provider_getMatch__SWIG_1(void * jarg1, voi
 }
 
 
-SWIGEXPORT char * SWIGSTDCALL CSharp_Provider_getMatchJson__SWIG_0(void * jarg1, char * jarg2) {
+SWIGEXPORT char * SWIGSTDCALL CSharp_FiftyOnefMobilefDetectionfProviderfInteropfTrie_Provider_getMatchJson__SWIG_0___(void * jarg1, char * jarg2) {
   char * jresult ;
   Provider *arg1 = (Provider *) 0 ;
   std::string *arg2 = 0 ;
@@ -2546,7 +2546,7 @@ SWIGEXPORT char * SWIGSTDCALL CSharp_Provider_getMatchJson__SWIG_0(void * jarg1,
 }
 
 
-SWIGEXPORT char * SWIGSTDCALL CSharp_Provider_getMatchJson__SWIG_1(void * jarg1, void * jarg2) {
+SWIGEXPORT char * SWIGSTDCALL CSharp_FiftyOnefMobilefDetectionfProviderfInteropfTrie_Provider_getMatchJson__SWIG_1___(void * jarg1, void * jarg2) {
   char * jresult ;
   Provider *arg1 = (Provider *) 0 ;
   std::map< std::string,std::string,std::less< std::string > > *arg2 = 0 ;
@@ -2578,7 +2578,7 @@ SWIGEXPORT char * SWIGSTDCALL CSharp_Provider_getMatchJson__SWIG_1(void * jarg1,
 }
 
 
-SWIGEXPORT void SWIGSTDCALL CSharp_Provider_reloadFromFile(void * jarg1) {
+SWIGEXPORT void SWIGSTDCALL CSharp_FiftyOnefMobilefDetectionfProviderfInteropfTrie_Provider_reloadFromFile___(void * jarg1) {
   Provider *arg1 = (Provider *) 0 ;
   
   arg1 = (Provider *)jarg1; 
@@ -2600,7 +2600,7 @@ SWIGEXPORT void SWIGSTDCALL CSharp_Provider_reloadFromFile(void * jarg1) {
 }
 
 
-SWIGEXPORT void SWIGSTDCALL CSharp_Provider_reloadFromMemory(void * jarg1, char * jarg2, int jarg3) {
+SWIGEXPORT void SWIGSTDCALL CSharp_FiftyOnefMobilefDetectionfProviderfInteropfTrie_Provider_reloadFromMemory___(void * jarg1, char * jarg2, int jarg3) {
   Provider *arg1 = (Provider *) 0 ;
   std::string *arg2 = 0 ;
   int arg3 ;
@@ -2631,7 +2631,7 @@ SWIGEXPORT void SWIGSTDCALL CSharp_Provider_reloadFromMemory(void * jarg1, char 
 }
 
 
-SWIGEXPORT void * SWIGSTDCALL CSharp_new_Provider__SWIG_3(char * jarg1, char * jarg2, unsigned int jarg3) {
+SWIGEXPORT void * SWIGSTDCALL CSharp_FiftyOnefMobilefDetectionfProviderfInteropfTrie_new_Provider__SWIG_3___(char * jarg1, char * jarg2, unsigned int jarg3) {
   void * jresult ;
   std::string *arg1 = 0 ;
   std::string *arg2 = 0 ;
