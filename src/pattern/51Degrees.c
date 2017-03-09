@@ -127,6 +127,12 @@ void (FIFTYONEDEGREES_CALL_CONV *fiftyoneDegreesFree)(void *__ptr) = free;
 #define FIFTYONEDEGREES_METRIC_DIFFERENCE_INDEX 2
 #define FIFTYONEDEGREES_METRIC_ID_INDEX 3
 
+/**
+* MAX PROPERTY VALUE LENGTH MEMORY ALLOCATION MACROS
+*/
+#define SIZE_OF_MAX_PROPERTY_VALUES(h) (h.properties.count + FIFTYONEDEGREES_METRIC_COUNT) * sizeof(int32_t)
+
+
  /**
  * \cond
  * DATA SET FILE AND MEMORY METHODS
@@ -706,8 +712,7 @@ static fiftyoneDegreesDataSetInitStatus setMaxPropertyValueLength(fiftyoneDegree
 
 	// Allocate the array. This is the number of properties, plus 4 for the match metrics.
 	dataSet->maxPropertyValueLength =
-		(int32_t*)fiftyoneDegreesMalloc(
-		(dataSet->header.properties.count + FIFTYONEDEGREES_METRIC_COUNT) * sizeof(int32_t));
+		(int32_t*)fiftyoneDegreesMalloc(SIZE_OF_MAX_PROPERTY_VALUES(dataSet->header));
 
 	if (dataSet->maxPropertyValueLength == NULL)
 		return DATA_SET_INIT_STATUS_INSUFFICIENT_MEMORY;
@@ -2012,6 +2017,9 @@ static size_t getProviderSizeWithPropertyCount(size_t sizeOfFile, fiftyoneDegree
 	// Add profile structures.
 	size += (SIZE_OF_PROFILES_STRUCT_ARRAY(header));
 	size += (SIZE_OF_PROFILE_INDEXES_STRUCT(header.values.count));
+
+	// Add max property value length values.
+	size += (SIZE_OF_MAX_PROPERTY_VALUES(header));
 
 	// Add cache.
 	if (cacheSize > 0) {
