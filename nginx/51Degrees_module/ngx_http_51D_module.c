@@ -1268,7 +1268,7 @@ void ngx_http_51D_get_value(ngx_http_51D_main_conf_t *fdmcf, char *values_string
  * @param values_string the string to append the returned value to.
  * @param requiredPropertyName the name of the property to get the value for.
  */
-void ngx_http_51D_get_value(ngx_http_51D_main_conf_t *fdmcf, char *values_string, const char *requiredPropertyName, fiftyoneDegreesDeviceOffsets *offsets, )
+void ngx_http_51D_get_value(ngx_http_51D_main_conf_t *fdmcf, char *values_string, const char *requiredPropertyName, fiftyoneDegreesDeviceOffsets *offsets)
 {
 	fiftyoneDegreesDataSet *dataSet = fdmcf->dataSet;
 	char *valueDelimiter = (char*)fdmcf->valueSeparator.data;

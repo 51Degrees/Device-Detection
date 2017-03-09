@@ -5778,6 +5778,120 @@ XS(_wrap_Provider_reloadFromMemory) {
 }
 
 
+XS(_wrap_Provider_getCacheHits) {
+  {
+    Provider *arg1 = (Provider *) 0 ;
+    void *argp1 = 0 ;
+    int res1 = 0 ;
+    int argvi = 0;
+    int result;
+    dXSARGS;
+    
+    if ((items < 1) || (items > 1)) {
+      SWIG_croak("Usage: Provider_getCacheHits(self);");
+    }
+    res1 = SWIG_ConvertPtr(ST(0), &argp1,SWIGTYPE_p_Provider, 0 |  0 );
+    if (!SWIG_IsOK(res1)) {
+      SWIG_exception_fail(SWIG_ArgError(res1), "in method '" "Provider_getCacheHits" "', argument " "1"" of type '" "Provider *""'"); 
+    }
+    arg1 = reinterpret_cast< Provider * >(argp1);
+    {
+      try {
+        result = (int)(arg1)->getCacheHits();;
+      }
+      catch(runtime_error& e) {
+        SWIG_exception(SWIG_RuntimeError, e.what());
+      }
+      catch(invalid_argument& e) {
+        SWIG_exception(SWIG_ValueError, e.what());
+      }
+    }
+    ST(argvi) = SWIG_From_int  SWIG_PERL_CALL_ARGS_1(static_cast< int >(result)); argvi++ ;
+    
+    XSRETURN(argvi);
+  fail:
+    
+    SWIG_croak_null();
+  }
+}
+
+
+XS(_wrap_Provider_getCacheMisses) {
+  {
+    Provider *arg1 = (Provider *) 0 ;
+    void *argp1 = 0 ;
+    int res1 = 0 ;
+    int argvi = 0;
+    int result;
+    dXSARGS;
+    
+    if ((items < 1) || (items > 1)) {
+      SWIG_croak("Usage: Provider_getCacheMisses(self);");
+    }
+    res1 = SWIG_ConvertPtr(ST(0), &argp1,SWIGTYPE_p_Provider, 0 |  0 );
+    if (!SWIG_IsOK(res1)) {
+      SWIG_exception_fail(SWIG_ArgError(res1), "in method '" "Provider_getCacheMisses" "', argument " "1"" of type '" "Provider *""'"); 
+    }
+    arg1 = reinterpret_cast< Provider * >(argp1);
+    {
+      try {
+        result = (int)(arg1)->getCacheMisses();;
+      }
+      catch(runtime_error& e) {
+        SWIG_exception(SWIG_RuntimeError, e.what());
+      }
+      catch(invalid_argument& e) {
+        SWIG_exception(SWIG_ValueError, e.what());
+      }
+    }
+    ST(argvi) = SWIG_From_int  SWIG_PERL_CALL_ARGS_1(static_cast< int >(result)); argvi++ ;
+    
+    XSRETURN(argvi);
+  fail:
+    
+    SWIG_croak_null();
+  }
+}
+
+
+XS(_wrap_Provider_getCacheMaxIterations) {
+  {
+    Provider *arg1 = (Provider *) 0 ;
+    void *argp1 = 0 ;
+    int res1 = 0 ;
+    int argvi = 0;
+    int result;
+    dXSARGS;
+    
+    if ((items < 1) || (items > 1)) {
+      SWIG_croak("Usage: Provider_getCacheMaxIterations(self);");
+    }
+    res1 = SWIG_ConvertPtr(ST(0), &argp1,SWIGTYPE_p_Provider, 0 |  0 );
+    if (!SWIG_IsOK(res1)) {
+      SWIG_exception_fail(SWIG_ArgError(res1), "in method '" "Provider_getCacheMaxIterations" "', argument " "1"" of type '" "Provider *""'"); 
+    }
+    arg1 = reinterpret_cast< Provider * >(argp1);
+    {
+      try {
+        result = (int)(arg1)->getCacheMaxIterations();;
+      }
+      catch(runtime_error& e) {
+        SWIG_exception(SWIG_RuntimeError, e.what());
+      }
+      catch(invalid_argument& e) {
+        SWIG_exception(SWIG_ValueError, e.what());
+      }
+    }
+    ST(argvi) = SWIG_From_int  SWIG_PERL_CALL_ARGS_1(static_cast< int >(result)); argvi++ ;
+    
+    XSRETURN(argvi);
+  fail:
+    
+    SWIG_croak_null();
+  }
+}
+
+
 XS(_wrap_new_Provider__SWIG_6) {
   {
     std::string *arg1 = 0 ;
@@ -6290,6 +6404,9 @@ static swig_command_info swig_commands[] = {
 {"FiftyOneDegrees::PatternV3c::Provider_findProfiles", _wrap_Provider_findProfiles},
 {"FiftyOneDegrees::PatternV3c::Provider_reloadFromFile", _wrap_Provider_reloadFromFile},
 {"FiftyOneDegrees::PatternV3c::Provider_reloadFromMemory", _wrap_Provider_reloadFromMemory},
+{"FiftyOneDegrees::PatternV3c::Provider_getCacheHits", _wrap_Provider_getCacheHits},
+{"FiftyOneDegrees::PatternV3c::Provider_getCacheMisses", _wrap_Provider_getCacheMisses},
+{"FiftyOneDegrees::PatternV3c::Provider_getCacheMaxIterations", _wrap_Provider_getCacheMaxIterations},
 {"FiftyOneDegrees::PatternV3c::new_Provider", _wrap_new_Provider},
 {0,0}
 };

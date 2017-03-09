@@ -14,6 +14,7 @@ if test "$PHP_FIFTYONEDEGREESTRIEV3" = "yes"; then
   AC_CONFIG_COMMANDS_PRE(swig -php -c++ -o src/trie/51Degrees_PHP.cpp src/trie/51Degrees.i)
   AC_CONFIG_COMMANDS_PRE(mkdir includes)
   AC_CONFIG_COMMANDS_PRE(cp src/trie/FiftyOneDegreesTrieV3.php includes/)
+  AC_CONFIG_COMMANDS_PRE(cp src/trie/FiftyOneDegreesTrieV3.php ./)
 
   AC_DEFINE(HAVE_FIFTYONEDEGREESTRIEV3, 1, [Whether you have 51Degrees Detector Enabled])
   CFLAGS="$CFLAGS -lrt"

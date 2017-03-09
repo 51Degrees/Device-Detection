@@ -118,6 +118,21 @@ void (FIFTYONEDEGREES_CALL_CONV *fiftyoneDegreesFree)(void *__ptr) = free;
 #define SIZE_OF_CACHE_TARGET_USER_AGENTS(c, h) c * SIZE_OF_WORKSET_TARGET_USERAGENT_ARRAY(h)
 #define SIZE_OF_CACHE_PROFILES(c, h) c * SIZE_OF_WORKSET_PROFILES(h)
 
+/**
+* METRIC INDEX MACROS
+*/
+#define FIFTYONEDEGREES_METRIC_COUNT 4
+#define FIFTYONEDEGREES_METRIC_METHOD_INDEX 0
+#define FIFTYONEDEGREES_METRIC_RANK_INDEX 1
+#define FIFTYONEDEGREES_METRIC_DIFFERENCE_INDEX 2
+#define FIFTYONEDEGREES_METRIC_ID_INDEX 3
+
+/**
+* MAX PROPERTY VALUE LENGTH MEMORY ALLOCATION MACROS
+*/
+#define SIZE_OF_MAX_PROPERTY_VALUES(h) (h.properties.count + FIFTYONEDEGREES_METRIC_COUNT) * sizeof(int32_t)
+
+
  /**
  * \cond
  * DATA SET FILE AND MEMORY METHODS
@@ -649,16 +664,20 @@ EXTERNAL int32_t fiftyoneDegreesGetMaxPropertyValueLength(const fiftyoneDegreesD
 
 	// Check for any match metrics.
 	if (strcmp(propertyName, "Method") == 0) {
-		return dataSet->maxPropertyValueLength[dataSet->header.properties.count];
+		return dataSet->maxPropertyValueLength[dataSet->header.properties.count
+			+ FIFTYONEDEGREES_METRIC_METHOD_INDEX];
 	}
 	if (strcmp(propertyName, "Rank") == 0) {
-		return dataSet->maxPropertyValueLength[dataSet->header.properties.count + 1];
+		return dataSet->maxPropertyValueLength[dataSet->header.properties.count
+			+ FIFTYONEDEGREES_METRIC_RANK_INDEX];
 	}
 	if (strcmp(propertyName, "Difference") == 0) {
-		return dataSet->maxPropertyValueLength[dataSet->header.properties.count + 2];
+		return dataSet->maxPropertyValueLength[dataSet->header.properties.count
+			+ FIFTYONEDEGREES_METRIC_DIFFERENCE_INDEX];
 	}
 	if (strcmp(propertyName, "DeviceId") == 0) {
-		return dataSet->maxPropertyValueLength[dataSet->header.properties.count + 3];
+		return dataSet->maxPropertyValueLength[dataSet->header.properties.count
+			+ FIFTYONEDEGREES_METRIC_ID_INDEX];
 	}
 
 	// Property is not a match metric, so get the property.
@@ -692,7 +711,9 @@ static fiftyoneDegreesDataSetInitStatus setMaxPropertyValueLength(fiftyoneDegree
 	const char *valueName;
 
 	// Allocate the array. This is the number of properties, plus 4 for the match metrics.
-	dataSet->maxPropertyValueLength = (int32_t*)fiftyoneDegreesMalloc((dataSet->header.properties.count + 4) * sizeof(int32_t));
+	dataSet->maxPropertyValueLength =
+		(int32_t*)fiftyoneDegreesMalloc(SIZE_OF_MAX_PROPERTY_VALUES(dataSet->header));
+
 	if (dataSet->maxPropertyValueLength == NULL)
 		return DATA_SET_INIT_STATUS_INSUFFICIENT_MEMORY;
 
@@ -756,7 +777,8 @@ static fiftyoneDegreesDataSetInitStatus setMaxPropertyValueLength(fiftyoneDegree
 
 	// Now do the match metrics.
 	// Fist the Method, this is hard coded as it is not likely to change.
-	dataSet->maxPropertyValueLength[dataSet->header.properties.count] = 7;
+	dataSet->maxPropertyValueLength[dataSet->header.properties.count
+		+ FIFTYONEDEGREES_METRIC_METHOD_INDEX] = 7;
 
 	// Get the maximum length of an integer.
 	if (INT_MAX < 10000) lengthNeeded = 4;
@@ -772,12 +794,15 @@ static fiftyoneDegreesDataSetInitStatus setMaxPropertyValueLength(fiftyoneDegree
 	else lengthNeeded = 20;
 
 	// The Rank, this is the maximum number string
-	dataSet->maxPropertyValueLength[dataSet->header.properties.count + 1] = lengthNeeded;
+	dataSet->maxPropertyValueLength[dataSet->header.properties.count
+		+ FIFTYONEDEGREES_METRIC_RANK_INDEX] = lengthNeeded;
 	// The Difference, this is also the maximum number string.
-	dataSet->maxPropertyValueLength[dataSet->header.properties.count + 2] = lengthNeeded;
+	dataSet->maxPropertyValueLength[dataSet->header.properties.count
+		+ FIFTYONEDEGREES_METRIC_DIFFERENCE_INDEX] = lengthNeeded;
 	// The Device-Id, using max 5 digits per profile id,
-	//and a separator per component.
-	dataSet->maxPropertyValueLength[dataSet->header.properties.count + 3]
+	// and a separator per component.
+	dataSet->maxPropertyValueLength[dataSet->header.properties.count
+		+ FIFTYONEDEGREES_METRIC_ID_INDEX]
 		=  dataSet->header.components.count * (5 + 1);
 
 	return DATA_SET_INIT_STATUS_SUCCESS;
@@ -1992,6 +2017,9 @@ static size_t getProviderSizeWithPropertyCount(size_t sizeOfFile, fiftyoneDegree
 	// Add profile structures.
 	size += (SIZE_OF_PROFILES_STRUCT_ARRAY(header));
 	size += (SIZE_OF_PROFILE_INDEXES_STRUCT(header.values.count));
+
+	// Add max property value length values.
+	size += (SIZE_OF_MAX_PROPERTY_VALUES(header));
 
 	// Add cache.
 	if (cacheSize > 0) {
