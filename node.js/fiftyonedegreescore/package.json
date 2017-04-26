@@ -1,6 +1,6 @@
 {
     "name": "fiftyonedegreescore",
-    "version": "3.2.13",
+    "version": "3.2.14",
     "description": "51degrees device detection for nodejs",
     "main": "fiftyonedegreescore.js",
     "scripts": {
@@ -19,8 +19,8 @@
         "url": "https://github.com/51Degrees/Device-Detection/issues"
     },
     "dependencies" : {
-        "fiftyonedegreeslitepattern" : ">=3.2.10",
-        "fiftyonedegreeslitetrie" : ">=3.2.10"
+        "fiftyonedegreeslitepattern" : ">=3.2.12",
+        "fiftyonedegreeslitetrie" : ">=3.2.12"
         },
     "homepage": "https://github.com/51Degrees/Device-Detection"
 }
