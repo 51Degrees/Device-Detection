@@ -5,9 +5,9 @@ SUBDIRS = src
 DISTCHECK_CONFIGURE_FLAGS = \
 	VMOD_DIR='$${libdir}/varnish/vmods'
 
-EXTRA_DIST = README.rst LICENSE
+EXTRA_DIST = README.md ../LICENSE
 
-doc_DATA = README.rst LICENSE
+doc_DATA = README.md ../LICENSE
 
 dist_man_MANS = vmod_fiftyonedegrees.3
 MAINTAINERCLEANFILES = $(dist_man_MANS)
