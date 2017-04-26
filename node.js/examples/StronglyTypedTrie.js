@@ -88,7 +88,6 @@ if (match.IsMobile){
 } else {
     console.log('   Non-Mobile\n');
 }
-match.close();
 
 console.log('Desktop User-Agent: ' + desktopUserAgent)
 
@@ -99,7 +98,6 @@ if (match.IsMobile){
 } else {
     console.log('   Non-Mobile\n');
 }
-match.close();
 
 console.log('MediaHub User-Agent: ' + mediaHubUserAgent)
 
@@ -110,5 +108,4 @@ if (match.IsMobile){
 } else {
     console.log('   Non-Mobile\n');
 }
-match.close();
 // Snippet End

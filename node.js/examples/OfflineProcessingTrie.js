@@ -64,7 +64,6 @@ rl.on('line', function (userAgent) {
             outStream.write("|" + match[property]);
         })
         outStream.write("\n");
-        match.close();
     }
     i++;
 });
@@ -115,7 +114,6 @@ var outputOfflineProcessing = function() {
                 outStream.write("|" + match[property]);
             })
             outStream.write("\n");
-            match.close();
         }
         i++;
     });

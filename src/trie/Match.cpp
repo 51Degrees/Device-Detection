@@ -184,7 +184,8 @@ int Match::getMethod() {
 
 /**
  * Manual dispose method for node.
+ * Depricated: match object is now freed by the garbage collector in
+ * all languages, so this does nothing.
  */
 void Match::close() {
-    fiftyoneDegreesFreeDeviceOffsets(offsets);
 }

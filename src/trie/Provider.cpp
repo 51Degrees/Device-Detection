@@ -398,7 +398,6 @@ void Provider::initMatch(Match *match) {
 Match* Provider::getMatch(const char* userAgent) {
 	fiftyoneDegreesDeviceOffsets* offsets = fiftyoneDegreesProviderCreateDeviceOffsets(&provider);
 	offsets->size = 1;
-	offsets->firstOffset = new fiftyoneDegreesDeviceOffset[1];
 	fiftyoneDegreesSetDeviceOffset(provider.active->dataSet, userAgent, 0, offsets->firstOffset);
     Match *result = new Match(offsets);
 	initMatch(result);
