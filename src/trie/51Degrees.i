@@ -99,9 +99,7 @@
  * language to be responsible for memory cleanup.
  */
 %nodefaultctor Match;
-#ifndef BUILDING_NODE_EXTENSION
 %newobject Provider::getMatch;
-#endif
 
 /*
  * Allow partial C# classes

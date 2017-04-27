@@ -32,7 +32,9 @@ Match::Match() {}
  * to use.
  */
 Match::~Match() {
+    #ifndef BUILDING_NODE_EXTENSION
     fiftyoneDegreesWorksetRelease(ws);
+    #endif
 }
 
 /**

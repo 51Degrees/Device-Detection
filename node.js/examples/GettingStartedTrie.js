@@ -82,17 +82,14 @@ var provider = new fiftyonedegrees.provider(config);
 console.log("\nMobile User-Agent: " + mobileUserAgent);
 var match = provider.getMatch(mobileUserAgent);
 console.log("   IsMobile: " + match.IsMobile);
-match.close();
 
 // Carries out a match with a desktop User-Agent.
 console.log("\nDesktop User-Agent: " + desktopUserAgent);
 var match = provider.getMatch(desktopUserAgent);
 console.log("   IsMobile: " + match.IsMobile);
-match.close();
 
 // Carries out a match with a MediaHub User-Agent.
 console.log("\nMediaHub User-Agent: " + mediaHubUserAgent);
 var match = provider.getMatch(mediaHubUserAgent);
 console.log("   IsMobile: " + match.IsMobile);
-match.close();
 // Snippet End

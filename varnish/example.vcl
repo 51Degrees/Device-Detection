@@ -35,5 +35,5 @@ sub vcl_deliver {
 }
 
 sub vcl_init {
-	fiftyonedegrees.start("/home/ben/Downloads/51Degrees-EnterpriseV3_2.dat");
+	fiftyonedegrees.start("/etc/varnish/51Degrees.dat");
 }
