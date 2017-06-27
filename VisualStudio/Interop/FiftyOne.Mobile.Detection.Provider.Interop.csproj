@@ -1,0 +1,79 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<Project ToolsVersion="4.0" DefaultTargets="Build" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Debug|x64'">
+    <DebugSymbols>true</DebugSymbols>
+    <DebugType>full</DebugType>
+    <Optimize>false</Optimize>
+    <OutputPath>..\x64\Debug\</OutputPath>
+    <DefineConstants>DEBUG;TRACE</DefineConstants>
+    <ErrorReport>prompt</ErrorReport>
+    <WarningLevel>4</WarningLevel>
+    <PlatformTarget>x64</PlatformTarget>
+  </PropertyGroup>
+  <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Release|x64'">
+    <DebugType>pdbonly</DebugType>
+    <Optimize>true</Optimize>
+    <OutputPath>..\x64\Release\</OutputPath>
+    <DefineConstants>TRACE</DefineConstants>
+    <ErrorReport>prompt</ErrorReport>
+    <WarningLevel>4</WarningLevel>
+    <PlatformTarget>x64</PlatformTarget>
+  </PropertyGroup>
+  <PropertyGroup>
+    <OutputType>Library</OutputType>
+    <ProjectGuid>{91AFCD8C-4F1C-4372-A179-0FD92EF4B54E}</ProjectGuid>
+  </PropertyGroup>
+  <PropertyGroup>
+    <StartupObject />
+  </PropertyGroup>
+  <PropertyGroup>
+    <RootNamespace>FiftyOne.Mobile.Detection.Provider.Interop</RootNamespace>
+  </PropertyGroup>
+  <ItemGroup>
+    <Reference Include="System" />
+    <Reference Include="System.Core" />
+    <Reference Include="System.Xml.Linq" />
+    <Reference Include="System.Data.DataSetExtensions" />
+    <Reference Include="Microsoft.CSharp" />
+    <Reference Include="System.Data" />
+    <Reference Include="System.Xml" />
+  </ItemGroup>
+  <ItemGroup>
+    <Compile Include="IMatchResult.cs" />
+    <Compile Include="IWrapper.cs" />
+    <Compile Include="Pattern\FiftyOneDegreesPatternV3.cs" />
+    <Compile Include="Pattern\FiftyOneDegreesPatternV3PINVOKE.cs" />
+    <Compile Include="Pattern\MapStringString.cs" />
+    <Compile Include="Pattern\Match.cs" />
+    <Compile Include="Pattern\Partials.cs" />
+    <Compile Include="Pattern\Profiles.cs" />
+    <Compile Include="Pattern\Provider.cs" />
+    <Compile Include="Pattern\SWIGTYPE_p_std__string.cs" />
+    <Compile Include="Pattern\VectorString.cs" />
+    <Compile Include="Trie\FiftyOneDegreesTrieV3.cs" />
+    <Compile Include="Trie\FiftyOneDegreesTrieV3PINVOKE.cs" />
+    <Compile Include="Trie\MapStringString.cs" />
+    <Compile Include="Trie\Match.cs" />
+    <Compile Include="Trie\Partials.cs" />
+    <Compile Include="Trie\Provider.cs" />
+    <Compile Include="Trie\SWIGTYPE_p_std__string.cs" />
+    <Compile Include="Trie\VectorString.cs" />
+    <Compile Include="Utils.cs" />
+    <Compile Include="TrieWrapper.cs" />
+    <Compile Include="PatternWrapper.cs" />
+    <Compile Include="Properties\AssemblyInfo.cs" />
+  </ItemGroup>
+  <ItemGroup />
+  <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
+  <PropertyGroup>
+    <PostBuildEvent>
+    </PostBuildEvent>
+  </PropertyGroup>
+  <!-- To modify your build process, add your task inside one of the targets below and uncomment it.
+       Other similar extension points exist, see Microsoft.Common.targets.
+  <Target Name="BeforeBuild">
+  </Target>
+  <Target Name="AfterBuild">
+  </Target>
+  -->
+</Project>

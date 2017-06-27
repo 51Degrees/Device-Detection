@@ -1,0 +1,702 @@
+                         ----------------------
+                             HAProxy how-to
+                         ----------------------
+                             version 1.6-dev
+                             willy tarreau
+                               2015/08/30
+
+
+1) How to build it
+------------------
+
+First, please note that this version is a development version, so in general if
+you are not used to build from sources or if you don't have the time to track
+very frequent updates, it is recommended that instead you switch to the stable
+version (1.5) or follow the packaged updates provided by your software vendor
+or Linux distribution. Most of them are taking this task seriously and are
+doing a good job. If for any reason you'd prefer a different version than the
+one packaged for your system, or to get some commercial support, other choices
+are available at :
+
+                        http://www.haproxy.com/
+
+To build haproxy, you will need :
+  - GNU make. Neither Solaris nor OpenBSD's make work with the GNU Makefile.
+    If you get many syntax errors when running "make", you may want to retry
+    with "gmake" which is the name commonly used for GNU make on BSD systems.
+  - GCC between 2.95 and 4.8. Others may work, but not tested.
+  - GNU ld
+
+Also, you might want to build with libpcre support, which will provide a very
+efficient regex implementation and will also fix some badness on Solaris' one.
+
+To build haproxy, you have to choose your target OS amongst the following ones
+and assign it to the TARGET variable :
+
+  - linux22     for Linux 2.2
+  - linux24     for Linux 2.4 and above (default)
+  - linux24e    for Linux 2.4 with support for a working epoll (> 0.21)
+  - linux26     for Linux 2.6 and above
+  - linux2628   for Linux 2.6.28, 3.x, and above (enables splice and tproxy)
+  - solaris     for Solaris 8 or 10 (others untested)
+  - freebsd     for FreeBSD 5 to 10 (others untested)
+  - osx         for Mac OS/X
+  - openbsd     for OpenBSD 3.1 and above
+  - aix51       for AIX 5.1
+  - aix52       for AIX 5.2
+  - cygwin      for Cygwin
+  - generic     for any other OS or version.
+  - custom      to manually adjust every setting
+
+You may also choose your CPU to benefit from some optimizations. This is
+particularly important on UltraSparc machines. For this, you can assign
+one of the following choices to the CPU variable :
+
+  - i686 for intel PentiumPro, Pentium 2 and above, AMD Athlon
+  - i586 for intel Pentium, AMD K6, VIA C3.
+  - ultrasparc : Sun UltraSparc I/II/III/IV processor
+  - native : use the build machine's specific processor optimizations. Use with
+    extreme care, and never in virtualized environments (known to break).
+  - generic : any other processor or no CPU-specific optimization. (default)
+
+Alternatively, you may just set the CPU_CFLAGS value to the optimal GCC options
+for your platform.
+
+You may want to build specific target binaries which do not match your native
+compiler's target. This is particularly true on 64-bit systems when you want
+to build a 32-bit binary. Use the ARCH variable for this purpose. Right now
+it only knows about a few x86 variants (i386,i486,i586,i686,x86_64), two
+generic ones (32,64) and sets -m32/-m64 as well as -march=<arch> accordingly.
+
+If your system supports PCRE (Perl Compatible Regular Expressions), then you
+really should build with libpcre which is between 2 and 10 times faster than
+other libc implementations. Regex are used for header processing (deletion,
+rewriting, allow, deny). The only inconvenient of libpcre is that it is not
+yet widely spread, so if you build for other systems, you might get into
+trouble if they don't have the dynamic library. In this situation, you should
+statically link libpcre into haproxy so that it will not be necessary to
+install it on target systems. Available build options for PCRE are :
+
+  - USE_PCRE=1 to use libpcre, in whatever form is available on your system
+    (shared or static)
+
+  - USE_STATIC_PCRE=1 to use a static version of libpcre even if the dynamic
+    one is available. This will enhance portability.
+
+  - with no option, use your OS libc's standard regex implementation (default).
+    Warning! group references on Solaris seem broken. Use static-pcre whenever
+    possible.
+
+Recent systems can resolve IPv6 host names using getaddrinfo(). This primitive
+is not present in all libcs and does not work in all of them either. Support in
+glibc was broken before 2.3. Some embedded libs may not properly work either,
+thus, support is disabled by default, meaning that some host names which only
+resolve as IPv6 addresses will not resolve and configs might emit an error
+during parsing. If you know that your OS libc has reliable support for
+getaddrinfo(), you can add USE_GETADDRINFO=1 on the make command line to enable
+it. This is the recommended option for most Linux distro packagers since it's
+working fine on all recent mainstream distros. It is automatically enabled on
+Solaris 8 and above, as it's known to work.
+
+It is possible to add native support for SSL using the GNU makefile, by passing
+"USE_OPENSSL=1" on the make command line. The libssl and libcrypto will
+automatically be linked with haproxy. Some systems also require libz, so if the
+build fails due to missing symbols such as deflateInit(), then try again with
+"ADDLIB=-lz".
+
+To link OpenSSL statically against haproxy, build OpenSSL with the no-shared
+keyword and install it to a local directory, so your system is not affected :
+
+    $ export STATICLIBSSL=/tmp/staticlibssl
+    $ ./config --prefix=$STATICLIBSSL no-shared
+    $ make && make install_sw
+
+When building haproxy, pass that path via SSL_INC and SSL_LIB to make and
+include additional libs with ADDLIB if needed (in this case for example libdl):
+
+    $ make TARGET=linux26 USE_OPENSSL=1 SSL_INC=$STATICLIBSSL/include SSL_LIB=$STATICLIBSSL/lib ADDLIB=-ldl
+
+It is also possible to include native support for ZLIB to benefit from HTTP
+compression. For this, pass "USE_ZLIB=1" on the "make" command line and ensure
+that zlib is present on the system. Alternatively it is possible to use libslz
+for a faster, memory less, but slightly less efficient compression, by passing
+"USE_SLZ=1".
+
+By default, the DEBUG variable is set to '-g' to enable debug symbols. It is
+not wise to disable it on uncommon systems, because it's often the only way to
+get a complete core when you need one. Otherwise, you can set DEBUG to '-s' to
+strip the binary.
+
+For example, I use this to build for Solaris 8 :
+
+    $ make TARGET=solaris CPU=ultrasparc USE_STATIC_PCRE=1
+
+And I build it this way on OpenBSD or FreeBSD :
+
+    $ gmake TARGET=freebsd USE_PCRE=1 USE_OPENSSL=1 USE_ZLIB=1
+
+And on a classic Linux with SSL and ZLIB support (eg: Red Hat 5.x) :
+
+    $ make TARGET=linux26 USE_PCRE=1 USE_OPENSSL=1 USE_ZLIB=1
+
+And on a recent Linux >= 2.6.28 with SSL and ZLIB support :
+
+    $ make TARGET=linux2628 USE_PCRE=1 USE_OPENSSL=1 USE_ZLIB=1
+
+In order to build a 32-bit binary on an x86_64 Linux system with SSL support
+without support for compression but when OpenSSL requires ZLIB anyway :
+
+    $ make TARGET=linux26 ARCH=i386 USE_OPENSSL=1 ADDLIB=-lz
+
+The SSL stack supports session cache synchronization between all running
+processes. This involves some atomic operations and synchronization operations
+which come in multiple flavors depending on the system and architecture :
+
+  Atomic operations :
+    - internal assembler versions for x86/x86_64 architectures
+
+    - gcc builtins for other architectures. Some architectures might not
+      be fully supported or might require a more recent version of gcc.
+      If your architecture is not supported, you willy have to either use
+      pthread if supported, or to disable the shared cache.
+
+    - pthread (posix threads). Pthreads are very common but inter-process
+      support is not that common, and some older operating systems did not
+      report an error when enabling multi-process mode, so they used to
+      silently fail, possibly causing crashes. Linux's implementation is
+      fine. OpenBSD doesn't support them and doesn't build. FreeBSD 9 builds
+      and reports an error at runtime, while certain older versions might
+      silently fail. Pthreads are enabled using USE_PTHREAD_PSHARED=1.
+
+  Synchronization operations :
+    - internal spinlock : this mode is OS-independant, light but will not
+      scale well to many processes. However, accesses to the session cache
+      are rare enough that this mode could certainly always be used. This
+      is the default mode.
+
+    - Futexes, which are Linux-specific highly scalable light weight mutexes
+      implemented in user-space with some limited assistance from the kernel.
+      This is the default on Linux 2.6 and above and is enabled by passing
+      USE_FUTEX=1
+
+    - pthread (posix threads). See above.
+
+If none of these mechanisms is supported by your platform, you may need to
+build with USE_PRIVATE_CACHE=1 to totally disable SSL cache sharing. Then
+it is better not to run SSL on multiple processes.
+
+If you need to pass other defines, includes, libraries, etc... then please
+check the Makefile to see which ones will be available in your case, and
+use the USE_* variables in the Makefile.
+
+AIX 5.3 is known to work with the generic target. However, for the binary to
+also run on 5.2 or earlier, you need to build with DEFINE="-D_MSGQSUPPORT",
+otherwise __fd_select() will be used while not being present in the libc, but
+this is easily addressed using the "aix52" target. If you get build errors
+because of strange symbols or section mismatches, simply remove -g from
+DEBUG_CFLAGS.
+
+You can easily define your own target with the GNU Makefile. Unknown targets
+are processed with no default option except USE_POLL=default. So you can very
+well use that property to define your own set of options. USE_POLL can even be
+disabled by setting USE_POLL="". For example :
+
+    $ gmake TARGET=tiny USE_POLL="" TARGET_CFLAGS=-fomit-frame-pointer
+
+
+1.1) DeviceAtlas Device Detection
+---------------------------------
+
+In order to add DeviceAtlas Device Detection support, you would need to download
+the API source code from https://deviceatlas.com/deviceatlas-haproxy-module and
+once extracted :
+
+    $ make TARGET=<target> USE_PCRE=1 USE_DEVICEATLAS=1 DEVICEATLAS_SRC=<path to the API root folder>
+
+Optionally DEVICEATLAS_INC and DEVICEATLAS_LIB may be set to override the path
+to the include files and libraries respectively if they're not in the source
+directory.
+
+These are supported DeviceAtlas directives (see doc/configuration.txt) :
+  - deviceatlas-json-file <path to the DeviceAtlas JSON data file>.
+  - deviceatlas-log-level <number> (0 to 3, level of information returned by
+    the API, 0 by default).
+  - deviceatlas-property-separator <character> (character used to separate the
+    properties produced by the API, | by default).
+
+Sample configuration :
+
+    global
+	deviceatlas-json-file <path to json file>
+
+    ...
+    frontend
+	bind *:8881
+	default_backend servers
+	http-request set-header X-DeviceAtlas-Data %[req.fhdr(User-Agent),da-csv(primaryHardwareType,osName,osVersion,browserName,browserVersion)]
+
+
+1.2) 51Degrees Device Detection
+-------------------------------
+
+You can also include 51Degrees for inbuilt device detection enabling attributes
+such as screen size (physical & pixels), supported input methods, release date,
+hardware vendor and model, browser information, and device price among many
+others. Such information can be used to improve the user experience of a web
+site by tailoring the page content, layout and business processes to the
+precise characteristics of the device. Such customisations improve profit by
+making it easier for customers to get to the information or services they
+need. Attributes of the device making a web request can be added to HTTP
+headers as configurable parameters.
+
+In order to enable 51Degrees download the 51Degrees source code from the
+official github repository :
+
+    git clone https://github.com/51Degrees/Device-Detection
+
+then run 'make' with USE_51DEGREES and 51DEGREES_SRC set. Both 51DEGREES_INC
+and 51DEGREES_LIB may additionally be used to force specific different paths
+for .o and .h, but will default to 51DEGREES_SRC. Make sure to replace
+'51D_REPO_PATH' with the path to the 51Degrees repository.
+
+51Degrees provide 2 different detection algorithms:
+
+    1. Pattern - balances main memory usage and CPU.
+    2. Trie - a very high performance detection solution which uses more main
+       memory than Pattern.
+
+To make with 51Degrees Pattern algorithm use the following command line.
+
+    $ make TARGET=linux26 USE_51DEGREES=1 51DEGREES_SRC='51D_REPO_PATH'/src/pattern
+
+To use the 51Degrees Trie algorithm use the following command line.
+
+    $ make TARGET=linux26 USE_51DEGREES=1 51DEGREES_SRC='51D_REPO_PATH'/src/trie
+
+A data file containing information about devices, browsers, operating systems
+and their associated signatures is then needed. 51Degrees provide a free
+database with Github repo for this purpose. These free data files are located
+in '51D_REPO_PATH'/data with the extensions .dat for Pattern data and .trie for
+Trie data.
+
+The configuration file needs to set the following parameters:
+
+    51degrees-data-file           path to the Pattern or Trie data file
+    51degrees-property-name-list  list of 51Degrees properties to detect
+    51degrees-property-separator  separator to use between values
+    51degrees-cache-size          LRU-based cache size (disabled by default)
+
+The following is an example of the settings for Pattern.
+
+    51degrees-data-file '51D_REPO_PATH'/data/51Degrees-LiteV3.2.dat
+    51degrees-property-name-list IsTablet DeviceType IsMobile
+    51degrees-property-separator ,
+    51degrees-cache-size 10000
+
+HAProxy needs a way to pass device information to the backend servers. This is
+done by using the 51d converter or fetch method, which intercepts the HTTP
+headers and creates some new headers. This is controlled in the frontend
+http-in section.
+
+The following is an example which adds two new HTTP headers prefixed X-51D-
+
+    frontend http-in
+        bind *:8081
+        default_backend servers
+        http-request set-header X-51D-DeviceTypeMobileTablet %[51d.all(DeviceType,IsMobile,IsTablet)]
+        http-request set-header X-51D-Tablet %[51d.all(IsTablet)]
+
+Here, two headers are created with 51Degrees data, X-51D-DeviceTypeMobileTablet
+and X-51D-Tablet. Any number of headers can be created this way and can be
+named anything. 51d.all( ) invokes the 51degrees fetch. It can be passed up to
+five property names of values to return. Values will be returned in the same
+order, seperated by the 51-degrees-property-separator configured earlier. If a
+property name can't be found the value 'NoData' is returned instead.
+
+In addition to the device properties three additional properties related to the
+validity of the result can be returned when used with the Pattern method. The
+following example shows how Match, Difference and Rank could be included as one
+new HTTP header X-51D-Stats.
+
+        http-request set-header X-51D-Stats %[51d.all(Method,Difference,Rank)]
+
+These values indicate how confident 51Degrees is in the result that that was
+returned. More information is available on the 51Degrees web site at:
+
+    https://51degrees.com/support/documentation/pattern
+
+The above 51d.all fetch method uses all available HTTP headers for detection. A
+modest performance improvement can be obtained by only passing one HTTP header
+to the detection method with the 51d.single converter. The following example
+uses the User-Agent HTTP header only for detection.
+
+        http-request set-header X-51D-DeviceTypeMobileTablet %[req.fhdr(User-Agent),51d.single(DeviceType,IsMobile,IsTablet)]
+
+Any HTTP header could be used inplace of User-Agent by changing the parameter
+provided to req.fhdr.
+
+When compiled to use the Trie detection method the trie format data file needs
+to be provided. Changing the extension of the data file from dat to trie will
+use the correct data.
+
+        51degrees-data-file '51D_REPO_PATH'/data/51Degrees-LiteV3.2.trie
+
+When used with Trie the Method, Difference and Rank properties are not
+available.
+
+The free Lite data file contains information about screen size in pixels and
+whether the device is a mobile. A full list of available properties is located
+on the 51Degrees web site at:
+
+    https://51degrees.com/resources/property-dictionary
+
+Some properties are only available in the paid for Premium and Enterprise
+versions of 51Degrees. These data sets not only contain more properties but
+are updated weekly and daily and contain signatures for 100,000s of different
+device combinations. For more information see the data options comparison web
+page:
+
+    https://51degrees.com/compare-data-options
+
+
+2) How to install it
+--------------------
+
+To install haproxy, you can either copy the single resulting binary to the
+place you want, or run :
+
+    $ sudo make install
+
+If you're packaging it for another system, you can specify its root directory
+in the usual DESTDIR variable.
+
+
+3) How to set it up
+-------------------
+
+There is some documentation in the doc/ directory :
+
+    - intro.txt : this is an introduction to haproxy, it explains what it is
+      what it is not. Useful for beginners or to re-discover it when planning
+      for an upgrade.
+
+    - architecture.txt : this is the architecture manual. It is quite old and
+      does not tell about the nice new features, but it's still a good starting
+      point when you know what you want but don't know how to do it.
+
+    - configuration.txt : this is the configuration manual. It recalls a few
+      essential HTTP basic concepts, and details all the configuration file
+      syntax (keywords, units). It also describes the log and stats format. It
+      is normally always up to date. If you see that something is missing from
+      it, please report it as this is a bug. Please note that this file is
+      huge and that it's generally more convenient to review Cyril Bonté's
+      HTML translation online here :
+
+           http://cbonte.github.io/haproxy-dconv/configuration-1.5.html
+
+    - haproxy-en.txt / haproxy-fr.txt : these are the old outdated docs. You
+      should never need them. If you do, then please report what you didn't
+      find in the other ones.
+
+    - gpl.txt / lgpl.txt : the copy of the licenses covering the software. See
+      the 'LICENSE' file at the top for more information.
+
+    - the rest is mainly for developers.
+
+There are also a number of nice configuration examples in the "examples"
+directory as well as on several sites and articles on the net which are linked
+to from the haproxy web site.
+
+
+4) How to report a bug
+----------------------
+
+It is possible that from time to time you'll find a bug. A bug is a case where
+what you see is not what is documented. Otherwise it can be a misdesign. If you
+find that something is stupidly design, please discuss it on the list (see the
+"how to contribute" section below). If you feel like you're proceeding right
+and haproxy doesn't obey, then first ask yourself if it is possible that nobody
+before you has even encountered this issue. If it's unlikely, the you probably
+have an issue in your setup. Just in case of doubt, please consult the mailing
+list archives :
+
+                        http://marc.info/?l=haproxy
+
+Otherwise, please try to gather the maximum amount of information to help
+reproduce the issue and send that to the mailing list :
+
+                        haproxy@formilux.org
+
+Please include your configuration and logs. You can mask your IP addresses and
+passwords, we don't need them. But it's essential that you post your config if
+you want people to guess what is happening.
+
+Also, keep in mind that haproxy is designed to NEVER CRASH. If you see it die
+without any reason, then it definitely is a critical bug that must be reported
+and urgently fixed. It has happened a couple of times in the past, essentially
+on development versions running on new architectures. If you think your setup
+is fairly common, then it is possible that the issue is totally unrelated.
+Anyway, if that happens, feel free to contact me directly, as I will give you
+instructions on how to collect a usable core file, and will probably ask for
+other captures that you'll not want to share with the list.
+
+
+5) How to contribute
+--------------------
+
+It is possible that you'll want to add a specific feature to satisfy your needs
+or one of your customers'. Contributions are welcome, however I'm often very
+picky about changes. I will generally reject patches that change massive parts
+of the code, or that touch the core parts without any good reason if those
+changes have not been discussed first.
+
+The proper place to discuss your changes is the HAProxy Mailing List. There are
+enough skilled readers to catch hazardous mistakes and to suggest improvements.
+I trust a number of them enough to merge a patch if they say it's OK, so using
+the list is the fastest way to get your code reviewed and merged. You can
+subscribe to it by sending an empty e-mail at the following address :
+
+                        haproxy+subscribe@formilux.org
+
+If you have an idea about something to implement, *please* discuss it on the
+list first. It has already happened several times that two persons did the same
+thing simultaneously. This is a waste of time for both of them. It's also very
+common to see some changes rejected because they're done in a way that will
+conflict with future evolutions, or that does not leave a good feeling. It's
+always unpleasant for the person who did the work, and it is unpleasant for me
+too because I value people's time and efforts. That would not happen if these
+were discussed first. There is no problem posting work in progress to the list,
+it happens quite often in fact. Also, don't waste your time with the doc when
+submitting patches for review, only add the doc with the patch you consider
+ready to merge.
+
+Another important point concerns code portability. Haproxy requires gcc as the
+C compiler, and may or may not work with other compilers. However it's known
+to build using gcc 2.95 or any later version. As such, it is important to keep
+in mind that certain facilities offered by recent versions must not be used in
+the code :
+
+  - declarations mixed in the code (requires gcc >= 3.x)
+  - GCC builtins without checking for their availability based on version and
+    architecture ;
+  - assembly code without any alternate portable form for other platforms
+  - use of stdbool.h, "bool", "false", "true" : simply use "int", "0", "1"
+  - in general, anything which requires C99 (such as declaring variables in
+    "for" statements)
+
+Since most of these restrictions are just a matter of coding style, it is
+normally not a problem to comply.
+
+If your work is very confidential and you can't publicly discuss it, you can
+also mail me directly about it, but your mail may be waiting several days in
+the queue before you get a response.
+
+If you'd like a feature to be added but you think you don't have the skills to
+implement it yourself, you should follow these steps :
+
+    1. discuss the feature on the mailing list. It is possible that someone
+       else has already implemented it, or that someone will tell you how to
+       proceed without it, or even why not to do it. It is also possible that
+       in fact it's quite easy to implement and people will guide you through
+       the process. That way you'll finally have YOUR patch merged, providing
+       the feature YOU need.
+
+    2. if you really can't code it yourself after discussing it, then you may
+       consider contacting someone to do the job for you. Some people on the
+       list might sometimes be OK with trying to do it.
+
+Note to contributors: it's very handy when patches comes with a properly
+formated subject. There are 3 criteria of particular importance in any patch :
+
+  - its nature (is it a fix for a bug, a new feature, an optimization, ...)
+  - its importance, which generally reflects the risk of merging/not merging it
+  - what area it applies to (eg: http, stats, startup, config, doc, ...)
+
+It's important to make these 3 criteria easy to spot in the patch's subject,
+because it's the first (and sometimes the only) thing which is read when
+reviewing patches to find which ones need to be backported to older versions.
+
+Specifically, bugs must be clearly easy to spot so that they're never missed.
+Any patch fixing a bug must have the "BUG" tag in its subject. Most common
+patch types include :
+
+  - BUG      fix for a bug. The severity of the bug should also be indicated
+             when known. Similarly, if a backport is needed to older versions,
+             it should be indicated on the last line of the commit message. If
+             the bug has been identified as a regression brought by a specific
+             patch or version, this indication will be appreciated too. New
+             maintenance releases are generally emitted when a few of these
+             patches are merged.
+
+  - CLEANUP  code cleanup, silence of warnings, etc... theorically no impact.
+             These patches will rarely be seen in stable branches, though they
+             may appear when they remove some annoyance or when they make
+             backporting easier. By nature, a cleanup is always minor.
+
+  - REORG    code reorganization. Some blocks may be moved to other places,
+             some important checks might be swapped, etc... These changes
+             always present a risk of regression. For this reason, they should
+             never be mixed with any bug fix nor functional change. Code is
+             only moved as-is. Indicating the risk of breakage is highly
+             recommended.
+
+  - BUILD    updates or fixes for build issues. Changes to makefiles also fall
+             into this category. The risk of breakage should be indicated if
+             known. It is also appreciated to indicate what platforms and/or
+             configurations were tested after the change.
+
+  - OPTIM    some code was optimised. Sometimes if the regression risk is very
+             low and the gains significant, such patches may be merged in the
+             stable branch. Depending on the amount of code changed or replaced
+             and the level of trust the author has in the change, the risk of
+             regression should be indicated.
+
+  - RELEASE  release of a new version (development or stable).
+
+  - LICENSE  licensing updates (may impact distro packagers).
+
+
+When the patch cannot be categorized, it's best not to put any tag. This is
+commonly the case for new features, which development versions are mostly made
+of.
+
+Additionally, the importance of the patch should be indicated when known. A
+single upper-case word is preferred, among :
+
+  - MINOR    minor change, very low risk of impact. It is often the case for
+             code additions that don't touch live code. For a bug, it generally
+             indicates an annoyance, nothing more.
+
+  - MEDIUM   medium risk, may cause unexpected regressions of low importance or
+             which may quickly be discovered. For a bug, it generally indicates
+             something odd which requires changing the configuration in an
+             undesired way to work around the issue.
+
+  - MAJOR    major risk of hidden regression. This happens when I rearrange
+             large parts of code, when I play with timeouts, with variable
+             initializations, etc... We should only exceptionally find such
+             patches in stable branches. For a bug, it indicates severe
+             reliability issues for which workarounds are identified with or
+             without performance impacts.
+
+  - CRITICAL medium-term reliability or security is at risk and workarounds,
+             if they exist, might not always be acceptable. An upgrade is
+             absolutely required. A maintenance release may be emitted even if
+             only one of these bugs are fixed. Note that this tag is only used
+             with bugs. Such patches must indicate what is the first version
+             affected, and if known, the commit ID which introduced the issue.
+
+If this criterion doesn't apply, it's best not to put it. For instance, most
+doc updates and most examples or test files are just added or updated without
+any need to qualify a level of importance.
+
+The area the patch applies to is quite important, because some areas are known
+to be similar in older versions, suggesting a backport might be desirable, and
+conversely, some areas are known to be specific to one version. When the tag is
+used alone, uppercase is preferred for readability, otherwise lowercase is fine
+too. The following tags are suggested but not limitative :
+
+ - doc       documentation updates or fixes. No code is affected, no need to
+             upgrade. These patches can also be sent right after a new feature,
+             to document it.
+
+ - examples  example files. Be careful, sometimes these files are packaged.
+
+ - tests     regression test files. No code is affected, no need to upgrade.
+
+ - init      initialization code, arguments parsing, etc...
+
+ - config    configuration parser, mostly used when adding new config keywords
+
+ - http      the HTTP engine
+
+ - stats     the stats reporting engine as well as the stats socket CLI
+
+ - checks    the health checks engine (eg: when adding new checks)
+
+ - acl       the ACL processing core or some ACLs from other areas
+
+ - peers     the peer synchronization engine
+
+ - listeners everything related to incoming connection settings
+
+ - frontend  everything related to incoming connection processing
+
+ - backend   everything related to LB algorithms and server farm
+
+ - session   session processing and flags (very sensible, be careful)
+
+ - server    server connection management, queueing
+
+ - proxy     proxy maintenance (start/stop)
+
+ - log       log management
+
+ - poll      any of the pollers
+
+ - halog     the halog sub-component in the contrib directory
+
+ - contrib   any addition to the contrib directory
+
+Other names may be invented when more precise indications are meaningful, for
+instance : "cookie" which indicates cookie processing in the HTTP core. Last,
+indicating the name of the affected file is also a good way to quickly spot
+changes. Many commits were already tagged with "stream_sock" or "cfgparse" for
+instance.
+
+It is desired that AT LEAST one of the 3 criteria tags is reported in the patch
+subject. Ideally, we would have the 3 most often. The two first criteria should
+be present before a first colon (':'). If both are present, then they should be
+delimited with a slash ('/'). The 3rd criterion (area) should appear next, also
+followed by a colon. Thus, all of the following messages are valid :
+
+Examples of messages :
+  - DOC: document options forwardfor to logasap
+  - DOC/MAJOR: reorganize the whole document and change indenting
+  - BUG: stats: connection reset counters must be plain ascii, not HTML
+  - BUG/MINOR: stats: connection reset counters must be plain ascii, not HTML
+  - MEDIUM: checks: support multi-packet health check responses
+  - RELEASE: Released version 1.4.2
+  - BUILD: stats: stdint is not present on solaris
+  - OPTIM/MINOR: halog: make fgets parse more bytes by blocks
+  - REORG/MEDIUM: move syscall redefinition to specific places
+
+Please do not use square brackets anymore around the tags, because they give me
+more work when merging patches. By default I'm asking Git to keep them but this
+causes trouble when patches are prefixed with the [PATCH] tag because in order
+not to store it, I have to hand-edit the patches. So as of now, I will ask Git
+to remove whatever is located between square brackets, which implies that any
+subject formatted the old way will have its tag stripped out.
+
+In fact, one of the only square bracket tags that still makes sense is '[RFC]'
+at the beginning of the subject, when you're asking for someone to review your
+change before getting it merged. If the patch is OK to be merged, then I can
+merge it as-is and the '[RFC]' tag will automatically be removed. If you don't
+want it to be merged at all, you can simply state it in the message, or use an
+alternate '[WIP]' tag ("work in progress").
+
+The tags are not rigid, follow your intuition first, anyway I reserve the right
+to change them when merging the patch. It may happen that a same patch has a
+different tag in two distinct branches. The reason is that a bug in one branch
+may just be a cleanup in the other one because the code cannot be triggered.
+
+
+For a more efficient interaction between the mainline code and your code, I can
+only strongly encourage you to try the Git version control system :
+
+                        http://git-scm.com/
+
+It's very fast, lightweight and lets you undo/redo your work as often as you
+want, without making your mistakes visible to the rest of the world. It will
+definitely help you contribute quality code and take other people's feedback
+in consideration. In order to clone the HAProxy Git repository :
+
+    $ git clone http://git.haproxy.org/git/haproxy-1.5.git    (stable 1.5)
+    $ git clone http://git.haproxy.org/git/haproxy.git/       (development)
+
+If you decide to use Git for your developments, then your commit messages will
+have the subject line in the format described above, then the whole description
+of your work (mainly why you did it) will be in the body. You can directly send
+your commits to the mailing list, the format is convenient to read and process.
+
+-- end

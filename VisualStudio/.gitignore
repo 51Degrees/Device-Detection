@@ -1,0 +1,26 @@
+# Windows / Visual Studio
+*.log
+*.user
+*.dll
+*.exe
+*.exe.*
+*.lib
+*.exp
+*.pdb
+*.suo
+*.sdf
+*.layout
+*.depend
+*.lic
+*.pfk
+*.psess
+*.opensdf
+*.VC.*
+.vs/**
+TestResults
+Debug/
+Release/
+bin/
+obj/
+*.nupkg
+!NuGet.exe

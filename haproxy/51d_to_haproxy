@@ -1,0 +1,8 @@
+#!/bin/bash
+# Copies 51Degrees HAProxy files to this folder structure.
+cp Makefile ../../haproxy/Makefile
+cp README ../../haproxy/README
+cp src/51d.c ../../haproxy/src/51d.c
+cp include/types/global.h ../../haproxy/include/types/global.h
+cp src/proto_http.c ../../haproxy/src/proto_http.c
+cp include/proto/proto_http.h ../../haproxy/include/proto/proto_http.h

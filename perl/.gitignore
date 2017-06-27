@@ -1,0 +1,10 @@
+# Perl
+*.c
+*.pm
+MYMETA.*
+*.bs
+blib/
+Makefile
+pm_to_blib
+*.i
+*.o

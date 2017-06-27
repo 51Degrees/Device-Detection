@@ -1,0 +1,101 @@
+<?xml version="1.0" encoding="UTF-8" standalone="yes" ?>
+<CodeBlocks_project_file>
+	<FileVersion major="1" minor="6" />
+	<Project>
+		<Option title="PerfPat" />
+		<Option pch_mode="2" />
+		<Option compiler="gcc" />
+		<Build>
+			<Target title="MSVC Debug">
+				<Option output="bin/Debug/PerfPat" prefix_auto="1" extension_auto="1" />
+				<Option object_output="obj/Debug/" />
+				<Option type="1" />
+				<Option compiler="msvc10" />
+				<Option parameters='&quot;../data/51Degrees-LiteV3.2.dat&quot; &quot;../data/20000 User Agents.csv&quot; IsMobile' />
+				<Compiler>
+					<Add option="-g" />
+					<Add option="-wd4668" />
+					<Add option="-wd4711" />
+					<Add option="-wd4820" />
+					<Add option="-wd4005" />
+					<Add option="-wd4255" />
+					<Add option="-wd4152" />
+					<Add option="-wd4054" />
+					<Add option="/DHAVE_SNPRINTF" />
+					<Add option="/D_CRT_SECURE_NO_WARNINGS" />
+				</Compiler>
+			</Target>
+			<Target title="MSVC Release">
+				<Option output="bin/Release/PerfPat" prefix_auto="1" extension_auto="1" />
+				<Option object_output="obj/Release/" />
+				<Option type="1" />
+				<Option compiler="msvc10" />
+				<Option parameters='&quot;../data/51Degrees-LiteV3.2.dat&quot; &quot;../data/20000 User Agents.csv&quot; IsMobile' />
+				<Compiler>
+					<Add option="-O2" />
+					<Add option="-wd4668" />
+					<Add option="-wd4711" />
+					<Add option="-wd4820" />
+					<Add option="-wd4005" />
+					<Add option="-wd4255" />
+					<Add option="-wd4152" />
+					<Add option="-wd4054" />
+					<Add option="/DHAVE_SNPRINTF" />
+					<Add option="/D_CRT_SECURE_NO_WARNINGS" />
+				</Compiler>
+			</Target>
+			<Target title="GCC Debug">
+				<Option output="bin/Debug/PerfPat" prefix_auto="1" extension_auto="1" />
+				<Option object_output="obj/Debug/" />
+				<Option type="1" />
+				<Option compiler="gcc" />
+				<Option parameters='&quot;../data/51Degrees-LiteV3.2.dat&quot; &quot;../data/20000 User Agents.csv&quot; IsMobile' />
+				<Compiler>
+					<Add option="-g" />
+					<Add option="-pthread" />
+					<Add option="-DHAVE_SNPRINTF" />
+				</Compiler>
+				<Linker>
+					<Add option="-pthread" />
+				</Linker>
+			</Target>
+			<Target title="GCC Release">
+				<Option output="bin/Release/PerfPat" prefix_auto="1" extension_auto="1" />
+				<Option object_output="obj/Release/" />
+				<Option type="1" />
+				<Option compiler="gcc" />
+				<Option parameters='&quot;../data/51Degrees-LiteV3.2.dat&quot; &quot;../data/20000 User Agents.csv&quot; IsMobile' />
+				<Compiler>
+					<Add option="-O2" />
+					<Add option="-pthread" />
+					<Add option="-DHAVE_SNPRINTF" />
+				</Compiler>
+				<Linker>
+					<Add option="-pthread" />
+				</Linker>
+			</Target>
+		</Build>
+		<Compiler>
+			<Add option="-Wall" />
+		</Compiler>
+		<Unit filename="../src/cityhash/city.c">
+			<Option compilerVar="CC" />
+		</Unit>
+		<Unit filename="../src/cityhash/city.h" />
+		<Unit filename="../src/cityhash/citycrc.h" />
+		<Unit filename="../src/pattern/51Degrees.c">
+			<Option compilerVar="CC" />
+		</Unit>
+		<Unit filename="../src/pattern/51Degrees.h" />
+		<Unit filename="../src/pattern/PerfPat.c">
+			<Option compilerVar="CC" />
+		</Unit>
+		<Unit filename="../src/snprintf/snprintf.h" />
+		<Unit filename="../src/threading.h" />
+		<Extensions>
+			<code_completion />
+			<envvars />
+			<debugger />
+		</Extensions>
+	</Project>
+</CodeBlocks_project_file>

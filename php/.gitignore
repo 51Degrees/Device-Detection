@@ -1,0 +1,36 @@
+# PHP
+
+# Ignore build directories
+.libs/
+build/
+modules/
+
+# Ignore common auto generated files
+Makefile*
+*.sh
+*.lo
+*.la
+ac*.m4
+*.cache/
+configure*
+config.guess
+config.h
+config.h.*
+config.log
+config.nice
+config.status
+config.sub
+libtool
+missing
+mkinstalldirs
+install-sh
+.deps
+*/run-tests.php
+
+# Ignore 51Degrees copied files
+pattern/src/pattern
+pattern/src/cityhash
+pattern/src/threading.h
+trie/src/trie
+trie/src/cityhash/
+

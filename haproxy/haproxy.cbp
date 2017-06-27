@@ -1,0 +1,478 @@
+<?xml version="1.0" encoding="UTF-8" standalone="yes" ?>
+<CodeBlocks_project_file>
+	<FileVersion major="1" minor="6" />
+	<Project>
+		<Option title="haproxy" />
+		<Option makefile_is_custom="1" />
+		<Option execution_dir="../../haproxy" />
+		<Option pch_mode="2" />
+		<Option compiler="gcc" />
+		<Build>
+			<Target title="debug-pattern">
+				<Option output="../../haproxy/haproxy" prefix_auto="1" extension_auto="1" />
+				<Option working_dir="../../haproxy" />
+				<Option object_output="obj/Debug/" />
+				<Option type="1" />
+				<Option compiler="gcc" />
+				<Option parameters="-f ../Device-Detection/haproxy/config -d" />
+				<Compiler>
+					<Add option="-g" />
+				</Compiler>
+				<MakeCommands>
+					<Build command="$make -f $makefile TARGET=debug CPU_CFLAGS= DEBUG=-DDEBUG_FULL USE_51DEGREES=1 51DEGREES_SRC=../Device-Detection/src/pattern" />
+					<CompileFile command="$make -f $makefile $file" />
+					<Clean command="$make -f $makefile clean" />
+					<DistClean command="$make -f $makefile distclean$target" />
+					<AskRebuildNeeded command="$make -q -f $makefile debug" />
+					<SilentBuild command="$make -f $makefile TARGET=debug CPU_CFLAGS= DEBUG=-DDEBUG_FULL USE_51DEGREES=1 51DEGREES_SRC=../Device-Detection/src/pattern &gt; $(CMD_NULL)" />
+				</MakeCommands>
+			</Target>
+			<Target title="generic-pattern">
+				<Option output="../../haproxy/haproxy" prefix_auto="1" extension_auto="1" />
+				<Option working_dir="../../haproxy" />
+				<Option object_output="obj/Debug/" />
+				<Option type="1" />
+				<Option compiler="gcc" />
+				<Option parameters="-f ../Device-Detection/haproxy/config -d" />
+				<Option host_application="haproxy" />
+				<Option run_host_application_in_terminal="0" />
+				<Compiler>
+					<Add option="-g" />
+				</Compiler>
+				<MakeCommands>
+					<Build command="$make -f $makefile TARGET=generic DEBUG_CFLAGS= USE_51DEGREES=1 51DEGREES_SRC=../Device-Detection/src/pattern" />
+					<CompileFile command="$make -f $makefile $file" />
+					<Clean command="$make -f $makefile clean" />
+					<DistClean command="$make -f $makefile distclean$target" />
+					<AskRebuildNeeded command="$make -q -f $makefile generic" />
+					<SilentBuild command="$make -f $makefile TARGET=generic DEBUG_CFLAGS= USE_51DEGREES=1 51DEGREES_SRC=../Device-Detection/src/pattern &gt; $(CMD_NULL)" />
+				</MakeCommands>
+			</Target>
+			<Target title="debug-trie">
+				<Option output="../../haproxy/haproxy" prefix_auto="1" extension_auto="1" />
+				<Option working_dir="../../haproxy" />
+				<Option object_output="obj/Debug/" />
+				<Option type="1" />
+				<Option compiler="gcc" />
+				<Option parameters="-f ../Device-Detection/haproxy/config -d" />
+				<Compiler>
+					<Add option="-g" />
+				</Compiler>
+				<MakeCommands>
+					<Build command="$make -f $makefile TARGET=debug CPU_CFLAGS= DEBUG=-DDEBUG_FULL USE_51DEGREES=1 51DEGREES_SRC=../Device-Detection/src/trie" />
+					<CompileFile command="$make -f $makefile $file" />
+					<Clean command="$make -f $makefile clean" />
+					<DistClean command="$make -f $makefile distclean$target" />
+					<AskRebuildNeeded command="$make -q -f $makefile debug" />
+					<SilentBuild command="$make -f $makefile TARGET=debug CPU_CFLAGS= DEBUG=-DDEBUG_FULL USE_51DEGREES=1 51DEGREES_SRC=../Device-Detection/src/trie &gt; $(CMD_NULL)" />
+				</MakeCommands>
+			</Target>
+			<Target title="generic-trie">
+				<Option output="../../haproxy/haproxy" prefix_auto="1" extension_auto="1" />
+				<Option working_dir="../../haproxy" />
+				<Option object_output="obj/Debug/" />
+				<Option type="1" />
+				<Option compiler="gcc" />
+				<Option parameters="-f ../Device-Detection/haproxy/config -d" />
+				<Option host_application="haproxy" />
+				<Option run_host_application_in_terminal="0" />
+				<Compiler>
+					<Add option="-g" />
+				</Compiler>
+				<MakeCommands>
+					<Build command="$make -f $makefile TARGET=generic DEBUG_CFLAGS= USE_51DEGREES=1 51DEGREES_SRC=../Device-Detection/src/trie" />
+					<CompileFile command="$make -f $makefile $file" />
+					<Clean command="$make -f $makefile clean" />
+					<DistClean command="$make -f $makefile distclean$target" />
+					<AskRebuildNeeded command="$make -q -f $makefile generic" />
+					<SilentBuild command="$make -f $makefile TARGET=generic DEBUG_CFLAGS= USE_51DEGREES=1 51DEGREES_SRC=../Device-Detection/src/trie &gt; $(CMD_NULL)" />
+				</MakeCommands>
+			</Target>
+		</Build>
+		<Compiler>
+			<Add option="-Wall" />
+		</Compiler>
+		<Unit filename="../../haproxy/include/common/accept4.h" />
+		<Unit filename="../../haproxy/include/common/base64.h" />
+		<Unit filename="../../haproxy/include/common/buffer.h" />
+		<Unit filename="../../haproxy/include/common/cfgparse.h" />
+		<Unit filename="../../haproxy/include/common/chunk.h" />
+		<Unit filename="../../haproxy/include/common/compat.h" />
+		<Unit filename="../../haproxy/include/common/compiler.h" />
+		<Unit filename="../../haproxy/include/common/config.h" />
+		<Unit filename="../../haproxy/include/common/debug.h" />
+		<Unit filename="../../haproxy/include/common/defaults.h" />
+		<Unit filename="../../haproxy/include/common/epoll.h" />
+		<Unit filename="../../haproxy/include/common/errors.h" />
+		<Unit filename="../../haproxy/include/common/hash.h" />
+		<Unit filename="../../haproxy/include/common/memory.h" />
+		<Unit filename="../../haproxy/include/common/mini-clist.h" />
+		<Unit filename="../../haproxy/include/common/namespace.h" />
+		<Unit filename="../../haproxy/include/common/rbtree.h" />
+		<Unit filename="../../haproxy/include/common/regex.h" />
+		<Unit filename="../../haproxy/include/common/splice.h" />
+		<Unit filename="../../haproxy/include/common/standard.h" />
+		<Unit filename="../../haproxy/include/common/syscall.h" />
+		<Unit filename="../../haproxy/include/common/template.h" />
+		<Unit filename="../../haproxy/include/common/ticks.h" />
+		<Unit filename="../../haproxy/include/common/time.h" />
+		<Unit filename="../../haproxy/include/common/tools.h" />
+		<Unit filename="../../haproxy/include/common/uri_auth.h" />
+		<Unit filename="../../haproxy/include/common/version.h" />
+		<Unit filename="../../haproxy/include/import/51d.h" />
+		<Unit filename="../../haproxy/include/import/da.h" />
+		<Unit filename="../../haproxy/include/import/lru.h" />
+		<Unit filename="../../haproxy/include/import/xxhash.h" />
+		<Unit filename="../../haproxy/include/proto/acl.h" />
+		<Unit filename="../../haproxy/include/proto/action.h" />
+		<Unit filename="../../haproxy/include/proto/applet.h" />
+		<Unit filename="../../haproxy/include/proto/arg.h" />
+		<Unit filename="../../haproxy/include/proto/auth.h" />
+		<Unit filename="../../haproxy/include/proto/backend.h" />
+		<Unit filename="../../haproxy/include/proto/channel.h" />
+		<Unit filename="../../haproxy/include/proto/checks.h" />
+		<Unit filename="../../haproxy/include/proto/compression.h" />
+		<Unit filename="../../haproxy/include/proto/connection.h" />
+		<Unit filename="../../haproxy/include/proto/dns.h" />
+		<Unit filename="../../haproxy/include/proto/dumpstats.h" />
+		<Unit filename="../../haproxy/include/proto/fd.h" />
+		<Unit filename="../../haproxy/include/proto/freq_ctr.h" />
+		<Unit filename="../../haproxy/include/proto/frontend.h" />
+		<Unit filename="../../haproxy/include/proto/hdr_idx.h" />
+		<Unit filename="../../haproxy/include/proto/hlua.h" />
+		<Unit filename="../../haproxy/include/proto/lb_chash.h" />
+		<Unit filename="../../haproxy/include/proto/lb_fas.h" />
+		<Unit filename="../../haproxy/include/proto/lb_fwlc.h" />
+		<Unit filename="../../haproxy/include/proto/lb_fwrr.h" />
+		<Unit filename="../../haproxy/include/proto/lb_map.h" />
+		<Unit filename="../../haproxy/include/proto/listener.h" />
+		<Unit filename="../../haproxy/include/proto/log.h" />
+		<Unit filename="../../haproxy/include/proto/map.h" />
+		<Unit filename="../../haproxy/include/proto/obj_type.h" />
+		<Unit filename="../../haproxy/include/proto/pattern.h" />
+		<Unit filename="../../haproxy/include/proto/payload.h" />
+		<Unit filename="../../haproxy/include/proto/peers.h" />
+		<Unit filename="../../haproxy/include/proto/pipe.h" />
+		<Unit filename="../../haproxy/include/proto/port_range.h" />
+		<Unit filename="../../haproxy/include/proto/proto_http.h" />
+		<Unit filename="../../haproxy/include/proto/proto_tcp.h" />
+		<Unit filename="../../haproxy/include/proto/proto_udp.h" />
+		<Unit filename="../../haproxy/include/proto/proto_uxst.h" />
+		<Unit filename="../../haproxy/include/proto/protocol.h" />
+		<Unit filename="../../haproxy/include/proto/proxy.h" />
+		<Unit filename="../../haproxy/include/proto/queue.h" />
+		<Unit filename="../../haproxy/include/proto/raw_sock.h" />
+		<Unit filename="../../haproxy/include/proto/sample.h" />
+		<Unit filename="../../haproxy/include/proto/server.h" />
+		<Unit filename="../../haproxy/include/proto/session.h" />
+		<Unit filename="../../haproxy/include/proto/shctx.h" />
+		<Unit filename="../../haproxy/include/proto/signal.h" />
+		<Unit filename="../../haproxy/include/proto/ssl_sock.h" />
+		<Unit filename="../../haproxy/include/proto/stick_table.h" />
+		<Unit filename="../../haproxy/include/proto/stream.h" />
+		<Unit filename="../../haproxy/include/proto/stream_interface.h" />
+		<Unit filename="../../haproxy/include/proto/task.h" />
+		<Unit filename="../../haproxy/include/proto/template.h" />
+		<Unit filename="../../haproxy/include/proto/vars.h" />
+		<Unit filename="../../haproxy/include/types/acl.h" />
+		<Unit filename="../../haproxy/include/types/action.h" />
+		<Unit filename="../../haproxy/include/types/applet.h" />
+		<Unit filename="../../haproxy/include/types/arg.h" />
+		<Unit filename="../../haproxy/include/types/auth.h" />
+		<Unit filename="../../haproxy/include/types/backend.h" />
+		<Unit filename="../../haproxy/include/types/capture.h" />
+		<Unit filename="../../haproxy/include/types/channel.h" />
+		<Unit filename="../../haproxy/include/types/checks.h" />
+		<Unit filename="../../haproxy/include/types/compression.h" />
+		<Unit filename="../../haproxy/include/types/connection.h" />
+		<Unit filename="../../haproxy/include/types/counters.h" />
+		<Unit filename="../../haproxy/include/types/dns.h" />
+		<Unit filename="../../haproxy/include/types/fd.h" />
+		<Unit filename="../../haproxy/include/types/freq_ctr.h" />
+		<Unit filename="../../haproxy/include/types/global.h" />
+		<Unit filename="../../haproxy/include/types/hdr_idx.h" />
+		<Unit filename="../../haproxy/include/types/hlua.h" />
+		<Unit filename="../../haproxy/include/types/lb_chash.h" />
+		<Unit filename="../../haproxy/include/types/lb_fas.h" />
+		<Unit filename="../../haproxy/include/types/lb_fwlc.h" />
+		<Unit filename="../../haproxy/include/types/lb_fwrr.h" />
+		<Unit filename="../../haproxy/include/types/lb_map.h" />
+		<Unit filename="../../haproxy/include/types/listener.h" />
+		<Unit filename="../../haproxy/include/types/log.h" />
+		<Unit filename="../../haproxy/include/types/mailers.h" />
+		<Unit filename="../../haproxy/include/types/map.h" />
+		<Unit filename="../../haproxy/include/types/obj_type.h" />
+		<Unit filename="../../haproxy/include/types/pattern.h" />
+		<Unit filename="../../haproxy/include/types/peers.h" />
+		<Unit filename="../../haproxy/include/types/pipe.h" />
+		<Unit filename="../../haproxy/include/types/port_range.h" />
+		<Unit filename="../../haproxy/include/types/proto_http.h" />
+		<Unit filename="../../haproxy/include/types/proto_udp.h" />
+		<Unit filename="../../haproxy/include/types/protocol.h" />
+		<Unit filename="../../haproxy/include/types/proxy.h" />
+		<Unit filename="../../haproxy/include/types/queue.h" />
+		<Unit filename="../../haproxy/include/types/sample.h" />
+		<Unit filename="../../haproxy/include/types/server.h" />
+		<Unit filename="../../haproxy/include/types/session.h" />
+		<Unit filename="../../haproxy/include/types/signal.h" />
+		<Unit filename="../../haproxy/include/types/ssl_sock.h" />
+		<Unit filename="../../haproxy/include/types/stick_table.h" />
+		<Unit filename="../../haproxy/include/types/stream.h" />
+		<Unit filename="../../haproxy/include/types/stream_interface.h" />
+		<Unit filename="../../haproxy/include/types/task.h" />
+		<Unit filename="../../haproxy/include/types/template.h" />
+		<Unit filename="../../haproxy/include/types/vars.h" />
+		<Unit filename="../../haproxy/src/51d.c">
+			<Option compilerVar="CC" />
+		</Unit>
+		<Unit filename="../../haproxy/src/acl.c">
+			<Option compilerVar="CC" />
+		</Unit>
+		<Unit filename="../../haproxy/src/applet.c">
+			<Option compilerVar="CC" />
+		</Unit>
+		<Unit filename="../../haproxy/src/arg.c">
+			<Option compilerVar="CC" />
+		</Unit>
+		<Unit filename="../../haproxy/src/auth.c">
+			<Option compilerVar="CC" />
+		</Unit>
+		<Unit filename="../../haproxy/src/backend.c">
+			<Option compilerVar="CC" />
+		</Unit>
+		<Unit filename="../../haproxy/src/base64.c">
+			<Option compilerVar="CC" />
+		</Unit>
+		<Unit filename="../../haproxy/src/buffer.c">
+			<Option compilerVar="CC" />
+		</Unit>
+		<Unit filename="../../haproxy/src/cfgparse.c">
+			<Option compilerVar="CC" />
+		</Unit>
+		<Unit filename="../../haproxy/src/channel.c">
+			<Option compilerVar="CC" />
+		</Unit>
+		<Unit filename="../../haproxy/src/checks.c">
+			<Option compilerVar="CC" />
+		</Unit>
+		<Unit filename="../../haproxy/src/chunk.c">
+			<Option compilerVar="CC" />
+		</Unit>
+		<Unit filename="../../haproxy/src/compression.c">
+			<Option compilerVar="CC" />
+		</Unit>
+		<Unit filename="../../haproxy/src/connection.c">
+			<Option compilerVar="CC" />
+		</Unit>
+		<Unit filename="../../haproxy/src/da.c">
+			<Option compilerVar="CC" />
+		</Unit>
+		<Unit filename="../../haproxy/src/dns.c">
+			<Option compilerVar="CC" />
+		</Unit>
+		<Unit filename="../../haproxy/src/dumpstats.c">
+			<Option compilerVar="CC" />
+		</Unit>
+		<Unit filename="../../haproxy/src/ev_epoll.c">
+			<Option compilerVar="CC" />
+		</Unit>
+		<Unit filename="../../haproxy/src/ev_kqueue.c">
+			<Option compilerVar="CC" />
+		</Unit>
+		<Unit filename="../../haproxy/src/ev_poll.c">
+			<Option compilerVar="CC" />
+		</Unit>
+		<Unit filename="../../haproxy/src/ev_select.c">
+			<Option compilerVar="CC" />
+		</Unit>
+		<Unit filename="../../haproxy/src/fd.c">
+			<Option compilerVar="CC" />
+		</Unit>
+		<Unit filename="../../haproxy/src/freq_ctr.c">
+			<Option compilerVar="CC" />
+		</Unit>
+		<Unit filename="../../haproxy/src/frontend.c">
+			<Option compilerVar="CC" />
+		</Unit>
+		<Unit filename="../../haproxy/src/haproxy-systemd-wrapper.c">
+			<Option compilerVar="CC" />
+		</Unit>
+		<Unit filename="../../haproxy/src/haproxy.c">
+			<Option compilerVar="CC" />
+		</Unit>
+		<Unit filename="../../haproxy/src/hash.c">
+			<Option compilerVar="CC" />
+		</Unit>
+		<Unit filename="../../haproxy/src/hdr_idx.c">
+			<Option compilerVar="CC" />
+		</Unit>
+		<Unit filename="../../haproxy/src/hlua.c">
+			<Option compilerVar="CC" />
+		</Unit>
+		<Unit filename="../../haproxy/src/i386-linux-vsys.c">
+			<Option compilerVar="CC" />
+		</Unit>
+		<Unit filename="../../haproxy/src/lb_chash.c">
+			<Option compilerVar="CC" />
+		</Unit>
+		<Unit filename="../../haproxy/src/lb_fas.c">
+			<Option compilerVar="CC" />
+		</Unit>
+		<Unit filename="../../haproxy/src/lb_fwlc.c">
+			<Option compilerVar="CC" />
+		</Unit>
+		<Unit filename="../../haproxy/src/lb_fwrr.c">
+			<Option compilerVar="CC" />
+		</Unit>
+		<Unit filename="../../haproxy/src/lb_map.c">
+			<Option compilerVar="CC" />
+		</Unit>
+		<Unit filename="../../haproxy/src/listener.c">
+			<Option compilerVar="CC" />
+		</Unit>
+		<Unit filename="../../haproxy/src/log.c">
+			<Option compilerVar="CC" />
+		</Unit>
+		<Unit filename="../../haproxy/src/lru.c">
+			<Option compilerVar="CC" />
+		</Unit>
+		<Unit filename="../../haproxy/src/mailers.c">
+			<Option compilerVar="CC" />
+		</Unit>
+		<Unit filename="../../haproxy/src/map.c">
+			<Option compilerVar="CC" />
+		</Unit>
+		<Unit filename="../../haproxy/src/memory.c">
+			<Option compilerVar="CC" />
+		</Unit>
+		<Unit filename="../../haproxy/src/namespace.c">
+			<Option compilerVar="CC" />
+		</Unit>
+		<Unit filename="../../haproxy/src/pattern.c">
+			<Option compilerVar="CC" />
+		</Unit>
+		<Unit filename="../../haproxy/src/payload.c">
+			<Option compilerVar="CC" />
+		</Unit>
+		<Unit filename="../../haproxy/src/peers.c">
+			<Option compilerVar="CC" />
+		</Unit>
+		<Unit filename="../../haproxy/src/pipe.c">
+			<Option compilerVar="CC" />
+		</Unit>
+		<Unit filename="../../haproxy/src/proto_http.c">
+			<Option compilerVar="CC" />
+		</Unit>
+		<Unit filename="../../haproxy/src/proto_tcp.c">
+			<Option compilerVar="CC" />
+		</Unit>
+		<Unit filename="../../haproxy/src/proto_udp.c">
+			<Option compilerVar="CC" />
+		</Unit>
+		<Unit filename="../../haproxy/src/proto_uxst.c">
+			<Option compilerVar="CC" />
+		</Unit>
+		<Unit filename="../../haproxy/src/protocol.c">
+			<Option compilerVar="CC" />
+		</Unit>
+		<Unit filename="../../haproxy/src/proxy.c">
+			<Option compilerVar="CC" />
+		</Unit>
+		<Unit filename="../../haproxy/src/queue.c">
+			<Option compilerVar="CC" />
+		</Unit>
+		<Unit filename="../../haproxy/src/raw_sock.c">
+			<Option compilerVar="CC" />
+		</Unit>
+		<Unit filename="../../haproxy/src/rbtree.c">
+			<Option compilerVar="CC" />
+		</Unit>
+		<Unit filename="../../haproxy/src/regex.c">
+			<Option compilerVar="CC" />
+		</Unit>
+		<Unit filename="../../haproxy/src/sample.c">
+			<Option compilerVar="CC" />
+		</Unit>
+		<Unit filename="../../haproxy/src/server.c">
+			<Option compilerVar="CC" />
+		</Unit>
+		<Unit filename="../../haproxy/src/session.c">
+			<Option compilerVar="CC" />
+		</Unit>
+		<Unit filename="../../haproxy/src/shctx.c">
+			<Option compilerVar="CC" />
+		</Unit>
+		<Unit filename="../../haproxy/src/signal.c">
+			<Option compilerVar="CC" />
+		</Unit>
+		<Unit filename="../../haproxy/src/ssl_sock.c">
+			<Option compilerVar="CC" />
+		</Unit>
+		<Unit filename="../../haproxy/src/standard.c">
+			<Option compilerVar="CC" />
+		</Unit>
+		<Unit filename="../../haproxy/src/stick_table.c">
+			<Option compilerVar="CC" />
+		</Unit>
+		<Unit filename="../../haproxy/src/stream.c">
+			<Option compilerVar="CC" />
+		</Unit>
+		<Unit filename="../../haproxy/src/stream_interface.c">
+			<Option compilerVar="CC" />
+		</Unit>
+		<Unit filename="../../haproxy/src/task.c">
+			<Option compilerVar="CC" />
+		</Unit>
+		<Unit filename="../../haproxy/src/time.c">
+			<Option compilerVar="CC" />
+		</Unit>
+		<Unit filename="../../haproxy/src/trace.c">
+			<Option compilerVar="CC" />
+		</Unit>
+		<Unit filename="../../haproxy/src/uri_auth.c">
+			<Option compilerVar="CC" />
+		</Unit>
+		<Unit filename="../../haproxy/src/vars.c">
+			<Option compilerVar="CC" />
+		</Unit>
+		<Unit filename="../../haproxy/src/xxhash.c">
+			<Option compilerVar="CC" />
+		</Unit>
+		<Unit filename="../src/cityhash/city.c">
+			<Option compilerVar="CC" />
+		</Unit>
+		<Unit filename="../src/cityhash/city.h" />
+		<Unit filename="../src/console/Console.c">
+			<Option compilerVar="CC" />
+		</Unit>
+		<Unit filename="../src/pattern/51Degrees.c">
+			<Option compilerVar="CC" />
+		</Unit>
+		<Unit filename="../src/pattern/51Degrees.h" />
+		<Unit filename="../src/pattern/PerfPat.c">
+			<Option compilerVar="CC" />
+		</Unit>
+		<Unit filename="../src/pattern/ProcPat.c">
+			<Option compilerVar="CC" />
+		</Unit>
+		<Unit filename="../src/snprintf/snprintf.c">
+			<Option compilerVar="CC" />
+		</Unit>
+		<Unit filename="../src/snprintf/snprintf.h" />
+		<Unit filename="../src/threading.h" />
+		<Unit filename="../src/trie/51Degrees.c">
+			<Option compilerVar="CC" />
+		</Unit>
+		<Unit filename="../src/trie/51Degrees.h" />
+		<Unit filename="../src/trie/PerfTrie.c">
+			<Option compilerVar="CC" />
+		</Unit>
+		<Unit filename="../src/trie/ProcTrie.c">
+			<Option compilerVar="CC" />
+		</Unit>
+		<Extensions>
+			<code_completion />
+			<debugger />
+		</Extensions>
+	</Project>
+</CodeBlocks_project_file>

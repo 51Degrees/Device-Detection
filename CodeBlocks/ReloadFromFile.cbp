@@ -1,0 +1,89 @@
+<?xml version="1.0" encoding="UTF-8" standalone="yes" ?>
+<CodeBlocks_project_file>
+	<FileVersion major="1" minor="6" />
+	<Project>
+		<Option title="ReloadFromFile" />
+		<Option pch_mode="2" />
+		<Option compiler="gcc" />
+		<Build>
+			<Target title="Debug">
+				<Option output="bin/Debug/ReloadFromFile" prefix_auto="1" extension_auto="1" />
+				<Option object_output="obj/Debug/" />
+				<Option type="1" />
+				<Option compiler="gcc" />
+				<Option parameters='&quot;../data/51Degrees-LiteV3.2.dat&quot; &quot;../data/20000 User Agents.csv&quot;' />
+				<Compiler>
+					<Add option="-g" />
+				</Compiler>
+				<Linker>
+					<Add option="-pthread" />
+				</Linker>
+			</Target>
+			<Target title="Release">
+				<Option output="bin/Release/ReloadFromFile" prefix_auto="1" extension_auto="1" />
+				<Option object_output="obj/Release/" />
+				<Option type="1" />
+				<Option compiler="gcc" />
+				<Option parameters='&quot;../data/51Degrees-LiteV3.2.dat&quot; &quot;../data/20000 User Agents.csv&quot;' />
+				<Compiler>
+					<Add option="-O3" />
+				</Compiler>
+				<Linker>
+					<Add option="-s" />
+					<Add option="-pthread" />
+				</Linker>
+			</Target>
+			<Target title="Release - Single">
+				<Option output="bin/Release/ReloadFromFile" prefix_auto="1" extension_auto="1" />
+				<Option object_output="obj/Release/" />
+				<Option type="1" />
+				<Option compiler="gcc" />
+				<Option parameters='&quot;../data/51Degrees-LiteV3.2.dat&quot; &quot;../data/20000 User Agents.csv&quot;' />
+				<Compiler>
+					<Add option="-O3" />
+					<Add option="-DFIFTYONEDEGREES_NO_THREADING" />
+				</Compiler>
+				<Linker>
+					<Add option="-s" />
+					<Add option="-pthread" />
+				</Linker>
+			</Target>
+			<Target title="Debug - Single">
+				<Option output="bin/Debug/ReloadFromFile" prefix_auto="1" extension_auto="1" />
+				<Option object_output="obj/Debug/" />
+				<Option type="1" />
+				<Option compiler="gcc" />
+				<Option parameters='&quot;../data/51Degrees-LiteV3.2.dat&quot; &quot;../data/20000 User Agents.csv&quot;' />
+				<Compiler>
+					<Add option="-g" />
+					<Add option="-DFIFTYONEDEGREES_NO_THREADING" />
+				</Compiler>
+				<Linker>
+					<Add option="-pthread" />
+				</Linker>
+			</Target>
+		</Build>
+		<Compiler>
+			<Add option="-Wall" />
+		</Compiler>
+		<Unit filename="../examples/ReloadFromFile.c">
+			<Option compilerVar="CC" />
+		</Unit>
+		<Unit filename="../src/cityhash/city.c">
+			<Option compilerVar="CC" />
+		</Unit>
+		<Unit filename="../src/cityhash/city.h" />
+		<Unit filename="../src/pattern/51Degrees.c">
+			<Option compilerVar="CC" />
+		</Unit>
+		<Unit filename="../src/pattern/51Degrees.h" />
+		<Unit filename="../src/threading.c">
+			<Option compilerVar="CC" />
+		</Unit>
+		<Unit filename="../src/threading.h" />
+		<Extensions>
+			<code_completion />
+			<debugger />
+		</Extensions>
+	</Project>
+</CodeBlocks_project_file>
