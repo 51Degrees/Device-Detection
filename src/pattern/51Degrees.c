@@ -6,7 +6,18 @@
 #include <time.h>
 #include <ctype.h>
 #include <assert.h>
-#include "../cityhash/city.h"
+
+#if defined(__has_include)
+#if __has_include("flatdir.h")
+#include "flatdir.h"
+#endif
+#endif
+
+#ifndef FIFTYONE_CITY_H
+#define FIFTYONE_CITY_H "../cityhash/city.h"
+#endif
+#include FIFTYONE_CITY_H
+
 #include "51Degrees.h"
 /* *********************************************************************
  * This Source Code Form is copyright of 51Degrees Mobile Experts Limited.

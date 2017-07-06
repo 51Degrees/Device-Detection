@@ -52,9 +52,23 @@
 #include <stdint.h>
 #include <limits.h>
 #include <time.h>
+
 #ifndef FIFTYONEDEGREES_NO_THREADING
-#include "../threading.h"
+
+#if defined(__has_include)
+#if __has_include("flatdir.h")
+#include "flatdir.h"
 #endif
+#endif
+
+#ifndef FIFTYONE_THREADING_H
+#define FIFTYONE_THREADING_H "../threading.h"
+#endif
+#include FIFTYONE_THREADING_H
+
+#endif
+
+
 
 /* Used to represent bytes */
 typedef unsigned char byte;
