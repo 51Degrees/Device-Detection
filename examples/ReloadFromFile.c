@@ -1,6 +1,6 @@
 /**
 * This Source Code Form is copyright of 51Degrees Mobile Experts Limited.
-* Copyright (c) 2017 51Degrees Mobile Experts Limited, 5 Charlotte Close,
+* Copyright (c) 2015 51Degrees Mobile Experts Limited, 5 Charlotte Close,
 * Caversham, Reading, Berkshire, United Kingdom RG4 7BY
 *
 * This Source Code Form is the subject of the following patent
@@ -103,18 +103,10 @@ Reload from file example that shows how to:
 </tutorial>
 */
 
-#include <stdio.h>
-#include <stdlib.h>
-
-#ifdef _MSC_VER
-#include <Windows.h>
-#else
-#include <unistd.h>
-#endif
-
 #ifdef _DEBUG
 #ifdef _MSC_VER
 #define _CRTDBG_MAP_ALLOC
+#include <stdlib.h>
 #include <crtdbg.h>
 #else
 #include "dmalloc.h"
@@ -122,7 +114,16 @@ Reload from file example that shows how to:
 #endif
 
 // Snippet Start
+#include <stdio.h>
+#include <stdlib.h>
+#include <string.h>
+#ifdef _MSC_VER
+#include <Windows.h>
+#else
+#include <unistd.h>
+#endif
 #include "../src/pattern/51Degrees.h"
+#include "../src/threading.h"
 
 // Global settings and properties.
 static fiftyoneDegreesProvider provider;
@@ -162,9 +163,6 @@ int main(int argc, char* argv[]) {
 #ifdef _DEBUG
 #ifndef _MSC_VER
 	dmalloc_debug_setup("log-stats,log-non-free,check-fence,log=dmalloc.log");
-#else
-	_CrtSetReportMode(_CRT_WARN, _CRTDBG_MODE_FILE);
-	_CrtSetReportFile(_CRT_WARN, _CRTDBG_FILE_STDERR);
 #endif
 #endif
 

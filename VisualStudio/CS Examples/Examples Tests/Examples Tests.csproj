@@ -17,6 +17,24 @@
     <IsCodedUITest>False</IsCodedUITest>
     <TestProjectType>UnitTest</TestProjectType>
   </PropertyGroup>
+  <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Debug|AnyCPU' ">
+    <DebugSymbols>true</DebugSymbols>
+    <DebugType>full</DebugType>
+    <Optimize>false</Optimize>
+    <OutputPath>bin\Debug\</OutputPath>
+    <DefineConstants>DEBUG;TRACE</DefineConstants>
+    <ErrorReport>prompt</ErrorReport>
+    <WarningLevel>4</WarningLevel>
+    <PlatformTarget>x64</PlatformTarget>
+  </PropertyGroup>
+  <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Release|AnyCPU' ">
+    <DebugType>pdbonly</DebugType>
+    <Optimize>true</Optimize>
+    <OutputPath>bin\Release\</OutputPath>
+    <DefineConstants>TRACE</DefineConstants>
+    <ErrorReport>prompt</ErrorReport>
+    <WarningLevel>4</WarningLevel>
+  </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)' == 'Debug|x64'">
     <PlatformTarget>x64</PlatformTarget>
     <OutputPath>bin\x64\Debug\</OutputPath>
@@ -42,7 +60,6 @@
   </Choose>
   <ItemGroup>
     <Compile Include="FindProfiles.cs" />
-    <Compile Include="GettingStartedTrie.cs" />
     <Compile Include="GettingStarted.cs" />
     <Compile Include="MatchForDeviceId.cs" />
     <Compile Include="MatchMetrics.cs" />
@@ -50,19 +67,16 @@
     <Compile Include="Properties\AssemblyInfo.cs" />
     <Compile Include="Properties\Constants.cs" />
     <Compile Include="ReloadDataFile.cs" />
-    <Compile Include="ReloadDataFileTrie.cs" />
     <Compile Include="StronglyTyped.cs" />
-    <Compile Include="ReloadFromMemory.cs" />
-    <Compile Include="ReloadFromMemoryTrie.cs" />
   </ItemGroup>
   <ItemGroup>
+    <ProjectReference Include="..\..\Reload Data File\Reload Data File.csproj">
+      <Project>{0e073f36-0544-47c9-b489-32316f73ef2a}</Project>
+      <Name>Reload Data File</Name>
+    </ProjectReference>
     <ProjectReference Include="..\Find Profiles\Find Profiles.csproj">
       <Project>{fd83a2a6-3a66-4f86-ba87-7577521913bb}</Project>
       <Name>Find Profiles</Name>
-    </ProjectReference>
-    <ProjectReference Include="..\Getting Started Trie\Getting Started Trie.csproj">
-      <Project>{bd9c0186-0952-487a-a0f9-90de7c8cba84}</Project>
-      <Name>Getting Started Trie</Name>
     </ProjectReference>
     <ProjectReference Include="..\Getting Started\Getting Started.csproj">
       <Project>{8f58e14b-0484-4d54-a885-d5e15a5595af}</Project>
@@ -79,22 +93,6 @@
     <ProjectReference Include="..\Offline Processing\Offline Processing.csproj">
       <Project>{d43ea2c4-8979-474d-94ea-85056c7db97f}</Project>
       <Name>Offline Processing</Name>
-    </ProjectReference>
-    <ProjectReference Include="..\Reload Data File Trie\Reload Data File Trie.csproj">
-      <Project>{6f099305-7e81-4fd6-b803-43c2500a1212}</Project>
-      <Name>Reload Data File Trie</Name>
-    </ProjectReference>
-    <ProjectReference Include="..\Reload Data File\Reload Data File.csproj">
-      <Project>{0e073f36-0544-47c9-b489-32316f73ef2a}</Project>
-      <Name>Reload Data File</Name>
-    </ProjectReference>
-    <ProjectReference Include="..\Reload From Memory Trie\Reload From Memory Trie.csproj">
-      <Project>{da4d5c59-7449-4121-aa9f-05043d119825}</Project>
-      <Name>Reload From Memory Trie</Name>
-    </ProjectReference>
-    <ProjectReference Include="..\Reload From Memory\Reload From Memory.csproj">
-      <Project>{d41921b5-5d5c-4c8d-86e9-47bb34db61ad}</Project>
-      <Name>Reload From Memory</Name>
     </ProjectReference>
     <ProjectReference Include="..\Strongly Typed\Strongly Typed.csproj">
       <Project>{c1da4706-9d13-47ea-ba9a-48ca6d8a8f10}</Project>
@@ -122,8 +120,7 @@
   <Import Project="$(VSToolsPath)\TeamTest\Microsoft.TestTools.targets" Condition="Exists('$(VSToolsPath)\TeamTest\Microsoft.TestTools.targets')" />
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
   <PropertyGroup>
-    <PostBuildEvent>copy $(SolutionDir)$(Platform)\$(Configuration)\FiftyOne.Mobile.Detection.Provider.Pattern.* "$(TargetDir)"
-copy $(SolutionDir)$(Platform)\$(Configuration)\FiftyOne.Mobile.Detection.Provider.Trie.* "$(TargetDir)"</PostBuildEvent>
+    <PostBuildEvent>copy $(SolutionDir)$(Platform)\$(Configuration)\FiftyOne.Mobile.Detection.Provider.Pattern.* "$(TargetDir)"</PostBuildEvent>
   </PropertyGroup>
   <!-- To modify your build process, add your task inside one of the targets below and uncomment it. 
        Other similar extension points exist, see Microsoft.Common.targets.

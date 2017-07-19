@@ -1,6 +1,6 @@
 ﻿/* *********************************************************************
  * This Source Code Form is copyright of 51Degrees Mobile Experts Limited. 
- * Copyright 2017 51Degrees Mobile Experts Limited, 5 Charlotte Close,
+ * Copyright 2015 51Degrees Mobile Experts Limited, 5 Charlotte Close,
  * Caversham, Reading, Berkshire, United Kingdom RG4 7BY
  * 
  * This Source Code Form is the subject of the following patent 
@@ -77,25 +77,5 @@ namespace FiftyOne.Mobile.Detection.Provider.Interop
         /// wrapper has been created.
         /// </summary>
         void ReloadFromFile();
-
-        /// <summary>
-        /// Reloads the original file from memory. Used
-        /// to refresh the active data set being used at runtime after the
-        /// wrapper has been created.
-        /// </summary>
-        void ReloadFromMemory();
-
-        /// <summary>
-        /// Returns the number of times the cache fetch has found what it is
-        /// looking for.
-        /// </summary>
-        int CacheHits { get; }
-
-        /// <summary>
-        /// Returns the number of times the cache fetch has not found what it
-        /// is looking for. The cache fetch function is called a second time
-        /// to insert a value that was not found.
-        /// </summary>
-        int CacheMisses { get; }
     }
 }

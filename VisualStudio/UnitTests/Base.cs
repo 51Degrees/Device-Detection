@@ -1,6 +1,6 @@
 ﻿/* *********************************************************************
  * This Source Code Form is copyright of 51Degrees Mobile Experts Limited. 
- * Copyright 2017 51Degrees Mobile Experts Limited, 5 Charlotte Close,
+ * Copyright 2015 51Degrees Mobile Experts Limited, 5 Charlotte Close,
  * Caversham, Reading, Berkshire, United Kingdom RG4 7BY
  * 
  * This Source Code Form is the subject of the following patent 
@@ -40,31 +40,6 @@ namespace FiftyOne.UnitTests
         /// </summary>
         /// <returns></returns>
         protected abstract IWrapper CreateWrapper();
-
-        /// <summary>
-        /// Method used to create wrapper when the constructor is called. Also
-        /// validates the memory calculation and throws an error if incorrect.
-        /// If this is not overridden then it will default to the usual base
-        /// CreateWrapper function to prevent compilation errors.
-        /// </summary>
-        /// <param name="properties">The properties to initialise.</param>
-        /// <param name="validate">Whether to validate the memory calculation.</param>
-        /// <returns></returns>
-        protected virtual IWrapper CreateWrapper(string properties, bool validate)
-        {
-            return CreateWrapper();
-        }
-
-        /// <summary>
-        /// Method used to create wrapper when the constructor is called.
-        /// PatternBase overrides this method to set the cache size.
-        /// </summary>
-        /// <param name="cacheSize">The size of the cache.</param>
-        /// <returns></returns>
-        protected virtual IWrapper CreateWrapper(int cacheSize)
-        {
-            return CreateWrapper();
-        }
 
         /// <summary>
         /// Location of the data file used to create the wrapper.

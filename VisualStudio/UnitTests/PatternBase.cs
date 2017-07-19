@@ -1,6 +1,6 @@
 ﻿/* *********************************************************************
  * This Source Code Form is copyright of 51Degrees Mobile Experts Limited. 
- * Copyright 2017 51Degrees Mobile Experts Limited, 5 Charlotte Close,
+ * Copyright 2015 51Degrees Mobile Experts Limited, 5 Charlotte Close,
  * Caversham, Reading, Berkshire, United Kingdom RG4 7BY
  * 
  * This Source Code Form is the subject of the following patent 
@@ -29,18 +29,6 @@ namespace FiftyOne.UnitTests
         {
             Utils.CheckFileExists(DataFile);
             return new PatternWrapper(DataFile, 5000);
-        }
-
-        protected override IWrapper CreateWrapper(string properties, bool validate)
-        {
-            Utils.CheckFileExists(DataFile);
-            return new PatternWrapper(DataFile, properties, 5000, validate);
-        }
-
-        protected override IWrapper CreateWrapper(int cacheSize)
-        {
-            Utils.CheckFileExists(DataFile);
-            return new PatternWrapper(DataFile, cacheSize);
         }
     }
 }

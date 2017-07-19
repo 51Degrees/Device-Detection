@@ -15,8 +15,6 @@
 *.pfk
 *.psess
 *.opensdf
-*.VC.*
-.vs/**
 TestResults
 Debug/
 Release/

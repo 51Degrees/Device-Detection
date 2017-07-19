@@ -31,6 +31,7 @@ Two detection methods are supported.
 All methods use an external data file which can easilly be updated.
 
 ## Dependencies
+
 - make
 - perl
 - g++
@@ -52,8 +53,9 @@ $ sudo perl -MCPAN -e shell
 ```
 
 ## Install
-
+<installation>
 #### Linux
+
 To install, go to the directory for your chosen detection method (i.e. Pattern or Trie) with
 ```
 $ cd Device-Detection/perl/[package name]
@@ -67,10 +69,10 @@ $ perl Makefile.PL
 $ sudo make install
 
 ```
-
+</installation>
 ## Usage
-
 #### Basics
+
 To check everything is set up correctly, try running the following PERL script.
 
 ```perl
@@ -85,7 +87,6 @@ my $match = $provider->getMatch($userAgent);
 print "IsMobile: " . $match->getValue("IsMobile") . "\r\n";
 print "DeviceType: " . $match->getValue("DeviceType") . "\r\n";
 ```
-
 #### Examples
 In the examples folder, you can find examples of various functionalities that the 51Degrees detector has such as:
 - Matching with a User-Agent
@@ -108,4 +109,3 @@ $ perl console.pl
 ```
 $ perl server.pl
 ```
-s

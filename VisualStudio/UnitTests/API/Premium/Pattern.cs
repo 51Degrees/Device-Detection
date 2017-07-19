@@ -1,6 +1,6 @@
 ﻿/* *********************************************************************
  * This Source Code Form is copyright of 51Degrees Mobile Experts Limited. 
- * Copyright 2017 51Degrees Mobile Experts Limited, 5 Charlotte Close,
+ * Copyright 2015 51Degrees Mobile Experts Limited, 5 Charlotte Close,
  * Caversham, Reading, Berkshire, United Kingdom RG4 7BY
  * 
  * This Source Code Form is the subject of the following patent 
@@ -24,7 +24,7 @@ using Microsoft.VisualStudio.TestTools.UnitTesting;
 using FiftyOne.UnitTests;
 using System.Collections.Specialized;
 
-namespace UnitTests.API.Premium
+namespace UnitTests.API.Enterprise
 {
     [TestClass]
     public class Pattern : PatternBase
@@ -43,7 +43,7 @@ namespace UnitTests.API.Premium
 
         [TestMethod]
         [TestCategory("API"), TestCategory("Premium")]
-        public void PremiumPatternAPI_NullUserAgent()
+        public void PatternPatternAPI_NullUserAgent()
         {
             using (var result = _wrapper.Match((string)null))
             {
@@ -53,7 +53,7 @@ namespace UnitTests.API.Premium
 
         [TestMethod]
         [TestCategory("API"), TestCategory("Premium")]
-        public void PremiumPatternAPI_EmptyUserAgent()
+        public void PatternPatternAPI_EmptyUserAgent()
         {
             using (var result = _wrapper.Match(String.Empty))
             {
@@ -63,7 +63,7 @@ namespace UnitTests.API.Premium
 
         [TestMethod]
         [TestCategory("API"), TestCategory("Premium")]
-        public void PremiumPatternAPI_LongUserAgent()
+        public void PatternPatternAPI_LongUserAgent()
         {
             var userAgent = String.Join(" ", UserAgentGenerator.GetEnumerable(10, 10));
             using (var result = _wrapper.Match(userAgent))
@@ -112,23 +112,6 @@ namespace UnitTests.API.Premium
             }
         }
 
-        [TestMethod]
-        [TestCategory("API"), TestCategory("Premium")]
-        public void PremiumPatternAPI_ProviderMemory()
-        {
-            string properties = "IsMobile,BrowserName,PlatformName";
-            var provider = CreateWrapper(properties, true);
-            provider.Dispose();
-        }
-
-        [TestMethod]
-        [TestCategory("API"), TestCategory("Premium")]
-        public void PremiumPatternAPI_ProviderMemoryEmptyProperties()
-        {
-            string properties = "";
-            var provider = CreateWrapper(properties, true);
-            provider.Dispose();
-        }
         protected override string DataFile
         {
             get { return Constants.PREMIUM_PATTERN_V32; }

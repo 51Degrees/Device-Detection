@@ -5,6 +5,7 @@
 <sup>Need [.NET](https://github.com/51Degrees/.NET-Device-Detection "THE Fastest and most Accurate device detection for .NET") | [Java](https://github.com/51Degrees/Java-Device-Detection "THE Fastest and most Accurate device detection for Java") | [PHP Script](https://github.com/51Degrees/51Degrees-PHP)?</sup>
 
 ## Introduction
+
 In Python, use like...
 ```python
 >>> from FiftyOneDegrees import fiftyone_degrees_mobile_detector_v3_wrapper
@@ -27,8 +28,8 @@ Two detection methods are supported.
 All methods use an external data file which can easilly be updated.
 
 ## Dependencies
-
 #### Essential
+
 - python
 - python-setuptools
 - python-dev
@@ -57,11 +58,9 @@ For Ubuntu based distributions these can be found on apt, use
 ```
 $ sudo pip install django
 ```
-
 ## Install
-
+<installation>
 ### Linux
-
 #### From pip
 This is the quickest and easiest way to install 51Degrees python detector. Just use
 ```
@@ -71,9 +70,7 @@ or
 ```
 $ sudo pip install 51degrees-mobile-detector-v3-trie-wrapper
 ```
-
 *Note: 51degrees-mobile-detector will be installed as a dependency.*
-
 #### From git
 However, if you want to build the package yourself and use the examples too.
 First clone 51Degrees/Device-Detection repository with
@@ -97,10 +94,10 @@ Then install with
 ```
 $ sudo make install
 ```
-
+</installation>
 When you're done installing, check it's set up correctly by recreating the output in the Usage section below. Or if you've cloned this repository, try the examples.
-
 ## Configure
+<configuration>
 Before start matching user agents, you may wish to configure the solution to use a different datadase for example. You can easily generate a sample settings file running the following command
 ```
 $ 51degrees-mobile-detector settings > ~/51degrees-mobile-detector.settings.py
@@ -114,9 +111,7 @@ $ export FIFTYONE_DEGREES_MOBILE_DETECTOR_SETTINGS=~/51degrees-mobile-detector.s
 ```
 
 This can be permanently set by adding this line to your ``~/.profile`` file.
-
 ### Settings
-
 #### General Settings
  - ``DETECTION_METHOD`` (defaults to ``'v3-wrapper'``). Sets the preferred mobile device detection method. Available options are ``v3-wrapper`` (requires 51degrees-mobile-detector-v3-wrapper package), ``v3-trie-wrapper`` (requires 51degrees-mobile-detector-v3-trie-wrapper package).
 
@@ -138,12 +133,11 @@ This can be permanently set by adding this line to your ``~/.profile`` file.
  - ``USAGE_SHARER_ENABLED`` (defaults to ``True``). Indicates if usage data should be shared with 51Degrees.com. We recommended leaving this value unchanged to ensure we're improving the performance and accuracy of the solution.
 
  - Adavanced usage sharer settings are detailed in your settings file.
-
+</configuration>
 #### Automatic updates
 If you want to set up automatic updates, add your license key to your settings and add the ``51degrees-mobile-detector update-premium-pattern-wrapper`` command to your cron.
 
 ## Usage
-
 #### Core
 By executing the following a useful help page will be displayed explaining basic usage.
 ```

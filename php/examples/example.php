@@ -1,11 +1,11 @@
 <?php
 // Snippet Start
 if (extension_loaded(FiftyOneDegreesPatternV3)) {
-	require("../pattern/FiftyOneDegreesPatternV3.php");
+	require("FiftyOneDegreesPatternV3.php");
 	$provider = FiftyOneDegreesPatternV3::provider_get();
 }
 elseif (extension_loaded(FiftyOneDegreesTrieV3)) {
-	require("../trie/FiftyOneDegreesTrieV3.php");
+	require("FiftyOneDegreesTrieV3.php");
 	$provider = FiftyOneDegreesTrieV3::provider_get();
 }
 else {

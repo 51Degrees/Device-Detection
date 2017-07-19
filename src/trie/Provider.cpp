@@ -1,6 +1,6 @@
 /* *********************************************************************
  * This Source Code Form is copyright of 51Degrees Mobile Experts Limited.
- * Copyright 2017 51Degrees Mobile Experts Limited, 5 Charlotte Close,
+ * Copyright 2015 51Degrees Mobile Experts Limited, 5 Charlotte Close,
  * Caversham, Reading, Berkshire, United Kingdom RG4 7BY
  *
  * This Source Code Form is the subject of the following patent
@@ -25,10 +25,6 @@ using namespace std;
 
 #define JSON_BUFFER_LENGTH 50000
 
-/**
- * If required, use prefixed HTTP headers. This is required for some
- * applications which format header names differently.
- */
 #ifdef HTTP_HEADERS_PREFIXED
 #define GET_HTTP_HEADER_NAME fiftyoneDegreesGetPrefixedUpperHttpHeaderName
 #else
@@ -81,7 +77,7 @@ Provider::Provider(const string &fileName, vector<string> &propertiesArray) {
  */
 Provider::~Provider()
 {
-    fiftyoneDegreesProviderFree(&provider);
+    fiftyoneDegreesDestroy();
 }
 
 /**
@@ -91,7 +87,7 @@ Provider::~Provider()
  * @param initStatus status enum value
  * @param fileName of the data source
  */
-void Provider::initException(
+void Provider::initExecption(
 		fiftyoneDegreesDataSetInitStatus initStatus,
 		const string &fileName) {
 	stringstream message;
@@ -113,16 +109,6 @@ void Provider::initException(
 				"permissions.";
 			throw invalid_argument(message.str());
 			break;
-		case DATA_SET_INIT_STATUS_NULL_POINTER:
-			throw runtime_error("Null pointer to the existing dataset or memory"
-				" location.");
-			break;
-		case DATA_SET_INIT_STATUS_POINTER_OUT_OF_BOUNDS:
-			throw runtime_error("Allocated continuous memory containing "
-				"51Degrees data file appears to be smaller than expected. Most"
-				" likely because the data file was not fully loaded into the "
-				"allocated memory.");
-			break;
 		default:
 		case DATA_SET_INIT_STATUS_NOT_SET:
 			throw runtime_error("Could not create data set from file.");
@@ -135,9 +121,8 @@ void Provider::initException(
  * @param fileName of the data source
  */
 void Provider::init(const string &fileName) {
-	initComplete(fiftyoneDegreesInitProviderWithPropertyString(
+	initComplete(fiftyoneDegreesInitWithPropertyString(
         fileName.c_str(),
-		&provider,
         NULL),
         fileName);
 }
@@ -149,10 +134,9 @@ void Provider::init(const string &fileName) {
  * to query from associated match results.
  */
 void Provider::init(const string &fileName, const string &propertyString) {
-	initComplete(fiftyoneDegreesInitProviderWithPropertyString(
+	initComplete(fiftyoneDegreesInitWithPropertyString(
         fileName.c_str(),
-		&provider,
-		propertyString.c_str()),
+        propertyString.c_str()),
         fileName);
 }
 
@@ -169,10 +153,9 @@ void Provider::init(const string &fileName, vector<string> &propertiesArray) {
         for (unsigned int index = 0; index < propertiesArray.size(); index++) {
             properties[index] = propertiesArray[index].c_str();
         }
-        initStatus = fiftyoneDegreesInitProviderWithPropertyArray(
+        initStatus = fiftyoneDegreesInitWithPropertyArray(
             fileName.c_str(),
-			&provider,
-			properties,
+            properties,
             (int)propertiesArray.size());
         delete properties;
 	}
@@ -189,10 +172,11 @@ void Provider::initComplete(
 		fiftyoneDegreesDataSetInitStatus initStatus,
 		const string &fileName) {
 	if (initStatus != DATA_SET_INIT_STATUS_SUCCESS)	{
-		initException(initStatus, fileName);
+		fiftyoneDegreesDestroy();
+		initExecption(initStatus, fileName);
 	}
 	else {
-		initAvailableproperties();
+		initAvailableProperites();
 		initHttpHeaders();
 	}
 }
@@ -205,11 +189,11 @@ void Provider::initComplete(
  */
 void Provider::initHttpHeaders() {
 	for (int httpHeaderIndex = 0;
-		httpHeaderIndex < fiftyoneDegreesGetHttpHeaderCount(provider.active->dataSet);
+		httpHeaderIndex < fiftyoneDegreesGetHttpHeaderCount();
 		httpHeaderIndex++) {
         httpHeaders.insert(
             httpHeaders.end(),
-			string(GET_HTTP_HEADER_NAME(provider.active->dataSet, httpHeaderIndex)));
+			string(GET_HTTP_HEADER_NAME(httpHeaderIndex)));
 	}
 }
 
@@ -219,12 +203,12 @@ void Provider::initHttpHeaders() {
  * at construction where the data set source file does not contain details
  * of the property name requested.
  */
-void Provider::initAvailableproperties() {
+void Provider::initAvailableProperites() {
 	const char *propertyName;
     for (int requiredPropetyIndex = 0;
-		requiredPropetyIndex < fiftyoneDegreesGetRequiredPropertiesCount(provider.active->dataSet);
+        requiredPropetyIndex < fiftyoneDegreesGetRequiredPropertiesCount();
         requiredPropetyIndex++) {
-		propertyName = fiftyoneDegreesGetRequiredPropertiesNames(provider.active->dataSet)[
+        propertyName = fiftyoneDegreesGetRequiredPropertiesNames()[
         	requiredPropetyIndex];
         availableProperties.insert(
             availableProperties.end(),
@@ -261,9 +245,9 @@ string Provider::getDataSetName() {
  * @returns the version format of the data file and API.
  */
 string Provider::getDataSetFormat() {
-	stringstream stream;
-	stream << *provider.active->dataSet->version;
-	return stream.str();
+    string result;
+    result.assign("3.2");
+    return result;
 }
 
 /**
@@ -313,21 +297,20 @@ int Provider::getDataSetDeviceCombinations() {
 fiftyoneDegreesDeviceOffsets* Provider::matchForHttpHeaders(
 		const map<string, string> *headers) {
 	int headerIndex = 0;
-	fiftyoneDegreesDeviceOffsets* offsets = fiftyoneDegreesProviderCreateDeviceOffsets(&provider);
-	const char *httpHeaderName = GET_HTTP_HEADER_NAME(provider.active->dataSet, headerIndex);
+	fiftyoneDegreesDeviceOffsets* offsets = fiftyoneDegreesCreateDeviceOffsets();
+	const char *httpHeaderName = GET_HTTP_HEADER_NAME(headerIndex);
 	while (httpHeaderName != NULL) {
 		map<string, string>::const_iterator httpHeaderValue =
 			headers->find(string(httpHeaderName));
 		if (httpHeaderValue != headers->end()) {
 			fiftyoneDegreesSetDeviceOffset(
-				provider.active->dataSet,
 				httpHeaderValue->second.c_str(),
 				headerIndex,
 				&offsets->firstOffset[offsets->size]);
             offsets->size++;
 		}
 		headerIndex++;
-		httpHeaderName = GET_HTTP_HEADER_NAME(provider.active->dataSet, headerIndex);
+		httpHeaderName = GET_HTTP_HEADER_NAME(headerIndex);
 	}
 	return offsets;
 }
@@ -345,15 +328,14 @@ void Provider::buildArray(
 	int requiredPropertyIndex;
 	string *propertyName;
 	for (requiredPropertyIndex = 0;
-		requiredPropertyIndex < fiftyoneDegreesGetRequiredPropertiesCount(provider.active->dataSet);
+        requiredPropertyIndex < fiftyoneDegreesGetRequiredPropertiesCount();
         requiredPropertyIndex++) {
         const char *value = fiftyoneDegreesGetValuePtrFromOffsets(
-			provider.active->dataSet,
         	offsets,
         	requiredPropertyIndex);
         if (value != NULL) {
             propertyName = new string(
-				fiftyoneDegreesGetRequiredPropertiesNames(provider.active->dataSet)[
+            	fiftyoneDegreesGetRequiredPropertiesNames()[
             		requiredPropertyIndex]);
             vector<string> *values = &(result->operator[](*propertyName));
             values->insert(values->begin(), string(value));
@@ -371,15 +353,14 @@ void Provider::buildArray(int offset, map<string, vector<string> > *result) {
 	int requiredPropertyIndex;
 	string *propertyName;
 	for (requiredPropertyIndex = 0;
-		requiredPropertyIndex < fiftyoneDegreesGetRequiredPropertiesCount(provider.active->dataSet);
+        requiredPropertyIndex < fiftyoneDegreesGetRequiredPropertiesCount();
         requiredPropertyIndex++) {
         const char *value = fiftyoneDegreesGetValue(
-			provider.active->dataSet,
         	offset,
         	requiredPropertyIndex);
         if (value != NULL) {
             propertyName = new string(
-				fiftyoneDegreesGetRequiredPropertiesNames(provider.active->dataSet)[
+            	fiftyoneDegreesGetRequiredPropertiesNames()[
             		requiredPropertyIndex]);
             vector<string> *values = &(result->operator[](*propertyName));
             values->insert(values->begin(), string(value));
@@ -387,21 +368,17 @@ void Provider::buildArray(int offset, map<string, vector<string> > *result) {
 	}
 }
 
-void Provider::initMatch(Match *match) {
-	match->dataSet = match->offsets->active->dataSet;
-}
 /**
  * Completes device detection for the User-Agent provided.
  * @param User-Agent whose results need to be obtained
  * @returns new Match instance configured to provide access to the results
  */
 Match* Provider::getMatch(const char* userAgent) {
-	fiftyoneDegreesDeviceOffsets* offsets = fiftyoneDegreesProviderCreateDeviceOffsets(&provider);
+	fiftyoneDegreesDeviceOffsets* offsets = new fiftyoneDegreesDeviceOffsets();
 	offsets->size = 1;
-	fiftyoneDegreesSetDeviceOffset(provider.active->dataSet, userAgent, 0, offsets->firstOffset);
-    Match *result = new Match(offsets);
-	initMatch(result);
-	return result;
+	offsets->firstOffset = new fiftyoneDegreesDeviceOffset[1];
+	fiftyoneDegreesSetDeviceOffset(userAgent, 0, offsets->firstOffset);
+    return new Match(offsets);
 }
 
 /**
@@ -419,9 +396,7 @@ Match* Provider::getMatch(const string& userAgent) {
  * @returns new Match instance configured to provide access to the results
  */
 Match* Provider::getMatch(const map<string, string>& headers) {
-    Match *result =  new Match(matchForHttpHeaders(&headers));
-	initMatch(result);
-	return result;
+    return new Match(matchForHttpHeaders(&headers));
 }
 
 /**
@@ -431,7 +406,7 @@ Match* Provider::getMatch(const map<string, string>& headers) {
  */
 map<string, vector<string> >& Provider::getMatchMap(const char *userAgent) {
 	map<string, vector<string> > *result = new map<string, vector<string> >();
-	buildArray(fiftyoneDegreesGetDeviceOffset(provider.active->dataSet, userAgent), result);
+	buildArray(fiftyoneDegreesGetDeviceOffset(userAgent), result);
 	return *result;
 }
 
@@ -468,8 +443,7 @@ string Provider::getMatchJson(const char* userAgent) {
     string result;
     char *json = new char[JSON_BUFFER_LENGTH];
     fiftyoneDegreesProcessDeviceJSON(
-		provider.active->dataSet,
-        fiftyoneDegreesGetDeviceOffset(provider.active->dataSet, userAgent),
+        fiftyoneDegreesGetDeviceOffset(userAgent),
         json,
         JSON_BUFFER_LENGTH);
     result.assign(json);
@@ -497,148 +471,10 @@ string Provider::getMatchJson(const map<string, string>& headers) {
 	char *json = new char[JSON_BUFFER_LENGTH];
     fiftyoneDegreesDeviceOffsets *offsets = matchForHttpHeaders(&headers);
     fiftyoneDegreesProcessDeviceOffsetsJSON(
-		provider.active->dataSet,
         offsets,
         json,
         JSON_BUFFER_LENGTH);
 	result.assign(json);
 	delete json;
 	return result;
-}
-
-/**
-* Initiates the data set reload process from the same file location that was
-* used to create the current dataset. New dataset will be initialised with
-* exactly the same set of properties.
-*
-* Function is not thread safe.
-*/
-void Provider::reloadFromFile() {
-	fiftyoneDegreesProviderReloadFromFile(&provider);
-}
-
-/**
-* Initiates the data set reload process from the memory location supplied.
-* New dataset will be initialised with exactly the same set of properties.
-*
-* Function is not thread safe.
-* @param source pointer to the dataset in memory.
-* @param length of the dataset in memory.
-*/
-void Provider::reloadFromMemory(const char *source, int length) {
-	fiftyoneDegreesProviderReloadFromMemory(&provider, (void*)source, (long)length);
-}
-
-/**
-* Initiates the data set reload process from the memory location supplied.
-* New dataset will be initialised with exactly the same set of properties.
-*
-* Function is not thread safe.
-* @param source pointer to the dataset in memory.
-* @param length of the dataset in memory.
-*/
-void Provider::reloadFromMemory(const string &source, int length) {
-	reloadFromMemory(source.c_str(), length);
-}
-
-
-// The section below is entirely for testing purposes and is not written
-// for use in a production environment.
-
-// The actual size allocated for the provider.
-static int64_t _actualSize;
-
-/**
-* Overrides the malloc function so that the size being allocated can be
-* added up.
-* @param size to allocate in memory.
-* @returns void* pointer to the memory allocated.
-*/
-static void *validateMalloc(size_t __size) {
-	_actualSize += (int64_t)__size;
-	return malloc(__size);
-}
-
-/**
-* Modified constructor for the provider. If validate is true, then the
-* calculated value of the memory needed is compared to the actual amount
-* of memory allocated for the provider and an error thrown if the value is
-* too low.
-*
-* This function is used when testing the getProviderSize funtion and is NOT
-* THREAD SAFE as it accesses a static variable. For this reason it SHOULD
-* NOT BE USED IN PRODUCTION.
-* @param fileName of the data source
-* @param propertyString contains comma seperated property names to be available
-* to query from associated match results.
-*/
-Provider::Provider(
-	const string &fileName,
-	const string &propertyString,
-	bool validate) {
-	stringstream message;
-	int64_t difference;
-
-	if (validate == true)
-	{
-		// Get the difference between the calculated memory needed and the actual
-		// memory userd.
-		difference = initWithValidate(fileName, propertyString);
-
-		// If the calculated memory is less than the actual memory then throw
-		// an error.
-		// Note: this will always be a slight overestimate
-		if (difference < 0) {
-			message << "Predicted memory usage is below the actual usage by "
-				<< (0 - difference)
-				<< " bytes.";
-			throw runtime_error(message.str());
-		}
-	}
-	else {
-		// Validate is false so divert to the standard constructor.
-		Provider(fileName, propertyString);
-	}
-}
-
-/**
-* Modified provider init function. This uses the standard init function,
-* but uses a modified malloc function to determine the size. It also uses
-* the getProviderSize function to get the estimated size and return the
-* difference.
-*
-* This function is NOT THREAD SAFE so should be used appropriately.
-* @param fileName of the data source
-* @param propertyString contains comma seperated property names to be available
-* to query from associated match results.
-*/
-int64_t Provider::initWithValidate(
-	const string &fileName,
-	const string &propertyString) {
-	int64_t predictedSize;
-
-	// Reset the actual size parameter as it is global and may have been set
-	// before.
-	_actualSize = 0;
-
-	// Use the getProviderSize function to get the predicted size that the
-	// provider will need.
-	predictedSize = (int64_t)fiftyoneDegreesGetProviderSizeWithPropertyString(fileName.c_str(), propertyString.c_str());
-
-	// Set the malloc function to use the function that increments _actualSize
-	// by the amount being allocated.
-	fiftyoneDegreesMalloc = validateMalloc;
-
-	// Use the standard init function to initialise the provider. This is the
-	// same function used by the standard constructor, however every memory
-	// allocation will be counted using the validateMalloc function.
-	init(fileName, propertyString);
-
-	// Revert the malloc function so that future calls do not use the 
-	// validateMalloc function.
-	fiftyoneDegreesMalloc = malloc;
-
-	// Return the difference between the predicted and actual sizes. A positive
-	// number is an overestimate, and a negative number is an underestimate.
-	return predictedSize - _actualSize;
 }

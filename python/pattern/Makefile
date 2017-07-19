@@ -8,7 +8,7 @@ build: clean
 	mkdir data
 	cp -r ../../src/pattern src/pattern
 	cp -r ../../src/cityhash src/cityhash
-	cp ../../src/threading.* src/
+	cp ../../src/threading.h src/
 	cp ../../data/51Degrees-LiteV3.2.dat data/
 	swig -python -c++ -module fiftyone_degrees_mobile_detector_v3_wrapper -outdir FiftyOneDegrees -o src/pattern/51Degrees_python.cxx src/pattern/51Degrees.i
 

@@ -1,6 +1,6 @@
 ﻿/* *********************************************************************
  * This Source Code Form is copyright of 51Degrees Mobile Experts Limited. 
- * Copyright 2017 51Degrees Mobile Experts Limited, 5 Charlotte Close,
+ * Copyright 2015 51Degrees Mobile Experts Limited, 5 Charlotte Close,
  * Caversham, Reading, Berkshire, United Kingdom RG4 7BY
  * 
  * This Source Code Form is the subject of the following patent 
@@ -45,16 +45,9 @@ namespace FiftyOne.UnitTests.Update.Lite
 
         [TestMethod]
         [TestCategory("Lite"), TestCategory("Update"), TestCategory("Pattern"), TestCategory("All")]
-        public void LiteV32Pattern_Update_File_All()
+        public void LiteV32Pattern_Update_All()
         {
             UpdateTest();
-        }
-
-        [TestMethod]
-        [TestCategory("Lite"), TestCategory("Update"), TestCategory("Pattern"), TestCategory("All")]
-        public void LiteV32Pattern_Update_Memory_All()
-        {
-            UpdateTest(true);
         }
     }
 }

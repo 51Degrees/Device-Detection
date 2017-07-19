@@ -65,7 +65,7 @@ class UsageSharer(threading.Thread):
 
         '''
         # Enabled?
-        if settings.USAGE_SHARER_ENABLED and self._stopping == False:
+        if settings.USAGE_SHARER_ENABLED:
             # Launch background daemon data submission thread if not running.
             if not self.is_alive():
                 self.daemon = True
@@ -83,7 +83,7 @@ class UsageSharer(threading.Thread):
 
         '''
         if self.is_alive():
-            settings.logger.info('Stopping 51Degrees UsageSharer.')
+            settings.logger.info('Stopping 51Degrees.mobi UsageSharer.')
             self._stopping = True
             self._event.set()
             self.join()
@@ -96,7 +96,7 @@ class UsageSharer(threading.Thread):
 
         '''
         # Log.
-        settings.logger.info('Starting 51Degrees UsageSharer.')
+        settings.logger.info('Starting 51Degrees.mobi UsageSharer.')
 
         # Submission loop.
         while not self._stopping:
@@ -114,7 +114,7 @@ class UsageSharer(threading.Thread):
             self._event.clear()
 
         # Log.
-        settings.logger.info('Stopped 51Degrees UsageSharer.')
+        settings.logger.info('Stopped 51Degrees.mobi UsageSharer.')
 
     def _is_local(self, address):
         return address in settings.USAGE_SHARER_LOCAL_ADDRESSES
@@ -162,11 +162,10 @@ class UsageSharer(threading.Thread):
         '''Sends all the data on the queue.
 
         '''
-        settings.logger.info('Submitting UsageSharer queued data to %s.' % settings.USAGE_SHARER_SUBMISSION_URL)
+        settings.logger.info('Submitting UsageSharer queued data to 51Degrees.mobi.')
 
         # Build output stream.
         stream = StringIO.StringIO()
-        gzStream = StringIO.StringIO()
         devices = ET.Element('Devices')
         while len(self._queue) > 0:
             devices.append(self._queue.pop())
@@ -174,15 +173,11 @@ class UsageSharer(threading.Thread):
             stream,
             encoding='utf8',
             xml_declaration=True)
-        stream.seek(0,0)
-        # Gzip the data.
-        with gzip.GzipFile(fileobj=gzStream, mode='wb') as gzObj:
-            gzObj.write(stream.read())
-        gzStream.seek(0,0)
+
         # Submit gzipped data.
         request = urllib2.Request(
             url=settings.USAGE_SHARER_SUBMISSION_URL,
-            data=gzStream.read(),
+            data=gzip.GzipFile(fileobj=stream).read(),
             headers={
                 'Content-Type': 'text/xml; charset=utf-8',
                 'Content-Encoding': 'gzip',

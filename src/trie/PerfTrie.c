@@ -3,11 +3,12 @@
 #include <time.h>
 #include <string.h>
 #include <limits.h>
+#include "../threading.h"
 #include "51Degrees.h"
 
 /* *********************************************************************
 * This Source Code Form is copyright of 51Degrees Mobile Experts Limited.
-* Copyright 2017 51Degrees Mobile Experts Limited, 5 Charlotte Close,
+* Copyright 2015 51Degrees Mobile Experts Limited, 5 Charlotte Close,
 * Caversham, Reading, Berkshire, United Kingdom RG4 7BY
 *
 * This Source Code Form is the subject of the following patent
@@ -28,14 +29,6 @@
 
 #ifdef _DEBUG
 #define PASSES 1
-// Memory leak detection code.
-#ifdef _MSC_VER
-#define _CRTDBG_MAP_ALLOC
-#include <stdlib.h>
-#include <crtdbg.h>
-#else
-#include "dmalloc.h"
-#endif
 #else
 #define PASSES 10
 #endif
@@ -65,8 +58,6 @@ typedef struct t_performance_state {
 	int max;
 	int numberOfThreads;
 } PERFORMANCE_STATE;
-
-fiftyoneDegreesDataSet dataSet;
 
 // Prints a progress bar
 void printLoadBar(PERFORMANCE_STATE *state) {
@@ -101,7 +92,7 @@ void reportProgress(PERFORMANCE_STATE *perfState, int count, int device, int pro
 	// If in real detection mode then print the id of the device found
 	// to prove it's actually doing something!
 	if (perfState->calibrate == 0) {
-		printf(" %s  ", fiftyoneDegreesGetValue(&dataSet, device, propertyIndex));
+		printf(" %s  ", fiftyoneDegreesGetValue(device, propertyIndex));
 	}
 
 #ifndef FIFTYONEDEGREES_NO_THREADING
@@ -115,7 +106,7 @@ void runPerformanceTest(void* state) {
 	const char *result;
 	char userAgent[BUFFER];
 	int device = INT_MAX;
-	int propertyIndex = fiftyoneDegreesGetPropertyIndex(&dataSet, "Id");
+	int propertyIndex = fiftyoneDegreesGetPropertyIndex("Id");
 	FILE *inputFilePtr = fopen(perfState->fileName, "r");
 	int count = 0;
 
@@ -127,7 +118,7 @@ void runPerformanceTest(void* state) {
 		// If we're not calibrating then get the device for the
 		// useragent that has just been read.
 		if (strlen(userAgent) < 1024 && perfState->calibrate == 0) {
-			device = fiftyoneDegreesGetDeviceOffset(&dataSet, userAgent);
+			device = fiftyoneDegreesGetDeviceOffset(userAgent);
 		}
 
 		// Increase the local counter.
@@ -211,7 +202,6 @@ double performTest(PERFORMANCE_STATE *state, int passes, char *test) {
 void performance(char *fileName) {
 	PERFORMANCE_STATE state;
 	double totalSec, calibration, test;
-	int memoryUsed;
 
 	state.max = 0;
 	state.fileName = fileName;
@@ -232,15 +222,10 @@ void performance(char *fileName) {
 	state.calibrate = 0;
 	test = performTest(&state, PASSES, "Detection test");
 
-	// Get the memory needed for a provider.
-	memoryUsed = (int)fiftyoneDegreesGetProviderSizeWithPropertyCount(dataSet.fileName, dataSet.requiredPropertiesCount);
-	memoryUsed = memoryUsed / 1048576;
-
 	// Time to complete.
 	totalSec = test - calibration;
 	printf("Average detection time for total data set: %.2fs\n", totalSec);
 	printf("Average number of detections per second: %.0f\n", (double)state.max / totalSec);
-	printf("Memory used by a provider initialised with the given arguments: %d Mb\n", memoryUsed);
 }
 
 // Reduces a file path to file name only.
@@ -287,19 +272,11 @@ int main(int argc, char* argv[]) {
 
 	if (argc > 2) {
 
-		char *fileName = argc > 1 ? argv[1] : "../../../data/51Degrees-LiteV3.2.trie";
-		char* inputFile = argc > 2 ? argv[2] : "../../../data/20000 User Agents.csv";
+		char *fileName = argc > 1 ? argv[1] : NULL;
 		char *requiredProperties = argc > 3 ? argv[3] : NULL;
 
-		// Memory leak detection code.
-#ifdef _DEBUG
-#ifndef _MSC_VER
-		dmalloc_debug_setup("log-stats,log-non-free,check-fence,log=dmalloc.log");
-#endif
-#endif
-
 		fiftyoneDegreesDataSetInitStatus status = DATA_SET_INIT_STATUS_SUCCESS;
-		status = fiftyoneDegreesInitWithPropertyString(fileName, &dataSet, requiredProperties);
+		status = fiftyoneDegreesInitWithPropertyString(fileName, requiredProperties);
 		switch (status) {
 		case DATA_SET_INIT_STATUS_INSUFFICIENT_MEMORY:
 			printf("Insufficient memory to load '%s'.", argv[1]);
@@ -323,13 +300,13 @@ int main(int argc, char* argv[]) {
 			fgetc(stdin);
 
 			// Run the performance tests.
-			performance(inputFile);
+			performance(argv[2]);
 
 			break;
 		}
 
 		// Free the memory used by the trie detector.
-		fiftyoneDegreesDataSetFree(&dataSet);
+		fiftyoneDegreesDestroy();
 
 		// Wait for a character to be pressed.
 		fgetc(stdin);
@@ -337,14 +314,6 @@ int main(int argc, char* argv[]) {
 	else {
 		printf("Not enough arguments supplied. Expecting: path/to/trie_file path/to/test_file property1,property2(optional)\n");
 	}
-
-#ifdef _DEBUG
-#ifdef _MSC_VER
-	_CrtDumpMemoryLeaks();
-#else
-	printf("Log file is %s\r\n", dmalloc_logpath);
-#endif
-#endif
 
 	return 0;
 }

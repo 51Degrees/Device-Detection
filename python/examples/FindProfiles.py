@@ -1,7 +1,7 @@
 #!/usr/bin/env python
 '''
 This Source Code Form is copyright of 51Degrees Mobile Experts Limited.
-Copyright (c) 2017 51Degrees Mobile Experts Limited, 5 Charlotte Close,
+Copyright (c) 2015 51Degrees Mobile Experts Limited, 5 Charlotte Close,
 Caversham, Reading, Berkshire, United Kingdom RG4 7BY
 
 This Source Code Form is the subject of the following patent
@@ -22,7 +22,7 @@ defined by the Mozilla Public License, v. 2.0.
 
 '''
 <tutorial>
-Find profiles example of using 51Degrees device detection. The example
+Getting started example of using 51Degrees device detection. The example
 shows how to:
 <ol>
 <li>Import settings from the 51Degrees settings file

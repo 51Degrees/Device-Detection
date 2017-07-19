@@ -1,6 +1,6 @@
 ﻿/* *********************************************************************
  * This Source Code Form is copyright of 51Degrees Mobile Experts Limited. 
- * Copyright 2017 51Degrees Mobile Experts Limited, 5 Charlotte Close,
+ * Copyright 2015 51Degrees Mobile Experts Limited, 5 Charlotte Close,
  * Caversham, Reading, Berkshire, United Kingdom RG4 7BY
  * 
  * This Source Code Form is the subject of the following patent 
@@ -77,7 +77,7 @@ namespace FiftyOne.UnitTests.Performance.Enterprise
         [TestCategory("Enterprise"), TestCategory("Pattern"), TestCategory("Performance"), TestCategory("Single"), TestCategory("Bad"), TestCategory("One")]
         public void EnterpriseV32Pattern_Performance_BadUserAgentsSingleOne()
         {
-            BadUserAgentsSingle(1);
+            BadUserAgentsSingle(9);
         }
 
         [TestMethod]

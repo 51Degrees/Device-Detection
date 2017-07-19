@@ -5,7 +5,7 @@
 
 /* *********************************************************************
 * This Source Code Form is copyright of 51Degrees Mobile Experts Limited.
-* Copyright 2017 51Degrees Mobile Experts Limited, 5 Charlotte Close,
+* Copyright 2015 51Degrees Mobile Experts Limited, 5 Charlotte Close,
 * Caversham, Reading, Berkshire, United Kingdom RG4 7BY
 *
 * This Source Code Form is the subject of the following patent
@@ -210,7 +210,7 @@ void run(fiftyoneDegreesProvider *provider) {
 
     if (cache != NULL) {
         printf("\r\n\t\t\t*** Cache Results ***\r\n");
-		printf("Max Iterations:\t%d\r\n", cache->maxIterations);
+        printf("Switches:\t%d\r\n", cache->switches);
         printf("Hits:\t\t%d\r\n", cache->hits);
         printf("Misses:\t\t%d\r\n", cache->misses);
     }

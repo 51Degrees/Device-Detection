@@ -38,7 +38,7 @@ def update_premium_pattern_wrapper(args, help):
 
     if settings.LICENSE:
         # Build source URL.
-        url = 'https://distributor.51degrees.com/api/v2/download?LicenseKeys=%s&Type=BinaryV32&Download=True' % (
+        url = 'https://51degrees.com/Products/Downloads/Premium.aspx?LicenseKeys=%s&Type=BinaryV3&Download=True' % (
             settings.LICENSE
         )
 
@@ -50,11 +50,12 @@ def update_premium_pattern_wrapper(args, help):
             try:
                 # Fetch URL (no verification of the server's certificate here).
                 uh = urllib2.urlopen(url, timeout=120)
+                meta = uh.info()
 
                 # Check server response.
-                if uh.headers['Content-Disposition'] is not None:
+                if meta.getheader('Content-Disposition') is not None:
                     # Download the package.
-                    file_size = int(uh.headers['Content-Length'])
+                    file_size = int(meta.getheader('Content-Length'))
                     sys.stdout.write('=> Downloading %s bytes... ' % file_size)
                     downloaded = 0
                     while True:
@@ -81,8 +82,6 @@ def update_premium_pattern_wrapper(args, help):
                     #Close and remove compressed file.
                     zipped_file.close()
                     os.remove(f_name)
-                    #Close the unzipped file before copying.
-                    unzipped_file.close()
                     #Copy unzipped file to the file used for detection.
                     path = settings.V3_WRAPPER_DATABASE
                     shutil.copy2("unzipped_temp.dat", path)
@@ -102,7 +101,6 @@ def update_premium_pattern_wrapper(args, help):
                 sys.stderr.write('Failed to download the package: %s.\n' % unicode(e))
             finally:
                 try:
-                    os.remove("unzipped_temp.dat")
                     os.remove(fh)
                 except:
                     pass

@@ -27,12 +27,7 @@ from fiftyone_degrees.mobile_detector.conf import default
 
 
 class _Settings(object):
-    VERSION = '3.2'
-    try:
-        import pkg_resources
-        VERSION = pkg_resources.get_distribution('51degrees-mobile-detector').version
-    except:
-        pass
+    VERSION = '1.1'
 
     def __init__(self, settings_file_or_module):
         # Add default settings.

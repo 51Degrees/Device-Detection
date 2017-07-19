@@ -1,6 +1,6 @@
 /* *********************************************************************
  * This Source Code Form is copyright of 51Degrees Mobile Experts Limited. 
- * Copyright 2017 51Degrees Mobile Experts Limited, 5 Charlotte Close,
+ * Copyright 2015 51Degrees Mobile Experts Limited, 5 Charlotte Close,
  * Caversham, Reading, Berkshire, United Kingdom RG4 7BY
  * 
  * This Source Code Form is the subject of the following patent 
@@ -95,21 +95,58 @@ namespace FiftyOne.Mobile.Detection.Provider.Interop
         /// <param name="properties">Comma seperated list of properties to include in the results.</param>
         public TrieWrapper(string fileName, string properties)
         {
-            _provider = new Trie.Provider(fileName, properties);
-            _fileName = fileName;
-        }
-        
-        /// <summary>
-        /// Construct the wrapper.
-        /// Also validates the memory calculation.
-        /// </summary>
-        /// <param name="fileName">Path to the data set file.</param>
-        /// <param name="properties">Comma separated list of properties to include in the results</param>
-        /// <param name="validate">Set to true to validate the memory calculation.</param>
-        public TrieWrapper(string fileName, string properties, bool validate)
-        {
-            _provider = new Trie.Provider(fileName, properties, validate);
-            _fileName = fileName;
+            lock (_lock)
+            {
+                // Check the file exists before trying to load it.
+                var info = new FileInfo(fileName);
+                if (info.Exists == false)
+                {
+                    throw new ArgumentException(String.Format(
+                        "File '{0}' can not be found.",
+                        info.FullName), "fileName");
+                }
+
+                // If a file has already been loaded then check it's the 
+                // same name as the one being used for this instance. Only
+                // one file can be loaded at a time.
+                if (_fileName != null &&
+                    _fileName.Equals(fileName) == false)
+                {
+                    throw new ArgumentException(String.Format(
+                        "Trie has already been initialised with file name '{0}'. " +
+                        "Multiple providers with different file sources can not be created.",
+                        _fileName), "fileName");
+                }
+
+                // Only initialise the memory if the file has not already
+                // been loaded into memory.
+                if (_fileName == null)
+                {
+                    _provider = new Trie.Provider(info.FullName, properties);
+
+                    // Initialise the list of property names and indexes.
+                    var propertyIndex = 0;
+                    foreach (var property in _provider.getAvailableProperties())
+                    {
+                        PropertyIndexes.Add(property, propertyIndex);
+                        propertyIndex++;
+                    }
+
+                    // Initialise the list of http header names.
+                    foreach (var httpHeader in _provider.getHttpHeaders())
+                    {
+                        HttpHeaders.Add(httpHeader);
+                    }
+                    HttpHeaders.Sort();
+
+                    _fileName = fileName;
+                }
+
+                // Increase the number of wrapper instances that have
+                // been created. Used when the wrapper is disposed to 
+                // determine if the memory used should be released.
+                _instanceCount++;
+            }
         }
 
         /// <summary>
@@ -166,46 +203,17 @@ namespace FiftyOne.Mobile.Detection.Provider.Interop
         /// </summary>
         public List<string> HttpHeaders
         {
-            get
-            {
-                if (_httpHeaders == null)
-                {
-                    lock (this)
-                    {
-                        if (_httpHeaders == null)
-                        {
-                            _httpHeaders = new List<string>(_provider.getHttpHeaders());
-                        }
-                    }
-                }
-                return _httpHeaders;
-            }
+            get { return _httpHeaders; }
         }
-        private List<string> _httpHeaders;
-
+        private readonly List<string> _httpHeaders = new List<string>();
 
         /// <summary>
         /// A list of properties available from the provider.
         /// </summary>
         public IList<string> AvailableProperties
         {
-            get
-            {
-                if (_availableProperties == null)
-                {
-                    lock (this)
-                    {
-                        if (_availableProperties == null)
-                        {
-                            _availableProperties = new List<string>(_provider.getAvailableProperties());
-                        }
-                    }
-                }
-                return _availableProperties;
-            }
+            get { return PropertyIndexes.Keys; }
         }
-        private List<string> _availableProperties;
-
 
         /// <summary>
         /// Returns a list of properties and values for the userAgent provided.
@@ -264,43 +272,7 @@ namespace FiftyOne.Mobile.Detection.Provider.Interop
         /// </summary>
         public void ReloadFromFile()
         {
-            _provider.reloadFromFile();
-        }
-
-        /// <summary>
-        /// Reads the data file at the original file path into memory and
-        /// uses the reload from memory function to reload the data set
-        /// from that memory location.
-        /// </summary>
-        public void ReloadFromMemory()
-        {
-            byte[] bytes = File.ReadAllBytes(_fileName);
-            _provider.reloadFromMemory(bytes.ToString(), bytes.GetLength(0));
-        }
-
-        /// <summary>
-        /// Returns the number of times the cache fetch function has found what
-        /// it is looking for.
-        /// </summary>
-        public int CacheHits
-        {
-            get
-            {
-                throw new NotImplementedException();
-            }
-        }
-
-        /// <summary>
-        /// Returns the number of times the cache fetch function has not found
-        /// what it is looking for. The cache fetch function is called a second
-        /// time to insert a value that was not found.
-        /// </summary>
-        public int CacheMisses
-        {
-            get
-            {
-                throw new NotImplementedException();
-            }
+            throw new NotImplementedException();
         }
 
         #endregion

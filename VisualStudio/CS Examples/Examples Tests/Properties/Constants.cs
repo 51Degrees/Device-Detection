@@ -1,6 +1,6 @@
 ﻿/* *********************************************************************
  * This Source Code Form is copyright of 51Degrees Mobile Experts Limited. 
- * Copyright 2017 51Degrees Mobile Experts Limited, 5 Charlotte Close,
+ * Copyright 2015 51Degrees Mobile Experts Limited, 5 Charlotte Close,
  * Caversham, Reading, Berkshire, United Kingdom RG4 7BY
  * 
  * This Source Code Form is the subject of the following patent 
@@ -36,12 +36,5 @@ namespace Examples_Tests
         public const string ENTERPRISE_PATTERN_V32 = "../../../../../../data/51Degrees-EnterpriseV3.2.dat";
        
         public const string PREMIUM_PATTERN_V32 = "../../../../../../data/51Degrees-PremiumV3.2.dat";
-
-        public const string LITE_TRIE_V32 = "../../../../../../data/51Degrees-LiteV3.2.trie";
-
-        public const string ENTERPRISE_TRIE_V32 = "../../../../../../data/51Degrees-EnterpriseV3.2.trie";
-
-        public const string PREMIUM_TRIE_V32 = "../../../../../../data/51Degrees-PremiumV3.2.trie";
-    
     }
 }

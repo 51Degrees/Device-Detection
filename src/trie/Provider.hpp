@@ -1,6 +1,6 @@
 /* *********************************************************************
  * This Source Code Form is copyright of 51Degrees Mobile Experts Limited.
- * Copyright 2017 51Degrees Mobile Experts Limited, 5 Charlotte Close,
+ * Copyright 2015 51Degrees Mobile Experts Limited, 5 Charlotte Close,
  * Caversham, Reading, Berkshire, United Kingdom RG4 7BY
  *
  * This Source Code Form is the subject of the following patent
@@ -23,7 +23,6 @@
 #include <vector>
 #include <map>
 #include <stdexcept>
-#include <stdlib.h>
 #include <sstream>
 #include "Match.hpp"
 
@@ -80,13 +79,6 @@ class Provider {
         string getMatchJson(const string &userAgent);
         string getMatchJson(const map<string, string> &headers);
 
-		void reloadFromFile();
-		void reloadFromMemory(const char *source, int length);
-		void reloadFromMemory(const string &source, int length);
-
-		Provider(const string &fileName, const string &propertyString,
-			bool validate);
-
 	protected:
 
 	private:
@@ -97,8 +89,8 @@ class Provider {
 		void init(const string &fileName, vector<string> &propertyString);
 		void init(const string &fileName);
 		void initHttpHeaders();
-		void initAvailableproperties();
-		void initException(fiftyoneDegreesDataSetInitStatus initStatus,
+		void initAvailableProperites();
+		void initExecption(fiftyoneDegreesDataSetInitStatus initStatus,
 			const string &fileName);
 		void initComplete(fiftyoneDegreesDataSetInitStatus initStatus,
 			const string &fileName);
@@ -107,12 +99,6 @@ class Provider {
 		void buildArray(int offset, map<string, vector<string> > *result);
 		fiftyoneDegreesDeviceOffsets* matchForHttpHeaders(
 			const map<string, string> *headers);
-		void initMatch(Match *match);
-
-		int64_t initWithValidate(const string &fileName,
-			const string &properties);
-
-		fiftyoneDegreesProvider provider;
 };
 
 #endif // FIFTYONEDEGREESPROVIDER_HPP

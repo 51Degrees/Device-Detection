@@ -1,6 +1,6 @@
 /* *********************************************************************
  * This Source Code Form is copyright of 51Degrees Mobile Experts Limited.
- * Copyright 2017 51Degrees Mobile Experts Limited, 5 Charlotte Close,
+ * Copyright 2015 51Degrees Mobile Experts Limited, 5 Charlotte Close,
  * Caversham, Reading, Berkshire, United Kingdom RG4 7BY
  *
  * This Source Code Form is the subject of the following patent
@@ -33,7 +33,7 @@ Match::Match(fiftyoneDegreesDeviceOffsets *offsets) {
  * Releases the memory used to store the device offsets.
  */
 Match::~Match() {
-	fiftyoneDegreesProviderFreeDeviceOffsets(offsets);
+	fiftyoneDegreesFreeDeviceOffsets(offsets);
 }
 
 /**
@@ -48,9 +48,8 @@ string Match::getValue(int requiredPropertyIndex) {
 	string result;
 	if (requiredPropertyIndex >= 0 &&
 			requiredPropertyIndex <
-			fiftyoneDegreesGetRequiredPropertiesCount(dataSet)) {
+			fiftyoneDegreesGetRequiredPropertiesCount()) {
 		const char *value = fiftyoneDegreesGetValuePtrFromOffsets(
-			dataSet,
 			offsets,
 			requiredPropertyIndex);
 		if (value != NULL) {
@@ -69,7 +68,7 @@ string Match::getValue(int requiredPropertyIndex) {
  * @returns a string representation of the value for the property
  */
 string Match::getValue(const char* propertyName) {
-	return getValue(fiftyoneDegreesGetRequiredPropertyIndex(dataSet, propertyName));
+	return getValue(fiftyoneDegreesGetRequiredPropertyIndex(propertyName));
 }
 
 /**
@@ -93,9 +92,8 @@ string Match::getValue(string &propertyName) {
 vector<string> Match::getValues(int requiredPropertyIndex) {
 	vector<string> result;
 	if (requiredPropertyIndex >= 0 &&
-		requiredPropertyIndex < fiftyoneDegreesGetRequiredPropertiesCount(dataSet)) {
+		requiredPropertyIndex < fiftyoneDegreesGetRequiredPropertiesCount()) {
 		char *start = (char*)fiftyoneDegreesGetValuePtrFromOffsets(
-			dataSet,
 			offsets,
 			requiredPropertyIndex);
 		if (start != NULL) {
@@ -124,7 +122,7 @@ vector<string> Match::getValues(int requiredPropertyIndex) {
  * @returns a vector of values for the property
  */
 vector<string> Match::getValues(const char *propertyName) {
-	return getValues(fiftyoneDegreesGetRequiredPropertyIndex(dataSet, propertyName));
+	return getValues(fiftyoneDegreesGetRequiredPropertyIndex(propertyName));
 }
 
 /**
@@ -180,12 +178,4 @@ int Match::getDifference() {
  */
 int Match::getMethod() {
 	return 0;
-}
-
-/**
- * Manual dispose method for node.
- * Depricated: match object is now freed by the garbage collector in
- * all languages, so this does nothing.
- */
-void Match::close() {
 }

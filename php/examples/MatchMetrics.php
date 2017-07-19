@@ -1,7 +1,7 @@
 <?php
 /*
 This Source Code Form is copyright of 51Degrees Mobile Experts Limited.
-Copyright (c) 2017 51Degrees Mobile Experts Limited, 5 Charlotte Close,
+Copyright (c) 2015 51Degrees Mobile Experts Limited, 5 Charlotte Close,
 Caversham, Reading, Berkshire, United Kingdom RG4 7BY
 
 This Source Code Form is the subject of the following patent
@@ -61,7 +61,7 @@ and have FiftyOneDegreesPatternV3.php in this directory.
 </tutorial>
 */
 // Snippet Start
-require("../pattern/FiftyOneDegreesPatternV3.php");
+require("FiftyOneDegreesPatternV3.php");
 
 $provider = FiftyOneDegreesPatternV3::provider_get();
 

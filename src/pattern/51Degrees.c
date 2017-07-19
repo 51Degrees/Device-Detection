@@ -5,12 +5,11 @@
 #include <math.h>
 #include <time.h>
 #include <ctype.h>
-#include <assert.h>
 #include "../cityhash/city.h"
 #include "51Degrees.h"
 /* *********************************************************************
  * This Source Code Form is copyright of 51Degrees Mobile Experts Limited.
- * Copyright 2017 51Degrees Mobile Experts Limited, 5 Charlotte Close,
+ * Copyright 2015 51Degrees Mobile Experts Limited, 5 Charlotte Close,
  * Caversham, Reading, Berkshire, United Kingdom RG4 7BY
  *
  * This Source Code Form is the subject of the following patent
@@ -41,9 +40,17 @@
 #define strdup _strdup
 #endif
 
+/* Indicates that a method will be used by qsort */
+#ifdef _MSC_VER
+/* Needs to be set to __cdecl to prevent optimiser problems */
+#define QSORT_COMPARER __cdecl
+#else
+#define QSORT_COMPARER
+#endif
+
 /* Define INT32_MAX if not defined */
 #ifndef INT32_MAX
-#define INT32_MAX 2147483647L
+#define INT32_MAX 2147483647i32
 #endif
 
  /**
@@ -75,64 +82,6 @@ const int16_t POWERS[] = { 1, 10, 100, 1000, 10000 };
 
 #define HTTP_PREFIX_UPPER "HTTP_"
 
-/**
- * Memory allocation functions.
- */
-void *(FIFTYONEDEGREES_CALL_CONV *fiftyoneDegreesMalloc)(size_t __size) = malloc;
-void *(FIFTYONEDEGREES_CALL_CONV *fiftyoneDegreesCalloc)(size_t __nmemb, size_t __size) = calloc;
-void (FIFTYONEDEGREES_CALL_CONV *fiftyoneDegreesFree)(void *__ptr) = free;
-
-/**
- * DATASET MEMORY ALLOCATION SIZE MACROS
- */
-#define SIZE_OF_ROOT_NODES(h) h.rootNodes.count * sizeof(fiftyoneDegreesNode*)
-#define SIZE_OF_REQUIRED_PROPERTIES_ARRAY(count) count * sizeof(char*)
-#define SIZE_OF_FILE_NAME(fileName) sizeof(char) * (strlen(fileName) + 1)
-#define SIZE_OF_COMPONENTS(h) h.components.count * sizeof(fiftyoneDegreesComponent*)
-#define SIZE_OF_HTTP_HEADERS(count) count * sizeof(fiftyoneDegreesHttpHeader)
-#define SIZE_OF_REQUIRED_PROPERTIES(count) count * sizeof(fiftyoneDegreesProperty*)
-#define SIZE_OF_PROFILES_STRUCT_ARRAY(h) h.properties.count * sizeof(fiftyoneDegreesProfilesStructArray)
-#define SIZE_OF_PROFILE_INDEXES_STRUCT(count) count * sizeof(fiftyoneDegreesProfileIndexesStruct)
-
-/**
-* WORKSET MEMORY ALLOCATION SIZE MACROS
-*/
-#define SIZE_OF_WORKSET_POOL sizeof(fiftyoneDegreesWorksetPool)
-#define SIZE_OF_POOL_WORKSETS(size) size * sizeof(fiftyoneDegreesWorkset*)
-#define SIZE_OF_WORKSET sizeof(fiftyoneDegreesWorkset)
-#define SIZE_OF_WORKSET_INPUT(h) (h.maxUserAgentLength + 1) * sizeof(char)
-#define SIZE_OF_WORKSET_SIGLIST_ITEMS(h) h.maxSignaturesClosest * sizeof(fiftyoneDegreesLinkedSignatureListItem)
-#define SIZE_OF_WORKSET_NODES(h) h.maxUserAgentLength * sizeof(const fiftyoneDegreesNode*)
-#define SIZE_OF_WORKSET_USED_NODES(h) h.maxUserAgentLength + 1
-#define SIZE_OF_WORKSET_SIG_AS_STRING(h) (h.maxUserAgentLength + 1) * sizeof(char)
-#define SIZE_OF_WORKSET_VALUES(h) h.maxValues * sizeof(const fiftyoneDegreesValue*)
-#define SIZE_OF_WORKSET_IMPORTANT_HEADERS(count) count * sizeof(fiftyoneDegreesHttpHeaderWorkset)
-#define SIZE_OF_WORKSET_PROFILES(h) h.components.count * sizeof(const fiftyoneDegreesProfile*)
-#define SIZE_OF_WORKSET_TARGET_USERAGENT_ARRAY(h) (h.maxUserAgentLength + 1) * sizeof(byte)
-
-/**
-* CACHE MEMORY ALLOCATION SIZE MACROS
-*/
-#define SIZE_OF_CACHE sizeof(fiftyoneDegreesResultsetCache)
-#define SIZE_OF_CACHE_RESULTSETS(c) c * (sizeof(fiftyoneDegreesResultset))
-#define SIZE_OF_CACHE_TARGET_USER_AGENTS(c, h) c * SIZE_OF_WORKSET_TARGET_USERAGENT_ARRAY(h)
-#define SIZE_OF_CACHE_PROFILES(c, h) c * SIZE_OF_WORKSET_PROFILES(h)
-
-/**
-* METRIC INDEX MACROS
-*/
-#define FIFTYONEDEGREES_METRIC_COUNT 4
-#define FIFTYONEDEGREES_METRIC_METHOD_INDEX 0
-#define FIFTYONEDEGREES_METRIC_RANK_INDEX 1
-#define FIFTYONEDEGREES_METRIC_DIFFERENCE_INDEX 2
-#define FIFTYONEDEGREES_METRIC_ID_INDEX 3
-
-/**
-* MAX PROPERTY VALUE LENGTH MEMORY ALLOCATION MACROS
-*/
-#define SIZE_OF_MAX_PROPERTY_VALUES(h) (h.properties.count + FIFTYONEDEGREES_METRIC_COUNT) * sizeof(int32_t)
-
-
  /**
  * \cond
  * DATA SET FILE AND MEMORY METHODS
@@ -154,7 +103,7 @@ void (FIFTYONEDEGREES_CALL_CONV *fiftyoneDegreesFree)(void *__ptr) = free;
  *
  * @param pointer is the pointer to the current byte. Gets incremented by the
 		  number of bytes provided in advanceBy.
- * @param lastByte pointer to the last valid byte in the memory space. A
+ * @param lastByte pointer to the last valid byte in the memory space. A 
 		  corrupt memory response is return if this is exceeded.
  * @param advanceBy number of bytes to advance the pointer by.
  * @return fiftyoneDegreesDataSetInitStatus stating the result of the
@@ -248,7 +197,7 @@ static fiftyoneDegreesDataSetInitStatus readRootNodesFromMemory(
 	fiftyoneDegreesDataSet *dataSet) {
 	int32_t index;
 	dataSet->rootNodes = (const fiftyoneDegreesNode**)
-		fiftyoneDegreesMalloc(SIZE_OF_ROOT_NODES(dataSet->header));
+		malloc(dataSet->header.rootNodes.count * sizeof(fiftyoneDegreesNode*));
 	if (dataSet->rootNodes == NULL) {
 		return DATA_SET_INIT_STATUS_INSUFFICIENT_MEMORY;
 	}
@@ -288,8 +237,8 @@ static fiftyoneDegreesDataSetInitStatus readComponents(
 	int32_t httpHeaderOffset;
 
 	// Allocate the memory needed for the components array.
-	dataSet->components = (const fiftyoneDegreesComponent**)fiftyoneDegreesMalloc(
-		SIZE_OF_COMPONENTS(dataSet->header));
+	dataSet->components = (const fiftyoneDegreesComponent**)malloc(
+		dataSet->header.components.count * sizeof(fiftyoneDegreesComponent*));
 	if (dataSet->components == NULL) {
 		return DATA_SET_INIT_STATUS_INSUFFICIENT_MEMORY;
 	}
@@ -304,7 +253,7 @@ static fiftyoneDegreesDataSetInitStatus readComponents(
 	// Now create a list of unique HTTP headers which will be used to identify
 	// which headers should be checked when an array of multiple headers is
 	// passed for detection.
-	dataSet->httpHeaders = (fiftyoneDegreesHttpHeader*)fiftyoneDegreesMalloc(SIZE_OF_HTTP_HEADERS(httpHeadersCount));
+	dataSet->httpHeaders = (fiftyoneDegreesHttpHeader*)malloc(httpHeadersCount * sizeof(fiftyoneDegreesHttpHeader));
 	if (dataSet->httpHeaders == NULL) {
 		return DATA_SET_INIT_STATUS_INSUFFICIENT_MEMORY;
 	}
@@ -333,7 +282,7 @@ static fiftyoneDegreesDataSetInitStatus readComponents(
  * The new dataset is created with exactly the same set of properties as found
  * within the old dataset.
  *
- * If the new data file does not obtain one or more property(ies) that the old
+ * If the new data file does not ontain one or more property(ies) that the old
  * dataset was initialised with, then these properties will not be
  * initialised in the new dataset.
  *
@@ -359,7 +308,7 @@ static fiftyoneDegreesDataSetInitStatus setPropertiesFromExistingDataset(
 	count = oldDataSet->requiredPropertyCount;
 	newDataSet->requiredPropertyCount = 0;
 	newDataSet->requiredProperties =
-		(const fiftyoneDegreesProperty**)fiftyoneDegreesMalloc(count * sizeof(const fiftyoneDegreesProperty*));
+		(const fiftyoneDegreesProperty**)malloc(count * sizeof(const fiftyoneDegreesProperty*));
 	if (newDataSet->requiredProperties == NULL) {
 		return DATA_SET_INIT_STATUS_INSUFFICIENT_MEMORY;
 	}
@@ -393,18 +342,6 @@ static fiftyoneDegreesDataSetInitStatus setPropertiesFromExistingDataset(
 	return DATA_SET_INIT_STATUS_SUCCESS;
 }
 
-/**
- * \cond
- * Initialises the provider with the provided dataset using the given
- * cache and pool sizes.
- * @param provider to initialise.
- * @param dataSet to create cache and pool from.
- * @param poolSize of the new pool.
- * @param cacheSize of the new cache.
- * @returns fiftyoneDegreesDataSetInitStatus indicates whether the init
- * was successful.
- * \endcond
- */
 fiftyoneDegreesDataSetInitStatus initProvider(
 	fiftyoneDegreesProvider *provider,
 	fiftyoneDegreesDataSet *dataSet,
@@ -456,7 +393,7 @@ static fiftyoneDegreesDataSetInitStatus reloadCommon(
 	fiftyoneDegreesDataSetInitStatus status;
 
 	// Maintain a reference to the current pool in case it can be freed.
-	const fiftyoneDegreesWorksetPool *oldPool =
+	const fiftyoneDegreesWorksetPool *oldPool = 
 		(const fiftyoneDegreesWorksetPool*)provider->activePool;
 
 	// Initialise the new dataset with the same properties as the old one.
@@ -475,7 +412,7 @@ static fiftyoneDegreesDataSetInitStatus reloadCommon(
 		oldPool->size, oldPool->cache != NULL ? oldPool->cache->total : 0);
 	if (status != DATA_SET_INIT_STATUS_SUCCESS) {
 		fiftyoneDegreesDataSetFree(newDataSet);
-	}
+	} 
 
 	// If the old pool is ready to be freed then do so.
 	else if (oldPool->available == oldPool->size) {
@@ -506,7 +443,7 @@ static fiftyoneDegreesDataSetInitStatus reloadCommon(
  * @param dataSet to be initialised with data from the provided pointer to
  *		 continuous memory space.
  * @param length number of bytes that the file occupies in memory.
- *		 Also corresponds to the last byte within the continuous memory
+ *		 ALso corresponds to the last byte within the continuous memory
  *		 space.
  * @return dataset initialisation status.
  * \endcond
@@ -550,7 +487,7 @@ static fiftyoneDegreesDataSetInitStatus readDataSetFromMemoryLocation(
 	dataSet->properties = (const fiftyoneDegreesProperty*)current;
 	status = advancePointer(&current, lastByte, dataSet->header.properties.length);
 	if (status != DATA_SET_INIT_STATUS_SUCCESS) return status;
-	
+
 	dataSet->values = (const fiftyoneDegreesValue*)current;
 	status = advancePointer(&current, lastByte, dataSet->header.values.length);
 	if (status != DATA_SET_INIT_STATUS_SUCCESS) return status;
@@ -606,206 +543,26 @@ static fiftyoneDegreesDataSetInitStatus readDataSetFromMemoryLocation(
  * one containing a pointer to an empty array with the size equal to the
  * number of values for the corresponding property.
  * @param dataSet pointer to a 51Degrees data set.
- * @return dataSet initialisation status.
  * \endcond
  */
-static fiftyoneDegreesDataSetInitStatus ensureValueProfilesSet(fiftyoneDegreesDataSet *dataSet) {
+static void ensureValueProfilesSet(fiftyoneDegreesDataSet *dataSet) {
 	fiftyoneDegreesProperty *property;
 	int propertyIndex, valuesCount;
-
 	// Allocate an array element for each property.
 	dataSet->valuePointersArray =
-		(fiftyoneDegreesProfilesStructArray*)fiftyoneDegreesMalloc(SIZE_OF_PROFILES_STRUCT_ARRAY(dataSet->header));
-	if (dataSet->valuePointersArray == NULL) {
-		return DATA_SET_INIT_STATUS_INSUFFICIENT_MEMORY;
-	}
-
+		(fiftyoneDegreesProfilesStructArray*)calloc(dataSet->header.properties.count, sizeof(fiftyoneDegreesProfilesStructArray));
 	for (propertyIndex = 0; propertyIndex < dataSet->header.properties.count; propertyIndex++) {
 		property = (fiftyoneDegreesProperty*)(dataSet->properties + (int32_t)propertyIndex);
 		valuesCount = property->lastValueIndex - property->firstValueIndex + 1;
-
 		// Set the initialised flag to 0;
 		dataSet->valuePointersArray[propertyIndex].initialised = 0;
-
 		// Allocate an array element for each value of the current property.
 		dataSet->valuePointersArray[propertyIndex].profilesStructs =
-			(fiftyoneDegreesProfileIndexesStruct*)fiftyoneDegreesMalloc(SIZE_OF_PROFILE_INDEXES_STRUCT(valuesCount));
-		if (dataSet->valuePointersArray[propertyIndex].profilesStructs == NULL) {
-			return DATA_SET_INIT_STATUS_INSUFFICIENT_MEMORY;
-		}
-
+			(fiftyoneDegreesProfileIndexesStruct*)calloc(valuesCount, sizeof(fiftyoneDegreesProfileIndexesStruct));
 #ifndef FIFTYONEDEGREES_NO_THREADING
 		FIFTYONEDEGREES_MUTEX_CREATE(dataSet->valuePointersArray[propertyIndex].lock);
 #endif
 	}
-
-	return DATA_SET_INIT_STATUS_SUCCESS;
-}
-
-// Define these here as they are needed in the below function.
-static fiftyoneDegreesProfile* getProfileByIndex(const fiftyoneDegreesDataSet *dataSet, int32_t index);
-static int32_t getPropertyIndex(const fiftyoneDegreesDataSet *dataSet, const fiftyoneDegreesProperty *property);
-static const fiftyoneDegreesProperty* getPropertyByName(const fiftyoneDegreesDataSet *dataSet, char *name);
-
-/**
-* \cond
-* Finds the maximum string length of the values associated with the given
-* property name.
-* @param dataSet pointer to a fiftyoneDegreesDataSet.
-* @param propertyName the name of the property to find the value length for.
-* @return int32_t the maximum string length of the values associated with the
-* given property or -1 if the property was not found.
-* \endcond
-*/
-EXTERNAL int32_t fiftyoneDegreesGetMaxPropertyValueLength(const fiftyoneDegreesDataSet *dataSet, char *propertyName)
-{
-	const fiftyoneDegreesProperty *property;
-	int32_t propertyIndex;
-
-	// Check for any match metrics.
-	if (strcmp(propertyName, "Method") == 0) {
-		return dataSet->maxPropertyValueLength[dataSet->header.properties.count
-			+ FIFTYONEDEGREES_METRIC_METHOD_INDEX];
-	}
-	if (strcmp(propertyName, "Rank") == 0) {
-		return dataSet->maxPropertyValueLength[dataSet->header.properties.count
-			+ FIFTYONEDEGREES_METRIC_RANK_INDEX];
-	}
-	if (strcmp(propertyName, "Difference") == 0) {
-		return dataSet->maxPropertyValueLength[dataSet->header.properties.count
-			+ FIFTYONEDEGREES_METRIC_DIFFERENCE_INDEX];
-	}
-	if (strcmp(propertyName, "DeviceId") == 0) {
-		return dataSet->maxPropertyValueLength[dataSet->header.properties.count
-			+ FIFTYONEDEGREES_METRIC_ID_INDEX];
-	}
-
-	// Property is not a match metric, so get the property.
-	property = getPropertyByName(dataSet, propertyName);
-	if (property == NULL) {
-		return -1;
-	}
-
-	// The property exists, so get the index and return the max value length.
-	propertyIndex = getPropertyIndex(dataSet, property);
-	return dataSet->maxPropertyValueLength[propertyIndex];
-}
-/*
- * \cond
- * Go through all the properties in the dataset, calculate and set the maximum
- * length of value each one can return. These values are stored in the
- * dataSet->maxPropertyValueLength array with the coresponding property index.
- * @param dataSet pointer to 51Degrees dataset.
- * @return fiftyoneDegreesDataSetInitStatus indicating the result.
- * \endcond
- */
-static fiftyoneDegreesDataSetInitStatus setMaxPropertyValueLength(fiftyoneDegreesDataSet *dataSet)
-{
-	int32_t profileIndex,
-		*profileValueIndexes,
-		valueIndex,
-		propertyIndex,
-		lengthNeeded;
-	fiftyoneDegreesProfile *profile;
-	const fiftyoneDegreesValue *value;
-	const char *valueName;
-
-	// Allocate the array. This is the number of properties, plus 4 for the match metrics.
-	dataSet->maxPropertyValueLength =
-		(int32_t*)fiftyoneDegreesMalloc(SIZE_OF_MAX_PROPERTY_VALUES(dataSet->header));
-
-	if (dataSet->maxPropertyValueLength == NULL)
-		return DATA_SET_INIT_STATUS_INSUFFICIENT_MEMORY;
-
-	// Initialize the array by setting all values to zero.
-	for (propertyIndex = 0; propertyIndex < dataSet->header.properties.count; propertyIndex++)
-	{
-		dataSet->maxPropertyValueLength[propertyIndex] = 0;
-	}
-
-	// Loop through all profiles in the data set.
-	for (profileIndex = 0; profileIndex < dataSet->header.profiles.count; profileIndex++)
-	{
-		// Set the profile.
-		profile = getProfileByIndex(dataSet, profileIndex);
-
-		// Get the array of value indexes for the profile.
-		profileValueIndexes = (int32_t*)((byte*)profile + sizeof(fiftyoneDegreesProfile));
-
-		// Start with the first value.
-		valueIndex = 0;
-		value = dataSet->values + profileValueIndexes[valueIndex];
-
-		// Loop over the rest.
-		while (valueIndex < profile->valueCount)
-		{
-			// Get the property index which relates to the current value.
-			propertyIndex = value->propertyIndex;
-
-			// Reset the length.
-			lengthNeeded = 0;
-
-			// Multiple values can relate to one property, so keep adding the length
-			// of values until we reach a value for a new property.
-			while (value->propertyIndex == propertyIndex)
-			{
-				// Get the value string.
-				valueName = fiftyoneDegreesGetValueName(dataSet, value);
-				// Account for a delimiter if needed.
-				if (lengthNeeded != 0)
-					lengthNeeded++;
-				// Add the length of the current value to the total for this
-				// property
-				lengthNeeded += (int32_t)strlen(valueName);
-
-				// Get the next value.
-				valueIndex++;
-				value = dataSet->values + profileValueIndexes[valueIndex];
-
-				// Check we haven't reached the end of the values for this profile.
-				// (remember, we are inside a second while loop).
-				if (valueIndex >= profile->valueCount)
-					break;
-			}
-
-			// If the total length for this profile + property combination is
-			// greater that the current max length, then update it.
-			if (lengthNeeded > dataSet->maxPropertyValueLength[propertyIndex])
-				dataSet->maxPropertyValueLength[propertyIndex] = lengthNeeded;
-		}
-	}
-
-	// Now do the match metrics.
-	// Fist the Method, this is hard coded as it is not likely to change.
-	dataSet->maxPropertyValueLength[dataSet->header.properties.count
-		+ FIFTYONEDEGREES_METRIC_METHOD_INDEX] = 7;
-
-	// Get the maximum length of an integer.
-	if (INT_MAX < 10000) lengthNeeded = 4;
-	else if (INT_MAX < 100000) lengthNeeded = 5;
-	else if (INT_MAX < 1000000) lengthNeeded = 6;
-	else if (INT_MAX < 10000000) lengthNeeded = 7;
-	else if (INT_MAX < 100000000) lengthNeeded = 8;
-	else if (INT_MAX < 1000000000) lengthNeeded = 9;
-	else if (INT_MAX < 10000000000) lengthNeeded = 10;
-	else if (INT_MAX < 100000000000) lengthNeeded = 11;
-	else if (INT_MAX < 1000000000000) lengthNeeded = 12;
-	else if (INT_MAX < 10000000000000) lengthNeeded = 13;
-	else lengthNeeded = 20;
-
-	// The Rank, this is the maximum number string
-	dataSet->maxPropertyValueLength[dataSet->header.properties.count
-		+ FIFTYONEDEGREES_METRIC_RANK_INDEX] = lengthNeeded;
-	// The Difference, this is also the maximum number string.
-	dataSet->maxPropertyValueLength[dataSet->header.properties.count
-		+ FIFTYONEDEGREES_METRIC_DIFFERENCE_INDEX] = lengthNeeded;
-	// The Device-Id, using max 5 digits per profile id,
-	// and a separator per component.
-	dataSet->maxPropertyValueLength[dataSet->header.properties.count
-		+ FIFTYONEDEGREES_METRIC_ID_INDEX]
-		=  dataSet->header.components.count * (5 + 1);
-
-	return DATA_SET_INIT_STATUS_SUCCESS;
 }
 
 /**
@@ -814,7 +571,7 @@ static fiftyoneDegreesDataSetInitStatus setMaxPropertyValueLength(fiftyoneDegree
  * continuous memory space containing decompressed 51Degreees pattern device
  * data.
  *
- * Remember to free dataset if status is not success.
+ * Bemember to free dataset if status is not success.
  *
  * @param dataSet to be initialised with data from the provided pointer to
  *		  memory location.
@@ -848,16 +605,9 @@ static fiftyoneDegreesDataSetInitStatus initFromMemory(
 	// be freed when the data set is destroyed.
 	dataSet->prefixedUpperHttpHeaders = NULL;
 
-	// Determine the maximum string length that the getValues function
-	// can return for each property in the data set.
-	status = setMaxPropertyValueLength(dataSet);
-	if (status != DATA_SET_INIT_STATUS_SUCCESS) {
-		return status;
-	}
-
 	// Initialise the memory for the properties and values structures
 	// which point to profiles structures.
-	status = ensureValueProfilesSet(dataSet);
+	ensureValueProfilesSet(dataSet);
 
 	return status;
 }
@@ -875,7 +625,7 @@ static fiftyoneDegreesDataSetInitStatus initFromMemory(
 static fiftyoneDegreesDataSetInitStatus setDataSetFileName(
 	fiftyoneDegreesDataSet *dataSet,
 	const char *fileName) {
-	dataSet->fileName = (const char*)fiftyoneDegreesMalloc(SIZE_OF_FILE_NAME(fileName));
+	dataSet->fileName = (const char*)malloc(sizeof(char) * (strlen(fileName) + 1));
 	if (dataSet->fileName == NULL) {
 		return DATA_SET_INIT_STATUS_INSUFFICIENT_MEMORY;
 	}
@@ -925,11 +675,11 @@ static fiftyoneDegreesDataSetInitStatus initFromFile(
 		return DATA_SET_INIT_STATUS_CORRUPT_DATA;
 	}
 
-	// Read the file into memory in a single continuous memory space.
+	// Read the file into memory in a single continous memory space.
 	if (fseek(inputFilePtr, 0, SEEK_SET) != 0) {
 		return DATA_SET_INIT_STATUS_CORRUPT_DATA;
 	}
-	dataSet->memoryToFree = (byte*)fiftyoneDegreesMalloc(fileSize);
+	dataSet->memoryToFree = (byte*)malloc(fileSize);
 	if (dataSet->memoryToFree == NULL)  {
 		return DATA_SET_INIT_STATUS_INSUFFICIENT_MEMORY;
 	}
@@ -941,7 +691,7 @@ static fiftyoneDegreesDataSetInitStatus initFromFile(
 	// Initialises the data set using the memory just allocated.
 	status = initFromMemory(dataSet, dataSet->memoryToFree, fileSize);
 	if (status != DATA_SET_INIT_STATUS_SUCCESS) {
-		fiftyoneDegreesFree((void*)dataSet->memoryToFree);
+		free((void*)dataSet->memoryToFree);
 		return status;
 	}
 
@@ -949,26 +699,13 @@ static fiftyoneDegreesDataSetInitStatus initFromFile(
 	return setDataSetFileName(dataSet, fileName);
 }
 
-/**
-* \cond
-* Creates a new dataset, pool and cache using the same configuration options
-* as the current data set, pool and cache associated with the provider. The
-* data file which the provider was initialised with  is used to create the 
-* new data set. The exisitng data set, pool and cache are marked to be freed
-* if worksets are being used by other threads, or if no work sets are in use
-* they are freed immediately.
-* @param provider pointer to the provider whose data set should be reloaded
-* @return fiftyoneDegreesDataSetInitStatus indicating the result of the reload
-* 	   operation.
-* \endcond
-*/
 fiftyoneDegreesDataSetInitStatus fiftyoneDegreesProviderReloadFromFile(
 	fiftyoneDegreesProvider *provider) {
 	fiftyoneDegreesDataSetInitStatus status = DATA_SET_INIT_STATUS_NOT_SET;
 	fiftyoneDegreesDataSet *newDataSet;
 
 	// Allocate memory for a new data set.
-	newDataSet = (fiftyoneDegreesDataSet*)fiftyoneDegreesMalloc(sizeof(fiftyoneDegreesDataSet));
+	newDataSet = (fiftyoneDegreesDataSet*)malloc(sizeof(fiftyoneDegreesDataSet));
 	if (newDataSet == NULL) {
 		return DATA_SET_INIT_STATUS_INSUFFICIENT_MEMORY;
 	}
@@ -976,7 +713,7 @@ fiftyoneDegreesDataSetInitStatus fiftyoneDegreesProviderReloadFromFile(
 	// Initialise the new data set with the properties of the current one.
 	status = initFromFile(newDataSet, provider->activePool->dataSet->fileName);
 	if (status != DATA_SET_INIT_STATUS_SUCCESS) {
-		fiftyoneDegreesFree(newDataSet);
+		free(newDataSet);
 		return status;
 	}
 
@@ -1005,7 +742,7 @@ fiftyoneDegreesDataSetInitStatus fiftyoneDegreesProviderReloadFromFile(
  * pool, data set and cache are freed after the last work set is returned to
  * the pool.
  * @param provider pointer to the provider whose data set should be reloaded
- * @param source pointer to the dataset held in memory.
+ * @param provider pointer to the provider whose data set should be reloaded.
  * @param length number of bytes that the file occupies in memory.
  * @return fiftyoneDegreesDataSetInitStatus indicating the result of the reload
  * 	   operation.
@@ -1019,7 +756,7 @@ fiftyoneDegreesDataSetInitStatus fiftyoneDegreesProviderReloadFromMemory(
 	fiftyoneDegreesDataSet *newDataSet = NULL;
 
 	// Allocate memory for a new data set.
-	newDataSet = (fiftyoneDegreesDataSet*)fiftyoneDegreesMalloc(sizeof(fiftyoneDegreesDataSet));
+	newDataSet = (fiftyoneDegreesDataSet*)malloc(sizeof(fiftyoneDegreesDataSet));
 	if (newDataSet == NULL) {
 		return DATA_SET_INIT_STATUS_INSUFFICIENT_MEMORY;
 	}
@@ -1027,7 +764,7 @@ fiftyoneDegreesDataSetInitStatus fiftyoneDegreesProviderReloadFromMemory(
 	// Initialise the new data set with the data pointed to by source.
 	status = initFromMemory(newDataSet, source, length);
 	if (status != DATA_SET_INIT_STATUS_SUCCESS) {
-		fiftyoneDegreesFree((void*)newDataSet);
+		free((void*)newDataSet);
 		return status;
 	}
 
@@ -1263,26 +1000,6 @@ const char* fiftyoneDegreesGetValueName(const fiftyoneDegreesDataSet *dataSet, c
  */
 const char* fiftyoneDegreesGetPropertyName(const fiftyoneDegreesDataSet *dataSet, const fiftyoneDegreesProperty *property) {
 	return (const char*)&(fiftyoneDegreesGetString(dataSet, property->nameOffset)->firstByte);
-}
-
-/**
-* \cond
-* Returns whether or not the property is a list property or not as an integer
-* i.e. 1=true 0=false, or -1 if the property cannot be found.
-* @param dataSet pointer to an initialised dataset.
-* @param propertyName pointer to the name of the property required.
-* @return 1 if the property can return a list, 0 if not, or -1 if the property
-*         does not exist.
-* \endcond
-*/
-int32_t fiftyoneDegreesGetPropertyIsList(const fiftyoneDegreesDataSet *dataSet, char *propertyName) {
-	const fiftyoneDegreesProperty *property;
-
-	property = getPropertyByName(dataSet, propertyName);
-	if (property == NULL)
-		return -1;
-	else
-		return (int32_t)property->isList;
 }
 
  /**
@@ -1639,14 +1356,12 @@ static void freeProfilesStructs(const fiftyoneDegreesDataSet *dataSet) {
 			property = (fiftyoneDegreesProperty*)(dataSet->properties + (int32_t)propertyIndex);
 			propertyValueCount = property->lastValueIndex - property->firstValueIndex + 1;
 			for (valueIndex = 0; valueIndex < propertyValueCount; valueIndex++) {
-				fiftyoneDegreesFree((void*)dataSet->valuePointersArray[propertyIndex].profilesStructs[valueIndex].indexes);
+				free((void*)dataSet->valuePointersArray[propertyIndex].profilesStructs[valueIndex].indexes);
 			}
 		}
-		if (dataSet->valuePointersArray[propertyIndex].profilesStructs != NULL) {
-			fiftyoneDegreesFree((void*)dataSet->valuePointersArray[propertyIndex].profilesStructs);
-		}
+		free((void*)dataSet->valuePointersArray[propertyIndex].profilesStructs);
 	}
-	fiftyoneDegreesFree((void*)dataSet->valuePointersArray);
+	free((void*)dataSet->valuePointersArray);
 }
 
 /**
@@ -1664,38 +1379,34 @@ void fiftyoneDegreesDataSetFree(const fiftyoneDegreesDataSet *dataSet) {
 	if (dataSet->prefixedUpperHttpHeaders != NULL) {
 		for (index = 0; index < dataSet->httpHeadersCount; index++) {
 			if (dataSet->prefixedUpperHttpHeaders[index] != NULL) {
-				fiftyoneDegreesFree((void*)dataSet->prefixedUpperHttpHeaders[index]);
+				free((void*)dataSet->prefixedUpperHttpHeaders[index]);
 			}
 		}
-		fiftyoneDegreesFree((void*)dataSet->prefixedUpperHttpHeaders);
-	}
-
-	if (dataSet->maxPropertyValueLength != NULL) {
-		fiftyoneDegreesFree(dataSet->maxPropertyValueLength);
+		free((void*)dataSet->prefixedUpperHttpHeaders);
 	}
 
 	if (dataSet->fileName != NULL) {
-		fiftyoneDegreesFree((void*)dataSet->fileName);
+		free((void*)dataSet->fileName);
 	}
 
 	if (dataSet->httpHeaders != NULL) {
-		fiftyoneDegreesFree((void*)dataSet->httpHeaders);
+		free((void*)dataSet->httpHeaders);
 	}
 
 	if (dataSet->components != NULL) {
-		fiftyoneDegreesFree((void*)dataSet->components);
+		free((void*)dataSet->components);
 	}
 
 	if (dataSet->rootNodes != NULL) {
-		fiftyoneDegreesFree((void*)dataSet->rootNodes);
+		free((void*)dataSet->rootNodes);
 	}
 
 	if (dataSet->requiredProperties != NULL) {
-		fiftyoneDegreesFree((void*)dataSet->requiredProperties);
+		free((void*)dataSet->requiredProperties);
 	}
 
 	if (dataSet->memoryToFree != NULL) {
-		fiftyoneDegreesFree((void*)dataSet->memoryToFree);
+		free((void*)dataSet->memoryToFree);
 	}
 }
 
@@ -1709,7 +1420,7 @@ static void setAllProperties(fiftyoneDegreesDataSet *dataSet) {
 	int32_t index;
 	dataSet->requiredPropertyCount = dataSet->header.properties.count;
 	dataSet->requiredProperties =
-		(const fiftyoneDegreesProperty**)fiftyoneDegreesMalloc(SIZE_OF_REQUIRED_PROPERTIES(dataSet->requiredPropertyCount));
+		(const fiftyoneDegreesProperty**)malloc(dataSet->requiredPropertyCount * sizeof(fiftyoneDegreesProperty*));
 	if (dataSet->requiredProperties != NULL) {
 		for (index = 0; index < dataSet->requiredPropertyCount; index++) {
 			*(dataSet->requiredProperties + index) = dataSet->properties + index;
@@ -1734,7 +1445,7 @@ static void setProperties(fiftyoneDegreesDataSet *dataSet, const char** properti
 
 	// Allocate memory for this number of properties.
 	dataSet->requiredPropertyCount = 0;
-	dataSet->requiredProperties = (const fiftyoneDegreesProperty**)fiftyoneDegreesMalloc(SIZE_OF_REQUIRED_PROPERTIES(count));
+	dataSet->requiredProperties = (const fiftyoneDegreesProperty**)malloc(count * sizeof(const fiftyoneDegreesProperty*));
 	// Add the properties to the list of required properties.
 	if (dataSet->requiredProperties != NULL) {
 		for (propertyIndex = 0; propertyIndex < count; propertyIndex++) {
@@ -1760,7 +1471,7 @@ static void setProperties(fiftyoneDegreesDataSet *dataSet, const char** properti
 	}
 }
 
-/**
+ /**
  * \cond
  * Gets the number of separators in the char array
  * @param input char array containing separated values
@@ -1816,8 +1527,7 @@ fiftyoneDegreesDataSetInitStatus fiftyoneDegreesInitWithPropertyString(
 		copyRequiredProperties = strdup(requiredProperties);
 		if (copyRequiredProperties != NULL) {
 			// Allocate pointers for each of the properties.
-			requiredPropertiesArray = (const char**)fiftyoneDegreesMalloc(
-				SIZE_OF_REQUIRED_PROPERTIES_ARRAY(requiredPropertyCount));
+			requiredPropertiesArray = (const char**)malloc(requiredPropertyCount * sizeof(char*));
 			currentProperty = copyRequiredProperties;
 			if (requiredPropertiesArray != NULL) {
 				// Change the input string so that the separators are changed to nulls.
@@ -1851,10 +1561,10 @@ fiftyoneDegreesDataSetInitStatus fiftyoneDegreesInitWithPropertyString(
 
 	// Free the memory used to process the properties string.
 	if (requiredPropertiesArray != NULL) {
-		fiftyoneDegreesFree((void*)requiredPropertiesArray);
+		free((void*)requiredPropertiesArray);
 	}
 	if (copyRequiredProperties != NULL) {
-		fiftyoneDegreesFree(copyRequiredProperties);
+		free(copyRequiredProperties);
 	}
 
 	return status;
@@ -1884,13 +1594,13 @@ fiftyoneDegreesDataSetInitStatus fiftyoneDegreesInitProviderWithPropertyString(
 		int cacheSize) {
 	fiftyoneDegreesDataSetInitStatus status = DATA_SET_INIT_STATUS_NOT_SET;
 	fiftyoneDegreesDataSet *dataSet;
-	dataSet = (fiftyoneDegreesDataSet *)fiftyoneDegreesMalloc(sizeof(fiftyoneDegreesDataSet));
+	dataSet = (fiftyoneDegreesDataSet *)malloc(sizeof(fiftyoneDegreesDataSet));
 	if (dataSet == NULL) {
 		return DATA_SET_INIT_STATUS_INSUFFICIENT_MEMORY;
 	}
 	status = fiftyoneDegreesInitWithPropertyString(fileName, dataSet, properties);
 	if (status != DATA_SET_INIT_STATUS_SUCCESS) {
-		fiftyoneDegreesFree(dataSet);
+		free(dataSet);
 		return status;
 	}
 #ifndef FIFTYONEDEGREES_NO_THREADING
@@ -1930,7 +1640,7 @@ fiftyoneDegreesDataSetInitStatus fiftyoneDegreesInitWithPropertyArray(
 	else {
 		setProperties(dataSet, requiredProperties, count);
 	}
-	
+
 	return status;
 }
 
@@ -1959,13 +1669,13 @@ fiftyoneDegreesDataSetInitStatus fiftyoneDegreesInitProviderWithPropertyArray(
 		int cacheSize) {
 	fiftyoneDegreesDataSetInitStatus status = DATA_SET_INIT_STATUS_NOT_SET;
 	fiftyoneDegreesDataSet *dataSet;
-	dataSet = (fiftyoneDegreesDataSet *)fiftyoneDegreesMalloc(sizeof(fiftyoneDegreesDataSet));
+	dataSet = (fiftyoneDegreesDataSet *)malloc(sizeof(fiftyoneDegreesDataSet));
 	if (dataSet == NULL) {
 		return DATA_SET_INIT_STATUS_INSUFFICIENT_MEMORY;
 	}
 	status = fiftyoneDegreesInitWithPropertyArray(fileName, dataSet, properties, count);
 	if (status != DATA_SET_INIT_STATUS_SUCCESS) {
-		fiftyoneDegreesFree(dataSet);
+		free(dataSet);
 		return status;
 	}
 #ifndef FIFTYONEDEGREES_NO_THREADING
@@ -1973,234 +1683,6 @@ fiftyoneDegreesDataSetInitStatus fiftyoneDegreesInitProviderWithPropertyArray(
 	FIFTYONEDEGREES_SIGNAL_CREATE(provider->signal);
 #endif
 	return initProvider(provider, dataSet, poolSize, cacheSize);
-}
-
-/**
-* \cond
-* Uses the memory allocation size macros to calculate the amount of memory
-* needed by the provider. The size of the file and filename must be set prior
-* to this function. The returned value overestimates by about 10 bytes to
-* accommodate for extra http headers being introduced.
-* @param sizeOfFile the size of the file and filename.
-* @param header the data set header read from the file.
-* @param requiredPropertyCount the number of properties the provider
-* will be initialised with.
-* @param poolSize the number of worksets in the pool.
-* @param cacheSize the size of the resultset cache.
-* @returns int the total size in bytes that the provider will need.
-* \endcond
-*/
-static size_t getProviderSizeWithPropertyCount(size_t sizeOfFile, fiftyoneDegreesDataSetHeader header, int requiredPropertyCount, int poolSize, int cacheSize)
-{
-	int httpHeadersCount;
-	size_t size;
-	// Start with the size taken by the file and the filename.
-	size = sizeOfFile;
-
-	// Set maximum http headers per component. This is a slight overestimate
-	// but saves reading in the data set.
-	httpHeadersCount = 5;
-
-	// Add provider.
-	size += sizeof(fiftyoneDegreesProvider);
-	// Add dataset.
-	size += sizeof(fiftyoneDegreesDataSet);
-	// Add components.
-	size += (SIZE_OF_COMPONENTS(header));
-	// Add http headers.
-	size += (SIZE_OF_HTTP_HEADERS(httpHeadersCount * header.components.count));
-	// Add root nodes.
-	size += (SIZE_OF_ROOT_NODES(header));
-	// Add required properties.
-	size += (SIZE_OF_REQUIRED_PROPERTIES(requiredPropertyCount));
-
-	// Add profile structures.
-	size += (SIZE_OF_PROFILES_STRUCT_ARRAY(header));
-	size += (SIZE_OF_PROFILE_INDEXES_STRUCT(header.values.count));
-
-	// Add max property value length values.
-	size += (SIZE_OF_MAX_PROPERTY_VALUES(header));
-
-	// Add cache.
-	if (cacheSize > 0) {
-		size += (SIZE_OF_CACHE);
-		size += (SIZE_OF_CACHE_RESULTSETS(cacheSize));
-		size += (SIZE_OF_CACHE_TARGET_USER_AGENTS(cacheSize, header));
-		size += (SIZE_OF_CACHE_PROFILES(cacheSize, header));
-	}
-
-	// Add workset pool.
-	size += (SIZE_OF_WORKSET_POOL);
-	size += (SIZE_OF_POOL_WORKSETS(poolSize));
-
-	// Add worksets.
-	size += ((SIZE_OF_WORKSET)* poolSize);
-	size += ((SIZE_OF_WORKSET_INPUT(header)) * poolSize);
-	size += ((SIZE_OF_WORKSET_SIGLIST_ITEMS(header)) * poolSize);
-	size += ((SIZE_OF_WORKSET_NODES(header)) * poolSize * 2);
-	size += ((SIZE_OF_WORKSET_USED_NODES(header)) * poolSize * 2);
-	size += ((SIZE_OF_WORKSET_SIG_AS_STRING(header)) * poolSize);
-	size += ((SIZE_OF_WORKSET_VALUES(header)) * poolSize);
-	size += ((SIZE_OF_WORKSET_PROFILES(header)) * poolSize * 2);
-	size += ((SIZE_OF_WORKSET_TARGET_USERAGENT_ARRAY(header)) * poolSize);
-	size += ((SIZE_OF_WORKSET_IMPORTANT_HEADERS(httpHeadersCount)) * poolSize);
-
-	assert(size > sizeOfFile);
-
-	// Return the total size needed for the provider.
-	return size;
-}
-
-
-/**
- * \cond
- * Get the size of the file provided.
- * @param fileName path to the file.
- * @returns size_t the size the file will need in memory, or -1 if the file
- * could not be opened.
- * \endcond
- */
-size_t getSizeOfFile(const char* fileName) {
-
-	size_t sizeOfFile;
-	FILE *inputFilePtr;
-
-	// Open the file and hold on to the pointer.
-#ifndef _MSC_FULL_VER
-	inputFilePtr = fopen(fileName, "rb");
-	if (inputFilePtr == NULL) {
-		return -1;
-	}
-#else
-	/* If using Microsoft use the fopen_s method to avoid warning */
-	if (fopen_s(&inputFilePtr, fileName, "rb") != 0) {
-		return -1;
-	}
-#endif
-	fseek(inputFilePtr, 0, SEEK_END);
-
-	// Add file size.
-	sizeOfFile = ftell(inputFilePtr);
-	fclose(inputFilePtr);
-
-	assert(sizeOfFile > 0);
-
-	return sizeOfFile;
-}
-
-/**
-* \cond
-* Calculates the amount of memory that the provider will need to allocate for
-* the given data file and initialisation parameters. This should be used with
-* the fiftyoneDegreesInitProviderWithPropertyString function.
-* NOTE: This function will over estimate by about 10 bytes to account for a
-* possible increase in http headers.
-* @param fileName the file path of the data file.
-* @param properties the comma separated string of properties that will be
-* initialised.
-* @param poolSize the number of worksets the pool will contain.
-* @param cacheSize the size of the resultset cache.
-* @return int the total size in bytes that is needed to initilaise the
-* provider with the given parameters.
-* \endcond
-*/
-size_t fiftyoneDegreesGetProviderSizeWithPropertyString(const char *fileName, const char *properties, int poolSize, int cacheSize)
-{
-	int requiredPropertyCount;
-	size_t size;
-	FILE *inputFilePtr;
-	fiftyoneDegreesDataSetHeader *header = (fiftyoneDegreesDataSetHeader*)fiftyoneDegreesMalloc(sizeof(fiftyoneDegreesDataSetHeader));
-
-	// Open the file and hold on to the pointer.
-#ifndef _MSC_FULL_VER
-	inputFilePtr = fopen(fileName, "rb");
-	if (inputFilePtr == NULL) {
-		return -1;
-	}
-#else
-	/* If using Microsoft use the fopen_s method to avoid warning */
-	if (fopen_s(&inputFilePtr, fileName, "rb") != 0) {
-		return -1;
-	}
-#endif
-
-	// Read in header.
-	if (fread(header, sizeof(fiftyoneDegreesDataSetHeader), 1, inputFilePtr) != 1) {
-		return -1;
-	}
-
-	size = getSizeOfFile(fileName);
-
-	if ((int)size > 0) {
-		// Add file name.
-		size += (SIZE_OF_FILE_NAME(fileName));
-
-		// Get property count.
-		requiredPropertyCount = getSeparatorCount(properties);
-
-		// If property string is empty, all properties will be used.
-		if (requiredPropertyCount == 0) {
-			requiredPropertyCount = header->properties.count;
-		}
-
-		// Add required properties array.
-		size += (SIZE_OF_REQUIRED_PROPERTIES_ARRAY(requiredPropertyCount));
-
-		// Return the total size needed for the provider.
-		size = getProviderSizeWithPropertyCount(size, *header, requiredPropertyCount, poolSize, cacheSize);
-	}
-	return size;
-}
-
-/**
-* \cond
-* Calculates the amount of memory that the provider will need to allocate for
-* the given data file and initialisation parameters. This should be used with
-* the fiftyoneDegreesInitProviderWithPropertyArray function.
-* NOTE: This function will over estimate by about 10 bytes to account for a
-* possible increase in http headers.
-* @param fileName the file path of the data file.
-* @param propertyCount the number of properties in the properties array.
-* @param poolSize the number of worksets the pool will contain.
-* @param cacheSize the size of the resultset cache.
-* @return int the total size in bytes that is needed to initilaise the
-* provider with the given parameters.
-* \endcond
-*/
-size_t fiftyoneDegreesGetProviderSizeWithPropertyCount(const char *fileName, int propertyCount, int poolSize, int cacheSize)
-{
-	size_t size;
-	FILE *inputFilePtr;
-	fiftyoneDegreesDataSetHeader *header = (fiftyoneDegreesDataSetHeader*)fiftyoneDegreesMalloc(sizeof(fiftyoneDegreesDataSetHeader));
-
-	// Open the file and hold on to the pointer.
-#ifndef _MSC_FULL_VER
-	inputFilePtr = fopen(fileName, "rb");
-	if (inputFilePtr == NULL) {
-		return -1;
-	}
-#else
-	/* If using Microsoft use the fopen_s method to avoid warning */
-	if (fopen_s(&inputFilePtr, fileName, "rb") != 0) {
-		return -1;
-	}
-#endif
-
-	// Read in header.
-	if (fread(header, sizeof(fiftyoneDegreesDataSetHeader), 1, inputFilePtr) != 1) {
-		return -1;
-	}
-
-	size = getSizeOfFile(fileName);
-
-	if ((int)size > 0) {
-		// Add file name.
-		size += (SIZE_OF_FILE_NAME(fileName));
-
-		// Return the total size needed for the provider.
-		size = getProviderSizeWithPropertyCount(size, *header, propertyCount, poolSize, cacheSize);
-	}
-	return size;
 }
 
 /**
@@ -2220,20 +1702,23 @@ size_t fiftyoneDegreesGetProviderSizeWithPropertyCount(const char *fileName, int
 static void setProfileStructs(const fiftyoneDegreesDataSet *dataSet,
 	const fiftyoneDegreesProperty *property,
 	int32_t *valuesProfileCount) {
-	int profileIndex, profileValueIndex, propertyValueIndex, propertyIndex;
 	fiftyoneDegreesProfile *profile;
-	int32_t *profileValueIndexes;
-	int profileIndexElement, propertyValuesCount;
+	int32_t *profileValueIndexes,
+		profileIndex,
+		propertyIndex,
+		profileValueIndex,
+		propertyValueIndex,
+		profileIndexElement,
+		propertyValuesCount;
 
-	propertyIndex = getPropertyIndex(dataSet, property);
 	propertyValuesCount = property->lastValueIndex - property->firstValueIndex + 1;
-
+	propertyIndex = getPropertyIndex(dataSet, property);
 	// Allocate memory for the profile indexes.
 	for (propertyValueIndex = 0; propertyValueIndex < propertyValuesCount; propertyValueIndex++) {
 		dataSet->valuePointersArray[propertyIndex].profilesStructs[propertyValueIndex].count =
 			valuesProfileCount[propertyValueIndex];
 		dataSet->valuePointersArray[propertyIndex].profilesStructs[propertyValueIndex].indexes =
-			(int32_t*)fiftyoneDegreesMalloc(valuesProfileCount[propertyValueIndex] * sizeof(int32_t));
+			(int32_t*)malloc(valuesProfileCount[propertyValueIndex] * sizeof(int32_t));
 	}
 
 	// Add the profile indexes to the values that they relate to.
@@ -2269,13 +1754,18 @@ static void setProfileStructs(const fiftyoneDegreesDataSet *dataSet,
  * @param property pointer to the 51Degrees property to be initialised.
  * \endcond
  */
-static void initFindProfiles(const fiftyoneDegreesDataSet *dataSet,
+static void initFindProfiles(const fiftyoneDegreesDataSet *dataSet, 
 							 const fiftyoneDegreesProperty *property) {
-	int profileIndex;
-	int valueIndex;
-	int propertyIndex = getPropertyIndex(dataSet, property);
+	int32_t profileIndex,
+		valueIndex,
+		*valuesProfileCount,
+		propertyIndex,
+		propertyValuesCount,
+		*profileValueIndexes;
 	fiftyoneDegreesProfile *profile;
-	int32_t *profileValueIndexes, propertyValuesCount, *valuesProfileCount;
+
+	// Get the index of the requested property.
+	propertyIndex = getPropertyIndex(dataSet, property);
 
 	// Lock the structure being set, and check again if it has been
 	// set by another process.
@@ -2286,7 +1776,7 @@ static void initFindProfiles(const fiftyoneDegreesDataSet *dataSet,
 		// Get the amount of values for the property.
 		propertyValuesCount = property->lastValueIndex - property->firstValueIndex + 1;
 		// Initialise the array with the profiles count for each of the property's values.
-		valuesProfileCount = (int32_t*)fiftyoneDegreesCalloc(propertyValuesCount, sizeof(int32_t));
+		valuesProfileCount = (int32_t*)calloc(propertyValuesCount, sizeof(int32_t));
 
 		// Loop through all profiles incrementing the profile count for the
 		// for the values they relate to.
@@ -2315,7 +1805,7 @@ static void initFindProfiles(const fiftyoneDegreesDataSet *dataSet,
 		// Indicate this property has been initialised.
 		dataSet->valuePointersArray[propertyIndex].initialised = 1;
 		// Free the array of profile counts.
-		fiftyoneDegreesFree(valuesProfileCount);
+		free(valuesProfileCount);
 
 #ifndef FIFTYONEDEGREES_NO_THREADING
 	}
@@ -2336,15 +1826,18 @@ static void initFindProfiles(const fiftyoneDegreesDataSet *dataSet,
  * \endcond
  */
 fiftyoneDegreesProfilesStruct *fiftyoneDegreesFindProfiles(
-	const fiftyoneDegreesDataSet *dataSet,
+	const fiftyoneDegreesDataSet *dataSet, 
 	const char *propertyName,
 	const char* valueName) {
-	int32_t valueIndex, propertyIndex;
+	int32_t valueIndex,
+		propertyIndex,
+		profileIndex;
 	const char *currentValueName;
 	const fiftyoneDegreesValue *value;
 	const fiftyoneDegreesProperty *property;
-	int i;
 	fiftyoneDegreesProfilesStruct *profilesList;
+
+	// Get the property requested.
 	property = getPropertyByName(dataSet, (char*)propertyName);
 
 	// Only proceed if the property exists.
@@ -2362,22 +1855,22 @@ fiftyoneDegreesProfilesStruct *fiftyoneDegreesFindProfiles(
 				}
 				// Set the profiles list to be returned, copying the profile
 				// indexes and getting pointers to the profiles.
-				profilesList = (fiftyoneDegreesProfilesStruct*)fiftyoneDegreesMalloc(sizeof(fiftyoneDegreesProfilesStruct));
-				profilesList->count = (int32_t)dataSet->valuePointersArray[propertyIndex].profilesStructs[valueIndex - property->firstValueIndex].count;
-				profilesList->profiles = (fiftyoneDegreesProfile**)fiftyoneDegreesMalloc(sizeof(fiftyoneDegreesProfile*) * profilesList->count);
-				profilesList->indexes = (int32_t*)fiftyoneDegreesMalloc(sizeof(int32_t) * profilesList->count);
+				profilesList = (fiftyoneDegreesProfilesStruct*)malloc(sizeof(fiftyoneDegreesProfilesStruct));
+				profilesList->count = dataSet->valuePointersArray[propertyIndex].profilesStructs[valueIndex - property->firstValueIndex].count;
+				profilesList->profiles = (fiftyoneDegreesProfile**)malloc(sizeof(fiftyoneDegreesProfile*) * profilesList->count);
+				profilesList->indexes = (int32_t*)malloc(sizeof(int32_t) * profilesList->count);
 				memcpy(profilesList->indexes, dataSet->valuePointersArray[propertyIndex].profilesStructs[valueIndex - property->firstValueIndex].indexes,
 					sizeof(int32_t) * dataSet->valuePointersArray[propertyIndex].profilesStructs[valueIndex - property->firstValueIndex].count);
 
-				for (i = 0; i < profilesList->count; i++) {
-					profilesList->profiles[i] = getProfileByIndex(dataSet, profilesList->indexes[i]);
+				for (profileIndex = 0; profileIndex < profilesList->count; profileIndex++) {
+					profilesList->profiles[profileIndex] = getProfileByIndex(dataSet, profilesList->indexes[profileIndex]);
 				}
 				return profilesList;
 			}
 		}
 	}
 	// The property or the value could not be found, return an empty list.
-	profilesList = (fiftyoneDegreesProfilesStruct*)fiftyoneDegreesMalloc(sizeof(int));
+	profilesList = (fiftyoneDegreesProfilesStruct*)malloc(sizeof(int));
 	profilesList->count = 0;
 	return profilesList;
 }
@@ -2390,9 +1883,9 @@ fiftyoneDegreesProfilesStruct *fiftyoneDegreesFindProfiles(
  * \endcond
  */
 void fiftyoneDegreesFreeProfilesStruct(fiftyoneDegreesProfilesStruct *profiles) {
-	fiftyoneDegreesFree((void*)profiles->indexes);
-	fiftyoneDegreesFree((void*)profiles->profiles);
-	fiftyoneDegreesFree((void*)profiles);
+	free((void*)profiles->indexes);
+	free((void*)profiles->profiles);
+	free((void*)profiles);
 }
 
 /**
@@ -2402,7 +1895,7 @@ void fiftyoneDegreesFreeProfilesStruct(fiftyoneDegreesProfilesStruct *profiles) 
  * @param b pointer to an integer.
  * \endcond
  */
-static int FIFTYONEDEGREES_CALL_CONV intcmp(const void *a, const void *b) {
+static int QSORT_COMPARER intcmp(const void *a, const void *b) {
 	return (*(int32_t*)a - *(int32_t*)b);
 }
 
@@ -2420,27 +1913,28 @@ static int FIFTYONEDEGREES_CALL_CONV intcmp(const void *a, const void *b) {
  * \endcond
  */
 fiftyoneDegreesProfilesStruct *fiftyoneDegreesFindProfilesInProfiles(
-	const fiftyoneDegreesDataSet *dataSet,
-	const char *propertyName,
-	const char* valueName,
+	const fiftyoneDegreesDataSet *dataSet, 
+	const char *propertyName, 
+	const char *valueName, 
 	fiftyoneDegreesProfilesStruct *profilesList) {
-	int32_t valueIndex, profileStructElement, propertyIndex;
-	const char *currentValueName;
-	const fiftyoneDegreesValue *value;
-	const fiftyoneDegreesProperty *property;
-	fiftyoneDegreesProfilesStruct *matchingProfiles;
+	int	*matchingIndex,
+		matchingProfilesCount;
+	int32_t profileStructElement,
+		profileIndex,
+		propertyIndex,
+		valueIndex;
 	fiftyoneDegreesProfile *firstProfile;
-	int i, *matchingIndex, matchingProfilesCount;
+	fiftyoneDegreesProfilesStruct *matchingProfiles;
+	const fiftyoneDegreesProperty *property;
+	const fiftyoneDegreesValue *value;
+	const char *currentValueName;
 
-	matchingProfilesCount = 0;
-	profileStructElement = 0;
-
-	matchingProfiles = (fiftyoneDegreesProfilesStruct*)fiftyoneDegreesMalloc(sizeof(fiftyoneDegreesProfilesStruct));
-
+	matchingProfiles = (fiftyoneDegreesProfilesStruct*)malloc(sizeof(fiftyoneDegreesProfilesStruct));
 	property = getPropertyByName(dataSet, (char*)propertyName);
 
 	// Only proceed if the property exists in the data set.
 	if (property != NULL) {
+		matchingProfilesCount = 0;
 		propertyIndex = getPropertyIndex(dataSet, property);
 		firstProfile = profilesList->profiles[0];
 		// Check that the profiles being filtered have the same component
@@ -2457,8 +1951,8 @@ fiftyoneDegreesProfilesStruct *fiftyoneDegreesFindProfilesInProfiles(
 					}
 
 					// Count the number of profiles that will be returned.
-					for (i = 0; i < profilesList->count; i++) {
-						matchingIndex = (int32_t*)bsearch(&profilesList->indexes[i],
+					for (profileIndex = 0; profileIndex < profilesList->count; profileIndex++) {
+						matchingIndex = (int32_t*)bsearch(&profilesList->indexes[profileIndex],
 							dataSet->valuePointersArray[propertyIndex].profilesStructs[valueIndex - property->firstValueIndex].indexes,
 							dataSet->valuePointersArray[propertyIndex].profilesStructs[valueIndex - property->firstValueIndex].count,
 							sizeof(int32_t), intcmp);
@@ -2470,13 +1964,14 @@ fiftyoneDegreesProfilesStruct *fiftyoneDegreesFindProfilesInProfiles(
 					// Set the profiles count and allocate the space for the
 					// indexes and pointers.
 					matchingProfiles->count = matchingProfilesCount;
-					matchingProfiles->indexes = (int32_t*)fiftyoneDegreesCalloc(matchingProfilesCount, sizeof(int32_t));
-					matchingProfiles->profiles = (fiftyoneDegreesProfile**)fiftyoneDegreesCalloc(matchingProfilesCount, sizeof(fiftyoneDegreesProfile*));
+					matchingProfiles->indexes = (int32_t*)calloc(matchingProfilesCount, sizeof(int32_t));
+					matchingProfiles->profiles = (fiftyoneDegreesProfile**)calloc(matchingProfilesCount, sizeof(fiftyoneDegreesProfile*));
 
-					// Do a second pass of the seach adding the indexes and
+					// Do a second pass of the search adding the indexes and
 					// pointers to the structure to be returned.
-					for (i = 0; i < profilesList->count; i++) {
-						matchingIndex = (int32_t*)bsearch(&profilesList->indexes[i],
+					profileStructElement = 0;
+					for (profileIndex= 0; profileIndex < profilesList->count; profileIndex++) {
+						matchingIndex = (int32_t*)bsearch(&profilesList->indexes[profileIndex],
 							dataSet->valuePointersArray[propertyIndex].profilesStructs[valueIndex - property->firstValueIndex].indexes,
 							dataSet->valuePointersArray[propertyIndex].profilesStructs[valueIndex - property->firstValueIndex].count,
 							sizeof(int32_t), intcmp);
@@ -2495,6 +1990,60 @@ fiftyoneDegreesProfilesStruct *fiftyoneDegreesFindProfilesInProfiles(
 	// No profiles found, so return an empty profiles structure.
 	matchingProfiles->count = 0;
 	return matchingProfiles;
+}
+
+ /**
+ * \cond
+ * RESULTSET METHODS
+ * \endcond
+ */
+
+#define RESULTSET_PROFILES_SIZE(h) h.components.count * sizeof(const fiftyoneDegreesProfile*)
+#define RESULTSET_TARGET_USERAGENT_ARRAY_SIZE(h) (h.maxUserAgentLength + 1) * sizeof(byte)
+
+ /**
+ * \cond
+ * Copies the data associated with the source resultset to the destination.
+ * @param src source result set
+ * @param dst destination result set
+ * \endcond
+ */
+static void resultsetCopy(fiftyoneDegreesResultset *dst, const fiftyoneDegreesResultset *src) {
+	dst->dataSet = src->dataSet;
+	dst->closestSignatures = src->closestSignatures;
+	dst->difference = src->difference;
+	dst->hashCodeSet = src->hashCodeSet;
+	dst->method = src->method;
+	dst->nodesEvaluated = src->nodesEvaluated;
+	dst->profileCount = src->profileCount;
+	memcpy((void*)dst->profiles, (void*)src->profiles, RESULTSET_PROFILES_SIZE(src->dataSet->header));
+	dst->rootNodesEvaluated = src->rootNodesEvaluated;
+	dst->signaturesCompared = src->signaturesCompared;
+	dst->signaturesRead = src->signaturesRead;
+	dst->stringsRead = src->stringsRead;
+	memcpy((void*)dst->targetUserAgentArray, (void*)src->targetUserAgentArray, RESULTSET_TARGET_USERAGENT_ARRAY_SIZE(src->dataSet->header));
+	dst->targetUserAgentArrayLength = src->targetUserAgentArrayLength;
+	dst->targetUserAgentHashCode = src->targetUserAgentHashCode;
+	dst->signature = src->signature;
+}
+
+ /**
+ * \cond
+ * Returns the hash code for the result set provided. If the hash code
+ * has already been calculated then this value is used. Otherwise as new
+ * value is calculated and set for the result set. This only works because
+ * we know that the target user agent never changes once set.
+ * @param rs resultset whose target user agent hash code is needed.
+ * @returns the hash code associated with the target user agent.
+ * \endcond
+ */
+static uint64_t getResultsetHashCode(fiftyoneDegreesResultset *rs) {
+	if (rs->hashCodeSet == 0) {
+		rs->targetUserAgentHashCode = CityHash64((char*)rs->targetUserAgentArray,
+			rs->targetUserAgentArrayLength);
+		rs->hashCodeSet = 1;
+	}
+	return rs->targetUserAgentHashCode;
 }
 
  /**
@@ -2518,7 +2067,7 @@ fiftyoneDegreesWorksetPool *fiftyoneDegreesWorksetPoolCreate(
 								int32_t size) {
 	int worksetIndex;
 	fiftyoneDegreesWorksetPool *pool =
-		(fiftyoneDegreesWorksetPool*)fiftyoneDegreesMalloc(SIZE_OF_WORKSET_POOL);
+		(fiftyoneDegreesWorksetPool*)malloc(sizeof(fiftyoneDegreesWorksetPool));
 	if (pool != NULL) {
 		pool->dataSet = dataSet;
 		pool->cache = cache;
@@ -2528,7 +2077,7 @@ fiftyoneDegreesWorksetPool *fiftyoneDegreesWorksetPoolCreate(
 		FIFTYONEDEGREES_MUTEX_CREATE(pool->lock);
 		FIFTYONEDEGREES_SIGNAL_CREATE(pool->signal);
 #endif
-		pool->worksets = (fiftyoneDegreesWorkset**)fiftyoneDegreesMalloc(SIZE_OF_POOL_WORKSETS(size));
+		pool->worksets = (fiftyoneDegreesWorkset**)malloc(size * sizeof(fiftyoneDegreesWorkset*));
 		if (pool->worksets == NULL
 #ifndef FIFTYONEDEGREES_NO_THREADING
 			||
@@ -2537,12 +2086,12 @@ fiftyoneDegreesWorksetPool *fiftyoneDegreesWorksetPoolCreate(
 #endif
 			// Release the resources created so far.
 			) {
-			if (pool->worksets != NULL) { fiftyoneDegreesFree((void*)pool->worksets); }
+			if (pool->worksets != NULL) { free((void*)pool->worksets); }
 #ifndef FIFTYONEDEGREES_NO_THREADING
 			if (FIFTYONEDEGREES_MUTEX_VALID(&pool->lock) == 0) { FIFTYONEDEGREES_MUTEX_CLOSE(pool->lock); }
 			if (FIFTYONEDEGREES_SIGNAL_VALID(&pool->signal) == 0) { FIFTYONEDEGREES_SIGNAL_CLOSE(pool->signal); }
 #endif
-			fiftyoneDegreesFree((void*)pool);
+			free((void*)pool);
 			pool = NULL;
 		}
 		else {
@@ -2601,7 +2150,7 @@ void fiftyoneDegreesWorksetRelease(fiftyoneDegreesWorkset *ws) {
 	}
 
 	// If the pool the work set is associated with is not the active pool and
-	// all the work sets have been handed back then free the pool and its
+	// all the work sets have been handed back then free the pool and its 
 	// related resources.
 	if (pool->provider != NULL &&
 		pool->provider->activePool != pool &&
@@ -2633,7 +2182,7 @@ void fiftyoneDegreesProviderFree(fiftyoneDegreesProvider *provider) {
  * \cond
  * Returns a work set from the pool if one is available.
  * @param pool pointer to the pool to return the work set from
- * @return a work set ready for device detection, or NULL if no work sets are
+ * @return a work set ready for device detection, or NULL if no work sets are 
  *		   available
  * \endcond
  */
@@ -2721,12 +2270,12 @@ void fiftyoneDegreesWorksetPoolFree(const fiftyoneDegreesWorksetPool *pool) {
 	for (i = 0; i < pool->available; i++) {
 		fiftyoneDegreesWorksetFree(pool->worksets[i]);
 	}
-	fiftyoneDegreesFree((void*)pool->worksets);
+	free((void*)pool->worksets);
 #ifndef FIFTYONEDEGREES_NO_THREADING
 	FIFTYONEDEGREES_SIGNAL_CLOSE(pool->signal);
 	FIFTYONEDEGREES_MUTEX_CLOSE(pool->lock);
 #endif
-	fiftyoneDegreesFree((void*)pool);
+	free((void*)pool);
 }
 
 /**
@@ -2741,504 +2290,36 @@ void fiftyoneDegreesWorksetPoolCacheDataSetFree(const fiftyoneDegreesWorksetPool
 	}
 	if (pool->dataSet != NULL) {
 		fiftyoneDegreesDataSetFree(pool->dataSet);
-		fiftyoneDegreesFree((void*)pool->dataSet);
+		free((void*)pool->dataSet);
 	}
 	fiftyoneDegreesWorksetPoolFree(pool);
 }
 
  /**
  * \cond
- * RED BLACK BINARY TREE METHODS - USED WITH CACHE
+ * CACHE METHODS
  * \endcond
  */
-
-/**
- * Implementation of a classic red black binary tree adapted to support the 
- * resultset structure used in the LRU cache. Several important considerations
- * should be noted with this implementation.
- * 
- * 1. The maximum number of entries in the tree is known when the tree is 
- *    created. All memory allocation is performed at initialisation.
- * 2. Once the tree is full it will remain full and never shrinks. The memory
- *    used is freed when the cache is freed.
- * 3. The node in the tree also contains other data such as the linked list
- *    pointers used to identify the first and last entry in the cache, and 
- *    the cache data itself. See structure fiftyoneDegreesResultset.
- * 4. The cache structure fiftyoneDegreesResultsetCache contains special 
- *    fields "empty" and "root". "Empty" is used inplace of NULL to indicate 
- *    that the left, right or parent pointer of the node has no data. The use 
- *    of "empty" makes the algorithm more efficient as the data structure used
- *    to indicate no data is the same as a valid data structure and therefore 
- *    does not require custom logic. The "root" fields left pointer is used as
- *    the start of the tree. Similarly the parent element being a valid data
- *    structure simplifies the algorithm.
- *
- * Developers modifying this section of code should be familiar with the red 
- * black tree design template. Code comments assume an understanding of the 
- * principles involved. For further information see:
- * https://en.wikipedia.org/wiki/Red%E2%80%93black_tree
- *
- * In future major versions of 51Degrees which can support breaking changes 
- * this code should be split out into separate files for easier maintenance. 
- */
-
- /**
- * Macros used in the binary tree.
- */
-
-#define TREE_COLOUR_RED  1 // Indicates the resultset is black
-#define TREE_COLOUR_BLACK 0 // Indicates the resultset is red
-
-// Gets the root of the tree. The TREE_FIRST macro gets the first resultset.
-#define TREE_ROOT(c) (fiftyoneDegreesResultset*)(&c->root) 
-
-// Gets the empry resultset used to indicate no further data.
-#define TREE_EMPTY(c) (fiftyoneDegreesResultset*)(&c->empty)
-
-// Gets the first resultset under the root.
-#define TREE_FIRST(c) ((fiftyoneDegreesResultset*)TREE_ROOT(c))->treeLeft 
 
  /**
  * \cond
- * Used by assert statements to validate the number of entries in the cache for
- * debugging should any changes be made to the logic. Should not be compiled in
- * release builds.
- * @param current pointer to the resultset being counted.
- * @returns the number of children plus 1 for this current resulset.
+ * Macros used to get the position of referenced memory items.
  * \endcond
  */
-static int32_t resultsetCacheTreeCount(fiftyoneDegreesResultset *current) {
-	int32_t count = 0;
-	if (current != TREE_EMPTY(current->cache)) {
-		count = 1;
-		if (current->treeLeft != TREE_EMPTY(current->cache)) {
-			count += resultsetCacheTreeCount(current->treeLeft);
-			assert(current->targetUserAgentHashCode > current->treeLeft->targetUserAgentHashCode);
-		}
-		if (current->treeRight != TREE_EMPTY(current->cache)) {
-			count += resultsetCacheTreeCount(current->treeRight);
-			assert(current->targetUserAgentHashCode < current->treeRight->targetUserAgentHashCode);
-		}
-	}
-	return count;
-}
+#define CACHED_RESULTSET_LENGTH(h) sizeof(fiftyoneDegreesResultset) + RESULTSET_TARGET_USERAGENT_ARRAY_SIZE(h) + RESULTSET_PROFILES_SIZE(h)
+#define CACHED_RESULTSET_TARGET_USERAGENT_ARRAY_OFFSET(h) sizeof(fiftyoneDegreesResultset)
+#define CACHED_RESULTSET_PROFILES_OFFSET(h) CACHED_RESULTSET_TARGET_USERAGENT_ARRAY_OFFSET(h) + RESULTSET_TARGET_USERAGENT_ARRAY_SIZE(h)
+#define CACHED_RESULTSET_INDEX(rsc, i) (fiftyoneDegreesResultset*)((void*)rsc->resultSets + (i * rsc->sizeOfResultset))
 
-/**
-* \cond
-* Rotates the red black tree resultset to the left.
-* @param rs pointer to the resultset being rotated.
-* \endcond
-*/
-static void resultsetCacheTreeRotateLeft(fiftyoneDegreesResultset *rs) {
-	fiftyoneDegreesResultset *child = rs->treeRight;
-	rs->treeRight = child->treeLeft;
-
-	if (child->treeLeft != TREE_EMPTY(rs->cache)) {
-		child->treeLeft->treeParent = rs;
-	}
-	child->treeParent = rs->treeParent;
-
-	if (rs == rs->treeParent->treeLeft) {
-		rs->treeParent->treeLeft = child;
-	}
-	else {
-		rs->treeParent->treeRight = child;
-	}
-
-	child->treeLeft = rs;
-	rs->treeParent = child;
-}
-
-/**
-* \cond
-* Rotates the red black tree resultset to the right.
-* @param rs pointer to the resultset being rotated.
-* \endcond
-*/
-static void resultsetCacheTreeRotateRight(fiftyoneDegreesResultset *rs) {
-	fiftyoneDegreesResultset *child = rs->treeLeft;
-	rs->treeLeft = child->treeRight;
-
-	if (child->treeRight != TREE_EMPTY(rs->cache)) {
-		child->treeRight->treeParent = rs;
-	}
-	child->treeParent = rs->treeParent;
-
-	if (rs == rs->treeParent->treeLeft) {
-		rs->treeParent->treeLeft = child;
-	}
-	else {
-		rs->treeParent->treeRight = child;
-	}
-
-	child->treeRight = rs;
-	rs->treeParent = child;
-}
-
-/**
-* \cond
-* Maintains the properties of the binary tree following an insert.
-* @param rs pointer to the resultset being repaired after insert.
-* \endcond
-*/
-static void resultsetCacheTreeInsertRepair(fiftyoneDegreesResultset *rs) {
-	fiftyoneDegreesResultset *uncle;
-
-	while (rs->treeParent->colour == TREE_COLOUR_RED) {
-		if (rs->treeParent == rs->treeParent->treeParent->treeLeft) {
-			uncle = rs->treeParent->treeParent->treeRight;
-			if (uncle->colour == TREE_COLOUR_RED) {
-				rs->treeParent->colour = TREE_COLOUR_BLACK;
-				uncle->colour = TREE_COLOUR_BLACK;
-				rs->treeParent->treeParent->colour = TREE_COLOUR_RED;
-				rs = rs->treeParent->treeParent;
-			}
-			else {
-				if (rs == rs->treeParent->treeRight) {
-					rs = rs->treeParent;
-					resultsetCacheTreeRotateLeft(rs);
-				}
-				rs->treeParent->colour = TREE_COLOUR_BLACK;
-				rs->treeParent->treeParent->colour = TREE_COLOUR_RED;
-				resultsetCacheTreeRotateRight(rs->treeParent->treeParent);
-			}
-		}
-		else {
-			uncle = rs->treeParent->treeParent->treeLeft;
-			if (uncle->colour == TREE_COLOUR_RED) {
-				rs->treeParent->colour = TREE_COLOUR_BLACK;
-				uncle->colour = TREE_COLOUR_BLACK;
-				rs->treeParent->treeParent->colour = TREE_COLOUR_RED;
-				rs = rs->treeParent->treeParent;
-			}
-			else {
-				if (rs == rs->treeParent->treeLeft) {
-					rs = rs->treeParent;
-					resultsetCacheTreeRotateRight(rs);
-				}
-				rs->treeParent->colour = TREE_COLOUR_BLACK;
-				rs->treeParent->treeParent->colour = TREE_COLOUR_RED;
-				resultsetCacheTreeRotateLeft(rs->treeParent->treeParent);
-			}
-		}
-	}
-}
-
-/**
-* \cond
-* Inserts the resultset into the red black tree.
-* @param rs pointer to the resultset being inserted.
-* \endcond
-*/
-static void resultsetCacheTreeInsert(const fiftyoneDegreesResultset *rs) {
-	fiftyoneDegreesResultsetCache *cache = 
-		(fiftyoneDegreesResultsetCache*)rs->cache;
-	fiftyoneDegreesResultset *current = TREE_FIRST(cache);
-	fiftyoneDegreesResultset *parent = TREE_ROOT(cache);
-	
-
-	// Work out the correct point to insert the resultset.
-	while (current != TREE_EMPTY(cache)) {
-		parent = current;
-		assert(rs->targetUserAgentHashCode != current->targetUserAgentHashCode);
-		current = rs->targetUserAgentHashCode < current->targetUserAgentHashCode
-			? current->treeLeft
-			: current->treeRight;
-	}
-
-	// Set up the resultset being inserted in the tree.
-	current = (fiftyoneDegreesResultset*)rs;
-	current->treeLeft = TREE_EMPTY(cache);
-	current->treeRight = TREE_EMPTY(cache);
-	current->treeParent = parent;
-	if (parent == TREE_ROOT(cache) ||
-		current->targetUserAgentHashCode < parent->targetUserAgentHashCode) {
-		parent->treeLeft = current;
-	}
-	else {
-		parent->treeRight = current;
-	}
-	current->colour = TREE_COLOUR_RED;
-
-	resultsetCacheTreeInsertRepair(current);
-
-	TREE_FIRST(cache)->colour = TREE_COLOUR_BLACK;
-}
-
-/**
-* \cond
-* Returns the resulset that matches the hash code of the workset provided.
-* @param ws pointer initialised with the hash code required.
-* @returns the corresponding resultset if it exists in the cache, otherwise 
-* null.
-* \endcond
-*/
-static fiftyoneDegreesResultset* resultsetCacheTreeFind(
-	const fiftyoneDegreesWorkset *ws) {
-	int32_t iterations = 0;
-	fiftyoneDegreesResultset *current = TREE_ROOT(ws->cache)->treeLeft;
-
-	while (current != TREE_EMPTY(ws->cache)) {
-		iterations++;
-		if (ws->targetUserAgentHashCode == current->targetUserAgentHashCode) {
-			return current;
-		}
-		current = ws->targetUserAgentHashCode < current->targetUserAgentHashCode
-			? current->treeLeft
-			: current->treeRight;
-	}
-
-	if (iterations > ws->cache->maxIterations) {
-		((fiftyoneDegreesResultsetCache*)ws->cache)->maxIterations = iterations;
-	}
-
-	return NULL;
-}
-
-/**
-* \cond
-* Finds the sucessor for the resultset provided.
-* @param rs pointer to the resultset whose successor is required.
-* @returns the successor for the resultset which may be empty.
-* \endcond
-*/
-static fiftyoneDegreesResultset* resultsetCacheTreeSuccessor(
-	fiftyoneDegreesResultset *rs) {
-	const fiftyoneDegreesResultsetCache *cache = rs->cache;
-	fiftyoneDegreesResultset *successor = rs->treeRight;
-	if (successor != TREE_EMPTY(cache)) {
-		while (successor->treeLeft != TREE_EMPTY(cache)) {
-			successor = successor->treeLeft;
-		}
-	}
-	else {
-		for (successor = rs->treeParent;
-			rs == successor->treeRight;
-			successor = successor->treeParent) {
-			rs = successor;
-		}
-		if (successor == TREE_ROOT(cache)) {
-			successor = TREE_EMPTY(cache);
-		}
-	}
-	return successor;
-}
-
-/**
-* \cond
-* Following a deletion repairs the section of the tree impacted.
-* @param rs pointer to the resultset below the one deleted.
-* \endcond
-*/
-static void resultsetCacheTreeDeleteRepair(fiftyoneDegreesResultset *rs) {
-	const fiftyoneDegreesResultsetCache *cache = rs->cache;
-	fiftyoneDegreesResultset *sibling;
-
-	while (rs->colour == TREE_COLOUR_BLACK && rs != TREE_FIRST(cache)) {
-		if (rs == rs->treeParent->treeLeft) {
-			sibling = rs->treeParent->treeRight;
-			if (sibling->colour == TREE_COLOUR_RED) {
-				sibling->colour = TREE_COLOUR_BLACK;
-				rs->treeParent->colour = TREE_COLOUR_RED;
-				resultsetCacheTreeRotateLeft(rs->treeParent);
-				sibling = rs->treeParent->treeRight;
-			}
-			if (sibling->treeRight->colour == TREE_COLOUR_BLACK &&
-				sibling->treeLeft->colour == TREE_COLOUR_BLACK) {
-				sibling->colour = TREE_COLOUR_RED;
-				rs = rs->treeParent;
-			}
-			else {
-				if (sibling->treeRight->colour == TREE_COLOUR_BLACK) {
-					sibling->treeLeft->colour = TREE_COLOUR_BLACK;
-					sibling->colour = TREE_COLOUR_RED;
-					resultsetCacheTreeRotateRight(sibling);
-					sibling = rs->treeParent->treeRight;
-				}
-				sibling->colour = rs->treeParent->colour;
-				rs->treeParent->colour = TREE_COLOUR_BLACK;
-				sibling->treeRight->colour = TREE_COLOUR_BLACK;
-				resultsetCacheTreeRotateLeft(rs->treeParent);
-				rs = TREE_FIRST(cache);
-			}
-		}
-		else {
-			sibling = rs->treeParent->treeLeft;
-			if (sibling->colour == TREE_COLOUR_RED) {
-				sibling->colour = TREE_COLOUR_BLACK;
-				rs->treeParent->colour = TREE_COLOUR_RED;
-				resultsetCacheTreeRotateRight(rs->treeParent);
-				sibling = rs->treeParent->treeLeft;
-			}
-			if (sibling->treeRight->colour == TREE_COLOUR_BLACK &&
-				sibling->treeLeft->colour == TREE_COLOUR_BLACK) {
-				sibling->colour = TREE_COLOUR_RED;
-				rs = rs->treeParent;
-			}
-			else {
-				if (sibling->treeLeft->colour == TREE_COLOUR_BLACK) {
-					sibling->treeRight->colour = TREE_COLOUR_BLACK;
-					sibling->colour = TREE_COLOUR_RED;
-					resultsetCacheTreeRotateLeft(sibling);
-					sibling = rs->treeParent->treeLeft;
-				}
-				sibling->colour = rs->treeParent->colour;
-				rs->treeParent->colour = TREE_COLOUR_BLACK;
-				sibling->treeLeft->colour = TREE_COLOUR_BLACK;
-				resultsetCacheTreeRotateRight(rs->treeParent);
-				rs = TREE_FIRST(cache);
-			}
-		}
-	}
-	rs->colour = TREE_COLOUR_BLACK;
-}
-
-/**
-* \cond
-* Removes the resultset from the tree so that it can be used again to store
-* another result. The resultset will come from the last item in the cache's
-* linked list.
-* @param rs pointer to be deleted.
-* \endcond
-*/
-static void resultsetCacheTreeDelete(fiftyoneDegreesResultset *rs) {
-	fiftyoneDegreesResultsetCache *cache = 
-		(fiftyoneDegreesResultsetCache*)rs->cache;
-	fiftyoneDegreesResultset *x, *y;
-
-	if (rs->treeLeft == TREE_EMPTY(cache) ||
-		rs->treeRight == TREE_EMPTY(cache)) {
-		y = rs;
-	}
-	else {
-		y = resultsetCacheTreeSuccessor(rs);
-	}
-	x = y->treeLeft == TREE_EMPTY(cache) ? y->treeRight : y->treeLeft;
-
-	x->treeParent = y->treeParent;
-	if (x->treeParent == TREE_ROOT(cache)) {
-		TREE_FIRST(cache) = x;
-	}
-	else {
-		if (y == y->treeParent->treeLeft) {
-			y->treeParent->treeLeft = x;
-		}
-		else {
-			y->treeParent->treeRight = x;
-		}
-	}
-
-	if (y->colour == TREE_COLOUR_BLACK) {
-		resultsetCacheTreeDeleteRepair(x);
-	}
-	if (y != rs) {
-		y->treeLeft = rs->treeLeft;
-		y->treeRight = rs->treeRight;
-		y->treeParent = rs->treeParent;
-		y->colour = rs->colour;
-		rs->treeLeft->treeParent = y;
-		rs->treeRight->treeParent = y;
-		if (rs == rs->treeParent->treeLeft) {
-			rs->treeParent->treeLeft = y;
-		}
-		else {
-			rs->treeParent->treeRight = y;
-		}
-	}
-}
-
-/**
-* \cond
-* CACHE METHODS
-* \endcond
-*/
-
-/**
-* \cond
-* Validates the cache by checking the number of entries in the linked list and 
-* the tree. Used by assert statements to validate the integrity of the cache 
-* during development. Should not be compiled in release builds.
-* @param cache pointer to the cache being validated.
-* @returns always return 0 as the purpose is to execute assets in debug builds.
-* \endcond
-*/
-static int resultsetCacheValidate(const fiftyoneDegreesResultsetCache *cache) {
-	int linkedListEntriesForward = 0;
-	int linkedListEntriesBackwards = 0;
-	int binaryTreeEntries = 0;
-	fiftyoneDegreesResultset *node;
-	
-	// Check the list from first to last.
-	node = cache->listFirst;
-	while (node != NULL &&
-		linkedListEntriesForward <= cache->allocated) {
-		linkedListEntriesForward++;
-		node = node->listNext;
-	}
-	assert(linkedListEntriesForward == cache->allocated ||
-		   linkedListEntriesForward == cache->allocated - 1);
-
-	// Check the list from last to first.
-	node = cache->listLast;
-	while (node != NULL &&
-		linkedListEntriesBackwards <= cache->allocated) {
-		linkedListEntriesBackwards++;
-		node = node->listPrevious;
-	}
-	assert(linkedListEntriesBackwards == cache->allocated ||
-		linkedListEntriesBackwards == cache->allocated - 1);
-
-	// Check the binary tree. We need to remove one because the root
-	// resultset doesn't contain any data.
-	binaryTreeEntries = resultsetCacheTreeCount(TREE_FIRST(cache));
-	assert(binaryTreeEntries == cache->allocated ||
-		binaryTreeEntries == cache->allocated - 1);
-
-	return 0;
-}
-
-/**
-* \cond
-* Copies the data associated with the source resultset to the destination.
-* @param src source result set
-* @param dst destination result set
-* \endcond
-*/
-static void resultsetCacheCopy(fiftyoneDegreesResultset *dst, const fiftyoneDegreesResultset *src) {
-	int profileIndex;
-	dst->closestSignatures = src->closestSignatures;
-	dst->difference = src->difference;
-	dst->hashCodeSet = src->hashCodeSet;
-	dst->method = src->method;
-	dst->nodesEvaluated = src->nodesEvaluated;
-	dst->rootNodesEvaluated = src->rootNodesEvaluated;
-	dst->signaturesCompared = src->signaturesCompared;
-	dst->signaturesRead = src->signaturesRead;
-	dst->stringsRead = src->stringsRead;
-	dst->targetUserAgentArrayLength = src->targetUserAgentArrayLength;
-	dst->targetUserAgentHashCode = src->targetUserAgentHashCode;
-	dst->signature = src->signature;
-	memcpy((void*)dst->targetUserAgentArray, (void*)src->targetUserAgentArray, src->targetUserAgentArrayLength + 1);
-	for (profileIndex = 0; profileIndex < src->profileCount; profileIndex++) {
-		dst->profiles[profileIndex] = src->profiles[profileIndex];
-	}
-	dst->profileCount = src->profileCount;
-}
-
-/**
-* \cond
-* Sets the hash code for the result set provided if the hash code has not
-* already been calculated. This only works because we know that the target
-* user agent never changes once set.
-* @param rs resultset whose target user agent hash code needs to be set.
-* \endcond
-*/
-static void setResultsetHashCode(fiftyoneDegreesResultset *rs) {
-	if (rs->hashCodeSet == 0) {
-		rs->targetUserAgentHashCode = CityHash64((const char*)rs->targetUserAgentArray,
-			rs->targetUserAgentArrayLength);
-		rs->hashCodeSet = 1;
-	}
+ /**
+ * \cond
+ * Releases the memory used by the cache list for itself and pointers to resultsets.
+ * @param rscl pointer to the cache list created previously
+ * \endcond
+ */
+static void resultsetCacheListFree(const fiftyoneDegreesResultsetCacheList *rscl) {
+	free((void*)rscl->resultSets);
+	free((void*)rscl);
 }
 
  /**
@@ -3249,77 +2330,80 @@ static void setResultsetHashCode(fiftyoneDegreesResultset *rs) {
  */
 void fiftyoneDegreesResultsetCacheFree(const fiftyoneDegreesResultsetCache *rsc) {
 	if (rsc != NULL) {
+		resultsetCacheListFree(rsc->active);
+		resultsetCacheListFree(rsc->background);
 #ifndef FIFTYONEDEGREES_NO_THREADING
-		FIFTYONEDEGREES_MUTEX_CLOSE(rsc->lock);
+		FIFTYONEDEGREES_MUTEX_CLOSE(rsc->activeLock);
+		FIFTYONEDEGREES_MUTEX_CLOSE(rsc->backgroundLock);
 #endif
-		fiftyoneDegreesFree((void*)rsc->targetUserAgentArrays);
-		fiftyoneDegreesFree((void*)rsc->profiles);
-		fiftyoneDegreesFree((void*)rsc->resultSets);
-		fiftyoneDegreesFree((void*)rsc);
+		free((void*)rsc->resultSets);
+		free((void*)rsc);
 	}
 }
 
  /**
  * \cond
- * Initialises the cache by setting pointers for the linked list and binary 
- * tree.
+ * Initialises the cache by setting pointers for linked lists and memory.
  * @param rsc pointer to the cache to be initialised.
  * \endcond
  */
-static void resultsetCacheInit(fiftyoneDegreesResultsetCache *cache) {
-	int i;
-	int targetUserAgentArraySize = 
-		SIZE_OF_WORKSET_TARGET_USERAGENT_ARRAY(cache->dataSet->header);
-	fiftyoneDegreesResultset *current = NULL;
+static void resultsetCacheInit(fiftyoneDegreesResultsetCache *rsc) {
+	int i, profileOffset, targetUserAgentOffset;
+	fiftyoneDegreesResultset *current = NULL, *next, *previous = NULL;
 
-	// Configure the empty not.
-	current = TREE_EMPTY(cache);
-	current->treeLeft = TREE_EMPTY(cache);
-	current->treeRight = TREE_EMPTY(cache);
-	current->treeParent = TREE_EMPTY(cache);
-	current->colour = TREE_COLOUR_BLACK;
-	current->targetUserAgentHashCode = 0;
-	current->dataSet = cache->dataSet;
-	current->cache = cache;
+	// Set the pointers back to the cache.
+	rsc->active->cache = rsc;
+	rsc->background->cache = rsc;
 
-	// Configure the fake root node to avoid spliting the root.
-	current = TREE_ROOT(cache);
-	current->treeLeft = TREE_EMPTY(cache);
-	current->treeRight = TREE_EMPTY(cache);
-	current->treeParent = TREE_EMPTY(cache);
-	current->colour = TREE_COLOUR_BLACK;
-	current->targetUserAgentHashCode = 0;
-	current->dataSet = cache->dataSet;
-	current->cache = cache;
+	// Set the number of resultsets allocated.
+	rsc->active->allocated = 0;
+	rsc->background->allocated = 0;
 
-	// Set the pointers for storing target User-Agents and Profiles. The pointer
-	// field is cast to remove the const. Setting the pointer is the only time
-	// the operation is required as the memory space pointed to does not change
-	// after initialisation.
-	for (i = 0; i < cache->total; i++) {
-		current = &((fiftyoneDegreesResultset*)cache->resultSets)[i];
-
-		// Point to the data set and resultset cache which the item is part of.
-		current->dataSet = cache->dataSet;
-		current->cache = cache;
-
-		// Point to the nth block of profiles memory.
-		current->profiles = cache->profiles + (
-				i * cache->dataSet->header.components.count);
-
-		// Point to the nth block of target User-Agent memory.
-		current->targetUserAgentArray = (byte*)(cache->targetUserAgentArrays + (
-				i * targetUserAgentArraySize));
+	// Set the pointers for the result sets to form a complete linked list
+	// with locations for profiles and target user agent data.
+	profileOffset = CACHED_RESULTSET_PROFILES_OFFSET(rsc->dataSet->header);
+	targetUserAgentOffset = CACHED_RESULTSET_TARGET_USERAGENT_ARRAY_OFFSET(rsc->dataSet->header);
+	next = (fiftyoneDegreesResultset*)rsc->resultSets;
+	for (i = 0; i < rsc->total && next != NULL; i++) {
+		current = next;
+		next = i < rsc->total - 1 ? (fiftyoneDegreesResultset*)((char*)current + rsc->sizeOfResultset) : NULL;
+		current->next = next;
+		current->previous = previous;
+		current->profiles = (fiftyoneDegreesProfile*)((char*)current + profileOffset);
+		current->targetUserAgentArray = (byte*)((char*)current + targetUserAgentOffset);
+		previous = current;
 	}
 
-	// Set the default values for an empty cache.
-	cache->allocated = 0;
-	cache->maxIterations = 0;
-	cache->listFirst = NULL;
-	cache->listLast = NULL;
+	// Set the free and allocated linked lists.
+	rsc->allocated.count = 0;
+	rsc->allocated.first = NULL;
+	rsc->allocated.last = NULL;
+	rsc->free.count = rsc->total;
+	rsc->free.first = (fiftyoneDegreesResultset*)rsc->resultSets;
+	rsc->free.last = current;
 }
 
-/**
+ /**
+ * \cond
+ * Creates a new cache list of the size provided.
+ * @param size the number of items in the cache
+ * @returns a new uninitialised cache list for use as an active or background
+ cache
+ * \endcond
+ */
+static fiftyoneDegreesResultsetCacheList* resultsetCacheListCreate(int32_t size) {
+	fiftyoneDegreesResultsetCacheList* rscl = (fiftyoneDegreesResultsetCacheList*)malloc(sizeof(fiftyoneDegreesResultsetCacheList));
+	if (rscl != NULL) {
+		rscl->resultSets = (fiftyoneDegreesResultset **)malloc(size * sizeof(fiftyoneDegreesResultset*));
+		if (rscl->resultSets == NULL) {
+			free((void*)rscl);
+			rscl = NULL;
+		}
+	}
+	return rscl;
+}
+
+ /**
  * \cond
  * Creates a new cache used to speed up duplicate detections.
  * The cache must be destroyed with the fiftyoneDegreesFreeCache method.
@@ -3330,198 +2414,271 @@ static void resultsetCacheInit(fiftyoneDegreesResultsetCache *cache) {
  * \endcond
  */
 fiftyoneDegreesResultsetCache *fiftyoneDegreesResultsetCacheCreate(const fiftyoneDegreesDataSet *dataSet, int32_t size) {
-	fiftyoneDegreesResultsetCache *cache = size >= MIN_CACHE_SIZE
-		? (fiftyoneDegreesResultsetCache*)fiftyoneDegreesMalloc(SIZE_OF_CACHE)
-		: NULL;
+	fiftyoneDegreesResultsetCache *rsc = size >= MIN_CACHE_SIZE ? (fiftyoneDegreesResultsetCache*)malloc(sizeof(fiftyoneDegreesResultsetCache)) : NULL;
+	if (rsc != NULL) {
+		rsc->dataSet = dataSet;
+		rsc->hits = 0;
+		rsc->misses = 0;
+		rsc->switches = 0;
+		rsc->total = size;
+		rsc->switchLimit = size / 2;
 
-	if (cache != NULL) {
-		cache->dataSet = dataSet;
-		cache->hits = 0;
-		cache->misses = 0;
-		cache->switches = 0;
-		cache->total = size;
-		cache->allocated = 0;
-
-		// Initialise the memory used for the list of result sets, profiles and 
-		// target User-Agents.
-		cache->profiles = (const fiftyoneDegreesProfile**)fiftyoneDegreesMalloc(SIZE_OF_CACHE_PROFILES(size, dataSet->header));
-		cache->targetUserAgentArrays = (const byte*)fiftyoneDegreesMalloc(SIZE_OF_CACHE_TARGET_USER_AGENTS(size, dataSet->header));
-		cache->resultSets = (const fiftyoneDegreesResultset*)fiftyoneDegreesMalloc(SIZE_OF_CACHE_RESULTSETS(size));
-
+		// Initialise the memory used for the list of result sets.
+		rsc->sizeOfResultset = CACHED_RESULTSET_LENGTH(dataSet->header);
+		rsc->resultSets = (const fiftyoneDegreesResultset*)malloc(size * rsc->sizeOfResultset);
+		rsc->active = resultsetCacheListCreate(size);
+		rsc->background = resultsetCacheListCreate(size);
 #ifndef FIFTYONEDEGREES_NO_THREADING
-		FIFTYONEDEGREES_MUTEX_CREATE(cache->lock);
+		FIFTYONEDEGREES_MUTEX_CREATE(rsc->activeLock);
+		FIFTYONEDEGREES_MUTEX_CREATE(rsc->backgroundLock);
 #endif
 
 		// Check memory was allocated and if there was a problem free that which
 		// was allocated.
-		if (cache->resultSets == NULL ||
-			cache->profiles == NULL ||
-			cache->targetUserAgentArrays == NULL) {
-			if (cache->resultSets != NULL) { fiftyoneDegreesFree((void*)cache->resultSets); }
-			if (cache->profiles != NULL) { fiftyoneDegreesFree((void*)cache->profiles); }
-			if (cache->targetUserAgentArrays != NULL) { fiftyoneDegreesFree((void*)cache->targetUserAgentArrays); }
-			fiftyoneDegreesFree((void*)cache);
-			cache = NULL;
+		if (rsc->resultSets == NULL ||
+			rsc->active == NULL ||
+			rsc->background == NULL) {
+			if (rsc->resultSets != NULL) { free((void*)rsc->resultSets); }
+			if (rsc->active != NULL) { resultsetCacheListFree(rsc->active); }
+			if (rsc->background != NULL) { resultsetCacheListFree(rsc->background); }
+			free((void*)rsc);
+			rsc = NULL;
 		}
 		else {
-			// Initialise the linked lists and binary tree.
-			resultsetCacheInit(cache);
+			// Initialise the linked lists for allocated and free.
+			resultsetCacheInit(rsc);
 		}
 	}
-	return cache;
+	return rsc;
 }
 
-/**
-* \cond
-* Returns the next free resultset from the cache which can be used to add a 
-* new entry to. Once the cache is full then the resultset returned is the one
-* at the end of the linked list which will contain the least recently used
-* data.
-* @param cache cache to return the next free resultset from.
-* @returns a pointer to a free resultset.
-* \endcond
-*/
-static fiftyoneDegreesResultset *resultsetCacheGetNextFree(
-	fiftyoneDegreesResultsetCache *cache) {
-	int countBefore, countAfter;
-	fiftyoneDegreesResultset *last; // The oldest resultset in the cache.
+ /**
+ * \cond
+ * Takes an empty resultset from the free linked list and adds it to the
+ * allocated linked list copying the resultset provided to the empty
+ * location.
+ * @param rsc pointer to the resultset cache
+ * @param rs pointer to the resultSet to be added
+ * @returns pointer to the new result set added to the list
+ * \endcond
+ */
+static fiftyoneDegreesResultset *resultsetCacheAdd(fiftyoneDegreesResultsetCache *rsc, const fiftyoneDegreesResultset *rs) {
+	fiftyoneDegreesResultset *empty;
 
-	if (cache->allocated < cache->total) {
-		// Return the free element at the end of the cache and update
-		// the number of allocated elements.
-		last = (fiftyoneDegreesResultset*)&cache->resultSets[cache->allocated++];
+	// Get the next empty resultset from the free list.
+	empty = rsc->free.first;
+	rsc->free.first = empty->next;
+	if (rsc->free.first != NULL) {
+		rsc->free.first->previous = NULL;
 	}
 	else {
-		// Remove the last resultset from the linked list.
-		last = cache->listLast;
-		last->listPrevious->listNext = NULL;
-		cache->listLast = last->listPrevious;
-
-		// Remove the last result from the binary tree.
-		countBefore = resultsetCacheTreeCount(TREE_FIRST(cache));
-		resultsetCacheTreeDelete(last);
-		countAfter = resultsetCacheTreeCount(TREE_FIRST(cache));
-		assert(countBefore - 1 == countAfter);
+		rsc->free.last = NULL;
 	}
+	rsc->free.count--;
 
-	// Set the pointers of the resultset to null indicating that the
-	// entry is not part of the cache anymore.
-	last->listNext = NULL;
-	last->listPrevious = NULL;
-	last->treeLeft = NULL;
-	last->treeRight = NULL;
-	last->treeParent = NULL;
-	last->colour = 0;
-	return last;
-}
-
-/**
-* \cond
-* Moves the resultset to the head of the linked list. Used when a resultset 
-* which is already in the cache is being returned and the cache needs to know
-* that is has recently been used and shouldn't be considered for removal. Also
-* used when a new entry is added to the cache.
-* @param rs pointer to the resultset to move to the head of the linked list.
-* \endcond
-*/
-static void resultsetCacheMoveToHead(fiftyoneDegreesResultset *rs) {
-	fiftyoneDegreesResultsetCache *cache = 
-		(fiftyoneDegreesResultsetCache*)rs->cache;
-	
-	// Only consider moving if not already the first entry.
-	if (cache->listFirst != rs) {
-
-		// If the entry is the last one in the list then set the last pointer
-		// to the entry before the last one.
-		if (rs == cache->listLast) {
-			cache->listLast = cache->listLast->listPrevious;
-			cache->listLast->listNext = NULL;
-		}
-
-		// Remove the entry from the linked list.
-		if (rs->listPrevious != NULL) {
-			rs->listPrevious->listNext = rs->listNext;
-		}
-		if (rs->listNext != NULL) {
-			rs->listNext->listPrevious = rs->listPrevious;
-		}
-
-		// Move to become the first entry. 
-		if (rs->cache->listFirst != NULL) {
-			rs->cache->listFirst->listPrevious = rs;
-		}
-		rs->listNext = cache->listFirst;
-		cache->listFirst = rs;
-		cache->listFirst->listPrevious = NULL;
-	}
-
-	// Validate the state of the list.
-	assert(cache->listFirst == rs);
-	assert(cache->listFirst->listPrevious == NULL);
-}
-
-/**
-* \cond
-* Updates the binary tree and the linked list with the provided resultset.
-* @param rs pointer to the resultset to add to the cache.
-* \endcond
-*/
-static void resultsetCacheAdd(fiftyoneDegreesResultset *rs) {
-	fiftyoneDegreesResultsetCache *cache = 
-		(fiftyoneDegreesResultsetCache*)rs->cache;
-
-	assert(resultsetCacheValidate(cache) == 0);
-
-	resultsetCacheTreeInsert(rs);
-
-	assert(resultsetCacheValidate(cache) == 0);
-
-	if (cache->listFirst == NULL) {
-		cache->listLast = rs;
-		cache->listFirst = rs;
+	if (rsc->allocated.count == 0) {
+		// Make this resultset the only item in the linked list.
+		rsc->allocated.first = empty;
+		rsc->allocated.last = empty;
+		empty->previous = NULL;
+		empty->next = NULL;
 	}
 	else {
-		resultsetCacheMoveToHead(rs);
+		// Add this resultset to the end of the linked list.
+		rsc->allocated.last->next = empty;
+		empty->previous = rsc->allocated.last;
+		empty->next = NULL;
+		rsc->allocated.last = empty;
 	}
+	rsc->allocated.count++;
 
-	assert(resultsetCacheValidate(cache) == 0);
+	// Copy the provided resultset to the empty location.
+	resultsetCopy(empty, rs);
+
+	return empty;
 }
 
-/**
-* \cond
-* If the cache contains a resultset that matches the provided workset the 
-* entry is returned. In addition to returning the entry the linked list in the
-* cache is updated to indicate that the item returned has recently been 
-* retrieved.
-* @param ws pointer initialised with the hash code required.
-* \endcond
-*/
-static fiftyoneDegreesResultset *resultsetCacheFetch(const fiftyoneDegreesWorkset *ws) {
-	fiftyoneDegreesResultsetCache *cache = (fiftyoneDegreesResultsetCache*)ws->cache;
-	fiftyoneDegreesResultset *found;
+ /**
+ * \cond
+ * Removes the resultset from the allocated linked list and returns it to the
+ * free linked list.
+ * @param rsc pointer to the resultset cache
+ * @param rs pointer to the resultSet to be removed
+ * \endcond
+ */
+static void resultsetCacheRemove(fiftyoneDegreesResultsetCache *rsc, fiftyoneDegreesResultset *rs) {
 
-	assert(resultsetCacheValidate(cache) == 0);
+	rsc->allocated.count--;
 
-	// Find the resultset that matches the value requested.
-	found = resultsetCacheTreeFind(ws);
-
-	// If the target is already in the cache move the entry to the head of the
-	// linked list. No need to change the binary tree. Update the cache 
-	// statistics for both misses and hits.
-	if (found != NULL) {
-		resultsetCacheMoveToHead(found);
-		cache->hits++;
+	if (rsc->free.count == 0) {
+		// Make this resultset the only item in the linked list.
+		rsc->free.first = rs;
+		rsc->free.last = rs;
+		rs->previous = NULL;
+		rs->next = NULL;
 	}
 	else {
-		cache->misses++;
+		// Add this resultset to the end of the linked list.
+		rsc->free.last->next = rs;
+		rs->previous = rsc->free.last;
+		rs->next = NULL;
+		rsc->free.last = rs;
+	}
+	rsc->free.count++;
+}
+
+ /**
+ * \cond
+ * If the target hash code is in the cache returns the index of the item.
+ * @param cache pointer to a cache data structure.
+ * @param hashcode the hash code of the target user agent.
+ * @returns index of the item if present, otherwise the twos complement
+ *          of the index to insert at.
+ * \endcond
+ */
+static int32_t resultsetCacheFetchIndex(const fiftyoneDegreesResultsetCacheList *rscl, uint64_t hashcode) {
+	int32_t upper = rscl->allocated - 1, lower = 0, middle;
+
+	if (upper >= 0)
+	{
+		while (lower <= upper)
+		{
+			middle = lower + (upper - lower) / 2;
+			if (hashcode == rscl->resultSets[middle]->targetUserAgentHashCode) {
+				return middle;
+			}
+			else if (hashcode < rscl->resultSets[middle]->targetUserAgentHashCode) {
+				upper = middle - 1;
+			}
+			else {
+				lower = middle + 1;
+			}
+		}
 	}
 
-	assert(resultsetCacheValidate(cache) == 0);
-	
-	// Return the found item even if there was a miss. This is the entry that the
-	// results of the device detection that will follow if a miss occured will be
-	// set in before the result set is added back into the cache.
-	return found;
+	return ~lower;
+}
+
+ /**
+ * \cond
+ * Inserts the result set into the cache items list at the index provided
+ * shifting all subsequent result sets in the cache down by one item. The
+ * number of allocated items is also increased by 1.
+ * @param rscl a resultset cache list (either active or background).
+ * @param rs the resultset to be inserted.
+ * @param index where the resultset should be copied to.
+ * \endcond
+ */
+static void cacheItemsInsert(fiftyoneDegreesResultsetCacheList *rscl, fiftyoneDegreesResultset *rs, int32_t index) {
+	int32_t i;
+
+	// Make room for the new item to be added at the index by
+	// shifting later items down the list.
+	for (i = rscl->allocated; i > index; i--) {
+		rscl->resultSets[i] = rscl->resultSets[i - 1];
+	}
+
+	// Add the new item at the index.
+	rscl->resultSets[index] = rs;
+
+	// Increase the number of allocated items.
+	rscl->allocated++;
+}
+
+ /**
+ * \cond
+ * Inserts the result set into the cache items list at the index provided
+ * shifting all subsequent result sets in the cache down by one item. A copy
+ * of the result set is made which will only be used by the cache. The number
+ * of allocated items is also increased by 1.
+ * @param rscl a resultset cache list (either active or background).
+ * @param rs the resultset to be inserted.
+ * @param index where the resultset should be copied to.
+ * @returns a copy of the result set added to the list.
+ * \endcond
+ */
+static fiftyoneDegreesResultset *cacheItemsInsertWithCopy(fiftyoneDegreesResultsetCacheList *rscl, fiftyoneDegreesResultset *src, int32_t index) {
+	fiftyoneDegreesResultset *rs;
+
+	// Get the pointer to the next item in the list of resultsets
+	// copy the source resultset into the linked list.
+	rs = resultsetCacheAdd(rscl->cache, src);
+
+	// Insert the copy at the index provided.
+	cacheItemsInsert(rscl, rs, index);
+
+	return rs;
+}
+
+ /**
+ * \cond
+ * Sets the result into the cache items by making a copy of it. If the hashcode
+ * exists already then it is overwritten. This could happen if there is a hashcode
+ * collision, but due to the nature of the data being cached isn't critical.
+ * @param rscl a resultset cache list (either active or background).
+ * @param rs resultset to be added to the cache.
+ * @returns a pointer the resultset in the cache, otherwise NULL.
+ * \endcond
+ */
+static void cacheItemsSet(fiftyoneDegreesResultsetCacheList *rscl, fiftyoneDegreesResultset *rs) {
+	int32_t index;
+
+	// Find the index of the existing hashcode, or where we should insert
+	// the new resultset.
+	index = resultsetCacheFetchIndex(rscl, getResultsetHashCode((fiftyoneDegreesResultset*)rs));
+
+	if (index < 0) {
+		// The item doesn't exist so add it at the index
+		// returned from the fetch index method.
+		cacheItemsInsert(rscl, rs, ~index);
+	}
+}
+
+ /**
+ * \cond
+ * Switches the active and background caches if the background
+ * cache is 1/2 full and ready to take over. The new background
+ * cache is reset.
+ * @param rsc pointer to the cache
+ * @returns non zero if the caches were switched, otherwise 0
+ * \endcond
+ */
+static void cacheSwitch(fiftyoneDegreesResultsetCache *rsc) {
+	fiftyoneDegreesResultsetCacheList* temp;
+	fiftyoneDegreesResultset* rs;
+	int i;
+
+	// Do the background and active items need to be switched?
+	if (rsc->background->allocated >= rsc->switchLimit) {
+
+		// Switch the caches so that the background cache is now
+		// active and ready to service requests.
+		temp = rsc->active;
+		rsc->active = rsc->background;
+		rsc->background = temp;
+
+		// Clean out the background list with anything that's still there marked
+		// as active only as it's not been accessed since the last switch.
+		for (i = 0; i < rsc->background->allocated; i++) {
+			rs = rsc->background->resultSets[i];
+			if (rs->state == ACTIVE_CACHE_LIST_ONLY) {
+				resultsetCacheRemove(rsc, rs);
+			}
+		}
+
+		// Empty the new background cache as all joint entries are
+		// now only in the active cache.
+		rsc->background->allocated = 0;
+
+		// Any resultset that is in the active list should only appear
+		// in that list now.
+		for (i = 0; i < rsc->active->allocated; i++) {
+			rsc->active->resultSets[i]->state = ACTIVE_CACHE_LIST_ONLY;
+		}
+
+		// Increase the number of times the cache has been switched.
+		rsc->switches++;
+	}
 }
 
  /**
@@ -3544,26 +2701,26 @@ fiftyoneDegreesWorkset *fiftyoneDegreesWorksetCreate(
 						const fiftyoneDegreesDataSet *dataSet,
 						const fiftyoneDegreesResultsetCache *cache) {
 	fiftyoneDegreesWorkset *ws =
-		(fiftyoneDegreesWorkset*)fiftyoneDegreesMalloc(SIZE_OF_WORKSET);
+		(fiftyoneDegreesWorkset*)malloc(sizeof(fiftyoneDegreesWorkset));
 	if (ws != NULL) {
 		// Initialise all the parameters of the workset.
 		ws->dataSet = dataSet;
-		ws->cache = (fiftyoneDegreesResultsetCache*)cache;
+		ws->cache = cache;
 		ws->associatedPool = NULL;
 
 		// Allocate all the memory needed to the workset.
-		ws->input = (char*)fiftyoneDegreesMalloc(SIZE_OF_WORKSET_INPUT(ws->dataSet->header));
-		ws->linkedSignatureList.items = (fiftyoneDegreesLinkedSignatureListItem*)fiftyoneDegreesMalloc(SIZE_OF_WORKSET_SIGLIST_ITEMS(dataSet->header));
-		ws->nodes = (const fiftyoneDegreesNode**)fiftyoneDegreesMalloc(SIZE_OF_WORKSET_NODES(dataSet->header));
-		ws->orderedNodes = (const fiftyoneDegreesNode**)fiftyoneDegreesMalloc(SIZE_OF_WORKSET_NODES(dataSet->header));
-		ws->relevantNodes = (char*)fiftyoneDegreesMalloc(SIZE_OF_WORKSET_USED_NODES(dataSet->header));
-		ws->closestNodes = (char*)fiftyoneDegreesMalloc(SIZE_OF_WORKSET_USED_NODES(dataSet->header));
-		ws->signatureAsString = (char*)fiftyoneDegreesMalloc(SIZE_OF_WORKSET_SIG_AS_STRING(dataSet->header));
-		ws->values = (const fiftyoneDegreesValue**)fiftyoneDegreesMalloc(SIZE_OF_WORKSET_VALUES(dataSet->header));
-		ws->profiles = (const fiftyoneDegreesProfile**)fiftyoneDegreesMalloc(SIZE_OF_WORKSET_PROFILES(dataSet->header));
-		ws->tempProfiles = (const fiftyoneDegreesProfile**)fiftyoneDegreesMalloc(SIZE_OF_WORKSET_PROFILES(dataSet->header));
-		ws->targetUserAgentArray = (byte*)fiftyoneDegreesMalloc(SIZE_OF_WORKSET_TARGET_USERAGENT_ARRAY(dataSet->header));
-		ws->importantHeaders = (fiftyoneDegreesHttpHeaderWorkset*)fiftyoneDegreesMalloc(SIZE_OF_WORKSET_IMPORTANT_HEADERS(ws->dataSet->httpHeadersCount));
+		ws->input = (char*)malloc((ws->dataSet->header.maxUserAgentLength + 1) * sizeof(char));
+		ws->linkedSignatureList.items = (fiftyoneDegreesLinkedSignatureListItem*)malloc(dataSet->header.maxSignaturesClosest * sizeof(fiftyoneDegreesLinkedSignatureListItem));
+		ws->nodes = (const fiftyoneDegreesNode**)malloc(dataSet->header.maxUserAgentLength * sizeof(const fiftyoneDegreesNode*));
+		ws->orderedNodes = (const fiftyoneDegreesNode**)malloc(dataSet->header.maxUserAgentLength * sizeof(const fiftyoneDegreesNode*));
+		ws->relevantNodes = (char*)malloc(dataSet->header.maxUserAgentLength + 1);
+		ws->closestNodes = (char*)malloc(dataSet->header.maxUserAgentLength + 1);
+		ws->signatureAsString = (char*)malloc((dataSet->header.maxUserAgentLength + 1) * sizeof(char));
+		ws->values = (const fiftyoneDegreesValue**)malloc(dataSet->header.maxValues * sizeof(const fiftyoneDegreesValue*));
+		ws->profiles = (const fiftyoneDegreesProfile**)malloc(RESULTSET_PROFILES_SIZE(dataSet->header));
+		ws->tempProfiles = (const fiftyoneDegreesProfile**)malloc(RESULTSET_PROFILES_SIZE(dataSet->header));
+		ws->targetUserAgentArray = (char*)malloc(RESULTSET_TARGET_USERAGENT_ARRAY_SIZE(dataSet->header));
+		ws->importantHeaders = (fiftyoneDegreesHttpHeaderWorkset*)malloc(ws->dataSet->httpHeadersCount * sizeof(fiftyoneDegreesHttpHeaderWorkset));
 
 		// Check all the memory was allocated correctly and also
 		// allocate using the result set method.
@@ -3582,21 +2739,21 @@ fiftyoneDegreesWorkset *fiftyoneDegreesWorksetCreate(
 
 			// One or more of the workset memory allocations failed.
 			// Free any that worked and return NULL.
-			if (ws->input != NULL) { fiftyoneDegreesFree((void*)ws->input); }
-			if (ws->linkedSignatureList.items != NULL) { fiftyoneDegreesFree((void*)ws->linkedSignatureList.items); }
-			if (ws->nodes != NULL) { fiftyoneDegreesFree((void*)ws->nodes); }
-			if (ws->orderedNodes != NULL) { fiftyoneDegreesFree((void*)ws->orderedNodes); }
-			if (ws->relevantNodes != NULL) { fiftyoneDegreesFree((void*)ws->relevantNodes); }
-			if (ws->closestNodes != NULL) { fiftyoneDegreesFree((void*)ws->closestNodes); }
-			if (ws->signatureAsString != NULL) { fiftyoneDegreesFree((void*)ws->signatureAsString); }
-			if (ws->values != NULL) { fiftyoneDegreesFree((void*)ws->values); }
-			if (ws->profiles != NULL) { fiftyoneDegreesFree((void*)ws->profiles); }
-			if (ws->tempProfiles != NULL) { fiftyoneDegreesFree((void*)ws->tempProfiles); }
-			if (ws->targetUserAgentArray != NULL) { fiftyoneDegreesFree((void*)ws->targetUserAgentArray); }
-			if (ws->importantHeaders != NULL) { fiftyoneDegreesFree((void*)ws->importantHeaders); }
+			if (ws->input != NULL) { free((void*)ws->input); }
+			if (ws->linkedSignatureList.items != NULL) { free((void*)ws->linkedSignatureList.items); }
+			if (ws->nodes != NULL) { free((void*)ws->nodes); }
+			if (ws->orderedNodes != NULL) { free((void*)ws->orderedNodes); }
+			if (ws->relevantNodes != NULL) { free((void*)ws->relevantNodes); }
+			if (ws->closestNodes != NULL) { free((void*)ws->closestNodes); }
+			if (ws->signatureAsString != NULL) { free((void*)ws->signatureAsString); }
+			if (ws->values != NULL) { free((void*)ws->values); }
+			if (ws->profiles != NULL) { free((void*)ws->profiles); }
+			if (ws->tempProfiles != NULL) { free((void*)ws->tempProfiles); }
+			if (ws->targetUserAgentArray != NULL) { free((void*)ws->targetUserAgentArray); }
+			if (ws->importantHeaders != NULL) { free((void*)ws->importantHeaders); }
 
 			// Free the workset which worked earlier and return NULL.
-			fiftyoneDegreesFree(ws);
+			free(ws);
 			ws = NULL;
 		}
 		else {
@@ -3620,19 +2777,19 @@ fiftyoneDegreesWorkset *fiftyoneDegreesWorksetCreate(
  * \endcond
  */
 void fiftyoneDegreesWorksetFree(const fiftyoneDegreesWorkset *ws) {
-	fiftyoneDegreesFree((void*)ws->input);
-	fiftyoneDegreesFree((void*)ws->linkedSignatureList.items);
-	fiftyoneDegreesFree((void*)ws->nodes);
-	fiftyoneDegreesFree((void*)ws->orderedNodes);
-	fiftyoneDegreesFree((void*)ws->relevantNodes);
-	fiftyoneDegreesFree((void*)ws->closestNodes);
-	fiftyoneDegreesFree((void*)ws->signatureAsString);
-	fiftyoneDegreesFree((void*)ws->values);
-	fiftyoneDegreesFree((void*)ws->profiles);
-	fiftyoneDegreesFree((void*)ws->tempProfiles);
-	fiftyoneDegreesFree((void*)ws->targetUserAgentArray);
-	fiftyoneDegreesFree((void*)ws->importantHeaders);
-	fiftyoneDegreesFree((void*)ws);
+	free((void*)ws->input);
+	free((void*)ws->linkedSignatureList.items);
+	free((void*)ws->nodes);
+	free((void*)ws->orderedNodes);
+	free((void*)ws->relevantNodes);
+	free((void*)ws->closestNodes);
+	free((void*)ws->signatureAsString);
+	free((void*)ws->values);
+	free((void*)ws->profiles);
+	free((void*)ws->tempProfiles);
+	free((void*)ws->targetUserAgentArray);
+	free((void*)ws->importantHeaders);
+	free((void*)ws);
 }
 
  /**
@@ -3854,7 +3011,7 @@ static void setTargetUserAgentArray(fiftyoneDegreesWorkset *ws, const char* user
  * @return the difference between the characters, or 0 if equal
  * \endcond
  */
-static int32_t compareTo(const byte* targetUserAgentArray, int32_t startIndex, fiftyoneDegreesString *string) {
+static int32_t compareTo(const char* targetUserAgentArray, int32_t startIndex, fiftyoneDegreesString *string) {
 	int32_t i, o, difference;
 	for (i = string->length - 1, o = startIndex + string->length - 1; i >= 0; i--, o--)
 	{
@@ -4128,10 +3285,10 @@ static void resetNextCharacterPositionIndex(fiftyoneDegreesWorkset *ws) {
  * @return the numeric integer of the characters specified
  * \endcond
  */
-static int32_t getNumber(const byte *array, int32_t start, int32_t length) {
+static int32_t getNumber(const char *array, int32_t start, int32_t length) {
 	int32_t i, p;
 	int32_t value = 0;
-	for (i = start + length - 1, p = 0; i >= start && p < (int32_t)(POWERS_COUNT); i--, p++)
+	for (i = start + length - 1, p = 0; i >= start && p < POWERS_COUNT; i--, p++)
 	{
 		value += POWERS[p] * (array[i] - (byte)'0');
 	}
@@ -4179,7 +3336,7 @@ static int32_t getCurrentPositionAsNumeric(fiftyoneDegreesWorkset *ws, const fif
  */
 static const fiftyoneDegreesRange* getRange(int target) {
 	int32_t index;
-	for (index = 0; index < (int32_t)(RANGES_COUNT); index++) {
+	for (index = 0; index < RANGES_COUNT; index++) {
 		if (target >= RANGES[index].lower &&
 			target < RANGES[index].upper) {
 			return &RANGES[index];
@@ -4328,67 +3485,41 @@ static const fiftyoneDegreesNodeNumericIndex* getNextNumericNode(fiftyoneDegrees
  * \endcond
  */
 static const fiftyoneDegreesNode* getCompleteNumericNode(fiftyoneDegreesWorkset *ws, const fiftyoneDegreesNode *node) {
-	const fiftyoneDegreesNode *foundNode = NULL, *numericNode, *nextNode = getNextNode(ws, node);
+	const fiftyoneDegreesNode *foundNode = NULL, *nextNode = getNextNode(ws, node);
 	const fiftyoneDegreesNodeNumericIndex *nodeNumericIndex;
 	int32_t difference;
 	fiftyoneDegreesNumericNodeState state;
 
-	// Get the next child node that matches the target User-Agent
+	// Check to see if there's a next node which matches
 	// exactly.
-	if (nextNode != NULL) {
-		// An exact matching child node was found. Evaluate it for
-		// a numeric child. 
+	if (nextNode != NULL)
 		foundNode = getCompleteNumericNode(ws, nextNode);
-    }
 
 	if (foundNode == NULL && node->numericChildrenCount > 0)
 	{
-		// There is either no exact matching normal child or there are
-		// no children that generated a numeric match. This node does 
-		// have numeric children that should be evaluated. Get the 
-		// numeric value of the current position from the target 
-		// User-Agent.
+		// No. So try each of the numeric matches in ascending order of
+		// difference.
 		if (getCurrentPositionAsNumeric(ws, node, &state) > 0 &&
 			state.target >= 0)
 		{
-			// Return the numeric nodes in the ascending order from 
-			// the target value. i.e. if the target is 10 and the 
-			// numeric nodes are ordered 5, 8, 11, 15 they would be
-			// provided in the order 11, 8, 5, 15 by the enumerator.
 			setNumericNodeState(node, &state);
 			nodeNumericIndex = getNextNumericNode(&state);
 			while (nodeNumericIndex != NULL)
 			{
-                numericNode = getNodeByOffset(
-					ws->dataSet, 
-					abs(nodeNumericIndex->relatedNodeOffset));
-
-				// Evaluate the node from the enumerator if it has
-				// not already been evaluated earlier in the method
-				// when it was found as the nextNode.
-				if (nextNode == NULL || numericNode != nextNode) {
-
-					// Check if there is a complete numeric node under
-					// this node. If there is then calculate and record
-					// the difference value before returning it.
-					foundNode = getCompleteNumericNode(ws, numericNode);
-					if (foundNode != NULL)
-					{
-						difference = abs(state.target - nodeNumericIndex->value);
-						ws->difference += difference;
-						break;
-					}
+				foundNode = getCompleteNumericNode(ws,
+					getNodeByOffset(ws->dataSet, abs(nodeNumericIndex->relatedNodeOffset)));
+				if (foundNode != NULL)
+				{
+					difference = abs(state.target - nodeNumericIndex->value);
+					ws->difference += difference;
+					break;
 				}
 				nodeNumericIndex = getNextNumericNode(&state);
 			}
 		}
 	}
-
-	// If no suitable child node could be found and this node is a 
-	// complete node then return this node.
-	if (foundNode == NULL && getIsNodeComplete(node)) {
+	if (foundNode == NULL && getIsNodeComplete(node))
 		foundNode = node;
-	}
 	return foundNode;
 }
 
@@ -4590,7 +3721,7 @@ static void setClosestSignaturesFinal(fiftyoneDegreesWorkset *ws, int32_t count)
  * @return the difference between the nodes
  * \endcond
  */
-static int FIFTYONEDEGREES_CALL_CONV nodeSignatureCountCompare(const void *a, const void *b) {
+static int QSORT_COMPARER nodeSignatureCountCompare(const void *a, const void *b) {
 	fiftyoneDegreesNode* c1 = (*(fiftyoneDegreesNode**)a);
 	fiftyoneDegreesNode* c2 = (*(fiftyoneDegreesNode**)b);
 	int difference = c1->signatureCount - c2->signatureCount;
@@ -4666,7 +3797,7 @@ static void fillClosestSignatures(fiftyoneDegreesWorkset *ws) {
  * @return 1 if the value is numeric, otherwise 0
  * \endcond
  */
-static byte getIsNumeric(const byte *value) {
+static byte getIsNumeric(const char *value) {
 	return (*value >= (char)'0' && *value <= (char)'9');
 }
 
@@ -4689,7 +3820,7 @@ static int32_t calculateNumericDifference(const fiftyoneDegreesAsciiString *char
 	while (newNodeIndex < characters->length &&
 		newTargetIndex < ws->targetUserAgentArrayLength &&
 		getIsNumeric(ws->targetUserAgentArray + newTargetIndex) &&
-		getIsNumeric((byte*)&(characters->firstByte) + newNodeIndex))
+		getIsNumeric(&(characters->firstByte) + newNodeIndex))
 	{
 		newNodeIndex++;
 		newTargetIndex++;
@@ -4699,9 +3830,9 @@ static int32_t calculateNumericDifference(const fiftyoneDegreesAsciiString *char
 
 	// Find when the characters stop being numbers.
 	while (
-		(int64_t) nodeIndex >= 0 &&
+		nodeIndex >= 0 &&
 		getIsNumeric(ws->targetUserAgentArray + *targetIndex) &&
-		getIsNumeric((byte*)&(characters->firstByte) + *nodeIndex))
+		getIsNumeric(&(characters->firstByte) + *nodeIndex))
 	{
 		(*nodeIndex)--;
 		(*targetIndex)--;
@@ -4714,7 +3845,7 @@ static int32_t calculateNumericDifference(const fiftyoneDegreesAsciiString *char
 	{
 		return abs(
 			getNumber(ws->targetUserAgentArray, *targetIndex + 1, count) -
-			getNumber((byte*)&(characters->firstByte), *nodeIndex + 1, count));
+			getNumber(&(characters->firstByte), *nodeIndex + 1, count));
 	}
 
 	return 0;
@@ -5081,6 +4212,86 @@ static void setMatch(fiftyoneDegreesWorkset *ws) {
 	setRelevantNodes(ws);
 }
 
+ /**
+ * \cond
+ * Checks to see if a result set exists for the target user agent. If
+ * one is present it's result set is returned. The active cache list
+ * must be locked before this method is called.
+ * @param ws pointer to a work set to be used for the match created via
+ *        createWorkset function
+ * @returns a pointer to the result set, otherwise NULL
+ * \endcond
+ */
+static fiftyoneDegreesResultset *checkCache(fiftyoneDegreesWorkset *ws) {
+	int32_t cacheIndex;
+	fiftyoneDegreesResultset *rs;
+	fiftyoneDegreesResultsetCache *cache = (fiftyoneDegreesResultsetCache*)ws->cache;
+
+	// Does the hashcode for the user agent already exist in the cache?
+	cacheIndex = resultsetCacheFetchIndex(ws->cache->active, getResultsetHashCode((fiftyoneDegreesResultset*)ws));
+
+	if (cacheIndex < 0) {
+		// Not in the cache so set the result to NULL.
+		rs = NULL;
+		cache->misses++;
+	}
+	else if (ws->targetUserAgentArrayLength == ws->cache->active->resultSets[cacheIndex]->targetUserAgentArrayLength &&
+		memcmp(ws->targetUserAgentArray, ws->cache->active->resultSets[cacheIndex]->targetUserAgentArray, ws->targetUserAgentArrayLength) != 0) {
+		// The hashcode matched but the user agents didn't. This does
+		// count as a valid result.
+		rs = NULL;
+		cache->misses++;
+	}
+	else {
+		// Fetch from the cache and record the hit.
+		rs = ws->cache->active->resultSets[cacheIndex];
+		resultsetCopy((fiftyoneDegreesResultset*)ws, rs);
+		cache->hits++;
+	}
+
+	return rs;
+}
+
+/**
+ * \cond
+ * Adds the workset to the active cache. The cache must be locked before
+ * the method is called.
+ * @param ws pointer to a work set to be used for the match created via
+ *        createWorkset function
+ * @returns a pointer to the result set, otherwise NULL
+ * \endcond
+ */
+static fiftyoneDegreesResultset *addToCache(fiftyoneDegreesWorkset *ws) {
+	int32_t cacheIndex;
+	fiftyoneDegreesResultset *rs;
+
+	// Does the hashcode for the user agent already exist in the cache?
+	cacheIndex = resultsetCacheFetchIndex(ws->cache->active, getResultsetHashCode((fiftyoneDegreesResultset*)ws));
+
+	if (cacheIndex < 0) {
+		// The item doesn't exist in the cache so add it at the position returned.
+		rs = cacheItemsInsertWithCopy(ws->cache->active, (fiftyoneDegreesResultset*)ws, ~cacheIndex);
+	}
+	else if (ws->targetUserAgentArrayLength == ws->cache->active->resultSets[cacheIndex]->targetUserAgentArrayLength &&
+		memcmp(ws->targetUserAgentArray, ws->cache->active->resultSets[cacheIndex]->targetUserAgentArray, ws->targetUserAgentArrayLength) != 0) {
+		// The hashcode matched but the user agents didn't. This does
+		// count as a valid result so we'll update the existing entry
+		// for the hashcode with these results.
+		resultsetCopy(ws->cache->active->resultSets[cacheIndex], (fiftyoneDegreesResultset*)ws);
+
+		// Return the new value from the resultset.
+		rs = ws->cache->active->resultSets[cacheIndex];
+	}
+	else {
+		// Another thread managed to get the item into the cache already
+		// so we just return that one.
+		rs = ws->cache->active->resultSets[cacheIndex];
+	}
+
+	// Return the resultset from the cache.
+	return rs;
+}
+
 /**
  * \cond
  * First the cache is checked to determine if the userAgent has already been
@@ -5101,56 +4312,59 @@ static void internalMatch(fiftyoneDegreesWorkset *ws, const char* userAgent, int
 			// Calculate the hash code for the target user agent before
 			// locking thing active list to improve performance over
 			// performing the hashcode calculation in the lock.
-			setResultsetHashCode((fiftyoneDegreesResultset*)ws);
+			getResultsetHashCode((fiftyoneDegreesResultset*)ws);
 
 #ifndef FIFTYONEDEGREES_NO_THREADING
-			// Lock the cache to stop other threads altering the
+			// Lock the active list to stop other threads altering the
 			// cache whilst this thread is checking it.
-			FIFTYONEDEGREES_MUTEX_LOCK(&ws->cache->lock);
+			FIFTYONEDEGREES_MUTEX_LOCK(&ws->cache->activeLock);
 #endif
 
 			// Does the target exist in the cache?
-			rs = resultsetCacheFetch(ws);
+			rs = checkCache(ws);
 
 			// If the item couldn't be retrieved from the cache then perform
 			// a match and then cache this result.
 			if (rs == NULL) {
 
 #ifndef FIFTYONEDEGREES_NO_THREADING
-				// Unlock the cache whilst the detection is performed. The cache
-				// will be checked again after detection and may has already
-				// been altered by another thread.
-				FIFTYONEDEGREES_MUTEX_UNLOCK(&ws->cache->lock);
+				// Unlock the cache whilst the detection is performed. The active
+				// list will be checked again after detection and may has already
+				// been altered by another thread, or the lists may have been
+				// switched.
+				FIFTYONEDEGREES_MUTEX_UNLOCK(&ws->cache->activeLock);
 #endif
 
 				// Get the results of the detection process.
 				setMatch(ws);
 
 #ifndef FIFTYONEDEGREES_NO_THREADING
-				// Lock the cache again whilst the result is added to the cache
+				// Lock the cache again whilst the result is added to the active
 				// list and the resulset from the cache copied into the result
-				FIFTYONEDEGREES_MUTEX_LOCK(&ws->cache->lock);
+				FIFTYONEDEGREES_MUTEX_LOCK(&ws->cache->activeLock);
 #endif
-				// Does the entry still not exist in the cache.
-				rs = resultsetCacheFetch(ws);
 
-				if (rs == NULL) {
-					// Get an empty resultset from the cache, copy the workset into
-					// the entry and then add the entry back into the cache.
-					rs = resultsetCacheGetNextFree((fiftyoneDegreesResultsetCache*)ws->cache);
-					resultsetCacheCopy(rs, (fiftyoneDegreesResultset*)ws);
-					resultsetCacheAdd(rs);
-				}
-			}
-			else {
-
-				// The cache does have the resultset. Copy this to the work set.
-				resultsetCacheCopy((fiftyoneDegreesResultset*)ws, rs);
+				// Add the match result to the cache.
+				rs = addToCache(ws);
 			}
 
 #ifndef FIFTYONEDEGREES_NO_THREADING
-			// Unlock the cache.
-			FIFTYONEDEGREES_MUTEX_UNLOCK(&ws->cache->lock);
+			// Lock the background cache whilst it's updated
+			// and possibly switched.
+			FIFTYONEDEGREES_MUTEX_LOCK(&ws->cache->backgroundLock);
+#endif
+
+			// Make sure this result is in the background cache.
+			cacheItemsSet(ws->cache->background, rs);
+			rs->state = BOTH_CACHE_LISTS;
+
+			// See if the caches now need to be switched.
+			cacheSwitch((fiftyoneDegreesResultsetCache*)ws->cache);
+
+#ifndef FIFTYONEDEGREES_NO_THREADING
+			// Unlock the cache lists in reverse order.
+			FIFTYONEDEGREES_MUTEX_UNLOCK(&ws->cache->backgroundLock);
+			FIFTYONEDEGREES_MUTEX_UNLOCK(&ws->cache->activeLock);
 #endif
 		}
 		else {
@@ -5249,7 +4463,7 @@ void fiftyoneDegreesMatchForHttpHeaders(fiftyoneDegreesWorkset *ws) {
 		// for each of the components.
 		for (componentIndex = 0; componentIndex < ws->dataSet->header.components.count; componentIndex++) {
 			if (ws->tempProfiles[componentIndex] != NULL) {
-				ws->profiles[profileIndex] = (fiftyoneDegreesProfile*)ws->tempProfiles[componentIndex];
+				ws->profiles[profileIndex] = ws->tempProfiles[componentIndex];
 				profileIndex++;
 			}
 		}
@@ -5313,13 +4527,13 @@ static void initPrefixedUpperHttpHeaderNames(const fiftyoneDegreesDataSet *dataS
 	int httpHeaderIndex;
 	char *prefixedUpperHttpHeader;
 	const fiftyoneDegreesAsciiString *httpHeaderName;
-	((fiftyoneDegreesDataSet*)dataSet)->prefixedUpperHttpHeaders = (const char**)fiftyoneDegreesMalloc(dataSet->httpHeadersCount * sizeof(const char*));
+	((fiftyoneDegreesDataSet*)dataSet)->prefixedUpperHttpHeaders = (const char**)malloc(dataSet->httpHeadersCount * sizeof(const char*));
 	if (dataSet->prefixedUpperHttpHeaders != NULL) {
 		for (httpHeaderIndex = 0; httpHeaderIndex < dataSet->httpHeadersCount; httpHeaderIndex++) {
 			httpHeaderName = fiftyoneDegreesGetString(
 				dataSet,
 				(dataSet->httpHeaders + httpHeaderIndex)->headerNameOffset);
-			dataSet->prefixedUpperHttpHeaders[httpHeaderIndex] = (char*)fiftyoneDegreesMalloc((httpHeaderName->length + sizeof(HTTP_PREFIX_UPPER) - 1) * sizeof(char));
+			dataSet->prefixedUpperHttpHeaders[httpHeaderIndex] = (char*)malloc((httpHeaderName->length + sizeof(HTTP_PREFIX_UPPER) - 1) * sizeof(char));
 			if (dataSet->prefixedUpperHttpHeaders[httpHeaderIndex] != NULL) {
 				prefixedUpperHttpHeader = (char*)dataSet->prefixedUpperHttpHeaders[httpHeaderIndex];
 				memcpy(prefixedUpperHttpHeader, HTTP_PREFIX_UPPER, sizeof(HTTP_PREFIX_UPPER) - 1);
@@ -5596,7 +4810,7 @@ int32_t fiftyoneDegreesGetDeviceId(fiftyoneDegreesWorkset *ws, char *deviceId, i
  * corresponding profile.
  * \endcond
  */
-static fiftyoneDegreesProfile* findProfileForProfileId(
+static const fiftyoneDegreesProfile* findProfileForProfileId(
 		const fiftyoneDegreesDataSet *dataSet, const int profileId) {
 	int32_t upper = dataSet->header.profileOffsets.count - 1;
 	int32_t lower = 0, middle;
@@ -5630,7 +4844,7 @@ static fiftyoneDegreesProfile* findProfileForProfileId(
 void fiftyoneDegreesMatchForDeviceId(fiftyoneDegreesWorkset *ws, const char *deviceId) {
 	char *start = ws->input, *current = ws->input;
 	int lastId = 0, profileId;
-	fiftyoneDegreesProfile *profile;
+	const fiftyoneDegreesProfile *profile;
 	resetCounters(ws);
 	ws->profileCount = 0;
 	if (strncpy(ws->input, deviceId, strlen(deviceId) + 1) == ws->input) {
@@ -5642,7 +4856,6 @@ void fiftyoneDegreesMatchForDeviceId(fiftyoneDegreesWorkset *ws, const char *dev
 				if (profileId != 0) {
 					profile = findProfileForProfileId(ws->dataSet, profileId);
 					if (profile != NULL) {
-						assert(profile->profileId == profileId);
 						ws->profiles[ws->profileCount] = profile;
 						ws->profileCount++;
 					}
@@ -5710,7 +4923,7 @@ int32_t fiftyoneDegreesSetValues(fiftyoneDegreesWorkset *ws, int32_t requiredPro
 		propertyIndex = getPropertyIndex(ws->dataSet, property);
 		while (profileIndex < ws->profileCount &&
 			ws->valuesCount == 0) {
-			profile = ws->profiles[profileIndex];
+			profile = *(ws->profiles + profileIndex);
 			if (profile->componentIndex == property->componentIndex) {
 				profileValueIndexes = (int32_t*)((byte*)profile + sizeof(fiftyoneDegreesProfile));
 				valueIndex = 0;
@@ -5743,7 +4956,7 @@ int32_t fiftyoneDegreesSetValues(fiftyoneDegreesWorkset *ws, int32_t requiredPro
  * \endcond
  */
 char* fiftyoneDegreesCSVCreate(fiftyoneDegreesWorkset *ws) {
-	return (char*)fiftyoneDegreesMalloc(ws->dataSet->header.csvBufferLength * sizeof(char));
+	return (char*)malloc(ws->dataSet->header.csvBufferLength * sizeof(char));
 }
 
  /**
@@ -5753,7 +4966,7 @@ char* fiftyoneDegreesCSVCreate(fiftyoneDegreesWorkset *ws) {
  * \endcond
  */
 void fiftyoneDegreesCSVFree(void* csv) {
-	fiftyoneDegreesFree(csv);
+	free(csv);
 }
 
  /**
@@ -5778,7 +4991,7 @@ int32_t fiftyoneDegreesProcessDeviceCSV(fiftyoneDegreesWorkset *ws, char* csv) {
 				currentPos,
 				(int32_t)(endPos - currentPos),
 				"%d",
-				ws->profiles[profileIndex]->profileId);
+				(*(ws->profiles + profileIndex))->profileId);
 			if (profileIndex < ws->profileCount - 1) {
 				currentPos += snprintf(
 					currentPos,
@@ -5829,7 +5042,7 @@ int32_t fiftyoneDegreesProcessDeviceCSV(fiftyoneDegreesWorkset *ws, char* csv) {
  * \endcond
  */
 char* fiftyoneDegreesJSONCreate(fiftyoneDegreesWorkset *ws) {
-	return (char*)fiftyoneDegreesMalloc(ws->dataSet->header.jsonBufferLength * sizeof(char));
+	return (char*)malloc(ws->dataSet->header.jsonBufferLength * sizeof(char));
 }
 
  /**
@@ -5839,7 +5052,7 @@ char* fiftyoneDegreesJSONCreate(fiftyoneDegreesWorkset *ws) {
  * \endcond
  */
 void fiftyoneDegreesJSONFree(void* json) {
-	fiftyoneDegreesFree(json);
+	free(json);
 }
 
  /**
@@ -5852,7 +5065,7 @@ void fiftyoneDegreesJSONFree(void* json) {
  * \endcond
  */
 static int escapeJSON(char *start, char *next, char *max) {
-	static const char charactersToChange[] = "\\\"\r\n\t";
+	const static char charactersToChange[] = "\\\"\r\n\t";
 	char *current = next - 1;
 	int changedCharacters = 0;
 	int currentShift;
@@ -5928,7 +5141,7 @@ int32_t fiftyoneDegreesProcessDeviceJSON(fiftyoneDegreesWorkset *ws, char* json)
 				currentPos,
 				(int32_t)(endPos - currentPos),
 				"%d",
-				ws->profiles[profileIndex]->profileId);
+				(*(ws->profiles + profileIndex))->profileId);
 			if (profileIndex < ws->profileCount - 1) {
 				*currentPos = '-';
 				currentPos++;

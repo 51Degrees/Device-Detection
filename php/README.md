@@ -53,7 +53,7 @@ $ sudo apt-get install g++ make php5 php5-dev git swig2.0
 ```
 
 ## Install
-
+<installation>
 ### Linux
 First, clone 51Degrees/Device-Detection repository using git:
 ```console
@@ -70,15 +70,13 @@ $ cd Device-Detection/php/trie
 ```
 Install by running the following commands:
 ```console
-phpize
+phpize5
 ./configure
 sudo make install
 ```
-To build for PHP 7 instead of 5, add the option ``PHP7=1`` to the ``./configure`` command to enable the feature.
+The phpize5 command will prepare the build environment for the PHP extension. The ./configure will check your environment and prepare the makefile. Finally the make install will build the detector module and place it in the PHP extensions directory. The build script should also tell you where the extension has been placed.
 
-The phpize command will prepare the build environment for the PHP extension. The ./configure will check your environment and prepare the makefile. Finally the make install will build the detector module and place it in the PHP extensions directory. The build script should also tell you where the extension has been placed.
-
-### Windows
+###Windows
 First, clone 51Degrees/Device-Detection repository using git:
 ```console
 $ git clone https://github.com/51Degrees/Device-Detection.git
@@ -101,8 +99,9 @@ $ nmake
 The VisualStudio directory contains a project which can now be opened and built. This will then build the dll in the VisualStudio\Release directory.
 
 Just include the dll in a suitable PHP directory and configure as below.
-
+</installation>
 ## Configure
+<configuration>
 Before using the extension you must supply the PHP environment with information on the location of the module and the module parameters. This should be done by editing your PHP.ini file.
 
 If you are not sure where the PHP.ini file is located on your system you can create a .php page and place in your server directory. Add the following php code to the page
@@ -138,7 +137,6 @@ or
 require(path/to/FiftyOneDegreesTrieV3.php);
 ```
 ### Common Settings
-
 #### extension
 This setting tells the PHP environment where the compiled extension is located.
 
@@ -167,7 +165,7 @@ This setting tells the extension where the 51Degrees Trie data file is located. 
 
 #### FiftyOneDegreesTrieV3.property_list
 This is essentially a list of properties you wish the dataset to be initialized with. Premium data file provides over 130 properties and Enterprise over 160 properties. This setting allows you to only choose properties you are interested in. Leaving this setting line empty or not including it at all will return a full list of properties in detection results.
-
+</configuration>
 ## Usage
 
 To use the 51Degrees extension, start by fetching the provider that will have been initialised on server startup. Then this object can be called to process a new match object which can return properties of the specific matched device. This can be seen in the code below:
@@ -179,7 +177,6 @@ $match = $provider->getMatch($_SERVER['HTTP_USER_AGENT']);
 echo $match->getValue('IsMobile');
 ?>
 ```
-
 ### Examples
 In the examples folder, you can find examples of various functionalities that the 51Degrees detector has such as:
 - Matching with a User-Agent
@@ -191,10 +188,4 @@ In the examples folder, you can find examples of various functionalities that th
 
 A full explanation of these can be found within the files or at [PHP Tutorials](https://51Degrees/support/documentation/php/tutorials).
 
-You can find an example PHP page within the Device-Detection/php/examples directory called example.php. It demonstrates the output of each of the above function presented in a neat form that lists HTTP headers and provides useful links.
-
-To use these examples, first make sure that all settings (see [Configuration](#configure) for Pattern/Trie settings) are set in `/etc/php5/cli/php.ini` and the ``enable_dl`` line reads ``enable_dl=On``. Then run
-```
-php -S localhost:8080
-```
-in the eamples directory to run start a server, and all examples will be available in a browser at, for example, `localhost:8080/example.php`. Or any of the other files in that directory.
+You can find an example PHP page within the Device-Detection/php/examples directory called example.php. It demonstrates the output of each of the above function presented in a neat form that lists HTTP headers and provides useful links. To use this page copy it to your Web server public directory and access it through a Web browser.

@@ -1,6 +1,6 @@
 ﻿/* *********************************************************************
  * This Source Code Form is copyright of 51Degrees Mobile Experts Limited. 
- * Copyright 2017 51Degrees Mobile Experts Limited, 5 Charlotte Close,
+ * Copyright 2015 51Degrees Mobile Experts Limited, 5 Charlotte Close,
  * Caversham, Reading, Berkshire, United Kingdom RG4 7BY
  * 
  * This Source Code Form is the subject of the following patent 
@@ -96,10 +96,8 @@ namespace FiftyOne.UnitTests
         /// <param name="provider"></param>
         /// <param name="userAgents"></param>
         /// <param name="method"></param>
-        /// <param name="state"></param>
-        /// <param name="silent"></param>
         /// <returns>Counts for each of the methods used</returns>
-        internal static Results DetectLoopSingleThreaded(IWrapper provider, IEnumerable<string> userAgents, ProcessMatch method, object state, bool silent = false)
+        internal static Results DetectLoopSingleThreaded(IWrapper provider, IEnumerable<string> userAgents, ProcessMatch method, object state)
         {
             var results = new Results();
             foreach (var line in userAgents)
@@ -119,10 +117,7 @@ namespace FiftyOne.UnitTests
                 }
                 results.Count++;
             }
-            if (!silent)
-            {
-                ReportTime(results);
-            }
+            ReportTime(results);
             return results;
         }
         
@@ -134,10 +129,8 @@ namespace FiftyOne.UnitTests
         /// <param name="provider"></param>
         /// <param name="userAgents"></param>
         /// <param name="method"></param>
-        /// <param name="state"></param>
-        /// <param name="silent"></param>
         /// <returns>Counts for each of the methods used</returns>
-        internal static Results DetectLoopMultiThreaded(IWrapper provider, IEnumerable<string> userAgents, ProcessMatch method, object state, bool silent = false)
+        internal static Results DetectLoopMultiThreaded(IWrapper provider, IEnumerable<string> userAgents, ProcessMatch method, object state)
         {
             var results = new Results();
             Parallel.ForEach(userAgents, line =>
@@ -157,9 +150,7 @@ namespace FiftyOne.UnitTests
                     Console.WriteLine(ex.StackTrace);
                 }
             });
-            if (!silent) {
-                ReportTime(results);
-            }
+            ReportTime(results);
             return results;
         }
 
