@@ -1,2 +1,1 @@
-The 51Degrees 'trie' algorithm is not open source and is only made available through a proprietary license.
-Please contact 51Degrees directly if you wish to obtain a license: https://51degrees.com/contact-us
+We are now distributing the Trie files separately to GitHub and other repositories due to their large file size. Please see the following post for details. https://51degrees.com/blog/51degrees-github-repository-housekeeping-important-update
