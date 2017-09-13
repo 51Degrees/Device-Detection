@@ -765,24 +765,23 @@ void ngx_http_51D_cache_insert(ngx_http_51D_cache_node_t *node)
 		ngx_slab_free_locked(shpool, node->name.data);
 		ngx_slab_free_locked(shpool, node->header);
 		ngx_slab_free_locked(shpool, node);
-		return;
 	}
+	else {
+		if (cache->lru->prev->node != NULL) {
+			// The cache is full, so purge the last 3 from the lru.
+			ngx_http_51D_cache_clean(cache, 3);
+		}
 
-	if (cache->lru->prev->node != NULL) {
-		// The cache is full, so purge the last 3 from the lru.
-		ngx_http_51D_cache_clean(cache, 3);
+		// Add node to the rbtree.
+		ngx_rbtree_insert(cache->tree, (ngx_rbtree_node_t*)node);
+
+		// Add node to the LRU.
+		cache->lru->prev->next = cache->lru;
+		cache->lru->prev->node = node;
+		cache->lru->prev->prev->next = NULL;
+		cache->lru = cache->lru->prev;
+		node->lruItem = cache->lru;
 	}
-
-	// Add node to the rbtree.
-	ngx_rbtree_insert(cache->tree, (ngx_rbtree_node_t*)node);
-
-	// Add node to the LRU.
-	cache->lru->prev->next = cache->lru;
-	cache->lru->prev->node = node;
-	cache->lru->prev->prev->next = NULL;
-	cache->lru = cache->lru->prev;
-	node->lruItem = cache->lru;
-
 	// Unlock the cache.
 	ngx_shmtx_unlock(&shpool->mutex);
 }
