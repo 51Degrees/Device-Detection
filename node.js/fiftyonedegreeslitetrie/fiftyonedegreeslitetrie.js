@@ -1,1 +1,1 @@
-module.exports = __dirname + '/51Degrees-LiteV3.2.trie';
+module.exports = __dirname + '/51Degrees-LiteV3.4.trie';

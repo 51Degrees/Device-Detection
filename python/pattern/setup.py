@@ -50,7 +50,7 @@ if has_snprintf():
 
 setup(
     name='51degrees-mobile-detector-v3-wrapper',
-    version='3.2.13.5',
+    version='3.2.14.8',
     author='51Degrees.com',
     author_email='support@51degrees.com',
     packages=find_packages(),
@@ -94,7 +94,7 @@ setup(
         'Operating System :: MacOS :: MacOS X',
     ],
     install_requires=[
-        'distribute',
+        'setuptools',
 		'51degrees-mobile-detector',
     ],
 )

@@ -3,11 +3,13 @@
  * Copyright 2017 51Degrees Mobile Experts Limited, 5 Charlotte Close,
  * Caversham, Reading, Berkshire, United Kingdom RG4 7BY
  *
- * This Source Code Form is the subject of the following patent
+ * This Source Code Form is the subject of the following patents and patent
  * applications, owned by 51Degrees Mobile Experts Limited of 5 Charlotte
  * Close, Caversham, Reading, Berkshire, United Kingdom RG4 7BY:
- * European Patent Application No. 13192291.6; and
- * United States Patent Application Nos. 14/085,223 and 14/085,301.
+ * European Patent No. 2871816;
+ * European Patent Application No. 17184134.9;
+ * United States Patent Nos. 9,332,086 and 9,350,823; and
+ * United States Patent Application No. 15/686,066.
  *
  * This Source Code Form is subject to the terms of the Mozilla Public
  * License, v. 2.0.
@@ -175,12 +177,19 @@ class Provider {
     Match* getMatch(const std::string &userAgent);
     Match* getMatch(const std::map<std::string, std::string> &headers);
 
+    Match* getMatchWithTolerances(const std::string &userAgent, int drift, int difference);
+    Match* getMatchWithTolerances(const std::map<std::string, std::string> &headers, int drift, int difference);
+
     std::string getMatchJson(const std::string &userAgent);
     std::string getMatchJson(const std::map<std::string, std::string> &headers);
 
+	void setDrift(int drift);
+    void setDifference(int difference);
+
 	void reloadFromFile();
-	void reloadFromMemory(const std::string &source, int length);
+	void reloadFromMemory(unsigned char source[], int size);
+
+	bool getIsThreadSafe();
 
 	Provider(const std::string &fileName, const std::string &propertyString, bool validate);
-
 };

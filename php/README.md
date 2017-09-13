@@ -69,12 +69,18 @@ For Trie:
 $ cd Device-Detection/php/trie
 ```
 Install by running the following commands:
+#### For PHP 5
 ```console
 phpize
 ./configure
 sudo make install
 ```
-To build for PHP 7 instead of 5, add the option ``PHP7=1`` to the ``./configure`` command to enable the feature.
+#### Or for PHP 7
+```console
+phpize
+./configure PHP7=1
+sudo make install
+```
 
 The phpize command will prepare the build environment for the PHP extension. The ./configure will check your environment and prepare the makefile. Finally the make install will build the detector module and place it in the PHP extensions directory. The build script should also tell you where the extension has been placed.
 

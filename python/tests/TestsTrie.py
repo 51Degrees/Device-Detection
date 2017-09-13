@@ -7,9 +7,9 @@ import os
 import time
 import resource
 
-liteDataFile = "../../data/51Degrees-LiteV3.2.trie"
-premiumDataFile = "../../data/51Degrees-PremiumV3.2.trie"
-enterpriseDataFile = "../../data/51Degrees-EnterpriseV3.2.trie"
+liteDataFile = "../../data/51Degrees-LiteV3.4.trie"
+premiumDataFile = "../../data/51Degrees-PremiumV3.4.trie"
+enterpriseDataFile = "../../data/51Degrees-EnterpriseV3.4.trie"
 inputFile = '../../data/20000 User Agents.csv'
 properties = settings.PROPERTIES
 

@@ -1,23 +1,26 @@
-﻿/**
+/* *********************************************************************
  * This Source Code Form is copyright of 51Degrees Mobile Experts Limited.
- * Copyright (c) 2017 51Degrees Mobile Experts Limited, 5 Charlotte Close,
+ * Copyright 2017 51Degrees Mobile Experts Limited, 5 Charlotte Close,
  * Caversham, Reading, Berkshire, United Kingdom RG4 7BY
- * 
- * This Source Code Form is the subject of the following patent
+ *
+ * This Source Code Form is the subject of the following patents and patent
  * applications, owned by 51Degrees Mobile Experts Limited of 5 Charlotte
  * Close, Caversham, Reading, Berkshire, United Kingdom RG4 7BY:
- * European Patent Application No. 13192291.6; and
- * United States Patent Application Nos. 14/085,223 and 14/085,301.
- * 
+ * European Patent No. 2871816;
+ * European Patent Application No. 17184134.9;
+ * United States Patent Nos. 9,332,086 and 9,350,823; and
+ * United States Patent Application No. 15/686,066.
+ *
  * This Source Code Form is subject to the terms of the Mozilla Public
  * License, v. 2.0.
- * 
+ *
  * If a copy of the MPL was not distributed with this file, You can obtain
  * one at http://mozilla.org/MPL/2.0/.
- * 
+ *
  * This Source Code Form is "Incompatible With Secondary Licenses", as
  * defined by the Mozilla Public License, v. 2.0.
- */
+ ********************************************************************** */
+
 /*
 <tutorial>
 Reload From Memory example demonstrates:
@@ -82,15 +85,12 @@ Reload From Memory example demonstrates:
 </tutorial>
 */
 using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 using FiftyOne.Mobile.Detection.Provider.Interop.Trie;
 using System.IO;
 using System.Threading;
 using System.Collections.Concurrent;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
+using FiftyOne.Mobile.Detection.Provider.Interop;
 
 namespace FiftyOne.Example.Illustration.CSharp.Reload_From_Memory_Trie
 {
@@ -100,7 +100,7 @@ namespace FiftyOne.Example.Illustration.CSharp.Reload_From_Memory_Trie
 
         // A memory-resident data file initialised with specified properties, 
         // a cache and a workset pool.
-        static Provider provider;
+        static TrieWrapper provider;
         // Location of the 51Degrees data file.
         string deviceDataFile;
         // Location of the file containing User-Agent strings.
@@ -129,7 +129,7 @@ namespace FiftyOne.Example.Illustration.CSharp.Reload_From_Memory_Trie
 
             Console.WriteLine("Starting the Reload Data File Example.");
 
-            provider = new Provider(deviceDataFile, propertiesToUse);
+            provider = new TrieWrapper(deviceDataFile, propertiesToUse);
             threads = new Thread[numberOfThreads];
             // Start detection threads.
             for (int i = 0; i < numberOfThreads; i++)
@@ -141,8 +141,8 @@ namespace FiftyOne.Example.Illustration.CSharp.Reload_From_Memory_Trie
             // Reload data file until at least one thread is still not done.
             while (threadsFinished < numberOfThreads)
             {
-                byte[] bytes = File.ReadAllBytes(deviceDataFile);
-                provider.reloadFromMemory(bytes.ToString(), bytes.GetLength(0));
+
+                provider.ReloadFromMemory();
                 Console.WriteLine("Provider reloaded.");
                 Thread.Sleep(1000);
             }
@@ -181,7 +181,7 @@ namespace FiftyOne.Example.Illustration.CSharp.Reload_From_Memory_Trie
             // Local variables.
             long hash = 0L;
             int recordsProcessed = 0;
-            Match match;
+            IMatchResult match;
 
             // Open file containing User-Agent strings for read.
             using (FileStream fs = File.Open(userAgentsFile,
@@ -196,7 +196,7 @@ namespace FiftyOne.Example.Illustration.CSharp.Reload_From_Memory_Trie
                 while ((line = sr.ReadLine()) != null)
                 {
                     // Performs detection. Disposes of match.
-                    using (match = provider.getMatch(line))
+                    using (match = provider.Match(line))
                     {
                         // Compute hash for this match.
                         hash ^= getHash(match);
@@ -224,10 +224,10 @@ namespace FiftyOne.Example.Illustration.CSharp.Reload_From_Memory_Trie
         /// <returns>
         /// Hash value of the provided Match object.
         /// </returns>
-        public static long getHash(Match match)
+        public static long getHash(IMatchResult match)
         {
             long hash = 0L;
-            foreach (var property in provider.getAvailableProperties())
+            foreach (var property in provider.AvailableProperties)
             {
                 hash += match.getValue(property).GetHashCode();
             }
@@ -249,7 +249,7 @@ namespace FiftyOne.Example.Illustration.CSharp.Reload_From_Memory_Trie
         /// </param>
         public static void Main(string[] args)
         {
-            string fileName = args.Length > 0 ? args[0] : "../../../../../../data/51Degrees-LiteV3.2.trie";
+            string fileName = args.Length > 0 ? args[0] : "../../../../../../data/51Degrees-LiteV3.4.trie";
             string userAgents = args.Length > 1 ? args[1] : "../../../../../../data/20000 User Agents.csv";
             string properties = args.Length > 2 ? args[2] : "IsMobile,BrowserName";
             Program program = new Program(fileName, userAgents, properties);

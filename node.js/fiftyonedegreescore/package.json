@@ -1,11 +1,11 @@
 {
     "name": "fiftyonedegreescore",
-    "version": "3.2.15",
+    "version": "3.2.16",
     "description": "51degrees device detection for nodejs",
     "main": "fiftyonedegreescore.js",
     "scripts": {
         "test": "mocha test.js --pattern",
-	"preinstall": "node gccCheck.js",
+        "preinstall": "node versionCheck.js",
         "install": "node-gyp configure && node-gyp build"
     },
     "repository": {

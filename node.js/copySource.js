@@ -29,7 +29,7 @@ var srcFiles = [
 ];
 
 var patternDataFile = '51Degrees-LiteV3.2.dat';
-var trieDataFile = '51Degrees-LiteV3.2.trie';
+var trieDataFile = '51Degrees-LiteV3.4.trie';
 
 var errorCheck = function(err) {
     if (err) {

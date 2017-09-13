@@ -221,7 +221,7 @@ if __name__ == '__main__':
 	properties = ('BrowserName,BrowserVendor,BrowserVersion,DeviceType,'
 	'HardwareVendor,IsTablet,IsMobile,IsCrawler,ScreenInchesDiagonal,'
 	'ScreenPixelsWidth')
-	dataFile = os.path.expanduser('~/51Degrees/51Degrees-LiteV3.2.trie')
+	dataFile = os.path.expanduser('~/51Degrees/51Degrees-LiteV3.4.trie')
 	shareUsage = 'False' # Needs Device Detection Python
                              # Core installed for usage sharing
 

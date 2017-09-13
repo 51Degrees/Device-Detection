@@ -42,10 +42,10 @@ LICENSE = ''
 ###############################################################################
 
 # Location of the database file. If not specified, the trie-based detection
-# method will not be available. Download the latest 51Degrees-LiteV3.2.trie
+# method will not be available. Download the latest 51Degrees-LiteV3.4.trie
 # file from http://github.com/51Degrees/Device-Detection/data/.
 # Compare database options at https://51degrees.com/compare-data-options .
-V3_TRIE_WRAPPER_DATABASE = os.path.expanduser('~/51Degrees/51Degrees-LiteV3.2.trie')
+V3_TRIE_WRAPPER_DATABASE = os.path.expanduser('~/51Degrees/51Degrees-LiteV3.4.trie')
 
 ###############################################################################
 ## PATTERN DETECTOR SETTINGS.
