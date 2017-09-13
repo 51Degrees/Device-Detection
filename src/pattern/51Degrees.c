@@ -5,9 +5,12 @@
 #include <math.h>
 #include <time.h>
 #include <ctype.h>
-#include <assert.h>
 #include "../cityhash/city.h"
 #include "51Degrees.h"
+#if !defined(DEBUG) && !defined(_DEBUG) && !defined(NDEBUG)
+#define NDEBUG
+#endif
+#include <assert.h>
 /* *********************************************************************
  * This Source Code Form is copyright of 51Degrees Mobile Experts Limited.
  * Copyright 2017 51Degrees Mobile Experts Limited, 5 Charlotte Close,
