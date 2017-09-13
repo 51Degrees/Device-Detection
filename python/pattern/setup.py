@@ -94,7 +94,7 @@ setup(
         'Operating System :: MacOS :: MacOS X',
     ],
     install_requires=[
-        'distribute',
+        'setuptools',
 		'51degrees-mobile-detector',
     ],
 )

@@ -58,7 +58,7 @@ setup(
         'Operating System :: MacOS :: MacOS X',
     ],
     install_requires=[
-        'distribute',
+        'setuptools',
     ],
     **extra
 )
