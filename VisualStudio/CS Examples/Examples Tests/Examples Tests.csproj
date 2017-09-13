@@ -69,6 +69,10 @@
     <Compile Include="ReloadFromMemoryTrie.cs" />
   </ItemGroup>
   <ItemGroup>
+    <ProjectReference Include="..\..\UnitTests\FiftyOne.UnitTests.csproj">
+      <Project>{B200CB07-FD50-44DE-A743-6DAC414C20A2}</Project>
+      <Name>FiftyOne.UnitTests</Name>
+    </ProjectReference>
     <ProjectReference Include="..\Difference Tolerance\Difference Tolerance.csproj">
       <Project>{efb84ce2-548e-4802-b4c6-95722ef3ae6d}</Project>
       <Name>Difference Tolerance</Name>

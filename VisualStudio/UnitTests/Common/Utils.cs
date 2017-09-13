@@ -205,7 +205,7 @@ namespace FiftyOne.UnitTests
             Interlocked.Add(ref results.CheckSum, checkSum);
         }
         
-        internal static void CheckFileExists(string dataFile)
+        public static void CheckFileExists(string dataFile)
         {
             if (File.Exists(dataFile) == false)
             {

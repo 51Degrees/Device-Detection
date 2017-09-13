@@ -182,10 +182,11 @@ namespace FiftyOne.Example.Illustration.CSharp.DifferenceTolerance
                 PlatformVersion = match.getValue("PlatformVersion");
                 if (expected != null)
                     Assert.AreEqual(expected, PlatformVersion);
-                if (!String.IsNullOrEmpty(match.getUserAgent()))
-                    Console.WriteLine(
-                        String.Format("Matched Substrings: '{0}'",
-                        match.getUserAgent()));
+#if DEBUG
+                Console.WriteLine(
+                    String.Format("Matched Substrings: '{0}'",
+                    match.getUserAgent()));
+#endif
                 Console.WriteLine(String.Format("   Platform: {0} {1}",
                     PlatformName,
                     PlatformVersion));

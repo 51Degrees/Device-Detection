@@ -179,10 +179,11 @@ namespace FiftyOne.Example.Illustration.CSharp.DriftTolerance
                 DeviceId = match.getValue("Id");
                 IsMobile = match.getValue("IsMobile");
                 Assert.AreEqual(expected, IsMobile);
-                if (!String.IsNullOrEmpty(match.getUserAgent()))
-                    Console.WriteLine(
-                        String.Format("Matched Substrings: '{0}'",
-                        match.getUserAgent()));
+#if DEBUG
+                Console.WriteLine(
+                    String.Format("Matched Substrings: '{0}'",
+                    match.getUserAgent()));
+#endif
                 Console.WriteLine("   DeviceId: " + DeviceId);
                 Console.WriteLine("   IsMobile: " + IsMobile);
             }
