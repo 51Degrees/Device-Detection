@@ -15,6 +15,12 @@ from django.conf import settings
 from fiftyone_degrees import mobile_detector
 
 
+try:
+    from django.utils.deprecation import MiddlewareMixin
+except ImportError:
+    MiddlewareMixin = object
+
+
 # Settings names.
 SESSION_CACHE = 'FIFTYONE_DEGREES_MOBILE_DETECTOR_SESSION_CACHE'
 SESSION_FIELD = 'FIFTYONE_DEGREES_MOBILE_DETECTOR_SESSION_FIELD'
@@ -24,7 +30,7 @@ DEFAULT_SESSION_CACHE = False
 DEFAULT_SESSION_FIELD = '_51degrees_device'
 
 
-class DetectorMiddleware(object):
+class DetectorMiddleware(MiddlewareMixin):
     '''Adds lazily generated 'device' attribute to the incoming request.
 
     '''
