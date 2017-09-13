@@ -34,12 +34,16 @@ ngx_module_t ngx_http_51D_module;
 
 // Configuration function declarations.
 static void *ngx_http_51D_create_main_conf(ngx_conf_t *cf);
+static void *ngx_http_51D_create_srv_conf(ngx_conf_t *cf);
 static void *ngx_http_51D_create_loc_conf(ngx_conf_t *cf);
 static char *ngx_http_51D_merge_loc_conf(ngx_conf_t *cf, void *parent, void *child);
+static char *ngx_http_51D_merge_srv_conf(ngx_conf_t *cf, void *parent, void *child);
+static char *ngx_http_51D_merge_main_conf(ngx_conf_t *cf, void *parent, void *child);
 
-// Set function declaration.
-static char *ngx_http_51D_set(ngx_conf_t* cf, ngx_command_t *cmd, void *conf);
-
+// Set function declarations.
+static char *ngx_http_51D_set_loc(ngx_conf_t* cf, ngx_command_t *cmd, void *conf);
+static char *ngx_http_51D_set_srv(ngx_conf_t* cf, ngx_command_t *cmd, void *conf);
+static char *ngx_http_51D_set_main(ngx_conf_t* cf, ngx_command_t *cmd, void *conf);
 
 // Request handler declaration.
 static ngx_int_t ngx_http_51D_handler(ngx_http_request_t *r);
@@ -81,7 +85,7 @@ typedef struct {
 	                        property values). */
 } ngx_http_51D_matched_header_t;
 
-// Module location config.
+// Match config structure set from the config file.
 typedef struct {
 #ifdef FIFTYONEDEGREES_PATTERN
 	uint32_t key;                        /* Location key, a hash of all the
@@ -93,6 +97,12 @@ typedef struct {
 	                                        location. */
     ngx_uint_t headerCount;              /* The number of headers to set. */
     ngx_http_51D_header_to_set *header;  /* List of headers to set. */
+} ngx_http_51D_match_conf_t;
+
+// Module location config.
+typedef struct {
+	ngx_http_51D_match_conf_t matchConf; /* The match to carry out in this
+	                                        location. */
 } ngx_http_51D_loc_conf_t;
 
 // Module main config.
@@ -110,7 +120,16 @@ typedef struct {
 	                                                across all process'. */
 	ngx_str_t valueSeparator;                    /* Match header value
                                                     separator. */
+
+	ngx_http_51D_match_conf_t matchConf;         /* The match to carry out in
+	                                                this block's locations. */
 } ngx_http_51D_main_conf_t;
+
+// Module server config.
+typedef struct {
+	ngx_http_51D_match_conf_t matchConf; /* The match to carry out in this
+	                                        server's locations. */
+} ngx_http_51D_srv_conf_t;
 
 #ifdef FIFTYONEDEGREES_PATTERN
 // 51Degrees LRU element declaration.
@@ -287,8 +306,23 @@ ngx_http_51D_post_conf(ngx_conf_t *cf)
 }
 
 /**
+ * Initialises the match config so no headers are set.
+ * @param matchConf to initialise.
+ */
+static void
+ngx_http_51D_init_match_conf(ngx_http_51D_match_conf_t *matchConf)
+{
+#ifdef FIFTYONEDEGREES_PATTERN
+    matchConf->key = 0;
+#endif // FIFTYONEDEGREES_PATTERN
+    matchConf->hasMulti = 0;
+	matchConf->headerCount = 0;
+	matchConf->header = NULL;
+}
+
+/**
  * Create main config. Allocates memory to the configuration and initialises
- * cacheSize and poolSize to -1 (unset).
+ * cacheSize to -1 (unset).
  * @param cf nginx config.
  * @return Pointer to module main config.
  */
@@ -305,12 +339,12 @@ ngx_http_51D_create_main_conf(ngx_conf_t *cf)
 #ifdef FIFTYONEDEGREES_PATTERN
 	conf->cacheSize = NGX_CONF_UNSET_UINT;
 #endif // FIFTYONEDEGREES_PATTERN
+	ngx_http_51D_init_match_conf(&conf->matchConf);
     return conf;
 }
 
 /**
- * Create location config. Allocates memory to the configuration and each header
- * structure. Initialises uints to -1 (unset).
+ * Create location config. Allocates memory to the configuration.
  * @param cf nginx config.
  * @return Pointer to module location config.
  */
@@ -323,13 +357,26 @@ ngx_http_51D_create_loc_conf(ngx_conf_t *cf)
     if (conf == NULL) {
         return NULL;
     }
-#ifdef FIFTYONEDEGREES_PATTERN
-    conf->key = 0;
-#endif // FIFTYONEDEGREES_PATTERN
-    conf->hasMulti = 0;
-	conf->headerCount = 0;
-	conf->header = NULL;
-    return conf;
+    ngx_http_51D_init_match_conf(&conf->matchConf);
+	return conf;
+}
+
+/**
+ * Create server config. Allocates memory to the configuration.
+ * @param cf nginx config.
+ * @return Pointer to the server config.
+ */
+static void *
+ngx_http_51D_create_srv_conf(ngx_conf_t *cf)
+{
+	ngx_http_51D_srv_conf_t *conf;
+
+	conf = ngx_palloc(cf->pool, sizeof(ngx_http_51D_srv_conf_t));
+	if (conf == NULL) {
+		return NULL;
+	}
+	ngx_http_51D_init_match_conf(&conf->matchConf);
+	return conf;
 }
 
 /**
@@ -342,7 +389,37 @@ ngx_http_51D_merge_loc_conf(ngx_conf_t *cf, void *parent, void *child)
 	ngx_http_51D_loc_conf_t  *prev = parent;
 	ngx_http_51D_loc_conf_t  *conf = child;
 
-	ngx_conf_merge_uint_value(conf->headerCount, prev->headerCount, 0);
+	ngx_conf_merge_uint_value(conf->matchConf.headerCount, prev->matchConf.headerCount, 0);
+
+	return NGX_CONF_OK;
+}
+
+/**
+ * Merge server config. Either gets the value of count that is set, or sets
+ * to the default of 0.
+ */
+static char *
+ngx_http_51D_merge_srv_conf(ngx_conf_t *cf, void *parent, void *child)
+{
+	ngx_http_51D_srv_conf_t  *prev = parent;
+	ngx_http_51D_srv_conf_t  *conf = child;
+
+	ngx_conf_merge_uint_value(conf->matchConf.headerCount, prev->matchConf.headerCount, 0);
+
+	return NGX_CONF_OK;
+}
+
+/**
+ * Merge main config. Either gets the value of count that is set, or sets
+ * to the default of 0.
+ */
+static char *
+ngx_http_51D_merge_main_conf(ngx_conf_t *cf, void *parent, void *child)
+{
+	ngx_http_51D_main_conf_t  *prev = parent;
+	ngx_http_51D_main_conf_t  *conf = child;
+
+	ngx_conf_merge_uint_value(conf->matchConf.headerCount, prev->matchConf.headerCount, 0);
 
 	return NGX_CONF_OK;
 }
@@ -909,14 +986,42 @@ static ngx_command_t  ngx_http_51D_commands[] = {
 
 	{ ngx_string("51D_match_single"),
 	NGX_HTTP_LOC_CONF|NGX_CONF_TAKE2,
-	ngx_http_51D_set,
+	ngx_http_51D_set_loc,
+	NGX_HTTP_LOC_CONF_OFFSET,
+    0,
+	NULL },
+
+	{ ngx_string("51D_match_single"),
+	NGX_HTTP_SRV_CONF|NGX_CONF_TAKE2,
+	ngx_http_51D_set_srv,
+	NGX_HTTP_LOC_CONF_OFFSET,
+    0,
+	NULL },
+
+	{ ngx_string("51D_match_single"),
+	NGX_HTTP_MAIN_CONF|NGX_CONF_TAKE2,
+	ngx_http_51D_set_main,
 	NGX_HTTP_LOC_CONF_OFFSET,
     0,
 	NULL },
 
 	{ ngx_string("51D_match_all"),
 	NGX_HTTP_LOC_CONF|NGX_CONF_TAKE2,
-	ngx_http_51D_set,
+	ngx_http_51D_set_loc,
+	NGX_HTTP_LOC_CONF_OFFSET,
+    0,
+	NULL },
+
+	{ ngx_string("51D_match_all"),
+	NGX_HTTP_SRV_CONF|NGX_CONF_TAKE2,
+	ngx_http_51D_set_srv,
+	NGX_HTTP_LOC_CONF_OFFSET,
+    0,
+	NULL },
+
+	{ ngx_string("51D_match_all"),
+	NGX_HTTP_MAIN_CONF|NGX_CONF_TAKE2,
+	ngx_http_51D_set_main,
 	NGX_HTTP_LOC_CONF_OFFSET,
     0,
 	NULL },
@@ -957,11 +1062,11 @@ static ngx_http_module_t ngx_http_51D_module_ctx = {
 	ngx_http_51D_create_main_conf, /* create main configuration */
 	NULL,                          /* init main configuration */
 
-	NULL,                          /* create server configuration */
+	ngx_http_51D_create_srv_conf,  /* create server configuration */
 	NULL,                          /* merge server configuration */
 
 	ngx_http_51D_create_loc_conf,  /* create location configuration */
-	ngx_http_51D_merge_loc_conf    /* merge location configuration */
+	NULL                           /* merge location configuration */
 };
 
 #ifdef FIFTYONEDEGREES_PATTERN
@@ -1272,7 +1377,9 @@ ngx_http_51D_handler(ngx_http_request_t *r)
 {
 
 	ngx_http_51D_main_conf_t *fdmcf;
+	ngx_http_51D_srv_conf_t *fdscf;
 	ngx_http_51D_loc_conf_t *fdlcf;
+	ngx_http_51D_match_conf_t *matchConf[3];
 	ngx_uint_t matchIndex = 0, multi, haveMatch;
 	ngx_http_51D_header_to_set *currentHeader;
 #ifdef FIFTYONEDEGREES_TRIE
@@ -1282,7 +1389,7 @@ ngx_http_51D_handler(ngx_http_request_t *r)
 	ngx_http_51D_matched_header_t *header;
 	ngx_http_51D_cache_node_t *node;
 	uint32_t hash;
-	int headerIndex;
+	int headerIndex, totalHeaderCount, matchConfIndex;
 	ngx_table_elt_t *searchResult;
 #endif // FIFTYONEDEGREES_PATTERN
 
@@ -1293,131 +1400,144 @@ ngx_http_51D_handler(ngx_http_request_t *r)
 
 	// Get 51Degrees configs.
 	fdlcf = ngx_http_get_module_loc_conf(r, ngx_http_51D_module);
+	fdscf = ngx_http_get_module_srv_conf(r, ngx_http_51D_module);
 	fdmcf = ngx_http_get_module_main_conf(r, ngx_http_51D_module);
-	ngx_table_elt_t *h[fdlcf->headerCount];
+
+	matchConf[0] = &fdlcf->matchConf;
+	matchConf[1] = &fdscf->matchConf;
+	matchConf[2] = &fdmcf->matchConf;
+
+	totalHeaderCount = matchConf[0]->headerCount +
+					   matchConf[1]->headerCount +
+					   matchConf[2]->headerCount;
+
+	ngx_table_elt_t *h[totalHeaderCount];
 
 	// If no headers are specified in this location, tell nginx
 	// this handler is done.
-	if ((int)fdlcf->headerCount == 0) {
+	if ((int)totalHeaderCount == 0) {
 		return NGX_DECLINED;
 	}
+	// Look for single User-Agent matches, then multiple HTTP header
+	// matches. Single and multi matches are done separately to reuse
+	// a match instead of retrieving it multiple times.
+	for (multi = 0; multi < 2; multi++) {
+		haveMatch = 0;
+		// Go through the requested matches in location, server and
+		// main configs.
+		for (matchConfIndex = 0; matchConfIndex < 3; matchConfIndex++)
+		{
 #ifdef FIFTYONEDEGREES_PATTERN
-	hash = 0;
-	if (ngx_http_51D_cacheSize > 0) {
-		// Get the hash for this location and request headers.
-		hash = ngx_hash(fdlcf->key, ngx_hash_key(r->headers_in.user_agent[0].value.data, r->headers_in.user_agent[0].value.len));
-		for (headerIndex = 0; headerIndex < fdmcf->dataSet->httpHeadersCount; headerIndex++) {
-			searchResult = search_headers_in(r, (u_char*)fdmcf->dataSet->httpHeaders[headerIndex].headerName, ngx_strlen(fdmcf->dataSet->httpHeaders[headerIndex].headerName));
-			if (searchResult != NULL) {
-				hash = ngx_hash(hash, ngx_hash_key(searchResult->value.data, searchResult->value.len));
-			}
-		}
-		// Look in the cache for a match with the hash.
-		node = ngx_http_51D_lookup_node_lru(&r->headers_in.user_agent[0].value, hash);
-	}
-	else {
-		node = NULL;
-	}
-	// If a match is not found in the cache, carry out a match.
-	if (node == NULL) {
-		// Create a new node so the match can be added to the cache.
-		if (ngx_http_51D_cacheSize > 0) {
-			node = ngx_http_51D_create_node(&r->headers_in.user_agent[0].value, hash, (int)fdlcf->headerCount);
-		}
-#endif // FIFTYONEDEGREES_PATTERN
-		// Look for single User-Agent matches, then multiple HTTP header
-		// matches. Single and multi matches are done separately to reuse
-		// a match instead of retrieving it multiple times.
-		for (multi = 0; multi < 2; multi++) {
-			haveMatch = 0;
-#ifdef FIFTYONEDEGREES_TRIE
-			offsets = fiftyoneDegreesCreateDeviceOffsets(fdmcf->dataSet);
-#endif // FIFTYONEDEGREES_TRIE
-			// Loop over all match instances in the config.
-			currentHeader = fdlcf->header;
-			while (currentHeader != NULL)
-			{
-				// Process the match if it is the type we are looking for on
-				// this pass.
-				if (currentHeader->multi == multi) {
-#ifdef FIFTYONEDEGREES_PATTERN
-					if ((int)currentHeader->maxString < 0) {
-						ngx_http_51D_set_max_string(fdmcf, currentHeader);
+			hash = 0;
+			if (ngx_http_51D_cacheSize > 0) {
+				// Get the hash for this location and request headers.
+				hash = ngx_hash(matchConf[matchConfIndex]->key, ngx_hash_key(r->headers_in.user_agent[0].value.data, r->headers_in.user_agent[0].value.len));
+				for (headerIndex = 0; headerIndex < fdmcf->dataSet->httpHeadersCount; headerIndex++) {
+					searchResult = search_headers_in(r, (u_char*)fdmcf->dataSet->httpHeaders[headerIndex].headerName, ngx_strlen(fdmcf->dataSet->httpHeaders[headerIndex].headerName));
+					if (searchResult != NULL) {
+						hash = ngx_hash(hash, ngx_hash_key(searchResult->value.data, searchResult->value.len));
 					}
-#endif // FIFTYONEDEGREES_PATTERN
-					// Allocate the value string in the request pool.
-					char *valueString = (char*)ngx_palloc(r->pool, currentHeader->maxString);
-					valueString[0] = '\0';
-					// Get a match. If there are multiple instances of
-					// 51D_match_single or 51D_match_all, then don't get the
-					// match if it has already been fetched.
-#ifdef FIFTYONEDEGREES_PATTERN
-					if (haveMatch == 0) {
-						ngx_http_51D_get_match(fdmcf->ws, r, currentHeader->multi);
-						haveMatch = 1;
-					}
-#endif // FIFTYONEDEGREES_PATTERN
-#ifdef FIFTYONEDEGREES_TRIE
-					if (haveMatch == 0) {
-						ngx_http_51D_get_match(fdmcf->dataSet, r, currentHeader->multi, offsets);
-						haveMatch = 1;
-					}
-#endif // FIFTYONEDEGREES_TRIE
-					// For each property, set the value in values_string_array.
-					int property_index;
-					for (property_index=0; property_index < (int)currentHeader->propertyCount; property_index++) {
-#ifdef FIFTYONEDEGREES_PATTERN
-						ngx_http_51D_get_value(fdmcf, valueString, (const char*) currentHeader->property[property_index]->data);
-#endif // FIFTYONEDEGREES_PATTERN
-#ifdef FIFTYONEDEGREES_TRIE
-						ngx_http_51D_get_value(fdmcf, valueString, (const char*) currentHeader->property[property_index]->data, offsets);
-#endif // FIFTYONEDEGREES_TRIE
-					}
-					// For each property value pair, set a new header name and value.
-					h[matchIndex] = ngx_list_push(&r->headers_in.headers);
-					h[matchIndex]->key.data = (u_char*)currentHeader->name.data;
-					h[matchIndex]->key.len = ngx_strlen(h[matchIndex]->key.data);
-					h[matchIndex]->hash = ngx_hash_key(h[matchIndex]->key.data, h[matchIndex]->key.len);
-					h[matchIndex]->value.data = (u_char*)valueString;
-					h[matchIndex]->value.len = ngx_strlen(h[matchIndex]->value.data);
-					h[matchIndex]->lowcase_key = (u_char*)currentHeader->lowerName.data;
-#ifdef FIFTYONEDEGREES_PATTERN
-					// Add the current header to the cache node.
-					if (ngx_http_51D_cacheSize > 0) {
-						ngx_http_51D_add_header_to_node(node, h[matchIndex]);
-					}
-#endif // FIFTYONEDEGREES_PATTERN
-					matchIndex++;
 				}
-				// Look at the next header.
-				currentHeader = currentHeader->next;
+				// Look in the cache for a match with the hash.
+				node = ngx_http_51D_lookup_node_lru(&r->headers_in.user_agent[0].value, hash);
 			}
-#ifdef FIFTYONEDEGREES_TRIE
-		// Free the match offsets.
-		fiftyoneDegreesFreeDeviceOffsets(offsets);
-#endif // FIFTYONEDEGREES_TRIE
-
-		}
-#ifdef FIFTYONEDEGREES_PATTERN
-		// Add the match to the cache.
-		if (ngx_http_51D_cacheSize > 0) {
-			ngx_http_51D_cache_insert(node);
-		}
-	}
-	else {
-		// The match already exists in the cache, so set the headers from
-		// the node.
-		for (matchIndex = 0; matchIndex < fdlcf->headerCount; matchIndex++) {
-			header = node->header[(int)matchIndex];
-			h[matchIndex] = ngx_list_push(&r->headers_in.headers);
-			h[matchIndex]->key = header->name;
-			h[matchIndex]->hash = ngx_hash_key(h[matchIndex]->key.data, h[matchIndex]->key.len);
-			h[matchIndex]->value = header->value;
-			h[matchIndex]->lowcase_key = header->lowerName;
-		}
-	}
+			else {
+				node = NULL;
+			}
+			// If a match is not found in the cache, carry out a match.
+			if (node == NULL) {
+				// Create a new node so the match can be added to the cache.
+				if (ngx_http_51D_cacheSize > 0) {
+					node = ngx_http_51D_create_node(&r->headers_in.user_agent[0].value, hash, (int)matchConf[matchConfIndex]->headerCount);
+				}
 #endif // FIFTYONEDEGREES_PATTERN
-
+#ifdef FIFTYONEDEGREES_TRIE
+					offsets = fiftyoneDegreesCreateDeviceOffsets(fdmcf->dataSet);
+#endif // FIFTYONEDEGREES_TRIE
+					// Loop over all match instances in the config.
+					currentHeader = matchConf[matchConfIndex]->header;
+					while (currentHeader != NULL)
+					{
+						// Process the match if it is the type we are looking for on
+						// this pass.
+						if (currentHeader->multi == multi) {
+#ifdef FIFTYONEDEGREES_PATTERN
+							if ((int)currentHeader->maxString < 0) {
+								ngx_http_51D_set_max_string(fdmcf, currentHeader);
+							}
+#endif // FIFTYONEDEGREES_PATTERN
+							// Allocate the value string in the request pool.
+							char *valueString = (char*)ngx_palloc(r->pool, currentHeader->maxString);
+							valueString[0] = '\0';
+							// Get a match. If there are multiple instances of
+							// 51D_match_single or 51D_match_all, then don't get the
+							// match if it has already been fetched.
+#ifdef FIFTYONEDEGREES_PATTERN
+							if (haveMatch == 0) {
+								ngx_http_51D_get_match(fdmcf->ws, r, currentHeader->multi);
+								haveMatch = 1;
+							}
+#endif // FIFTYONEDEGREES_PATTERN
+#ifdef FIFTYONEDEGREES_TRIE
+							if (haveMatch == 0) {
+								ngx_http_51D_get_match(fdmcf->dataSet, r, currentHeader->multi, offsets);
+								haveMatch = 1;
+							}
+#endif // FIFTYONEDEGREES_TRIE
+							// For each property, set the value in values_string_array.
+							int property_index;
+							for (property_index=0; property_index < (int)currentHeader->propertyCount; property_index++) {
+#ifdef FIFTYONEDEGREES_PATTERN
+								ngx_http_51D_get_value(fdmcf, valueString, (const char*) currentHeader->property[property_index]->data);
+#endif // FIFTYONEDEGREES_PATTERN
+#ifdef FIFTYONEDEGREES_TRIE
+								ngx_http_51D_get_value(fdmcf, valueString, (const char*) currentHeader->property[property_index]->data, offsets);
+#endif // FIFTYONEDEGREES_TRIE
+							}
+							// For each property value pair, set a new header name and value.
+							h[matchIndex] = ngx_list_push(&r->headers_in.headers);
+							h[matchIndex]->key.data = (u_char*)currentHeader->name.data;
+							h[matchIndex]->key.len = ngx_strlen(h[matchIndex]->key.data);
+							h[matchIndex]->hash = ngx_hash_key(h[matchIndex]->key.data, h[matchIndex]->key.len);
+							h[matchIndex]->value.data = (u_char*)valueString;
+							h[matchIndex]->value.len = ngx_strlen(h[matchIndex]->value.data);
+							h[matchIndex]->lowcase_key = (u_char*)currentHeader->lowerName.data;
+#ifdef FIFTYONEDEGREES_PATTERN
+							// Add the current header to the cache node.
+							if (ngx_http_51D_cacheSize > 0) {
+								ngx_http_51D_add_header_to_node(node, h[matchIndex]);
+							}
+#endif // FIFTYONEDEGREES_PATTERN
+							matchIndex++;
+						}
+						// Look at the next header.
+						currentHeader = currentHeader->next;
+					}
+#ifdef FIFTYONEDEGREES_TRIE
+				// Free the match offsets.
+				fiftyoneDegreesFreeDeviceOffsets(offsets);
+#endif // FIFTYONEDEGREES_TRIE
+#ifdef FIFTYONEDEGREES_PATTERN
+				// Add the match to the cache.
+				if (ngx_http_51D_cacheSize > 0) {
+					ngx_http_51D_cache_insert(node);
+				}
+			}
+			else {
+				// The match already exists in the cache, so set the headers from
+				// the node.
+				for (matchIndex = 0; matchIndex < matchConf[matchConfIndex]->headerCount; matchIndex++) {
+					header = node->header[(int)matchIndex];
+					h[matchIndex] = ngx_list_push(&r->headers_in.headers);
+					h[matchIndex]->key = header->name;
+					h[matchIndex]->hash = ngx_hash_key(h[matchIndex]->key.data, h[matchIndex]->key.len);
+					h[matchIndex]->value = header->value;
+					h[matchIndex]->lowcase_key = header->lowerName;
+				}
+			}
+#endif // FIFTYONEDEGREES_PATTERN
+		}
+	}
 	// Tell nginx to continue with other module handlers.
 	return NGX_DECLINED;
 }
@@ -1491,33 +1611,31 @@ ngx_http_51D_set_header(ngx_conf_t *cf, ngx_http_51D_header_to_set *header, ngx_
  * it with the set header function.
  * @param cf the nginx conf.
  * @param cmd the name of the command called from the config file.
- * @param conf the module config.
+ * @param matchConf the match config.
  * @return char* nginx conf status.
  */
-static char *ngx_http_51D_set(ngx_conf_t* cf, ngx_command_t *cmd, void *conf)
+static char *ngx_http_51D_set(ngx_conf_t *cf, ngx_command_t *cmd, ngx_http_51D_match_conf_t *matchConf)
 {
 	ngx_http_51D_main_conf_t *fdmcf;
-	ngx_http_51D_loc_conf_t *fdlcf;
-	ngx_str_t *value;
 	ngx_http_51D_header_to_set *header;
+	ngx_str_t *value;
 
 	// Get the arguments from the config.
 	value = cf->args->elts;
 
 	// Get the modules location and main config.
 	fdmcf = ngx_http_conf_get_module_main_conf(cf, ngx_http_51D_module);
-	fdlcf = ngx_http_conf_get_module_loc_conf(cf, ngx_http_51D_module);
 
 	// Get the end of the header list.
-	if (fdlcf->header == NULL)
+	if (matchConf->header == NULL)
 	{
 		// Allocate the space for the first header in the current location config.
-		fdlcf->header = (ngx_http_51D_header_to_set*)ngx_palloc(cf->pool, sizeof(ngx_http_51D_header_to_set));
-		header = fdlcf->header;
+		matchConf->header = (ngx_http_51D_header_to_set*)ngx_palloc(cf->pool, sizeof(ngx_http_51D_header_to_set));
+		header = matchConf->header;
 	}
 	else
 	{
-		header = fdlcf->header;
+		header = matchConf->header;
 		while (header->next != NULL)
 		{
 			header = header->next;
@@ -1537,7 +1655,7 @@ static char *ngx_http_51D_set(ngx_conf_t* cf, ngx_command_t *cmd, void *conf)
 	// Enable multiple HTTP header matching.
 	else if (ngx_strcmp(cmd->name.data, "51D_match_all") == 0) {
 		header->multi = 1;
-		fdlcf->hasMulti = 1;
+		matchConf->hasMulti = 1;
 	}
 
 	// Set the properties for the selected location.
@@ -1546,11 +1664,56 @@ static char *ngx_http_51D_set(ngx_conf_t* cf, ngx_command_t *cmd, void *conf)
 #ifdef FIFTYONEDEGREES_PATTERN
 	// Add the arguments to the locations hash key, this is used to
 	// differentiate locations in the cache.
-	fdlcf->key = ngx_hash(fdlcf->key, ngx_hash_key(value[1].data, value[1].len));
-	fdlcf->key = ngx_hash(fdlcf->key, ngx_hash_key(value[2].data, value[2].len));
+	matchConf->key = ngx_hash(matchConf->key, ngx_hash_key(value[1].data, value[1].len));
+	matchConf->key = ngx_hash(matchConf->key, ngx_hash_key(value[2].data, value[2].len));
 #endif // FIFTYONEDEGREES_PATTERN
 
-	fdlcf->headerCount++;
+	matchConf->headerCount++;
 
 	return NGX_OK;
+}
+
+/**
+ * Set function. Is called for occurrences of "51D_match_single" or
+ * "51D_match_all" in a location config block. Allocates space for the
+ * header structure and initialises it with the set header function.
+ * @param cf the nginx conf.
+ * @param cmd the name of the command called from the config file.
+ * @param match the module config.
+ * @return char* nginx conf status.
+ */
+static char *ngx_http_51D_set_loc(ngx_conf_t* cf, ngx_command_t *cmd, void *conf)
+{
+	ngx_http_51D_loc_conf_t *fdlcf = ngx_http_conf_get_module_loc_conf(cf, ngx_http_51D_module);
+	return ngx_http_51D_set(cf, cmd, &fdlcf->matchConf);
+}
+
+/**
+ * Set function. Is called for occurrences of "51D_match_single" or
+ * "51D_match_all" in a server config block. Allocates space for the
+ * header structure and initialises it with the set header function.
+ * @param cf the nginx conf.
+ * @param cmd the name of the command called from the config file.
+ * @param match the module config.
+ * @return char* nginx conf status.
+ */
+static char *ngx_http_51D_set_srv(ngx_conf_t* cf, ngx_command_t *cmd, void *conf)
+{
+	ngx_http_51D_srv_conf_t *fdscf = ngx_http_conf_get_module_srv_conf(cf, ngx_http_51D_module);
+	return ngx_http_51D_set(cf, cmd, &fdscf->matchConf);
+}
+
+/**
+ * Set function. Is called for occurrences of "51D_match_single" or
+ * "51D_match_all" in a http config block. Allocates space for the
+ * header structure and initialises it with the set header function.
+ * @param cf the nginx conf.
+ * @param cmd the name of the command called from the config file.
+ * @param match the module config.
+ * @return char* nginx conf status.
+ */
+static char *ngx_http_51D_set_main(ngx_conf_t* cf, ngx_command_t *cmd, void *conf)
+{
+	ngx_http_51D_main_conf_t *fdmcf = ngx_http_conf_get_module_main_conf(cf, ngx_http_51D_module);
+	return ngx_http_51D_set(cf, cmd, &fdmcf->matchConf);
 }
