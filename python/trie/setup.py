@@ -55,7 +55,7 @@ if has_snprintf():
     define_macros.append(('HAVE_SNPRINTF', None))
 setup(
     name='51degrees-mobile-detector-v3-trie-wrapper',
-    version='3.2.13.5',
+    version='3.2.14.8',
     author='51Degrees.com',
     author_email='info@51degrees.com',
     cmdclass={'build_ext': build_ext},
