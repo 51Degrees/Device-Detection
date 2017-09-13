@@ -60,7 +60,6 @@ static void *ngx_http_51D_create_srv_conf(ngx_conf_t *cf);
 static void *ngx_http_51D_create_loc_conf(ngx_conf_t *cf);
 static char *ngx_http_51D_merge_loc_conf(ngx_conf_t *cf, void *parent, void *child);
 static char *ngx_http_51D_merge_srv_conf(ngx_conf_t *cf, void *parent, void *child);
-static char *ngx_http_51D_merge_main_conf(ngx_conf_t *cf, void *parent, void *child);
 
 // Set function declarations.
 static char *ngx_http_51D_set_loc(ngx_conf_t* cf, ngx_command_t *cmd, void *conf);
@@ -259,6 +258,7 @@ ngx_http_51D_post_conf(ngx_conf_t *cf)
 	ngx_http_handler_pt *h;
 	ngx_http_core_main_conf_t *cmcf;
 	ngx_http_51D_main_conf_t *fdmcf;
+	ngx_atomic_int_t tagOffset;
 	ngx_str_t dataSetName;
 	size_t size;
 #ifdef FIFTYONEDEGREES_PATTERN
@@ -298,6 +298,7 @@ ngx_http_51D_post_conf(ngx_conf_t *cf)
 	// Initialise the shared memory zone for the data set.
 	dataSetName.data = (u_char*) "51Degrees Shared Data Set";
 	dataSetName.len = ngx_strlen(dataSetName.data);
+	tagOffset = ngx_atomic_fetch_add(&ngx_http_51D_shm_tag, (ngx_atomic_int_t)1);
 #ifdef FIFTYONEDEGREES_PATTERN
 	size = fiftyoneDegreesGetProviderSizeWithPropertyString((const char*)fdmcf->dataFile.data, (const char*)fdmcf->properties, 0, 0);
 #endif // FIFTYONEDEGREES_PATTERN
@@ -309,7 +310,7 @@ ngx_http_51D_post_conf(ngx_conf_t *cf)
 		return reportDatasetInitStatus(cf->cycle, 0, (const char*)fdmcf->dataFile.data);
 	}
 	size *= 1.1;
-	ngx_http_51D_shm_dataSet = ngx_shared_memory_add(cf, &dataSetName, size, &ngx_http_51D_module);
+	ngx_http_51D_shm_dataSet = ngx_shared_memory_add(cf, &dataSetName, size, &ngx_http_51D_module + tagOffset);
 	ngx_http_51D_shm_dataSet->init = ngx_http_51D_init_shm_dataSet;
 
 #ifdef FIFTYONEDEGREES_PATTERN
@@ -430,21 +431,6 @@ ngx_http_51D_merge_srv_conf(ngx_conf_t *cf, void *parent, void *child)
 }
 
 /**
- * Merge main config. Either gets the value of count that is set, or sets
- * to the default of 0.
- */
-static char *
-ngx_http_51D_merge_main_conf(ngx_conf_t *cf, void *parent, void *child)
-{
-	ngx_http_51D_main_conf_t  *prev = parent;
-	ngx_http_51D_main_conf_t  *conf = child;
-
-	ngx_conf_merge_uint_value(conf->matchConf.headerCount, prev->matchConf.headerCount, 0);
-
-	return NGX_CONF_OK;
-}
-
-/**
  * Shared memory alloc function. Replaces fiftyoneDegreesMalloc to store
  * the data set in the shared memory zone.
  * @param __size the size of memory to allocate.
@@ -497,13 +483,6 @@ static ngx_int_t ngx_http_51D_init_shm_dataSet(ngx_shm_zone_t *shm_zone, void *d
 	ngx_slab_pool_t *shpool;
 	fiftyoneDegreesDataSet *dataSet;
 	shpool = (ngx_slab_pool_t *) ngx_http_51D_shm_dataSet->shm.addr;
-	if (data) {
-		// The zone exists, so free it before initialising the new data set.
-		fiftyoneDegreesFree = ngx_http_51D_shm_free;
-		fiftyoneDegreesDataSetFree((fiftyoneDegreesDataSet*)data);
-		fiftyoneDegreesFree = free;
-		ngx_log_debug0(NGX_LOG_DEBUG_ALL, shm_zone->shm.log, 0, "51Degrees existing shared memory has been freed.");
-	}
 
 	// Allocate space for the data set.
 	dataSet = (fiftyoneDegreesDataSet*)ngx_slab_alloc(shpool, sizeof(fiftyoneDegreesDataSet));
@@ -1083,10 +1062,10 @@ static ngx_http_module_t ngx_http_51D_module_ctx = {
 	NULL,                          /* init main configuration */
 
 	ngx_http_51D_create_srv_conf,  /* create server configuration */
-	NULL,                          /* merge server configuration */
+	ngx_http_51D_merge_srv_conf,   /* merge server configuration */
 
 	ngx_http_51D_create_loc_conf,  /* create location configuration */
-	NULL                           /* merge location configuration */
+	ngx_http_51D_merge_loc_conf,   /* merge location configuration */
 };
 
 #ifdef FIFTYONEDEGREES_PATTERN
@@ -1107,6 +1086,8 @@ ngx_http_51D_init_process(ngx_cycle_t *cycle)
 	return NGX_OK;
 }
 
+#endif // FIFTYONEDEGREES_PATTERN
+
 /**
  * Exit process function. Frees the work set that was created on process
  * init.
@@ -1118,9 +1099,18 @@ ngx_http_51D_exit_process(ngx_cycle_t *cycle)
 	ngx_http_51D_main_conf_t *fdmcf;
 	fdmcf = ngx_http_cycle_get_module_main_conf(cycle, ngx_http_51D_module);
 
+	if (fdmcf->dataSet != NULL) {
+		fiftyoneDegreesFree = ngx_http_51D_shm_free;
+		fiftyoneDegreesDataSetFree(fdmcf->dataSet);
+		fiftyoneDegreesFree = free;
+		fdmcf->dataSet = NULL;
+		ngx_log_debug0(NGX_LOG_DEBUG_ALL, ngx_cycle->log, 0, "51Degrees existing shared memory has been freed.");
+	}
+
+#ifdef FIFTYONEDEGREES_PATTERN
 	fiftyoneDegreesWorksetFree(fdmcf->ws);
-}
 #endif // FIFTYONEDEGREES_PATTERN
+}
 
 /**
  * Module definition. Set the module context, commands, type and init function.
@@ -1139,11 +1129,7 @@ ngx_module_t ngx_http_51D_module = {
 #endif // FIFTYONEDEGREES_PATTERN
 	NULL,                          /* init thread */
 	NULL,                          /* exit thread */
-#ifdef FIFTYONEDEGREES_PATTERN
 	ngx_http_51D_exit_process,     /* exit process */
-#else
-	NULL,                          /* exit process */
-#endif // FIFTYONEDEGREES_PATTERN
 	NULL,                          /* exit master */
 	NGX_MODULE_V1_PADDING
 };
@@ -1402,6 +1388,7 @@ ngx_http_51D_handler(ngx_http_request_t *r)
 	ngx_http_51D_match_conf_t *matchConf[3];
 	ngx_uint_t matchIndex = 0, multi, haveMatch;
 	ngx_http_51D_header_to_set *currentHeader;
+	int totalHeaderCount, matchConfIndex;
 #ifdef FIFTYONEDEGREES_TRIE
 	fiftyoneDegreesDeviceOffsets *offsets;
 #endif // FIFTYONEDEGREES_TRIE
@@ -1409,7 +1396,7 @@ ngx_http_51D_handler(ngx_http_request_t *r)
 	ngx_http_51D_matched_header_t *header;
 	ngx_http_51D_cache_node_t *node;
 	uint32_t hash;
-	int headerIndex, totalHeaderCount, matchConfIndex;
+	int headerIndex;
 	ngx_table_elt_t *searchResult;
 #endif // FIFTYONEDEGREES_PATTERN
 
