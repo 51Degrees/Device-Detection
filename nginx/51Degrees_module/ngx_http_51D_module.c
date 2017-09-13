@@ -237,7 +237,6 @@ ngx_http_51D_post_conf(ngx_conf_t *cf)
 	ngx_http_handler_pt *h;
 	ngx_http_core_main_conf_t *cmcf;
 	ngx_http_51D_main_conf_t *fdmcf;
-	ngx_atomic_int_t tagOffset;
 	ngx_str_t dataSetName;
 	size_t size;
 #ifdef FIFTYONEDEGREES_PATTERN
@@ -277,7 +276,6 @@ ngx_http_51D_post_conf(ngx_conf_t *cf)
 	// Initialise the shared memory zone for the data set.
 	dataSetName.data = (u_char*) "51Degrees Shared Data Set";
 	dataSetName.len = ngx_strlen(dataSetName.data);
-	tagOffset = ngx_atomic_fetch_add(&ngx_http_51D_shm_tag, (ngx_atomic_int_t)1);
 #ifdef FIFTYONEDEGREES_PATTERN
 	size = fiftyoneDegreesGetProviderSizeWithPropertyString((const char*)fdmcf->dataFile.data, (const char*)fdmcf->properties, 0, 0);
 #endif // FIFTYONEDEGREES_PATTERN
@@ -289,7 +287,7 @@ ngx_http_51D_post_conf(ngx_conf_t *cf)
 		return reportDatasetInitStatus(cf->cycle, 0, (const char*)fdmcf->dataFile.data);
 	}
 	size *= 1.1;
-	ngx_http_51D_shm_dataSet = ngx_shared_memory_add(cf, &dataSetName, size, &ngx_http_51D_module + tagOffset);
+	ngx_http_51D_shm_dataSet = ngx_shared_memory_add(cf, &dataSetName, size, &ngx_http_51D_module);
 	ngx_http_51D_shm_dataSet->init = ngx_http_51D_init_shm_dataSet;
 
 #ifdef FIFTYONEDEGREES_PATTERN
@@ -425,6 +423,46 @@ ngx_http_51D_merge_main_conf(ngx_conf_t *cf, void *parent, void *child)
 }
 
 /**
+ * Shared memory alloc function. Replaces fiftyoneDegreesMalloc to store
+ * the data set in the shared memory zone.
+ * @param __size the size of memory to allocate.
+ * @return void* a pointer to the allocated memory.
+ */
+void *ngx_http_51D_shm_alloc(size_t __size)
+{
+	void *ptr = NULL;
+	ngx_slab_pool_t *shpool;
+	shpool = (ngx_slab_pool_t *) ngx_http_51D_shm_dataSet->shm.addr;
+	ptr = ngx_slab_alloc(shpool, __size);
+	ngx_log_debug2(NGX_LOG_DEBUG_ALL, ngx_cycle->log, 0, "51Degrees shm alloc %d %p", __size, ptr);
+	if (ptr == NULL) {
+		ngx_log_error(NGX_LOG_ERR, ngx_cycle->log, 0, "51Degrees shm failed to allocate memory, not enough shared memory.");
+	}
+	return ptr;
+}
+
+/**
+ * Shared memory free function. Replaces fiftyoneDegreesFree to free pointers
+ * to the shared memory zone.
+ * @param __ptr pointer to the memory to be freed.
+ */
+void ngx_http_51D_shm_free(void *__ptr)
+{
+	ngx_slab_pool_t *shpool;
+	shpool = (ngx_slab_pool_t *) ngx_http_51D_shm_dataSet->shm.addr;
+	if ((u_char *) __ptr < shpool->start || (u_char *) __ptr > shpool->end) {
+		// The memory is not in the shared memory pool, so free with standard
+		// free function.
+	ngx_log_debug1(NGX_LOG_DEBUG_ALL, ngx_cycle->log, 0, "51Degrees shm free (non shared) %p", __ptr);
+		free(__ptr);
+	}
+	else {
+		ngx_log_debug1(NGX_LOG_DEBUG_ALL, ngx_cycle->log, 0, "51Degrees shm free %p", __ptr);
+		ngx_slab_free(shpool, __ptr);
+	}
+}
+
+/**
  * Init data set memory zone. Allocates space for the provider in the shared
  * memory zone.
  * @param shm_zone the shared memory zone.
@@ -438,9 +476,11 @@ static ngx_int_t ngx_http_51D_init_shm_dataSet(ngx_shm_zone_t *shm_zone, void *d
 	fiftyoneDegreesDataSet *dataSet;
 	shpool = (ngx_slab_pool_t *) ngx_http_51D_shm_dataSet->shm.addr;
 	if (data) {
-		// The zone exists, throw an error.
-		ngx_log_error(NGX_LOG_ERR, shm_zone->shm.log, 0, "51Degrees shared memory exists and has not been reinitialised correctly.");
-		return NGX_ERROR;
+		// The zone exists, so free it before initialising the new data set.
+		fiftyoneDegreesFree = ngx_http_51D_shm_free;
+		fiftyoneDegreesDataSetFree((fiftyoneDegreesDataSet*)data);
+		fiftyoneDegreesFree = free;
+		ngx_log_debug0(NGX_LOG_DEBUG_ALL, shm_zone->shm.log, 0, "51Degrees existing shared memory has been freed.");
 	}
 
 	// Allocate space for the data set.
@@ -862,49 +902,7 @@ void ngx_http_51D_cache_insert(ngx_http_51D_cache_node_t *node)
 	// Unlock the cache.
 	ngx_shmtx_unlock(&shpool->mutex);
 }
-#endif // FIFTYONEDEGREES_PATTERN
 
-/**
- * Shared memory alloc function. Replaces fiftyoneDegreesMalloc to store
- * the data set in the shared memory zone.
- * @param __size the size of memory to allocate.
- * @return void* a pointer to the allocated memory.
- */
-void *ngx_http_51D_shm_alloc(size_t __size)
-{
-	void *ptr = NULL;
-	ngx_slab_pool_t *shpool;
-	shpool = (ngx_slab_pool_t *) ngx_http_51D_shm_dataSet->shm.addr;
-	ptr = ngx_slab_alloc(shpool, __size);
-	ngx_log_debug2(NGX_LOG_DEBUG_ALL, ngx_cycle->log, 0, "51Degrees shm alloc %d %p", __size, ptr);
-	if (ptr == NULL) {
-		ngx_log_error(NGX_LOG_ERR, ngx_cycle->log, 0, "51Degrees shm failed to allocate memory, not enough shared memory.");
-	}
-	return ptr;
-}
-
-/**
- * Shared memory free function. Replaces fiftyoneDegreesFree to free pointers
- * to the shared memory zone.
- * @param __ptr pointer to the memory to be freed.
- */
-void ngx_http_51D_shm_free(void *__ptr)
-{
-	ngx_slab_pool_t *shpool;
-	shpool = (ngx_slab_pool_t *) ngx_http_51D_shm_dataSet->shm.addr;
-	if ((u_char *) __ptr < shpool->start || (u_char *) __ptr > shpool->end) {
-		// The memory is not in the shared memory pool, so free with standard
-		// free function.
-	ngx_log_debug1(NGX_LOG_DEBUG_ALL, ngx_cycle->log, 0, "51Degrees shm free (non shared) %p", __ptr);
-		free(__ptr);
-	}
-	else {
-		ngx_log_debug1(NGX_LOG_DEBUG_ALL, ngx_cycle->log, 0, "51Degrees shm free %p", __ptr);
-		ngx_slab_free(shpool, __ptr);
-	}
-}
-
-#ifdef FIFTYONEDEGREES_PATTERN
 /**
  * Set max string function. Gets the maximum possible length of the returned
  * list of values for specified header structure and allocates space for it.
