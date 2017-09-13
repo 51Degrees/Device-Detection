@@ -68,7 +68,7 @@ typedef enum e_fiftyoneDegrees_MatchMethod {
 	CLOSEST
 } fiftyoneDegreesMatchMethod;
 
-/* Used to indicate what state the result set is in the cache */
+/* Used to indicate what state the result set is in the User-Agent cache */
 typedef enum e_fiftyoneDegrees_Resultset_CacheState {
 	ACTIVE_CACHE_LIST_ONLY,
 	BOTH_CACHE_LISTS
@@ -129,7 +129,7 @@ typedef struct fiftyoneDegreesRange_t {
 	int32_t profileCount; \
 	/* The signature found if only one exists */ \
 	byte *signature; \
-	/* Pointer to the cache associated with the set */ \
+	/* Pointer to the User-Agent cache associated with the set */ \
 	const struct fiftyoneDegrees_resultset_cache_t *cache;
 
 #pragma pack(push, 1)
@@ -423,7 +423,7 @@ typedef struct fiftyoneDegrees_resultset_t {
 
 #pragma pack(push, 4)
 typedef struct fiftyoneDegrees_resultset_cache_t {
-	const fiftyoneDegreesDataSet *dataSet; /* A pointer to the data set to use with the cache */
+	const fiftyoneDegreesDataSet *dataSet; /* A pointer to the data set to use with the User-Agent cache */
 	const fiftyoneDegreesResultset *resultSets; /* Pointer to the array of result sets */
 	const byte *targetUserAgentArrays; /* Pointer to memory used to store target user agents */
 	const fiftyoneDegreesProfile **profiles; /* Pointer to memory used to store profile pointers */
@@ -431,14 +431,14 @@ typedef struct fiftyoneDegrees_resultset_cache_t {
 	fiftyoneDegreesResultset *listLast; /* Pointer to the last resultset in the linked list */
 	fiftyoneDegreesResultset root; /* Root resultset of the red black tree */
 	fiftyoneDegreesResultset empty; /* Empty resultset - set to black */
-	int32_t total; /* Capacity of the cache */
-	int32_t allocated; /* Number of resultsets currently used in the cache */
-	int32_t hits; /* The number of times an item was found in the cache */
-	int32_t misses; /* The number of times an item was not found in the cache */
+	int32_t total; /* Capacity of the User-Agent cache */
+	int32_t allocated; /* Number of resultsets currently used in the User-Agent cache */
+	int32_t hits; /* The number of times a User-Agent was found in the cache */
+	int32_t misses; /* The number of times a User-Agent was not found in the cache */
 	int32_t switches; /* Always xero and no longer used */
 	int32_t maxIterations; /* The maximum number of iterations needed to fetch */
 #ifndef FIFTYONEDEGREES_NO_THREADING
-	FIFTYONEDEGREES_MUTEX lock; /* Used to lock access to the cache */
+	FIFTYONEDEGREES_MUTEX lock; /* Used to lock access to the User-Agent cache */
 #endif
 } fiftyoneDegreesResultsetCache;
 #pragma pack(pop)
@@ -489,7 +489,7 @@ typedef struct fiftyoneDegrees_provider_t fiftyoneDegreesProvider;
 #pragma pack(push, 4)
 struct fiftyoneDegrees_workset_pool_t {
 	const fiftyoneDegreesDataSet *dataSet; /* Pointer to the dataset the pool relates to */
-	fiftyoneDegreesResultsetCache *cache; /* Pointer to the cache to be used by the worksets */
+	fiftyoneDegreesResultsetCache *cache; /* Pointer to the User-Agent cache to be used by the worksets */
 	const fiftyoneDegreesProvider *provider; /* Provider the pool is associated with, or NULL if not */
 	int32_t size; /* The maximum number of worksets the pool can contain */
 	int32_t available; /* The number of worksets that are available in the pool */
@@ -527,11 +527,11 @@ struct fiftyoneDegrees_provider_t {
  * from the file provided. If required properties is provided the associated
  * data set will only return properties contained in the array.
  * @param fileName of the data source to use for initialisation
- * @param provider pointer to the pool to be initialised
+ * @param provider pointer to the work set pool to be initialised
  * @param properties array of strings containing the property names
  * @param count the number of elements in the requiredProperties array
  * @param poolSize number of work sets to hold in the pool
- * @param cacheSize maximum number of items that the cache should store
+ * @param cacheSize maximum number of items that the User-Agent cache should store
  * @return fiftyoneDegreesDataSetInitStatus indicating the result of creating
  *		   the new dataset, pool and cache. If status is anything other than
  *		   DATA_SET_INIT_STATUS_SUCCESS, then the initialization has failed.
@@ -550,11 +550,11 @@ EXTERNAL fiftyoneDegreesDataSetInitStatus fiftyoneDegreesInitProviderWithPropert
  * from the file provided. If required properties is provided the associated
  * data set will only return properties contained between separators.
  * @param fileName of the data source to use for initialisation
- * @param provider pointer to the pool to be initialised
+ * @param provider pointer to the work set pool to be initialised
  * @param properties char array to the separated list of properties
  *        the dataSet can return
  * @param poolSize number of work sets to hold in the pool
- * @param cacheSize maximum number of items that the cache should store
+ * @param cacheSize maximum number of items that the User-Agent cache should store
  * @return fiftyoneDegreesDataSetInitStatus indicating the result of creating
  *		   the new dataset, pool and cache. If status is anything other than
  *		   DATA_SET_INIT_STATUS_SUCCESS, then the initialization has failed.
@@ -569,9 +569,10 @@ EXTERNAL fiftyoneDegreesDataSetInitStatus fiftyoneDegreesInitProviderWithPropert
 
 /**
  * \ingroup FiftyOneDegreesFunctions
- * Creates a new dataset, pool and cache using the same configuration options
- * as the current data set, pool and cache associated with the provider. The
- * original file location is used to create the new data set.
+ * Creates a new dataset, work set pool and User-Agent cache using the same
+ * configuration options as the current data set, pool and cache associated
+ * with the provider. The original file location is used to create the new data
+ * set.
  * The exisitng data set, pool and cache are marked to be freed if worksets are
  * being used by other threads, or if no work sets are in use they are freed
  * immediately.
@@ -584,9 +585,10 @@ EXTERNAL fiftyoneDegreesDataSetInitStatus fiftyoneDegreesProviderReloadFromFile(
 
 /**
  * \ingroup FiftyOneDegreesFunctions
- * Creates a new dataset, pool and cache using the same configuration options
- * as the current data set, pool and cache associated with the provider. The
- * memory located at the source pointer is used to create the new data set.
+ * Creates a new dataset, work set pool and User-Agent cache using the same
+ * configuration options as the current data set, pool and cache associated
+ * with the provider. The memory located at the source pointer is used to
+ * create the new data set.
  * The exisitng data set, pool and cache are marked to be freed if worksets are
  * being used by other threads, or if no work sets are in use they are freed
  * immediately.
@@ -631,7 +633,7 @@ EXTERNAL fiftyoneDegreesWorkset* fiftyoneDegreesProviderWorksetGet(
 
 /**
  * \ingroup FiftyOneDegreesFunctions
- * Returns the workset back to the pool it was created from.
+ * Returns the work set back to the pool it was created from.
  * Worksets created without a pool should be freed using the method
  * fiftyoneDegreesWorksetFree.
  * @param ws a workset that was created from a pool or provider.
@@ -648,8 +650,9 @@ EXTERNAL fiftyoneDegreesWorkset* fiftyoneDegreesProviderWorksetGet(
  * @param properties array of strings containing the property names
  * @param count the number of elements in the properties array
  * @return fiftyoneDegreesDataSetInitStatus indicating the result of creating
- *		   the new dataset, pool and cache. If status is anything other than
- *		   DATA_SET_INIT_STATUS_SUCCESS, then the initialization has failed.
+ *		   the new dataset, work set pool and User-Agent cache. If status is
+ *         anything other than DATA_SET_INIT_STATUS_SUCCESS, then the
+ *         initialization has failed.
  */
 EXTERNAL fiftyoneDegreesDataSetInitStatus fiftyoneDegreesInitWithPropertyArray(
 	const char *fileName,
@@ -668,8 +671,9 @@ EXTERNAL fiftyoneDegreesDataSetInitStatus fiftyoneDegreesInitWithPropertyArray(
  * @param properties char array to the separated list of properties
  *        the dataSet can return
  * @return fiftyoneDegreesDataSetInitStatus indicating the result of creating
- *		   the new dataset, pool and cache. If status is anything other than
- *		   DATA_SET_INIT_STATUS_SUCCESS, then the initialization has failed.
+ *		   the new dataset, work set pool and User-Agent cache. If status is
+ *         anything other than DATA_SET_INIT_STATUS_SUCCESS, then the
+ *         initialization has failed.
  */
 EXTERNAL fiftyoneDegreesDataSetInitStatus fiftyoneDegreesInitWithPropertyString(
 	const char *fileName,
@@ -678,7 +682,7 @@ EXTERNAL fiftyoneDegreesDataSetInitStatus fiftyoneDegreesInitWithPropertyString(
 
 /**
  * \ingroup FiftyOneDegreesFunctions
- * Destroys the data set releasing all memory available. Ensure all worksets
+ * Destroys the data set releasing all memory available. Ensure all work sets,
  * cache and pool structs are freed prior to calling this method.
  * @param dataSet pointer to the data set being destroyed
  */
@@ -686,7 +690,7 @@ EXTERNAL void fiftyoneDegreesDataSetFree(const fiftyoneDegreesDataSet *dataSet);
 
 /**
  * \ingroup FiftyOneDegreesFunctions
- * Creates a new cache used to speed up duplicate detections.
+ * Creates a new User-Agent cache used to speed up duplicate detections.
  * The cache must be destroyed with the fiftyoneDegreesFreeCache method.
  * If the cache size is lower then 2 then no cache is created.
  * @param dataSet pointer to the data set
@@ -699,7 +703,7 @@ EXTERNAL fiftyoneDegreesResultsetCache *fiftyoneDegreesResultsetCacheCreate(
 
 /**
  * \ingroup FiftyOneDegreesFunctions
- * Releases the memory used by the cache.
+ * Releases the memory used by the User-Agent cache.
  * @param pointer to the cache created previously
  */
 EXTERNAL void fiftyoneDegreesResultsetCacheFree(
@@ -707,9 +711,9 @@ EXTERNAL void fiftyoneDegreesResultsetCacheFree(
 
 /**
  * \ingroup FiftyOneDegreesFunctions
- * Creates a new workset pool for the data set and cache provided.
+ * Creates a new work set pool for the data set and User-Agent cache provided.
  * @param dataset pointer to a data set structure
- * @param cache pointer to a cache, or NULL if no cache to be used
+ * @param cache pointer to a User-Agent cache, or NULL if no cache to be used
  * @param size number of work sets to hold in the pool
  * @return a pointer to a new work set pool
  */
@@ -720,7 +724,7 @@ EXTERNAL fiftyoneDegreesWorksetPool *fiftyoneDegreesWorksetPoolCreate(
 
 /**
  * \ingroup FiftyOneDegreesFunctions
- * Frees all worksets in the pool and releases all memory. Ensure all worksets
+ * Frees all work sets in the pool and releases all memory. Ensure all work sets
  * have been released back to the pool before calling this method.
  * @param pool pointer to the pool created by fiftyoneDegreesWorksetPoolCreate
  */
@@ -729,7 +733,8 @@ EXTERNAL void fiftyoneDegreesWorksetPoolFree(
 
 /**
  * \ingroup FiftyOneDegreesFunctions
- * Frees the pool and it's associated cache and dataset if set.
+ * Frees the work set pool and it's associated User-Agent cache and dataset if
+ * set.
  * @param pool pointer to the pool created by fiftyoneDegreesWorksetPoolCreate
  */
 EXTERNAL void fiftyoneDegreesWorksetPoolCacheDataSetFree(
@@ -737,11 +742,11 @@ EXTERNAL void fiftyoneDegreesWorksetPoolCacheDataSetFree(
 
 /**
  * \ingroup FiftyOneDegreesFunctions
- * Gets a workset from the pool. When operating in multi threaded mode the
+ * Gets a work set from the pool. When operating in multi threaded mode the
  * methods waits for a work set to be returned from another thread. If in
  * single threaded operation NULL will be returned if the pool is exhausted.
  * Using a pool makes less sense in single threaded operation.
- * @param pool pointer to the pool to get the work set from
+ * @param pool pointer to the work set pool to get the work set from
  * @returns pointer to a work set that is free and ready for use, or NULL if
  *          none are available.
  */
@@ -764,7 +769,7 @@ EXTERNAL fiftyoneDegreesWorkset* fiftyoneDegreesWorksetCreate(
 /**
  * \ingroup FiftyOneDegreesFunctions
  * Releases the memory used by the workset.
- * If the workset is associated with a pool then the
+ * If the work set is associated with a pool then the
  * fiftyOneDegreesWorksetRelease method should be used to return the workset
  * to the pool its associated with.
  * @param pointer to the workset created previously
@@ -804,9 +809,10 @@ EXTERNAL void fiftyoneDegreesCSVFree(void* csv);
 
 /**
  * \ingroup FiftyOneDegreesFunctions
- * Main entry method used for perform a match. First the cache is checked to
- * determine if the userAgent has already been found. If not then detection
- * is performed. The cache is then updated before the resultset is returned.
+ * Main entry method used for perform a match. First the User-Agent cache is
+ * checked to determine if the User-Agent has already been found. If not then
+ * detection is performed. The cache is then updated before the resultset is
+ * returned.
  * @param ws pointer to a work set to be used for the match created via
  *        createWorkset function
  * @param userAgent pointer to the target user agent
@@ -1138,8 +1144,8 @@ EXTERNAL void (FIFTYONEDEGREES_CALL_CONV *fiftyoneDegreesFree)(void *__ptr);
 * @param fileName the file path of the data file.
 * @param properties the comma separated string of properties that will be
 * initialised.
-* @param poolSize the number of worksets the pool will contain.
-* @param cacheSize the size of the resultset cache.
+* @param poolSize the number of work sets the pool will contain.
+* @param cacheSize the size of the User-Agent cache.
 * @return size_t the total size in bytes that is needed to initilaise the
 * provider with the given parameters.
 */
@@ -1158,8 +1164,8 @@ EXTERNAL size_t fiftyoneDegreesGetProviderSizeWithPropertyString(
 * possible increase in http headers.
 * @param fileName the file path of the data file.
 * @param propertyCount the number of properties in the properties array.
-* @param poolSize the number of worksets the pool will contain.
-* @param cacheSize the size of the resultset cache.
+* @param poolSize the number of work sets the pool will contain.
+* @param cacheSize the size of the User-Agent cache.
 * @return size_t the total size in bytes that is needed to initialise the
 * provider with the given parameters.
 */
@@ -1198,9 +1204,16 @@ EXTERNAL void fiftyoneDegreesDestroy(const fiftyoneDegreesDataSet *dataSet);
  * The method is obsolete as all worksets now have a pool associated with them
  * which used when returning the work set to the pool.
  *
- * @param pool containing worksets
+ * @param pool containing work sets
  * @param ws workset to be placed back on the queue
  */
 EXTERNAL void fiftyoneDegreesWorksetPoolRelease(fiftyoneDegreesWorksetPool *pool, fiftyoneDegreesWorkset *ws);
+
+/**
+* \ingroup FiftyOneDegreesFunctions
+* Determines if the compiled code supports multi threading.
+* @return boolean where true means multi threading is supported.
+*/
+EXTERNAL int fiftyoneDegreesGetIsThreadSafe();
 
 #endif // 51DEGREES_H_INCLUDED

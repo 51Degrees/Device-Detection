@@ -20,6 +20,8 @@
 TestResults
 Debug/
 Release/
+Debug-Indirect/
+Release-Indirect/
 bin/
 obj/
 *.nupkg

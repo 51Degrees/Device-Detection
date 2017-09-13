@@ -96,6 +96,8 @@ class Provider {
 		int getCacheMisses();
 		int getCacheMaxIterations();
 
+		bool getIsThreadSafe();
+
 		Provider(const string &fileName, const string &propertyString,
 			int cacheSize, int poolSize, bool validate);
 

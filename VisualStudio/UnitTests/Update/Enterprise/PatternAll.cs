@@ -47,14 +47,14 @@ namespace FiftyOne.UnitTests.Update.Enterprise
         [TestCategory("Enterprise"), TestCategory("Update"), TestCategory("Pattern"), TestCategory("All")]
         public void EnterpriseV32Pattern_Update_File_All()
         {
-            UpdateTest();
+            UpdateTest(ReloadMode.File);
         }
 
         [TestMethod]
         [TestCategory("Enterprise"), TestCategory("Update"), TestCategory("Pattern"), TestCategory("All")]
         public void EnterpriseV32Pattern_Update_Memory_All()
         {
-            UpdateTest(true);
+            UpdateTest(ReloadMode.Memory);
         }
     }
 }

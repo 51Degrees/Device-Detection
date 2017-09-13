@@ -1,9 +1,6 @@
 ﻿using Microsoft.VisualStudio.TestTools.UnitTesting;
 using System;
 using System.Collections.Generic;
-using System.IO;
-using System.Linq;
-using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
 
@@ -11,44 +8,88 @@ namespace FiftyOne.UnitTests.Update
 {
     public abstract class Base : FiftyOne.UnitTests.Base
     {
-        bool _useReloadFromMemory = false;
+        /// <summary>
+        /// Determines the reload method to use.
+        /// </summary>
+        protected enum ReloadMode
+        {
+            // Reloads the data set from byte array..
+            Memory,
+            // Reloads the data set from the file.
+            File
+        }
 
         private class State
         {
             internal bool Processing = true;
             internal int Reloads = 0;
+            internal string WarningMessage = null;
         }
 
-        protected void UpdateTest()
+        /// <summary>
+        /// Tries to reload the provider with an empty array and should
+        /// throw an exception.
+        /// </summary>
+        protected void UpdateTestEmpty()
         {
-            UpdateTest(false);
+            _wrapper.ReloadFromMemory(new byte[0]);
         }
 
-        protected void UpdateTest(bool UseReloadFromMemory)
+        /// <summary>
+        /// Updates (reloads) the data set whilst detection is occurring.
+        /// </summary>
+        /// <param name="mode">
+        /// The method used to reload the data set.
+        /// </param>
+        protected void UpdateTest(ReloadMode mode)
         {
-            if (UseReloadFromMemory)
-            {
-                _useReloadFromMemory = true;
-            }
-            var userAgents = UserAgentGenerator.GetBadUserAgents(10000).ToArray();
-            var a = UpdateTest(userAgents);
+            var userAgents = UserAgentGenerator.GetUniqueUserAgents();
+            var a = UpdateTest(mode, userAgents);
             Console.WriteLine("a: {0}", a);
-            var b = UpdateTest(userAgents);
+            var b = UpdateTest(mode, userAgents);
             Console.WriteLine("b: {0}", b);
             Assert.IsTrue(a == b,
                 "Two tests with the same User-Agents repeatably reloading the " +
                 "data file resulted in different results.");
         }
 
-        private int UpdateTest(IList<string> userAgents)
+        private int UpdateTest(ReloadMode mode, IEnumerable<string> userAgents)
         {
             var checkSum = 0;
             var state = new State();
-            var updateThread = new Thread(Run);
+            var updateTask = new Task(() =>
+            {
+                var random = new Random();
+                while (state.Processing)
+                {
+                    try { 
+                        switch (mode)
+                        {
+                            case ReloadMode.File:
+                                _wrapper.ReloadFromFile();
+                                break;
+                            case ReloadMode.Memory:
+                                _wrapper.ReloadFromMemory();
+                                break;
+                        }
+                        state.Reloads++;
+                        Thread.Sleep(random.Next(1000));
+                    }
+                    catch (ApplicationException ex)
+                    {
+                        if (ex.Message.Equals("Reload from memory not " +
+                            "supported with indirect operation."))
+                        {
+                            state.WarningMessage = ex.Message;
+                            state.Processing = false;
+                        }
+                    }
+                }
+            });
             try
             {
-                updateThread.Start(state);
-                Parallel.ForEach(userAgents, ua =>
+                updateTask.Start();
+                Parallel.ForEach(userAgents, (ua, loopState) =>
                 {
                     using (var match = _wrapper.Match(ua))
                     {
@@ -65,37 +106,27 @@ namespace FiftyOne.UnitTests.Update
                             checkSum ^= hashcode;
                         }
                     }
+                    if (state.Processing == false)
+                    {
+                        // If processing should be stopped due to an exception
+                        // in the reload then stop 
+                        loopState.Stop();
+                    }
                 });
             }
             finally
             {
                 state.Processing = false;
-                updateThread.Join();
+                updateTask.Wait();
                 Console.WriteLine("'{0}' Reloads", state.Reloads);
             }
-            return checkSum;
-        }
-
-        /// <summary>
-        /// A parallel thread that will repeatably reload the data set from 
-        /// the original file whilst other threads are performing device 
-        /// detection of a known set of User-Agents. The reload operation is
-        /// delayed for up to 1 second before being repeated.
-        /// </summary>
-        /// <param name="state"></param>
-        private void Run(object state)
-        {
-            var random = new Random();
-            while (((State)state).Processing)
+            
+            if (state.WarningMessage != null)
             {
-                if (_useReloadFromMemory)
-                {
-                    _wrapper.ReloadFromMemory();
-                }
-                _wrapper.ReloadFromFile();
-                ((State)state).Reloads++;
-                Thread.Sleep(random.Next(1000));
+                Assert.Inconclusive(state.WarningMessage);
             }
+
+            return checkSum;
         }
     }
 }

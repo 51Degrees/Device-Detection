@@ -21,10 +21,9 @@
 
 using System;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
-using FiftyOne.UnitTests;
 using System.Collections.Specialized;
 
-namespace UnitTests.API.Lite
+namespace FiftyOne.UnitTests.API.Lite
 {
     [TestClass]
     public class Pattern : PatternBase
@@ -145,6 +144,34 @@ namespace UnitTests.API.Lite
             string properties = "";
             var provider = CreateWrapper(properties, true);
             provider.Dispose();
+        }
+
+        [TestMethod]
+        [TestCategory("API"), TestCategory("Pattern"), TestCategory("Lite")]
+        public void LitePatternAPI_InitEmptyPropertiesString()
+        {
+            InitEmptyPropertiesStringTest();
+        }
+
+        [TestMethod]
+        [TestCategory("API"), TestCategory("Pattern"), TestCategory("Lite")]
+        public void LitePatternAPI_InitPropertiesString()
+        {
+            InitPropertiesStringTest();
+        }
+
+        [TestMethod]
+        [TestCategory("API"), TestCategory("Trie"), TestCategory("Lite")]
+        public void LitePatternAPI_InitEmptyPropertiesArray()
+        {
+            InitEmptyPropertiesArrayTest();
+        }
+
+        [TestMethod]
+        [TestCategory("API"), TestCategory("Pattern"), TestCategory("Lite")]
+        public void LitePatternAPI_InitPropertiesArray()
+        {
+            InitPropertiesArrayTest();
         }
 
         protected override string DataFile

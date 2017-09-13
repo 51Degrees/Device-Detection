@@ -31,6 +31,18 @@ namespace FiftyOne.UnitTests
             return new TrieWrapper(DataFile);
         }
 
+        protected override IWrapper CreateWrapper(string properties)
+        {
+            Utils.CheckFileExists(DataFile);
+            return new TrieWrapper(DataFile, properties);
+        }
+
+        protected override IWrapper CreateWrapper(string[] properties)
+        {
+            Utils.CheckFileExists(DataFile);
+            return new TrieWrapper(DataFile, properties);
+        }
+
         protected override IWrapper CreateWrapper(string properties, bool validate)
         {
             return new TrieWrapper(DataFile, properties, validate);

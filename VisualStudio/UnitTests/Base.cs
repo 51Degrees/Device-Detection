@@ -41,6 +41,16 @@ namespace FiftyOne.UnitTests
         /// <returns></returns>
         protected abstract IWrapper CreateWrapper();
 
+        protected virtual IWrapper CreateWrapper(string properties)
+        {
+            return CreateWrapper();
+        }
+
+        protected virtual IWrapper CreateWrapper(string[] properties)
+        {
+            return CreateWrapper();
+        }
+
         /// <summary>
         /// Method used to create wrapper when the constructor is called. Also
         /// validates the memory calculation and throws an error if incorrect.

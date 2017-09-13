@@ -49,16 +49,25 @@ namespace FiftyOne.UnitTests.Performance
 
         protected Utils.Results BadUserAgentsMulti(int guidanceTime)
         {
-            var results = Utils.DetectLoopMultiThreaded(
-                _wrapper,
-                UserAgentGenerator.GetBadUserAgents(100000),
-                Utils.GetAllProperties,
-                RequiredProperties);
-            Assert.IsTrue(results.AverageTime.TotalMilliseconds < guidanceTime,
-                String.Format("Average time of '{0:0.000}' ms exceeded guidance time of '{1}' ms",
-                    results.AverageTime.TotalMilliseconds,
-                    guidanceTime));
-            return results;
+            if (_wrapper.IsThreadSafe)
+            {
+                var results = Utils.DetectLoopMultiThreaded(
+                    _wrapper,
+                    UserAgentGenerator.GetBadUserAgents(100000),
+                    Utils.GetAllProperties,
+                    RequiredProperties);
+                Assert.IsTrue(results.AverageTime.TotalMilliseconds < guidanceTime,
+                    String.Format("Average time of '{0:0.000}' ms exceeded guidance time of '{1}' ms",
+                        results.AverageTime.TotalMilliseconds,
+                        guidanceTime));
+                return results;
+            }
+            else
+            {
+                Assert.Inconclusive(
+                    "Provider must support multi threading for this test.");
+                return null;
+            }
         }
 
         protected Utils.Results BadUserAgentsSingle(int guidanceTime)
@@ -77,16 +86,25 @@ namespace FiftyOne.UnitTests.Performance
 
         protected Utils.Results RandomUserAgentsMulti(int guidanceTime)
         {
-            var results = Utils.DetectLoopMultiThreaded(
-                _wrapper,
-                UserAgentGenerator.GetRandomUserAgents(),
-                Utils.GetAllProperties,
-                RequiredProperties);
-            Assert.IsTrue(results.AverageTime.TotalMilliseconds < guidanceTime,
-                String.Format("Average time of '{0:0.000}' ms exceeded guidance time of '{1}' ms",
-                    results.AverageTime.TotalMilliseconds,
-                    guidanceTime));
-            return results;
+            if (_wrapper.IsThreadSafe)
+            {
+                var results = Utils.DetectLoopMultiThreaded(
+                    _wrapper,
+                    UserAgentGenerator.GetRandomUserAgents(),
+                    Utils.GetAllProperties,
+                    RequiredProperties);
+                Assert.IsTrue(results.AverageTime.TotalMilliseconds < guidanceTime,
+                    String.Format("Average time of '{0:0.000}' ms exceeded guidance time of '{1}' ms",
+                        results.AverageTime.TotalMilliseconds,
+                        guidanceTime));
+                return results;
+            }
+            else
+            {
+                Assert.Inconclusive(
+                    "Provider must support multi threading for this test.");
+                return null;
+            }
         }
 
         protected Utils.Results RandomUserAgentsSingle(int guidanceTime)
@@ -105,16 +123,25 @@ namespace FiftyOne.UnitTests.Performance
 
         protected Utils.Results UniqueUserAgentsMulti(int guidanceTime)
         {
-            var results = Utils.DetectLoopMultiThreaded(
+            if (_wrapper.IsThreadSafe)
+            {
+                var results = Utils.DetectLoopMultiThreaded(
                 _wrapper,
                 UserAgentGenerator.GetUniqueUserAgents(),
                 Utils.GetAllProperties,
                 RequiredProperties);
-            Assert.IsTrue(results.AverageTime.TotalMilliseconds < guidanceTime,
-                String.Format("Average time of '{0:0.000}' ms exceeded guidance time of '{1}' ms",
-                    results.AverageTime.TotalMilliseconds,
-                    guidanceTime));
-            return results;
+                Assert.IsTrue(results.AverageTime.TotalMilliseconds < guidanceTime,
+                    String.Format("Average time of '{0:0.000}' ms exceeded guidance time of '{1}' ms",
+                        results.AverageTime.TotalMilliseconds,
+                        guidanceTime));
+                return results;
+            }
+            else
+            {
+                Assert.Inconclusive(
+                    "Provider must support multi threading for this test.");
+                return null;
+            }
         }
 
         protected Utils.Results UniqueUserAgentsSingle(int guidanceTime)

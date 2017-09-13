@@ -21,10 +21,9 @@
 
 using System;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
-using FiftyOne.UnitTests;
 using System.Collections.Specialized;
 
-namespace UnitTests.API.Lite
+namespace FiftyOne.UnitTests.API.Lite
 {
     [TestClass]
     public class Trie : TrieBase
@@ -42,7 +41,7 @@ namespace UnitTests.API.Lite
         }
 
         [TestMethod]
-        [TestCategory("API"), TestCategory("Lite")]
+        [TestCategory("API"), TestCategory("Trie"), TestCategory("Lite")]
         public void LiteTrieAPI_NullUserAgent()
         {
             using (var result = _wrapper.Match((string)null))
@@ -52,7 +51,7 @@ namespace UnitTests.API.Lite
         }
 
         [TestMethod]
-        [TestCategory("API"), TestCategory("Lite")]
+        [TestCategory("API"), TestCategory("Trie"), TestCategory("Lite")]
         public void LiteTrieAPI_EmptyUserAgent()
         {
             using (var result = _wrapper.Match(String.Empty))
@@ -62,7 +61,7 @@ namespace UnitTests.API.Lite
         }
 
         [TestMethod]
-        [TestCategory("API"), TestCategory("Lite")]
+        [TestCategory("API"), TestCategory("Trie"), TestCategory("Lite")]
         public void LiteTrieAPI_LongUserAgent()
         {
             var userAgent = String.Join(" ", UserAgentGenerator.GetEnumerable(10, 10));
@@ -73,7 +72,7 @@ namespace UnitTests.API.Lite
         }
 
         [TestMethod]
-        [TestCategory("API"), TestCategory("Lite")]
+        [TestCategory("API"), TestCategory("Trie"), TestCategory("Lite")]
         public void LiteTrieAPI_HttpHeaders()
         {
             var headers = new NameValueCollection();
@@ -91,7 +90,7 @@ namespace UnitTests.API.Lite
         }
 
         [TestMethod]
-        [TestCategory("API"), TestCategory("Lite")]
+        [TestCategory("API"), TestCategory("Trie"), TestCategory("Lite")]
         public void LiteTrieAPI_ProviderMemory()
         {
             string properties = "IsMobile,BrowserName,PlatformName";
@@ -100,7 +99,7 @@ namespace UnitTests.API.Lite
         }
 
         [TestMethod]
-        [TestCategory("API"), TestCategory("Lite")]
+        [TestCategory("API"), TestCategory("Trie"), TestCategory("Lite")]
         public void LiteTrieAPI_ProviderMemoryEmptyProperties()
         {
             string properties = "";
@@ -108,9 +107,57 @@ namespace UnitTests.API.Lite
             provider.Dispose();
         }
 
+        [TestMethod]
+        [TestCategory("API"), TestCategory("Trie"), TestCategory("Lite")]
+        public void LiteTrieAPI_InitEmptyPropertiesString()
+        {
+            InitEmptyPropertiesStringTest();
+        }
+
+        [TestMethod]
+        [TestCategory("API"), TestCategory("Trie"), TestCategory("Lite")]
+        public void LiteTrieAPI_InitPropertiesString()
+        {
+            InitPropertiesStringTest();
+        }
+
+        [TestMethod]
+        [TestCategory("API"), TestCategory("Trie"), TestCategory("Lite")]
+        public void LiteTrieAPI_InitEmptyPropertiesArray()
+        {
+            InitEmptyPropertiesArrayTest();
+        }
+
+        [TestMethod]
+        [TestCategory("API"), TestCategory("Trie"), TestCategory("Lite")]
+        public void LiteTrieAPI_InitPropertiesArray()
+        {
+            InitPropertiesArrayTest();
+        }
+
+        [TestMethod]
+        [TestCategory("API"), TestCategory("Trie"), TestCategory("Lite")]
+        public void LiteTrieAPI_DriftFeature()
+        {
+            using (var provider = CreateWrapper())
+            {
+                TestDrift(provider);
+            }
+        }
+
+        [TestMethod]
+        [TestCategory("API"), TestCategory("Trie"), TestCategory("Lite")]
+        public void LiteTrieAPI_DifferenceFeature()
+        {
+            using (var provider = CreateWrapper())
+            {
+                TestDifference(provider);
+            }
+        }
+
         protected override string DataFile
         {
-            get { return Constants.LITE_TRIE_V32; }
+            get { return Constants.LITE_TRIE_V34; }
         }
     }
 }

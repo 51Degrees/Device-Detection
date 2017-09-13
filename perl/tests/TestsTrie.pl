@@ -4,9 +4,9 @@ use feature qw/say/;
 use Time::HiRes qw/ time /;
 use Memory::Usage;
 
-my $litefilename = "../../data/51Degrees-LiteV3.2.trie";
-my $premiumfilename = "../../data/51Degrees-PremiumV3.2.trie";
-my $enterprisefilename = "../../data/51Degrees-EnterpriseV3.2.trie";
+my $litefilename = "../../data/51Degrees-LiteV3.4.trie";
+my $premiumfilename = "../../data/51Degrees-PremiumV3.4.trie";
+my $enterprisefilename = "../../data/51Degrees-EnterpriseV3.4.trie";
 my $inputFile = "../../data/20000 User Agents.csv";
 my $propertyList = "IsMobile";
 my $cacheSize = 10000;

@@ -6,7 +6,7 @@
 
 ### Important note regarding trie
 
-The 51Degrees Trie implementation has been removed from the repository. Please contact 51Degrees directly via https://51degrees.com/contact-us to obtain a copy of the latest source code and related data files to enable this algorithm.
+51Degrees Trie data files are now distributed directly from the 51Degrees website. To sign up for a free subscription, go to the [products](https://51degrees.com/products/store/on-premise-device-detection) page.
 
 ### Quick start
 

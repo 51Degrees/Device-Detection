@@ -79,11 +79,16 @@ namespace FiftyOne.Mobile.Detection.Provider.Interop
         void ReloadFromFile();
 
         /// <summary>
-        /// Reloads the original file from memory. Used
-        /// to refresh the active data set being used at runtime after the
-        /// wrapper has been created.
+        /// Reloads the original file from memory. Used to refresh the active 
+        /// data set being used at runtime after the wrapper has been created.
         /// </summary>
         void ReloadFromMemory();
+        
+        /// <summary>
+        /// Reloads the provider with the data in the byte array.
+        /// </summary>
+        /// <param name="original"></param>
+        void ReloadFromMemory(byte[] original);
 
         /// <summary>
         /// Returns the number of times the cache fetch has found what it is
@@ -97,5 +102,20 @@ namespace FiftyOne.Mobile.Detection.Provider.Interop
         /// to insert a value that was not found.
         /// </summary>
         int CacheMisses { get; }
+
+        /// <summary>
+        /// Sets the drift value to use when searching for hash codes.
+        /// </summary>
+        int Drift { set; }
+
+        /// <summary>
+        /// Sets the difference value to use when searching for hash codes.
+        /// </summary>
+        int Difference { set; }
+
+        /// <summary>
+        /// True if the provider is thread safe otherwise false.
+        /// </summary>
+        bool IsThreadSafe { get; }
     }
 }

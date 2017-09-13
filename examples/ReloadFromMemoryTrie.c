@@ -88,6 +88,23 @@ until the reload is complete. The reload itself takes less than half a
 second even for Enterprise dataset. For more information see:
 https://51degrees.com/Support/Documentation/APIs/C-V32/Benchmarks
 </p>
+<p>
+This, and any other Trie example can be built to stream from file to reduce
+memory overhead by defining FIFTYONEDEGREES_INDIRECT at compile time. This
+encurs a performance penalty due to disk read and cache locking. Currently
+the caching used for an indirect (file stream) data set does not reserve an
+entity it has given out, so care should be taken to ensure an entity is not
+removed from the cache while another thread is using it. This can be done by
+defining FIFTYONEDEGREES_NO_THREADING and using the provider in a single
+threaded environment. Alternatively, for a multi threaded environment, the
+stream caches should be set to a higher number of entries than you expect to
+be handed out to threads at any one time. This is done by defining:
+FIFTYONEDEGREES_STRING_CACHE_SIZE,
+FIFTYONEDEGREES_NODE_CACHE_SIZE,
+FIFTYONEDEGREES_DEVICE_CACHE_SIZE and
+FIFTYONEDEGREES_PROFILE_CACHE_SIZE
+accordingly.
+</p>
 </tutorial>
 */
 
@@ -113,6 +130,15 @@ https://51degrees.com/Support/Documentation/APIs/C-V32/Benchmarks
 
 // Snippet Start
 #include "../src/trie/51Degrees.h"
+
+#ifdef FIFTYONEDEGREES_INDIRECT
+// Display a message only if in indirect operation.
+int main(int argc, char* argv[]) {
+	printf("Reload from memory not supported in indirect operation which "
+		   "requires a data file to be present.\r\n");
+	fgetc(stdin);
+}
+#else
 
 // Global settings and properties.
 static fiftyoneDegreesProvider provider;
@@ -145,7 +171,7 @@ int main(int argc, char* argv[]) {
 
 	// Path to 51Degrees data files. Or use default paths.
 	const char* fileName = argc > 1 ? argv[1] :
-		"../../../data/51Degrees-LiteV3.2.trie";
+		"../../../data/51Degrees-LiteV3.4.trie";
 	// Path to file containing HTTP User-Agent strings.
 	const char* inputFile = argc > 2 ? argv[2] :
 		"../../../data/20000 User Agents.csv";
@@ -158,11 +184,13 @@ int main(int argc, char* argv[]) {
 	_CrtSetReportFile(_CRT_WARN, _CRTDBG_FILE_STDERR);
 #endif
 #endif
-
+	
 	// How many times the dataset was reloaded.
 	int numberOfReloads = 0;
-
+	int numberOfReloadFails = 0;
+	
 #ifndef FIFTYONEDEGREES_NO_THREADING
+	fiftyoneDegreesDataSet *ds;
 	printf("** Multi Threaded Reload Example **\r\n");
 #else
 	printf("** Single Threaded Reload Example **\r\n");
@@ -189,11 +217,24 @@ int main(int argc, char* argv[]) {
 		while (threadsFinished < numberOfThreads) {
 			// Load file into memory.
 			currentFileSize = loadFile(fileName, &fileInMemory);
+
 			// Refresh the current dataset.
-			fiftyoneDegreesProviderReloadFromMemory(&provider, (void*)fileInMemory, currentFileSize);
-			fiftyoneDegreesDataSet *ds = (fiftyoneDegreesDataSet*)provider.active->dataSet;
-			// Tell the API to free the memory occupied by the data file when the dataset is freed.
+			status = fiftyoneDegreesProviderReloadFromMemory(
+				&provider,
+				(void*)fileInMemory, currentFileSize);
+			if (status == DATA_SET_INIT_STATUS_SUCCESS) {
+				numberOfReloads++;
+			}
+			else {
+				numberOfReloadFails++;
+			}
+
+			// Tell the API to free the memory occupied by the data file when the
+			// dataset is freed.
+			ds = (fiftyoneDegreesDataSet*)provider.active->dataSet;
+#ifndef FIFTYONEDEGREES_INDIRECT
 			ds->memoryToFree = (void*)fileInMemory;
+#endif
 
 			numberOfReloads++;
 #ifdef _MSC_VER
@@ -214,6 +255,7 @@ int main(int argc, char* argv[]) {
 
 	// Finish execution.
 	printf("Reloaded '%i' times.\r\n", numberOfReloads);
+	printf("Failed to reload '%i' times.\r\n", numberOfReloadFails);
 
 #ifdef _DEBUG
 #ifdef _MSC_VER
@@ -236,10 +278,14 @@ int main(int argc, char* argv[]) {
 * has been initialized.
 */
 static void startThreads(const char* inputFile) {
-	threads = (FIFTYONEDEGREES_THREAD*)malloc(sizeof(FIFTYONEDEGREES_THREAD) * numberOfThreads);
+	threads = (FIFTYONEDEGREES_THREAD*)malloc(
+		sizeof(FIFTYONEDEGREES_THREAD) * numberOfThreads);
 	int thread;
 	for (thread = 0; thread < numberOfThreads; thread++) {
-		FIFTYONEDEGREES_THREAD_CREATE(threads[thread], (void*)&runRequests, (void*)inputFile);
+		FIFTYONEDEGREES_THREAD_CREATE(
+			threads[thread], 
+			(void*)&runRequests, 
+			(void*)inputFile);
 	}
 }
 
@@ -269,7 +315,11 @@ static void runRequests(void* inputFile) {
 	while (fgets(userAgent, sizeof(userAgent), fin) != NULL) {
 		offsets = fiftyoneDegreesProviderCreateDeviceOffsets(&provider);
 		offsets->size = 1;
-		fiftyoneDegreesSetDeviceOffset(offsets->active->dataSet, userAgent, 0, offsets->firstOffset);
+		fiftyoneDegreesSetDeviceOffset(
+			offsets->active->dataSet,
+			userAgent,
+			0, 
+			offsets->firstOffset);
 		hashCode ^= getHashCode(offsets);
 		fiftyoneDegreesProviderFreeDeviceOffsets(offsets);
 	}
@@ -282,6 +332,8 @@ static void runRequests(void* inputFile) {
 }
 
 #else
+
+#ifndef FIFTYONEDEGREES_INDIRECT
 
 /**
 * Demonstrates the dataset reload functionality in a single
@@ -296,8 +348,8 @@ static void runRequests(void* inputFile) {
 *		  detection.
 * @return number of times the dataset was reloaded.
 */
-
 static int runRequest(const char *inputFile) {
+	fiftyoneDegreesDataSet *ds;
 	fiftyoneDegreesDeviceOffsets *offsets;
 	unsigned long hashCode = 0;
 	int count = 0, numberOfReloads = 0;
@@ -317,7 +369,11 @@ static int runRequest(const char *inputFile) {
 	while (fgets(userAgent, sizeof(userAgent), fin) != NULL) {
 		offsets = fiftyoneDegreesProviderCreateDeviceOffsets(&provider);
 		offsets->size = 1;
-		fiftyoneDegreesSetDeviceOffset(offsets->active->dataSet, userAgent, 0, offsets->firstOffset);
+		fiftyoneDegreesSetDeviceOffset(
+			offsets->active->dataSet, 
+			userAgent, 
+			0,
+			offsets->firstOffset);
 		hashCode ^= getHashCode(offsets);
 		fiftyoneDegreesProviderFreeDeviceOffsets(offsets);
 		count++;
@@ -325,10 +381,13 @@ static int runRequest(const char *inputFile) {
 			// Load file into memory.
 			currentFileSize = loadFile(pathToFileInMemory, &fileInMemory);
 			// Refresh the current dataset.
-			fiftyoneDegreesProviderReloadFromMemory(&provider, (void*)fileInMemory, currentFileSize);
+			fiftyoneDegreesProviderReloadFromMemory(
+				&provider,
+				(void*)fileInMemory,
+				currentFileSize);
 
-			fiftyoneDegreesDataSet *ds = (fiftyoneDegreesDataSet*)provider.active->dataSet;
 			// Tell the API to free the memory occupied by the data file.
+			ds = (fiftyoneDegreesDataSet*)provider.active->dataSet;
 			ds->memoryToFree = (void*)fileInMemory;
 
 			numberOfReloads++;
@@ -341,6 +400,15 @@ static int runRequest(const char *inputFile) {
 	return numberOfReloads;
 }
 
+#else
+
+static int runRequest(const char *inputFile) {
+	printf("Reload from memory unsupported with indirect operation as data "
+		   "must be stored in a file.\r\n");
+	return 0;
+}
+
+#endif
 #endif
 
 /**
@@ -364,12 +432,16 @@ unsigned long hash(unsigned char *value) {
 */
 static unsigned long getHashCode(fiftyoneDegreesDeviceOffsets *offsets) {
 	unsigned long hashCode = 0;
-	int32_t requiredPropertyIndex;
+	uint32_t requiredPropertyIndex;
 	const char *valueName;
 	for (requiredPropertyIndex = 0;
-		requiredPropertyIndex < offsets->active->dataSet->requiredPropertiesCount;
+		requiredPropertyIndex < 
+			offsets->active->dataSet->requiredProperties.count;
 		requiredPropertyIndex++) {
-		valueName = fiftyoneDegreesGetValuePtrFromOffsets(offsets->active->dataSet, offsets, requiredPropertyIndex);
+		valueName = fiftyoneDegreesGetValuePtrFromOffsets(
+			offsets->active->dataSet, 
+			offsets, 
+			requiredPropertyIndex);
 		hashCode ^= hash((unsigned char*)valueName);
 	}
 	return hashCode;
@@ -457,3 +529,4 @@ static long loadFile(const char* fileName, char **source) {
 	fclose(fp);
 	return bufsize;
 }
+#endif

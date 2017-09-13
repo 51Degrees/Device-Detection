@@ -19,42 +19,34 @@
  * defined by the Mozilla Public License, v. 2.0.
  * ********************************************************************* */
 
+using FiftyOne.Mobile.Detection.Provider.Interop;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
+using System;
+using System.Collections.Generic;
+using System.Linq;
+using System.Text;
 
-namespace FiftyOne.UnitTests.Update.Premium
+namespace FiftyOne.UnitTests.API
 {
-    [TestClass]
-    public class TrieAll : TrieBase
+    public abstract class PatternBase : Base
     {
-        protected override string DataFile
+
+        protected override IWrapper CreateWrapper()
         {
-            get { return Constants.PREMIUM_TRIE_V32; }
+            Utils.CheckFileExists(DataFile);
+            return new PatternWrapper(DataFile);
         }
 
-        [TestInitialize]
-        public void Initialise()
+        protected override IWrapper CreateWrapper(string properties)
         {
-            if (_wrapper == null) { _wrapper = CreateWrapper(); }
+            Utils.CheckFileExists(DataFile);
+            return new PatternWrapper(DataFile, properties);
         }
 
-        [TestCleanup]
-        public void CleanUp()
+        protected override IWrapper CreateWrapper(string[] properties)
         {
-            Dispose();
-        }
-
-        [TestMethod]
-        [TestCategory("Premium"), TestCategory("Update"), TestCategory("Trie"), TestCategory("All")]
-        public void PremiumV32Trie_Update_File_All()
-        {
-            UpdateTest();
-        }
-
-        [TestMethod]
-        [TestCategory("Premium"), TestCategory("Update"), TestCategory("Trie"), TestCategory("All")]
-        public void PremiumV32Trie_Update_Memory_All()
-        {
-            UpdateTest(true);
+            Utils.CheckFileExists(DataFile);
+            return new PatternWrapper(DataFile, properties);
         }
     }
 }

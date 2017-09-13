@@ -21,11 +21,10 @@
 
 using System;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
-using FiftyOne.UnitTests;
 using System.Text;
 using System.Collections.Specialized;
 
-namespace UnitTests.API.Enterprise
+namespace FiftyOne.UnitTests.API.Enterprise
 {
     [TestClass]
     public class Trie : TrieBase
@@ -43,7 +42,7 @@ namespace UnitTests.API.Enterprise
         }
 
         [TestMethod]
-        [TestCategory("API"), TestCategory("Enterprise")]
+        [TestCategory("API"), TestCategory("Trie"), TestCategory("Enterprise")]
         public void EnterpriseTrieAPI_NullUserAgent()
         {
             using (var result = _wrapper.Match((string)null))
@@ -53,7 +52,7 @@ namespace UnitTests.API.Enterprise
         }
 
         [TestMethod]
-        [TestCategory("API"), TestCategory("Enterprise")]
+        [TestCategory("API"), TestCategory("Trie"), TestCategory("Enterprise")]
         public void EnterpriseTrieAPI_EmptyUserAgent()
         {
             using (var result = _wrapper.Match(String.Empty))
@@ -63,7 +62,7 @@ namespace UnitTests.API.Enterprise
         }
 
         [TestMethod]
-        [TestCategory("API"), TestCategory("Enterprise")]
+        [TestCategory("API"), TestCategory("Trie"), TestCategory("Enterprise")]
         public void EnterpriseTrieAPI_LongUserAgent()
         {
             var userAgent = String.Join(" ", UserAgentGenerator.GetEnumerable(10, 10));
@@ -74,7 +73,7 @@ namespace UnitTests.API.Enterprise
         }
 
         [TestMethod]
-        [TestCategory("API"), TestCategory("Enterprise")]
+        [TestCategory("API"), TestCategory("Trie"), TestCategory("Enterprise")]
         public void EnterpriseTrieAPI_HttpHeaders()
         {
             var headers = new NameValueCollection();
@@ -92,7 +91,7 @@ namespace UnitTests.API.Enterprise
         }
 
         [TestMethod]
-        [TestCategory("API"), TestCategory("Enterprise")]
+        [TestCategory("API"), TestCategory("Trie"), TestCategory("Enterprise")]
         public void EnterpriseTrieAPI_ProviderMemory()
         {
             string properties = "IsMobile,BrowserName,PlatformName";
@@ -101,7 +100,7 @@ namespace UnitTests.API.Enterprise
         }
 
         [TestMethod]
-        [TestCategory("API"), TestCategory("Enterprise")]
+        [TestCategory("API"), TestCategory("Trie"), TestCategory("Enterprise")]
         public void EnterpriseTrieAPI_ProviderMemoryEmptyProperties()
         {
             string properties = "";
@@ -109,9 +108,57 @@ namespace UnitTests.API.Enterprise
             provider.Dispose();
         }
 
+        [TestMethod]
+        [TestCategory("API"), TestCategory("Trie"), TestCategory("Enterprise")]
+        public void EnterpriseTrieAPI_DriftFeature()
+        {
+            using (var provider = CreateWrapper())
+            {
+                TestDrift(provider);
+            }
+        }
+
+        [TestMethod]
+        [TestCategory("API"), TestCategory("Trie"), TestCategory("Enterprise")]
+        public void EnterpriseTrieAPI_InitEmptyPropertiesString()
+        {
+            InitEmptyPropertiesStringTest();
+        }
+
+        [TestMethod]
+        [TestCategory("API"), TestCategory("Trie"), TestCategory("Enterprise")]
+        public void EnterpriseTrieAPI_InitPropertiesString()
+        {
+            InitPropertiesStringTest();
+        }
+
+        [TestMethod]
+        [TestCategory("API"), TestCategory("Trie"), TestCategory("Enterprise")]
+        public void EnterpriseTrieAPI_InitEmptyPropertiesArray()
+        {
+            InitEmptyPropertiesArrayTest();
+        }
+
+        [TestMethod]
+        [TestCategory("API"), TestCategory("Trie"), TestCategory("Enterprise")]
+        public void EnterpriseTrieAPI_InitPropertiesArray()
+        {
+            InitPropertiesArrayTest();
+        }
+
+        [TestMethod]
+        [TestCategory("API"), TestCategory("Trie"), TestCategory("Enterprise")]
+        public void EnterpriseTrieAPI_DifferenceFeature()
+        {
+            using (var provider = CreateWrapper())
+            {
+                TestDifference(provider);
+            }
+        }
+        
         protected override string DataFile
         {
-            get { return Constants.ENTERPRISE_TRIE_V32; }
+            get { return Constants.ENTERPRISE_TRIE_V34; }
         }
     }
 }

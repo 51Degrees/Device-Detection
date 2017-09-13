@@ -58,14 +58,14 @@ namespace FiftyOne.UnitTests.Update.Lite
         [TestCategory("Lite"), TestCategory("Update"), TestCategory("Pattern"), TestCategory("One")]
         public void LiteV32Pattern_Update_File_One()
         {
-            UpdateTest();
+            UpdateTest(ReloadMode.File);
         }
 
         [TestMethod]
         [TestCategory("Lite"), TestCategory("Update"), TestCategory("Pattern"), TestCategory("One")]
         public void LiteV32Pattern_Update_Memory_One()
         {
-            UpdateTest(true);
+            UpdateTest(ReloadMode.Memory);
         }
     }
 }

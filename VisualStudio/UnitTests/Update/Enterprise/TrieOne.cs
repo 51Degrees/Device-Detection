@@ -20,6 +20,7 @@
  * ********************************************************************* */
 
 using Microsoft.VisualStudio.TestTools.UnitTesting;
+using System;
 using System.Collections.Generic;
 
 namespace FiftyOne.UnitTests.Update.Enterprise
@@ -39,7 +40,7 @@ namespace FiftyOne.UnitTests.Update.Enterprise
 
         protected override string DataFile
         {
-            get { return Constants.ENTERPRISE_TRIE_V32; }
+            get { return Constants.ENTERPRISE_TRIE_V34; }
         }
 
         [TestInitialize]
@@ -56,16 +57,24 @@ namespace FiftyOne.UnitTests.Update.Enterprise
 
         [TestMethod]
         [TestCategory("Enterprise"), TestCategory("Update"), TestCategory("Trie"), TestCategory("One")]
-        public void EnterpriseV32Trie_Update_File_One()
+        public void EnterpriseV34Trie_Update_File_One()
         {
-            UpdateTest();
+            UpdateTest(ReloadMode.File);
         }
 
         [TestMethod]
         [TestCategory("Enterprise"), TestCategory("Update"), TestCategory("Trie"), TestCategory("One")]
-        public void EnterpriseV32Trie_Update_Memory_One()
+        public void EnterpriseV34Trie_Update_Memory_One()
         {
-            UpdateTest(true);
+            UpdateTest(ReloadMode.Memory);
+        }
+
+        [TestMethod]
+        [TestCategory("Enterprise"), TestCategory("Update"), TestCategory("Trie"), TestCategory("One")]
+        [ExpectedException(typeof(ApplicationException))]
+        public void EnterpriseV34Trie_Update_Empty_One()
+        {
+            UpdateTestEmpty();
         }
     }
 }

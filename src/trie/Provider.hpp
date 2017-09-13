@@ -41,8 +41,8 @@ using namespace std;
  * can only be initialised once one provider should be created per process.
  *
  * The Provider can be constructed with a cache to improve performance in
- * situations where requets will be repeated for the same User-Agent. The cache
- * has a fixed size in memory and does not grow or shrink over time.
+ * situations where requests will be repeated for the same User-Agent. The 
+ * cache has a fixed size in memory and does not grow or shrink over time.
  *
  * A pool of worksets can be configured to recycle the memory allocated to a
  * previous detection match. In a multi threaded environment the pool size
@@ -71,6 +71,19 @@ class Provider {
         Match* getMatch(const string &userAgent);
         Match* getMatch(const map<string, string> &headers);
 
+		Match* getMatchWithTolerances(
+			const char *userAgent, 
+			int drift, 
+			int difference);
+		Match* getMatchWithTolerances(
+			const string &userAgent, 
+			int drift, 
+			int difference);
+		Match* getMatchWithTolerances(
+			const map<string, string> &headers, 
+			int drift, 
+			int difference);
+
         map<string, vector<string> >& getMatchMap(const char *userAgent);
 		map<string, vector<string> >& getMatchMap(const string &userAgent);
 		map<string, vector<string> >& getMatchMap(
@@ -80,9 +93,14 @@ class Provider {
         string getMatchJson(const string &userAgent);
         string getMatchJson(const map<string, string> &headers);
 
+		void setDrift(int drift);
+		void setDifference(int difference);
+
 		void reloadFromFile();
-		void reloadFromMemory(const char *source, int length);
-		void reloadFromMemory(const string &source, int length);
+		void reloadFromMemory(void *source, int length);
+		void reloadFromMemory(unsigned char source[], int length);
+
+		bool getIsThreadSafe();
 
 		Provider(const string &fileName, const string &propertyString,
 			bool validate);
@@ -106,7 +124,9 @@ class Provider {
 			map<string, vector<string> > *result);
 		void buildArray(int offset, map<string, vector<string> > *result);
 		fiftyoneDegreesDeviceOffsets* matchForHttpHeaders(
-			const map<string, string> *headers);
+			const map<string, string> *headers,
+			int drift,
+			int difference);
 		void initMatch(Match *match);
 
 		int64_t initWithValidate(const string &fileName,

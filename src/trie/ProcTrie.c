@@ -9,7 +9,7 @@ int main(int argc, char* argv[]) {
 	char *result;
 
     if (argc > 1) {
-      char *fileName = argc > 1 ? argv[1] : "../../../data/51Degree-LiteV3.2.trie";
+      char *fileName = argc > 1 ? argv[1] : "../../../data/51Degree-LiteV3.4.trie";
       char *requiredProperties = argc > 2 ? argv[2] : NULL;
       switch(fiftyoneDegreesInitWithPropertyString(fileName, &dataSet, requiredProperties)) {
         case DATA_SET_INIT_STATUS_INSUFFICIENT_MEMORY:

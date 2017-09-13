@@ -820,3 +820,10 @@ int64_t Provider::initWithValidate(
 	// number is an overestimate, and a negative number is an underestimate.
 	return predictedSize - _actualSize;
 }
+
+/**
+*@return true if the implementation is thread safe, otherwise false.
+*/
+bool Provider::getIsThreadSafe() {
+	return fiftyoneDegreesGetIsThreadSafe() == 1;
+}

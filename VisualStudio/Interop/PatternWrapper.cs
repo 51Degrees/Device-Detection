@@ -40,7 +40,7 @@ namespace FiftyOne.Mobile.Detection.Provider.Interop
         #region Fields
 
         /// <summary>
-        /// Insance of a class wrapping the unmanaged dataset.
+        /// Instance of a class wrapping the unmanaged dataset.
         /// </summary>
         private readonly Pattern.Provider _provider;
 
@@ -225,8 +225,21 @@ namespace FiftyOne.Mobile.Detection.Provider.Interop
         /// </summary>
         public void ReloadFromMemory()
         {
-            byte[] bytes = File.ReadAllBytes(_fileName);
-            _provider.reloadFromMemory(bytes.ToString(), bytes.GetLength(0));
+            ReloadFromMemory(File.ReadAllBytes(_fileName));
+        }
+
+        /// <summary>
+        /// Makes a copy of the byte array provided for use with the reloaded
+        /// data set within the provider.
+        /// </summary>
+        /// <param name="original">Uncompressed array of new device data</param>
+        public unsafe void ReloadFromMemory(byte[] original)
+        {
+            fixed (byte* ptr = original)
+            {
+                //var swigPtr = new SWIGTYPE_p_unsigned_char((IntPtr)ptr, false);
+                //_provider.reloadFromMemory(swigPtr, original.Length);
+            }
         }
 
         /// <summary>
@@ -243,7 +256,7 @@ namespace FiftyOne.Mobile.Detection.Provider.Interop
 
         /// <summary>
         /// Returns the number of times the cache fetch has not found what it
-        /// is looking for. The cache fetch funciton is called a second time
+        /// is looking for. The cache fetch function is called a second time
         /// to insert a value that was not found.
         /// </summary>
         public int CacheMisses
@@ -251,6 +264,39 @@ namespace FiftyOne.Mobile.Detection.Provider.Interop
             get
             {
                 return _provider.getCacheMisses();
+            }
+        }
+
+        /// <summary>
+        /// Sets the drift value to use when searching for hash codes.
+        /// </summary>
+        public int Drift
+        {
+            set
+            {
+                throw new NotImplementedException();
+            }
+        }
+
+        /// <summary>
+        /// Sets the difference value to use when searching for hash codes.
+        /// </summary>
+        public int Difference
+        {
+            set
+            {
+                throw new NotImplementedException();
+            }
+        }
+
+        /// <summary>
+        /// True if the provider is thread safe otherwise false.
+        /// </summary>
+        public bool IsThreadSafe
+        {
+            get
+            {
+                return _provider.getIsThreadSafe();
             }
         }
 

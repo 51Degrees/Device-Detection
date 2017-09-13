@@ -20,6 +20,7 @@
  ********************************************************************** */
 
 #include "Provider.hpp"
+#include <memory.h>
 
 using namespace std;
 
@@ -55,7 +56,8 @@ Provider::Provider(const string &fileName) {
  * Only one Provider can be created per process.
  *
  * @param fileName of the data source
- * @param propertyString contains comma seperated property names to be available
+ * @param propertyString contains comma seperated property names to be
+ *                       available
  * to query from associated match results.
  */
 Provider::Provider(const string &fileName, const string &propertyString) {
@@ -145,7 +147,8 @@ void Provider::init(const string &fileName) {
 /**
  * Initialises the Provider.
  * @param fileName of the data source
- * @param propertyString contains comma seperated property names to be available
+ * @param propertyString contains comma seperated property names to be
+ *                       available
  * to query from associated match results.
  */
 void Provider::init(const string &fileName, const string &propertyString) {
@@ -198,18 +201,21 @@ void Provider::initComplete(
 }
 
 /**
- * Populates the httpHeaders vectors for the Provider. The HTTP_HEADERS_PREFIXED
- * definition can be used to force the Provider to use HTTP_ prefixed upper
- * case header name keys. Perl and PHP are examples of such languages where this
- * directive is required.
+ * Populates the httpHeaders vectors for the Provider. The
+ * HTTP_HEADERS_PREFIXED definition can be used to force the Provider to use
+ * HTTP_ prefixed upper case header name keys. Perl and PHP are examples of
+ * such languages where this directive is required.
  */
 void Provider::initHttpHeaders() {
 	for (int httpHeaderIndex = 0;
-		httpHeaderIndex < fiftyoneDegreesGetHttpHeaderCount(provider.active->dataSet);
+		httpHeaderIndex <
+		fiftyoneDegreesGetHttpHeaderCount(provider.active->dataSet);
 		httpHeaderIndex++) {
         httpHeaders.insert(
             httpHeaders.end(),
-			string(GET_HTTP_HEADER_NAME(provider.active->dataSet, httpHeaderIndex)));
+			string(GET_HTTP_HEADER_NAME(
+				provider.active->dataSet,
+				httpHeaderIndex)));
 	}
 }
 
@@ -222,10 +228,11 @@ void Provider::initHttpHeaders() {
 void Provider::initAvailableproperties() {
 	const char *propertyName;
     for (int requiredPropetyIndex = 0;
-		requiredPropetyIndex < fiftyoneDegreesGetRequiredPropertiesCount(provider.active->dataSet);
+		requiredPropetyIndex <
+		fiftyoneDegreesGetRequiredPropertiesCount(provider.active->dataSet);
         requiredPropetyIndex++) {
-		propertyName = fiftyoneDegreesGetRequiredPropertiesNames(provider.active->dataSet)[
-        	requiredPropetyIndex];
+		propertyName = fiftyoneDegreesGetRequiredPropertiesNames(
+			provider.active->dataSet)[requiredPropetyIndex];
         availableProperties.insert(
             availableProperties.end(),
             string(propertyName));
@@ -248,13 +255,12 @@ vector<string> Provider::getAvailableProperties() {
 }
 
 /**
- * @returns the name of the data set used contained in the source file. Always
- * returns "Trie".
+ * @returns the name of the data set used contained in the source file.
  */
 string Provider::getDataSetName() {
-    string result;
-    result.assign("Trie");
-    return result;
+    stringstream stream;
+	stream << fiftyoneDegreesGetDataSetName(provider.active->dataSet);
+    return stream.str();
 }
 
 /**
@@ -262,20 +268,19 @@ string Provider::getDataSetName() {
  */
 string Provider::getDataSetFormat() {
 	stringstream stream;
-	stream << *provider.active->dataSet->version;
+	stream << fiftyoneDegreesGetDataSetFormat(provider.active->dataSet);
 	return stream.str();
 }
 
 /**
- * TODO - Adds this meta data to the next version of the Trie data file.
  * @returns the date that 51Degrees published the data file.
  */
 string Provider::getDataSetPublishedDate() {
     stringstream stream;
-    stream << 2015 << "-"
-        << 1 << "-"
-        << 1;
-    return stream.str();
+	stream << provider.active->dataSet->header.published.year << "-"
+		<< (int)provider.active->dataSet->header.published.month << "-"
+		<< (int)provider.active->dataSet->header.published.day;
+	return stream.str();
 }
 
 /**
@@ -283,9 +288,9 @@ string Provider::getDataSetPublishedDate() {
  */
 string Provider::getDataSetNextUpdateDate() {
     stringstream stream;
-    stream << 2015 << "-"
-        << 1 << "-"
-        << 1;
+	stream << provider.active->dataSet->header.nextUpdate.year << "-"
+		<< (int)provider.active->dataSet->header.nextUpdate.month << "-"
+		<< (int)provider.active->dataSet->header.nextUpdate.day;
     return stream.str();
 }
 
@@ -311,23 +316,30 @@ int Provider::getDataSetDeviceCombinations() {
  * @returns a fresh DeviceOffsets structure set for the headers provided
  */
 fiftyoneDegreesDeviceOffsets* Provider::matchForHttpHeaders(
-		const map<string, string> *headers) {
+		const map<string, string> *headers,
+		int drift,
+		int difference) {
 	int headerIndex = 0;
-	fiftyoneDegreesDeviceOffsets* offsets = fiftyoneDegreesProviderCreateDeviceOffsets(&provider);
-	const char *httpHeaderName = GET_HTTP_HEADER_NAME(provider.active->dataSet, headerIndex);
+	fiftyoneDegreesDeviceOffsets* offsets =
+		fiftyoneDegreesProviderCreateDeviceOffsets(&provider);
+	const char *httpHeaderName =
+		GET_HTTP_HEADER_NAME(provider.active->dataSet, headerIndex);
 	while (httpHeaderName != NULL) {
 		map<string, string>::const_iterator httpHeaderValue =
 			headers->find(string(httpHeaderName));
 		if (httpHeaderValue != headers->end()) {
-			fiftyoneDegreesSetDeviceOffset(
+			fiftyoneDegreesSetDeviceOffsetWithTolerances(
 				provider.active->dataSet,
 				httpHeaderValue->second.c_str(),
 				headerIndex,
-				&offsets->firstOffset[offsets->size]);
+				&offsets->firstOffset[offsets->size],
+				drift,
+				difference);
             offsets->size++;
 		}
 		headerIndex++;
-		httpHeaderName = GET_HTTP_HEADER_NAME(provider.active->dataSet, headerIndex);
+		httpHeaderName =
+			GET_HTTP_HEADER_NAME(provider.active->dataSet, headerIndex);
 	}
 	return offsets;
 }
@@ -345,7 +357,8 @@ void Provider::buildArray(
 	int requiredPropertyIndex;
 	string *propertyName;
 	for (requiredPropertyIndex = 0;
-		requiredPropertyIndex < fiftyoneDegreesGetRequiredPropertiesCount(provider.active->dataSet);
+		requiredPropertyIndex <
+		fiftyoneDegreesGetRequiredPropertiesCount(provider.active->dataSet);
         requiredPropertyIndex++) {
         const char *value = fiftyoneDegreesGetValuePtrFromOffsets(
 			provider.active->dataSet,
@@ -353,8 +366,8 @@ void Provider::buildArray(
         	requiredPropertyIndex);
         if (value != NULL) {
             propertyName = new string(
-				fiftyoneDegreesGetRequiredPropertiesNames(provider.active->dataSet)[
-            		requiredPropertyIndex]);
+				fiftyoneDegreesGetRequiredPropertiesNames(
+					provider.active->dataSet)[requiredPropertyIndex]);
             vector<string> *values = &(result->operator[](*propertyName));
             values->insert(values->begin(), string(value));
         }
@@ -371,7 +384,8 @@ void Provider::buildArray(int offset, map<string, vector<string> > *result) {
 	int requiredPropertyIndex;
 	string *propertyName;
 	for (requiredPropertyIndex = 0;
-		requiredPropertyIndex < fiftyoneDegreesGetRequiredPropertiesCount(provider.active->dataSet);
+		requiredPropertyIndex <
+		fiftyoneDegreesGetRequiredPropertiesCount(provider.active->dataSet);
         requiredPropertyIndex++) {
         const char *value = fiftyoneDegreesGetValue(
 			provider.active->dataSet,
@@ -379,8 +393,8 @@ void Provider::buildArray(int offset, map<string, vector<string> > *result) {
         	requiredPropertyIndex);
         if (value != NULL) {
             propertyName = new string(
-				fiftyoneDegreesGetRequiredPropertiesNames(provider.active->dataSet)[
-            		requiredPropertyIndex]);
+				fiftyoneDegreesGetRequiredPropertiesNames(
+					provider.active->dataSet)[requiredPropertyIndex]);
             vector<string> *values = &(result->operator[](*propertyName));
             values->insert(values->begin(), string(value));
         }
@@ -390,38 +404,89 @@ void Provider::buildArray(int offset, map<string, vector<string> > *result) {
 void Provider::initMatch(Match *match) {
 	match->dataSet = match->offsets->active->dataSet;
 }
+
 /**
- * Completes device detection for the User-Agent provided.
- * @param User-Agent whose results need to be obtained
- * @returns new Match instance configured to provide access to the results
- */
-Match* Provider::getMatch(const char* userAgent) {
-	fiftyoneDegreesDeviceOffsets* offsets = fiftyoneDegreesProviderCreateDeviceOffsets(&provider);
+* Completes device detection for the User-Agent provided.
+* @param User-Agent whose results need to be obtained
+* @param drift to extend the search range by.
+* @param difference to allow in hash values.
+* @returns new Match instance configured to provide access to the results
+*/
+Match* Provider::getMatchWithTolerances(
+	const char* userAgent,
+	int drift,
+	int difference) {
+	fiftyoneDegreesDeviceOffsets* offsets =
+		fiftyoneDegreesProviderCreateDeviceOffsets(&provider);
 	offsets->size = 1;
-	fiftyoneDegreesSetDeviceOffset(provider.active->dataSet, userAgent, 0, offsets->firstOffset);
-    Match *result = new Match(offsets);
+	fiftyoneDegreesSetDeviceOffsetWithTolerances(
+		provider.active->dataSet,
+		userAgent,
+		0,
+		offsets->firstOffset,
+		drift,
+		difference);
+	Match *result = new Match(offsets);
 	initMatch(result);
 	return result;
 }
 
 /**
- * Completes device detection for the User-Agent provided.
- * @param User-Agent whose results need to be obtained
- * @returns new Match instance configured to provide access to the results
- */
+* Completes device detection for the User-Agent provided.
+* @param User-Agent whose results need to be obtained
+* @param drift to extend the search range by.
+* @param difference to allow in hash values.
+* @returns new Match instance configured to provide access to the results
+*/
+Match* Provider::getMatchWithTolerances(
+	const string& userAgent,
+	int drift, int
+	difference) {
+	return getMatchWithTolerances(userAgent.c_str(), drift, difference);
+}
+
+/**
+* Completes device detection for the User-Agent provided.
+* @param headers HTTP headers to use to detect the device and return a match
+* @param drift to extend the search range by.
+* @param difference to allow in hash values.
+* @returns new Match instance configured to provide access to the results
+*/
+Match* Provider::getMatchWithTolerances(
+	const map<string, string>& headers,
+	int drift,
+	int difference) {
+	Match *result = new Match(matchForHttpHeaders(&headers, drift, difference));
+	initMatch(result);
+	return result;
+}
+
+
+/**
+* Completes device detection for the User-Agent provided.
+* @param User-Agent whose results need to be obtained
+* @returns new Match instance configured to provide access to the results
+*/
+Match* Provider::getMatch(const char* userAgent) {
+	return getMatchWithTolerances(userAgent, 0, 0);
+}
+
+/**
+* Completes device detection for the User-Agent provided.
+* @param User-Agent whose results need to be obtained
+* @returns new Match instance configured to provide access to the results
+*/
 Match* Provider::getMatch(const string& userAgent) {
-    return getMatch(userAgent.c_str());
+	return getMatch(userAgent.c_str());
 }
 
 /**
- * Completes device detection for the User-Agent provided.
- * @param headers HTTP headers to use to detect the device and return a match
- * @returns new Match instance configured to provide access to the results
- */
+* Completes device detection for the User-Agent provided.
+* @param headers HTTP headers to use to detect the device and return a match
+* @returns new Match instance configured to provide access to the results
+*/
 Match* Provider::getMatch(const map<string, string>& headers) {
-    Match *result =  new Match(matchForHttpHeaders(&headers));
-	initMatch(result);
-	return result;
+	return getMatchWithTolerances(headers, 0, 0);
 }
 
 /**
@@ -431,7 +496,9 @@ Match* Provider::getMatch(const map<string, string>& headers) {
  */
 map<string, vector<string> >& Provider::getMatchMap(const char *userAgent) {
 	map<string, vector<string> > *result = new map<string, vector<string> >();
-	buildArray(fiftyoneDegreesGetDeviceOffset(provider.active->dataSet, userAgent), result);
+	buildArray(
+		fiftyoneDegreesGetDeviceOffset(provider.active->dataSet, userAgent),
+		result);
 	return *result;
 }
 
@@ -452,7 +519,7 @@ map<string, vector<string> >& Provider::getMatchMap(const string &userAgent) {
 map<string, vector<string> >& Provider::getMatchMap(
 		const map<string, string> &headers) {
 	map<string, vector<string> > *result = new map<string, vector<string> >();
-	fiftyoneDegreesDeviceOffsets *offsets = matchForHttpHeaders(&headers);
+	fiftyoneDegreesDeviceOffsets *offsets = matchForHttpHeaders(&headers, 0, 0);
 	buildArray(offsets, result);
 	delete offsets->firstOffset;
 	delete offsets;
@@ -495,7 +562,7 @@ string Provider::getMatchJson(const string& userAgent) {
 string Provider::getMatchJson(const map<string, string>& headers) {
 	string result;
 	char *json = new char[JSON_BUFFER_LENGTH];
-    fiftyoneDegreesDeviceOffsets *offsets = matchForHttpHeaders(&headers);
+    fiftyoneDegreesDeviceOffsets *offsets = matchForHttpHeaders(&headers, 0, 0);
     fiftyoneDegreesProcessDeviceOffsetsJSON(
 		provider.active->dataSet,
         offsets,
@@ -507,6 +574,31 @@ string Provider::getMatchJson(const map<string, string>& headers) {
 }
 
 /**
+* Sets the drift parameter for detection. By default, the drift is set to
+* zero. The drift parameter indicates how much the range is extended when
+* searching for a substring in a User-Agent. For example, if the drift is
+* set to one, then in addition to searching in the range first to last,
+* the range is extended to (first - 1) and (last + 1).
+* @param drift value of drift to set.
+*/
+void Provider::setDrift(int drift) {
+	fiftyoneDegreesSetDrift(&provider, drift);
+}
+
+/**
+* Sets the difference parameter for detection. By default, the difference is
+* set to zero. The difference parameter indicates the allowed difference in
+* hash value. This is most useful for the last character of a sub string, as
+* the sub string's hash code will be changed only be the change in ASCII value
+* of the final character. For example, if "Chrome 51" has the hash code 1234,
+* then "Chrome 52" will have the hash code 1235.
+* @param difference value of difference to set.
+*/
+void Provider::setDifference(int difference) {
+	fiftyoneDegreesSetDifference(&provider, difference);
+}
+
+/**
 * Initiates the data set reload process from the same file location that was
 * used to create the current dataset. New dataset will be initialised with
 * exactly the same set of properties.
@@ -514,7 +606,11 @@ string Provider::getMatchJson(const map<string, string>& headers) {
 * Function is not thread safe.
 */
 void Provider::reloadFromFile() {
-	fiftyoneDegreesProviderReloadFromFile(&provider);
+	fiftyoneDegreesDataSetInitStatus initStatus = 
+		fiftyoneDegreesProviderReloadFromFile(&provider);
+	if (initStatus != DATA_SET_INIT_STATUS_SUCCESS) {
+		initException(initStatus, provider.active->dataSet->fileName);
+	}
 }
 
 /**
@@ -525,22 +621,67 @@ void Provider::reloadFromFile() {
 * @param source pointer to the dataset in memory.
 * @param length of the dataset in memory.
 */
-void Provider::reloadFromMemory(const char *source, int length) {
-	fiftyoneDegreesProviderReloadFromMemory(&provider, (void*)source, (long)length);
+#ifdef FIFTYONEDEGREES_INDIRECT
+#pragma warning(disable: 4100) 
+#endif
+void Provider::reloadFromMemory(void *source, int length) {
+#ifdef FIFTYONEDEGREES_INDIRECT
+	throw runtime_error("Reload from memory not supported with indirect "
+		"operation.");
+#else
+	fiftyoneDegreesDataSetInitStatus initStatus =
+		fiftyoneDegreesProviderReloadFromMemory(
+			&provider,
+			source,
+			(long)length);
+	if (initStatus != DATA_SET_INIT_STATUS_SUCCESS) {
+		initException(initStatus, provider.active->dataSet->fileName);
+	}
+#endif
 }
+#ifdef FIFTYONEDEGREES_INDIRECT
+#pragma warning(default: 4100) 
+#endif
 
 /**
-* Initiates the data set reload process from the memory location supplied.
-* New dataset will be initialised with exactly the same set of properties.
-*
-* Function is not thread safe.
-* @param source pointer to the dataset in memory.
-* @param length of the dataset in memory.
-*/
-void Provider::reloadFromMemory(const string &source, int length) {
-	reloadFromMemory(source.c_str(), length);
-}
+ * Initiates the data set reload process by copying the memory location
+ * supplied. This is done because the calling language is unlikely to be able
+ * to pin a byte array in memory for longer than the duration of the call to 
+ * this method. The provider is the responsible for freeing the copy of the
+ * original when it is disposed of.
+ * New dataset will be initialised with exactly the same set of properties.
+ *
+ * Function is not thread safe.
+ * @param original pointer to the dataset in memory.
+ * @param length of the dataset in memory.
+ */
+#ifdef FIFTYONEDEGREES_INDIRECT
+#pragma warning(disable: 4100) 
+#endif
+void Provider::reloadFromMemory(unsigned char original[], int length) {
+#ifndef FIFTYONEDEGREES_INDIRECT
+	unsigned char *copy = new unsigned char[length];
+	if (copy == memcpy(copy, original, length)) {
+		reloadFromMemory((void*)copy, length);
 
+		// Unlike the companion method which takes a void pointer this version
+		// needs to tell the data set release mechanism to free the memory
+		// allocated in this method when the new data set is disposed of.
+		provider.active->dataSet->memoryToFree = copy;
+	}
+	else {
+		initException(
+			DATA_SET_INIT_STATUS_INSUFFICIENT_MEMORY,
+			provider.active->dataSet->fileName);
+	}
+#else
+	throw runtime_error("Reload from memory not supported with indirect "
+						"operation.");
+#endif
+}
+#ifdef FIFTYONEDEGREES_INDIRECT
+#pragma warning(default: 4100)
+#endif
 
 // The section below is entirely for testing purposes and is not written
 // for use in a production environment.
@@ -581,8 +722,8 @@ Provider::Provider(
 
 	if (validate == true)
 	{
-		// Get the difference between the calculated memory needed and the actual
-		// memory userd.
+		// Get the difference between the calculated memory needed and the
+		// actual memory userd.
 		difference = initWithValidate(fileName, propertyString);
 
 		// If the calculated memory is less than the actual memory then throw
@@ -623,7 +764,9 @@ int64_t Provider::initWithValidate(
 
 	// Use the getProviderSize function to get the predicted size that the
 	// provider will need.
-	predictedSize = (int64_t)fiftyoneDegreesGetProviderSizeWithPropertyString(fileName.c_str(), propertyString.c_str());
+	predictedSize = (int64_t)fiftyoneDegreesGetProviderSizeWithPropertyString(
+		fileName.c_str(),
+		propertyString.c_str());
 
 	// Set the malloc function to use the function that increments _actualSize
 	// by the amount being allocated.
@@ -641,4 +784,11 @@ int64_t Provider::initWithValidate(
 	// Return the difference between the predicted and actual sizes. A positive
 	// number is an overestimate, and a negative number is an underestimate.
 	return predictedSize - _actualSize;
+}
+
+/**
+ *@return true if the implementation is thread safe, otherwise false.
+ */
+bool Provider::getIsThreadSafe() {
+	return fiftyoneDegreesGetIsThreadSafe() == 1;
 }

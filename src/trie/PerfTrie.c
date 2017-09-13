@@ -1,9 +1,12 @@
-﻿#include <stdlib.h>
+#include <stdlib.h>
 #include <stdio.h>
 #include <time.h>
 #include <string.h>
 #include <limits.h>
 #include "51Degrees.h"
+#ifdef _MSC_VER
+#include <windows.h>
+#endif
 
 /* *********************************************************************
 * This Source Code Form is copyright of 51Degrees Mobile Experts Limited.
@@ -55,14 +58,15 @@
 
 // Used to control multi threaded performance.
 typedef struct t_performance_state {
-	char* fileName;
-	int calibrate;
+	char **userAgents;
+	int userAgentsCount;
 #ifndef FIFTYONEDEGREES_NO_THREADING
 	FIFTYONEDEGREES_MUTEX lock;
 #endif
 	int count;
 	int progress;
 	int max;
+	int calibration;
 	int numberOfThreads;
 } PERFORMANCE_STATE;
 
@@ -85,7 +89,11 @@ void printLoadBar(PERFORMANCE_STATE *state) {
 	printf("]");
 }
 
-void reportProgress(PERFORMANCE_STATE *perfState, int count, int device, int propertyIndex) {
+void reportProgress(
+	PERFORMANCE_STATE *perfState,
+	int count,
+	int device,
+	int propertyIndex) {
 
 #ifndef FIFTYONEDEGREES_NO_THREADING
 	// Lock the state whilst the counters are updated.
@@ -100,8 +108,10 @@ void reportProgress(PERFORMANCE_STATE *perfState, int count, int device, int pro
 
 	// If in real detection mode then print the id of the device found
 	// to prove it's actually doing something!
-	if (perfState->calibrate == 0) {
-		printf(" %s  ", fiftyoneDegreesGetValue(&dataSet, device, propertyIndex));
+	if (perfState->calibration == 0)
+	{
+		printf(" %s  ",
+			fiftyoneDegreesGetValue(&dataSet, device, propertyIndex));
 	}
 
 #ifndef FIFTYONEDEGREES_NO_THREADING
@@ -113,20 +123,17 @@ void reportProgress(PERFORMANCE_STATE *perfState, int count, int device, int pro
 void runPerformanceTest(void* state) {
 	PERFORMANCE_STATE *perfState = (PERFORMANCE_STATE*)state;
 	const char *result;
-	char userAgent[BUFFER];
 	int device = INT_MAX;
 	int propertyIndex = fiftyoneDegreesGetPropertyIndex(&dataSet, "Id");
-	FILE *inputFilePtr = fopen(perfState->fileName, "r");
 	int count = 0;
+	int userAgentIndex = 0;
 
-    // Get the next character from the input.
-    result = fgets(userAgent, BUFFER, inputFilePtr);
-
-	while(result != NULL && !feof(inputFilePtr)) {
+	while(userAgentIndex < perfState->userAgentsCount) {
+		char *userAgent = perfState->userAgents[userAgentIndex];
 
 		// If we're not calibrating then get the device for the
 		// useragent that has just been read.
-		if (strlen(userAgent) < 1024 && perfState->calibrate == 0) {
+		if (strlen(userAgent) < 1024 && perfState->calibration == 0) {
 			device = fiftyoneDegreesGetDeviceOffset(&dataSet, userAgent);
 		}
 
@@ -142,11 +149,9 @@ void runPerformanceTest(void* state) {
 			count = 0;
 		}
 
-		// Get the next character from the input.
-        result = fgets(userAgent, BUFFER, inputFilePtr);
+		// Get the next User-Agent from the input.
+		userAgentIndex++;
 	}
-
-	fclose(inputFilePtr);
 
 	// Finally report progress.
 	reportProgress(perfState, count, device, propertyIndex);
@@ -161,7 +166,9 @@ void runPerformanceTest(void* state) {
 // are performed.
 void performanceTest(PERFORMANCE_STATE *state) {
 #ifndef FIFTYONEDEGREES_NO_THREADING
-	FIFTYONEDEGREES_THREAD *threads = (FIFTYONEDEGREES_THREAD*)malloc(sizeof(FIFTYONEDEGREES_THREAD) * state->numberOfThreads);
+	FIFTYONEDEGREES_THREAD *threads =
+		(FIFTYONEDEGREES_THREAD*)malloc(
+			sizeof(FIFTYONEDEGREES_THREAD) * state->numberOfThreads);
 	int thread;
 	FIFTYONEDEGREES_MUTEX_CREATE(state->lock);
 #endif
@@ -170,7 +177,9 @@ void performanceTest(PERFORMANCE_STATE *state) {
 #ifndef FIFTYONEDEGREES_NO_THREADING
 	// Create the threads.
 	for (thread = 0; thread < state->numberOfThreads; thread++) {
-		FIFTYONEDEGREES_THREAD_CREATE(threads[thread], (void*)&runPerformanceTest, state);
+		FIFTYONEDEGREES_THREAD_CREATE(
+			threads[thread],
+			(void*)&runPerformanceTest, state);
 	}
 
 	// Wait for them to finish.
@@ -191,56 +200,135 @@ void performanceTest(PERFORMANCE_STATE *state) {
 // Perform the test and return the average time.
 double performTest(PERFORMANCE_STATE *state, int passes, char *test) {
 	int pass;
-	time_t start, end;
+#ifdef _MSC_VER
+	double start, end;
+#else
+	struct timespec start, end;
+#endif
 	fflush(stdout);
 
 	// Set the progress indicator.
 	state->progress = (state->max > 0 ? state->max : INT_MAX) / PROGRESS_MARKS;
 
 	// Perform a number of passes of the test.
-	time(&start);
+#ifdef _MSC_VER
+	start = GetTickCount();
+#else
+	clock_gettime(CLOCK_MONOTONIC_RAW, &start);
+#endif
 	for (pass = 1; pass <= passes; pass++) {
 		printf("%s pass %i of %i: \n\n", test, pass, passes);
 		performanceTest(state);
 	}
-	time(&end);
-	return difftime(end, start) / (double)passes;
+#ifdef _MSC_VER
+	end = GetTickCount();
+	return (end - start) / 1000 / (double)passes;
+#else
+	clock_gettime(CLOCK_MONOTONIC_RAW, &end);
+	return ((end.tv_sec - start.tv_sec) +
+		(end.tv_nsec - start.tv_nsec) / 1.0e9) / (double)passes;
+#endif
+}
+
+int getUserAgentsCount(FILE *fp) {
+	int count = 0;
+	const char *result;
+	char userAgent[BUFFER];
+
+	result = fgets(userAgent, BUFFER, fp);
+
+	// Count the number of User-Agents that are of an acceptable length.
+	while (result != NULL && !feof(fp))
+	{
+		if (strlen(userAgent) < 1024)
+		{
+			count++;
+		}
+		result = fgets(userAgent, BUFFER, fp);
+	}
+	return count;
+}
+
+void buildUserAgentsArray(char **array, FILE *fp) {
+	int count = 0;
+	const char *result;
+	char userAgent[BUFFER];
+
+	result = fgets(userAgent, BUFFER, fp);
+
+	while (result != NULL && !feof(fp))
+	{
+		if (strlen(userAgent) < 1024)
+		{
+			// The User-Agent is an acceptable length, so allocate some memory
+			// and store the string in the array.
+			array[count] = (char*)malloc(sizeof(char*) * strlen(userAgent) + 1);
+			strcpy(array[count], userAgent);
+			count++;
+		}
+		result = fgets(userAgent, BUFFER, fp);
+	}
+}
+
+void freeArray(PERFORMANCE_STATE *state) {
+	int i;
+	for (i = 0; i < state->userAgentsCount; i++)
+	{
+		free(state->userAgents[i]);
+	}
+	free(state->userAgents);
 }
 
 // Performance test.
 void performance(char *fileName) {
 	PERFORMANCE_STATE state;
-	double totalSec, calibration, test;
+	double totalSec, test, calibration;
 	int memoryUsed;
 
-	state.max = 0;
-	state.fileName = fileName;
-	state.calibrate = 1;
+	// Read the User-Agents into an array.
+	FILE *fp = fopen(fileName, "r");
+	state.userAgentsCount = getUserAgentsCount(fp);
+	state.userAgents = (char**)malloc(sizeof(char**) * state.userAgentsCount);
+	fseek(fp, 0, SEEK_SET);
+	buildUserAgentsArray(state.userAgents, fp);
+	fclose(fp);
 
-	// Get the number of records in the data file and also
-	// get it loaded into any available disk cache.
+	// Get the number of records so the progress bar prints nicely.
+	state.max = 0;
 	state.numberOfThreads = 1;
+	state.calibration = 1;
 	performTest(&state, 1, "Caching Data");
+	
 	state.numberOfThreads = THREAD_COUNT;
 	state.max = state.count * state.numberOfThreads;
-
-	// Process the data file doing all tasks except detecting
-	// the device.
-	calibration = performTest(&state, PASSES, "Calibrate"),
+	
+	// Run the process without doing any detections to get a
+	// calibration time.
+	calibration = performTest(&state, PASSES, "Calibration");
 
 	// Process the data file doing the device detection.
-	state.calibrate = 0;
+	
+	state.calibration = 0;
 	test = performTest(&state, PASSES, "Detection test");
 
 	// Get the memory needed for a provider.
-	memoryUsed = (int)fiftyoneDegreesGetProviderSizeWithPropertyCount(dataSet.fileName, dataSet.requiredPropertiesCount);
+	memoryUsed = (int)fiftyoneDegreesGetProviderSizeWithPropertyCount(
+		dataSet.fileName,
+		dataSet.requiredProperties.count);
 	memoryUsed = memoryUsed / 1048576;
 
 	// Time to complete.
 	totalSec = test - calibration;
-	printf("Average detection time for total data set: %.2fs\n", totalSec);
-	printf("Average number of detections per second: %.0f\n", (double)state.max / totalSec);
-	printf("Memory used by a provider initialised with the given arguments: %d Mb\n", memoryUsed);
+	printf("Average detection time for total data set per CPU core: %.2fs\n",
+		totalSec);
+	printf("Average number of detections per second: %.0f\n",
+		(double)state.count / totalSec);
+	printf("Memory used by a provider initialised with "
+		"the given arguments: %d Mb\n",
+		memoryUsed);
+
+	// Free the array;
+	freeArray(&state);
 }
 
 // Reduces a file path to file name only.
@@ -287,19 +375,35 @@ int main(int argc, char* argv[]) {
 
 	if (argc > 2) {
 
-		char *fileName = argc > 1 ? argv[1] : "../../../data/51Degrees-LiteV3.2.trie";
-		char* inputFile = argc > 2 ? argv[2] : "../../../data/20000 User Agents.csv";
-		char *requiredProperties = argc > 3 ? argv[3] : NULL;
-
+		char *fileName =
+			argc > 1 ? argv[1] : "../../../data/51Degrees-LiteV3.4.trie";
+		char* inputFile =
+			argc > 2 ? argv[2] : "../../../data/20000 User Agents.csv";
+		char *requiredPropertiesArg = argc > 3 ? argv[3] : "";
+		char *requiredProperties;
 		// Memory leak detection code.
 #ifdef _DEBUG
 #ifndef _MSC_VER
 		dmalloc_debug_setup("log-stats,log-non-free,check-fence,log=dmalloc.log");
 #endif
+		_CrtSetReportMode(_CRT_WARN, _CRTDBG_MODE_FILE);
+		_CrtSetReportFile(_CRT_WARN, _CRTDBG_FILE_STDERR);
 #endif
-
+		if (strstr(requiredPropertiesArg, "Id") == NULL)
+		{
+			requiredProperties = (char*)
+				malloc((strlen(requiredPropertiesArg) + 4) * sizeof(char));
+			sprintf(requiredProperties, "%s,Id", requiredPropertiesArg);
+		}
+		else
+		{
+			requiredProperties = requiredPropertiesArg;
+		}
 		fiftyoneDegreesDataSetInitStatus status = DATA_SET_INIT_STATUS_SUCCESS;
-		status = fiftyoneDegreesInitWithPropertyString(fileName, &dataSet, requiredProperties);
+		status = fiftyoneDegreesInitWithPropertyString(
+			fileName,
+			&dataSet,
+			requiredProperties);
 		switch (status) {
 		case DATA_SET_INIT_STATUS_INSUFFICIENT_MEMORY:
 			printf("Insufficient memory to load '%s'.", argv[1]);
@@ -328,23 +432,28 @@ int main(int argc, char* argv[]) {
 			break;
 		}
 
+		if (requiredProperties != requiredPropertiesArg) {
+			free(requiredProperties);
+		}
+
 		// Free the memory used by the trie detector.
 		fiftyoneDegreesDataSetFree(&dataSet);
+
+#ifdef _DEBUG
+#ifdef _MSC_VER
+		_CrtDumpMemoryLeaks();
+#else
+		printf("Log file is %s\r\n", dmalloc_logpath);
+#endif
+#endif
 
 		// Wait for a character to be pressed.
 		fgetc(stdin);
 	}
 	else {
-		printf("Not enough arguments supplied. Expecting: path/to/trie_file path/to/test_file property1,property2(optional)\n");
+		printf("Not enough arguments supplied. Expecting: path/to/trie_file "
+			"path/to/test_file property1,property2(optional)\n");
 	}
-
-#ifdef _DEBUG
-#ifdef _MSC_VER
-	_CrtDumpMemoryLeaks();
-#else
-	printf("Log file is %s\r\n", dmalloc_logpath);
-#endif
-#endif
 
 	return 0;
 }

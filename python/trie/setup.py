@@ -61,7 +61,7 @@ setup(
     cmdclass={'build_ext': build_ext},
     packages=find_packages(),
     include_package_data=True,
-    data_files=[(os.path.expanduser('~/51Degrees'), ['data/51Degrees-LiteV3.2.trie'])],
+    data_files=[(os.path.expanduser('~/51Degrees'), ['data/51Degrees-LiteV3.4.trie'])],
     ext_modules=[
         Extension('_fiftyone_degrees_mobile_detector_v3_trie_wrapper',
             sources=[

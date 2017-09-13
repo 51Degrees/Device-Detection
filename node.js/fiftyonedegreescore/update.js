@@ -119,21 +119,11 @@ module.exports = function (provider, FOD) {
     else if (provider.getDataSetName().indexOf('Enterprise') !== -1) {
         product = 'Enterprise';
     }
-    else if (provider.getDataSetName().indexOf('Trie') !== -1) {
-        // Trie data file does not contain the product name, so use
-        // the file name instead.
-        if (provider.config.fileName.indexOf('Premium') !== -1) {
-            product = 'Premium';
-        }
-        else if (provider.config.fileName.indexOf('Enterprise') !== -1) {
-            product = 'Enterprise';
-        }
-        else {
-            FOD.log.emit('info', '[' + provider.Id + '] ' + 'Lite data file does not support automatic' + ' updates. See https://51degrees.com/compare-data-' + 'options for more information.');
-        }
-    }
+    else if (provider.getDataSetName().indexOf('Lite') !== -1 && provider.getDataSetFormat().indexOf('HashTrieV34') !== -1) {
+        product = 'Lite';
+	}
     else {
-        FOD.log.emit('info', '[' + provider.Id + '] ' + 'Lite data file does not support automatic' + ' updates. See https://51degrees.com/compare-data-' + 'options for more information.');
+        FOD.log.emit('info', '[' + provider.Id + '] ' + 'Lite Pattern data file does not support automatic' + ' updates. See https://51degrees.com/compare-data-' + 'options for more information.');
     }
     // Regularly check if the data file is up to date against the current time.
     var timer = setInterval(function () {

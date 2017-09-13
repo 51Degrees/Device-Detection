@@ -37,6 +37,25 @@
     <ErrorReport>prompt</ErrorReport>
     <CodeAnalysisRuleSet>MinimumRecommendedRules.ruleset</CodeAnalysisRuleSet>
   </PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)' == 'Debug-Indirect|x64'">
+    <DebugSymbols>true</DebugSymbols>
+    <OutputPath>bin\x64\Debug-Indirect\</OutputPath>
+    <DefineConstants>DEBUG;TRACE</DefineConstants>
+    <DebugType>full</DebugType>
+    <PlatformTarget>x64</PlatformTarget>
+    <ErrorReport>prompt</ErrorReport>
+    <CodeAnalysisRuleSet>MinimumRecommendedRules.ruleset</CodeAnalysisRuleSet>
+  </PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)' == 'Release-Indirect|x64'">
+    <OutputPath>bin\x64\Release-Indirect\</OutputPath>
+    <DefineConstants>TRACE</DefineConstants>
+    <Optimize>true</Optimize>
+    <TreatWarningsAsErrors>true</TreatWarningsAsErrors>
+    <DebugType>pdbonly</DebugType>
+    <PlatformTarget>x64</PlatformTarget>
+    <ErrorReport>prompt</ErrorReport>
+    <CodeAnalysisRuleSet>MinimumRecommendedRules.ruleset</CodeAnalysisRuleSet>
+  </PropertyGroup>
   <ItemGroup>
     <Reference Include="System" />
   </ItemGroup>
@@ -55,11 +74,13 @@
     </Otherwise>
   </Choose>
   <ItemGroup>
+    <Compile Include="API\Base.cs" />
     <Compile Include="API\Enterprise\Trie.cs" />
     <Compile Include="API\Enterprise\Pattern.cs" />
     <Compile Include="API\Lite\Trie.cs" />
-    <Compile Include="API\Premium\Trie.cs" />
+    <Compile Include="API\PatternBase.cs" />
     <Compile Include="API\Premium\Pattern.cs" />
+    <Compile Include="API\TrieBase.cs" />
     <Compile Include="Base.cs" />
     <Compile Include="API\Lite\Pattern.cs" />
     <Compile Include="Cache\Enterprise\Pattern.cs" />
@@ -69,11 +90,10 @@
     <Compile Include="HttpHeaders\Base.cs" />
     <Compile Include="HttpHeaders\Combinations.cs" />
     <Compile Include="HttpHeaders\Enterprise\V32PatternFile.cs" />
-    <Compile Include="HttpHeaders\Enterprise\V32TrieFile.cs" />
+    <Compile Include="HttpHeaders\Enterprise\V34TrieFile.cs" />
     <Compile Include="HttpHeaders\TrieBase.cs" />
     <Compile Include="HttpHeaders\PatternBase.cs" />
     <Compile Include="HttpHeaders\Premium\V32PatternFile.cs" />
-    <Compile Include="HttpHeaders\Premium\V32TrieFile.cs" />
     <Compile Include="TrieBase.cs" />
     <Compile Include="PatternBase.cs" />
     <Compile Include="Common\UserAgentGenerator.cs" />
@@ -88,9 +108,7 @@
     <Compile Include="Performance\Lite\PatternOne.cs" />
     <Compile Include="Performance\Lite\PatternAll.cs" />
     <Compile Include="Performance\PatternBase.cs" />
-    <Compile Include="Performance\Premium\TrieAll.cs" />
     <Compile Include="Performance\Premium\PatternAll.cs" />
-    <Compile Include="Performance\Premium\TrieOne.cs" />
     <Compile Include="Performance\Premium\PatternOne.cs" />
     <Compile Include="Performance\TrieBase.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
@@ -107,8 +125,6 @@
     <Compile Include="Update\PatternBase.cs" />
     <Compile Include="Update\Premium\PatternAll.cs" />
     <Compile Include="Update\Premium\PatternOne.cs" />
-    <Compile Include="Update\Premium\TrieAll.cs" />
-    <Compile Include="Update\Premium\TrieOne.cs" />
     <Compile Include="Update\TrieBase.cs" />
   </ItemGroup>
   <ItemGroup>
@@ -141,6 +157,10 @@
   <PropertyGroup>
     <PostBuildEvent>copy "$(SolutionDir)$(Platform)\$(Configuration)\FiftyOne.Mobile.Detection.Provider.Trie.*" "$(TargetDir)"
 copy "$(SolutionDir)$(Platform)\$(Configuration)\FiftyOne.Mobile.Detection.Provider.Pattern.*" "$(TargetDir)"</PostBuildEvent>
+  </PropertyGroup>
+  <PropertyGroup>
+    <PreBuildEvent>del "$(TargetDir)\FiftyOne.Mobile.Detection.Provider.Trie.*"
+del "$(TargetDir)\FiftyOne.Mobile.Detection.Provider.Pattern.*"</PreBuildEvent>
   </PropertyGroup>
   <!-- To modify your build process, add your task inside one of the targets below and uncomment it. 
        Other similar extension points exist, see Microsoft.Common.targets.

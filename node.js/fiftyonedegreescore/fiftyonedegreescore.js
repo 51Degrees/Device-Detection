@@ -44,7 +44,7 @@ FiftyOneDegrees.provider = function (configuration) {
     else if (path.parse(config.dataFile).ext === ".trie") {
         // The data file is a Trie data file, so use the Trie library and set
         // the type for auto updating.
-        config.Type = "Trie";
+        config.Type = "HashTrieV34";
         FODcore = require(__dirname + '/build/Release/FiftyOneDegreesTrieV3');
     }
     else {
@@ -186,7 +186,7 @@ FiftyOneDegrees.provider = function (configuration) {
                 defineGetter(match, property);
             });
             // If the API is Pattern then set the match metrics getters.
-            if (returnedProvider.config.Type !== 'Trie') {
+            if (returnedProvider.config.Type !== 'HashTrieV34') {
                 Object.defineProperty(match, 'Id', {
                     get: function () {
                         return this.getDeviceId();
@@ -210,7 +210,7 @@ FiftyOneDegrees.provider = function (configuration) {
             }
         }
     };
-    if (config.Type !== 'Trie') {
+    if (config.Type !== 'HashTrieV34') {
         // Wrap the find profiles function to make it more node friendly.
         var nativeFindProfiles = returnedProvider.findProfiles;
         returnedProvider.findProfiles = function (property, value) {

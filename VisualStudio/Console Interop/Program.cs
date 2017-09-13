@@ -42,7 +42,7 @@ namespace Console_Interop
 
                 // Initialise the trie provider with a data file and a list of 4 properties.
                 using (var trie = new TrieWrapper(
-                    new FileInfo("..\\..\\..\\..\\..\\data\\51Degrees-LiteV3.2.trie").FullName,
+                    new FileInfo("..\\..\\..\\..\\..\\data\\51Degrees-LiteV3.4.trie").FullName,
                     new[] { "Id", "DeviceType", "IsMobile", "ScreenPixelsWidth", "ScreenPixelsHeight" }))
                 {
 

@@ -37,11 +37,8 @@ namespace Examples_Tests
        
         public const string PREMIUM_PATTERN_V32 = "../../../../../../data/51Degrees-PremiumV3.2.dat";
 
-        public const string LITE_TRIE_V32 = "../../../../../../data/51Degrees-LiteV3.2.trie";
+        public const string LITE_TRIE_V34 = "../../../../../../data/51Degrees-LiteV3.4.trie";
 
-        public const string ENTERPRISE_TRIE_V32 = "../../../../../../data/51Degrees-EnterpriseV3.2.trie";
-
-        public const string PREMIUM_TRIE_V32 = "../../../../../../data/51Degrees-PremiumV3.2.trie";
-    
+        public const string ENTERPRISE_TRIE_V34 = "../../../../../../data/51Degrees-EnterpriseV3.4.trie";    
     }
 }

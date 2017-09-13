@@ -24,14 +24,14 @@ using Microsoft.VisualStudio.TestTools.UnitTesting;
 using System.IO;
 using FiftyOne.Mobile.Detection.Provider.Interop;
 
-namespace FiftyOne.UnitTests.HttpHeaders.Premium
+namespace FiftyOne.UnitTests.HttpHeaders.Enterprise
 {
     [TestClass]
-    public class V32TrieFile : TrieBase
+    public class V34TrieFile : TrieBase
     {
         protected override string DataFile
         {
-            get { return Constants.PREMIUM_TRIE_V32; }
+            get { return Constants.ENTERPRISE_TRIE_V34; }
         }
 
         [TestInitialize]
@@ -47,22 +47,22 @@ namespace FiftyOne.UnitTests.HttpHeaders.Premium
         }
 
         [TestMethod]
-        [TestCategory("HttpHeaders"), TestCategory("Premium"), TestCategory("Trie")]
-        public void PremiumV32TrieFile_OperaMiniSamsung() 
+        [TestCategory("HttpHeaders"), TestCategory("Enterprise"), TestCategory("Trie")]
+        public void EnterpriseV34TrieFile_OperaMiniSamsung() 
         {
             base.OperaMini_Samsung();
         }
 
         [TestMethod]
-        [TestCategory("HttpHeaders"), TestCategory("Premium"), TestCategory("Trie")]
-        public void PremiumV32TrieFile_OperaMini_HTC()
+        [TestCategory("HttpHeaders"), TestCategory("Enterprise"), TestCategory("Trie")]
+        public void EnterpriseV34TrieFile_OperaMini_HTC()
         {
             base.OperaMini_HTC();
         }
 
         [TestMethod]
-        [TestCategory("HttpHeaders"), TestCategory("Premium"), TestCategory("Trie")]
-        public void PremiumV32TrieFile_OperaMini_iPhone()
+        [TestCategory("HttpHeaders"), TestCategory("Enterprise"), TestCategory("Trie")]
+        public void EnterpriseV34TrieFile_OperaMini_iPhone()
         {
             base.OperaMini_iPhone();
         }

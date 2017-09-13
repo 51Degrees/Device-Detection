@@ -47,14 +47,14 @@ namespace FiftyOne.UnitTests.Update.Premium
         [TestCategory("Premium"), TestCategory("Update"), TestCategory("Pattern"), TestCategory("All")]
         public void PremiumV32Pattern_Update_File_All()
         {
-            UpdateTest();
+            UpdateTest(ReloadMode.File);
         }
 
         [TestMethod]
         [TestCategory("Premium"), TestCategory("Update"), TestCategory("Pattern"), TestCategory("All")]
         public void PremiumV32Pattern_Update_Memory_All()
         {
-            UpdateTest(true);
+            UpdateTest(ReloadMode.Memory);
         }
     }
 }

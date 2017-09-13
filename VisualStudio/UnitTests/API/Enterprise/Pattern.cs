@@ -21,11 +21,10 @@
 
 using System;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
-using FiftyOne.UnitTests;
 using System.Text;
 using System.Collections.Specialized;
 
-namespace UnitTests.API.Enterprise
+namespace FiftyOne.UnitTests.API.Enterprise
 {
     [TestClass]
     public class Pattern : PatternBase
@@ -130,6 +129,35 @@ namespace UnitTests.API.Enterprise
             var provider = CreateWrapper(properties, true);
             provider.Dispose();
         }
+
+        [TestMethod]
+        [TestCategory("API"), TestCategory("Pattern"), TestCategory("Enterprise")]
+        public void EnterprisePatternAPI_InitEmptyPropertiesString()
+        {
+            InitEmptyPropertiesStringTest();
+        }
+
+        [TestMethod]
+        [TestCategory("API"), TestCategory("Pattern"), TestCategory("Enterprise")]
+        public void EnterprisePatternAPI_InitPropertiesString()
+        {
+            InitPropertiesStringTest();
+        }
+
+        [TestMethod]
+        [TestCategory("API"), TestCategory("Pattern"), TestCategory("Enterprise")]
+        public void EnterprisePatternAPI_InitEmptyPropertiesArray()
+        {
+            InitEmptyPropertiesArrayTest();
+        }
+
+        [TestMethod]
+        [TestCategory("API"), TestCategory("Pattern"), TestCategory("Enterprise")]
+        public void EnterprisePatternAPI_InitPropertiesArray()
+        {
+            InitPropertiesArrayTest();
+        }
+
 
         protected override string DataFile
         {

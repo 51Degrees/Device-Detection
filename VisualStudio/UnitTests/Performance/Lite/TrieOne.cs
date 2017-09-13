@@ -44,7 +44,7 @@ namespace FiftyOne.UnitTests.Performance.Lite
 
         protected override string DataFile
         {
-            get { return Constants.LITE_TRIE_V32; }
+            get { return Constants.LITE_TRIE_V34; }
         }
 
         [TestInitialize]
@@ -61,49 +61,49 @@ namespace FiftyOne.UnitTests.Performance.Lite
 
         [TestMethod]
         [TestCategory("Lite"), TestCategory("Trie"), TestCategory("Performance"), TestCategory("Initialize")]
-        public void LiteV32Trie_Performance_InitializeTimeOne()
+        public void LiteV34Trie_Performance_InitializeTimeOne()
         {
             InitializeTime();
         }
         
         [TestMethod]
         [TestCategory("Lite"), TestCategory("Trie"), TestCategory("Performance"), TestCategory("Multi"), TestCategory("Bad"), TestCategory("One")]
-        public void LiteV32Trie_Performance_BadUserAgentsMultiOne()
+        public void LiteV34Trie_Performance_BadUserAgentsMultiOne()
         {
             BadUserAgentsMulti(1);
         }
 
         [TestMethod]
         [TestCategory("Lite"), TestCategory("Trie"), TestCategory("Performance"), TestCategory("Single"), TestCategory("Bad"), TestCategory("One")]
-        public void LiteV32Trie_Performance_BadUserAgentsSingleOne()
+        public void LiteV34Trie_Performance_BadUserAgentsSingleOne()
         {
             BadUserAgentsSingle(1);
         }
 
         [TestMethod]
         [TestCategory("Lite"), TestCategory("Trie"), TestCategory("Performance"), TestCategory("Multi"), TestCategory("Unique"), TestCategory("One")]
-        public void LiteV32Trie_Performance_UniqueUserAgentsMultiOne()
+        public void LiteV34Trie_Performance_UniqueUserAgentsMultiOne()
         {
             UniqueUserAgentsMulti(1);
         }
 
         [TestMethod]
         [TestCategory("Lite"), TestCategory("Trie"), TestCategory("Performance"), TestCategory("Single"), TestCategory("Unique"), TestCategory("One")]
-        public void LiteV32Trie_Performance_UniqueUserAgentsSingleOne()
+        public void LiteV34Trie_Performance_UniqueUserAgentsSingleOne()
         {
             UniqueUserAgentsSingle(1);
         }
 
         [TestMethod]
         [TestCategory("Lite"), TestCategory("Trie"), TestCategory("Performance"), TestCategory("Multi"), TestCategory("Random"), TestCategory("One")]
-        public void LiteV32Trie_Performance_RandomUserAgentsMultiOne()
+        public void LiteV34Trie_Performance_RandomUserAgentsMultiOne()
         {
             RandomUserAgentsMulti(1);
         }
 
         [TestMethod]
         [TestCategory("Lite"), TestCategory("Trie"), TestCategory("Performance"), TestCategory("Single"), TestCategory("Random"), TestCategory("One")]
-        public void LiteV32Trie_Performance_RandomUserAgentsSingleOne()
+        public void LiteV34Trie_Performance_RandomUserAgentsSingleOne()
         {
             RandomUserAgentsSingle(1);
         }

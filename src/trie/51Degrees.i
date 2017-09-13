@@ -175,12 +175,19 @@ class Provider {
     Match* getMatch(const std::string &userAgent);
     Match* getMatch(const std::map<std::string, std::string> &headers);
 
+    Match* getMatchWithTolerances(const std::string &userAgent, int drift, int difference);
+    Match* getMatchWithTolerances(const std::map<std::string, std::string> &headers, int drift, int difference);
+
     std::string getMatchJson(const std::string &userAgent);
     std::string getMatchJson(const std::map<std::string, std::string> &headers);
 
+	void setDrift(int drift);
+    void setDifference(int difference);
+
 	void reloadFromFile();
-	void reloadFromMemory(const std::string &source, int length);
+	void reloadFromMemory(unsigned char source[], int size);
+
+	bool getIsThreadSafe();
 
 	Provider(const std::string &fileName, const std::string &propertyString, bool validate);
-
 };

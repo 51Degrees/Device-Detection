@@ -25,6 +25,17 @@
     <PlatformTarget>x64</PlatformTarget>
     <OutputPath>bin\x64\Release\</OutputPath>
   </PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)' == 'Debug-Indirect|x64'">
+    <DebugSymbols>true</DebugSymbols>
+    <OutputPath>bin\x64\Debug-Indirect\</OutputPath>
+    <PlatformTarget>x64</PlatformTarget>
+    <CodeAnalysisRuleSet>MinimumRecommendedRules.ruleset</CodeAnalysisRuleSet>
+  </PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)' == 'Release-Indirect|x64'">
+    <OutputPath>bin\x64\Release-Indirect\</OutputPath>
+    <PlatformTarget>x64</PlatformTarget>
+    <CodeAnalysisRuleSet>MinimumRecommendedRules.ruleset</CodeAnalysisRuleSet>
+  </PropertyGroup>
   <ItemGroup>
     <Reference Include="System" />
   </ItemGroup>
@@ -41,6 +52,8 @@
     </Otherwise>
   </Choose>
   <ItemGroup>
+    <Compile Include="DifferenceTolerance.cs" />
+    <Compile Include="DriftTolerance.cs" />
     <Compile Include="FindProfiles.cs" />
     <Compile Include="GettingStartedTrie.cs" />
     <Compile Include="GettingStarted.cs" />
@@ -56,6 +69,14 @@
     <Compile Include="ReloadFromMemoryTrie.cs" />
   </ItemGroup>
   <ItemGroup>
+    <ProjectReference Include="..\Difference Tolerance\Difference Tolerance.csproj">
+      <Project>{efb84ce2-548e-4802-b4c6-95722ef3ae6d}</Project>
+      <Name>Difference Tolerance</Name>
+    </ProjectReference>
+    <ProjectReference Include="..\Drift Tolerance\Drift Tolerance.csproj">
+      <Project>{d9eb6f44-3bf6-475d-ab9e-27d4a4749838}</Project>
+      <Name>Drift Tolerance</Name>
+    </ProjectReference>
     <ProjectReference Include="..\Find Profiles\Find Profiles.csproj">
       <Project>{fd83a2a6-3a66-4f86-ba87-7577521913bb}</Project>
       <Name>Find Profiles</Name>

@@ -73,6 +73,23 @@ until the reload is complete. The reload itself takes less than half a
 second even for Enterprise dataset. For more information see:
 https://51degrees.com/Support/Documentation/APIs/C-V32/Benchmarks
 </p>
+<p>
+This, and any other Trie example can be built to stream from file to reduce
+memory overhead by defining FIFTYONEDEGREES_INDIRECT at compile time. This
+encurs a performance penalty due to disk read and cache locking. Currently
+the caching used for an indirect (file stream) data set does not reserve an
+entity it has given out, so care should be taken to ensure an entity is not
+removed from the cache while another thread is using it. This can be done by
+defining FIFTYONEDEGREES_NO_THREADING and using the provider in a single
+threaded environment. Alternatively, for a multi threaded environment, the
+stream caches should be set to a higher number of entries than you expect to
+be handed out to threads at any one time. This is done by defining:
+FIFTYONEDEGREES_STRING_CACHE_SIZE,
+FIFTYONEDEGREES_NODE_CACHE_SIZE,
+FIFTYONEDEGREES_DEVICE_CACHE_SIZE and
+FIFTYONEDEGREES_PROFILE_CACHE_SIZE
+accordingly.
+</p>
 </tutorial>
 */
 
@@ -123,11 +140,11 @@ static int runRequest(const char *inputFile);
 int main(int argc, char* argv[]) {
 
 	// Required properties. Empty string initializes all properties.
-	const char* requiredProperties = "IsMobile,BrowserName";
+	const char* requiredProperties = "IsMobile,BrowserName,DeviceType";
 
 	// Path to 51Degrees data files. Or use default paths.
 	const char* fileName = argc > 1 ? argv[1] :
-		"../../../data/51Degrees-LiteV3.2.trie";
+		"../../../data/51Degrees-LiteV3.4.trie";
 	// Path to file containing HTTP User-Agent strings.
 	const char* inputFile = argc > 2 ? argv[2] :
 		"../../../data/20000 User Agents.csv";
@@ -142,6 +159,7 @@ int main(int argc, char* argv[]) {
 #endif
 
 	int numberOfReloads = 0;
+	int numberOfReloadFails = 0;
 
 #ifndef FIFTYONEDEGREES_NO_THREADING
 	printf("** Multi Threaded Reload Example **\r\n");
@@ -165,7 +183,12 @@ int main(int argc, char* argv[]) {
 		startThreads(inputFile);
 		while (threadsFinished < numberOfThreads) {
 			status = fiftyoneDegreesProviderReloadFromFile(&provider);
-			numberOfReloads++;
+			if (status == DATA_SET_INIT_STATUS_SUCCESS) {
+				numberOfReloads++;
+			}
+			else {
+				numberOfReloadFails++;
+			}
 #ifdef _MSC_VER
 			Sleep(1000); // milliseconds
 #else
@@ -182,8 +205,9 @@ int main(int argc, char* argv[]) {
 	// Free the dataset.
 	fiftyoneDegreesProviderFree(&provider);
 
-	// Finish execution.
+	// Report the number of reloads.
 	printf("Reloaded '%i' times.\r\n", numberOfReloads);
+	printf("Failed to reload '%i' times.\r\n", numberOfReloadFails);
 
 #ifdef _DEBUG
 #ifdef _MSC_VER
@@ -254,7 +278,7 @@ static void runRequests(void* inputFile) {
 #else
 
 /**
-* Demonstrates the datasetreload functionality in a single
+* Demonstrates the dataset reload functionality in a single
 * threaded environment. Since only one thread is available the reload will
 * be done as part of the program flow and detection will not be available for
 * the very short time that the dataset is being reloaded.
@@ -314,12 +338,16 @@ unsigned long hash(unsigned char *value) {
 */
 static unsigned long getHashCode(fiftyoneDegreesDeviceOffsets *offsets) {
 	unsigned long hashCode = 0;
-	int32_t requiredPropertyIndex;
+	uint32_t requiredPropertyIndex;
 	const char *valueName;
 	for (requiredPropertyIndex = 0;
-		requiredPropertyIndex < offsets->active->dataSet->requiredPropertiesCount;
+		requiredPropertyIndex < 
+			offsets->active->dataSet->requiredProperties.count;
 		requiredPropertyIndex++) {
-		valueName = fiftyoneDegreesGetValuePtrFromOffsets(offsets->active->dataSet, offsets, requiredPropertyIndex);
+		valueName = fiftyoneDegreesGetValuePtrFromOffsets(
+			offsets->active->dataSet,
+			offsets, 
+			requiredPropertyIndex);
 		hashCode ^= hash((unsigned char*)(valueName));
 	}
 	return hashCode;

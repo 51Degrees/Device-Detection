@@ -213,6 +213,7 @@ class Provider {
 	int getCacheMisses();
 	int getCacheMaxIterations();
 
-	Provider(const std::string &fileName, const std::string &propertyString, int cacheSize, int poolSize, bool validate);
+	bool getIsThreadSafe();
 
+	Provider(const std::string &fileName, const std::string &propertyString, int cacheSize, int poolSize, bool validate);
 };

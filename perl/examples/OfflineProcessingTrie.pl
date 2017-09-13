@@ -29,7 +29,7 @@ shows how to:
 <ol>
 <li>Set the various settings for 51Degrees detector
 <p><pre class="prettyprint lang-pl">
-my $filename = "51Degrees-LiteV3.2.trie";
+my $filename = "51Degrees-LiteV3.4.trie";
 my $propertyList = "IsMobile"
 </pre></p>
 <li>Instantiate the 51Degrees device detection provider with these
@@ -79,7 +79,7 @@ is installed.
 use FiftyOneDegrees::TrieV3;
 use feature qw/say/;
 
-my $filename = "../../data/51Degrees-LiteV3.2.trie";
+my $filename = "../../data/51Degrees-LiteV3.4.trie";
 my $propertyList = "IsMobile,PlatformName,PlatformVersion";
 my $inputFile = "../../data/20000 User Agents.csv";
 my $outputFile = "offlineProcessingOutput.csv";

@@ -26,7 +26,7 @@ shows how to:
 <ol>
 <li>Set the configuration using a json object
 <p><pre class="prettyprint lang-js">
-var config = {"dataFile" : "../data/51Degrees-LiteV3.2.trie",
+var config = {"dataFile" : "../data/51Degrees-LiteV3.4.trie",
               "properties" : "IsMobile"
 };
 </pre></p>

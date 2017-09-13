@@ -37,8 +37,8 @@
 
 	# Replace with the following lines for Premium or Enterprise data.
 	#
-	# my $filename = "../../data/51Degrees-PremiumV3.2.trie";
-	# my $filename = "../../data/51Degrees-EnterpriseV3.2.trie";
+	# my $filename = "../../data/51Degrees-PremiumV3.4.trie";
+	# my $filename = "../../data/51Degrees-EnterpriseV3.4.trie";
 	#
 	# Premium and Enterprise data files contain more properties, are updated
     # more frequently and are more accurate than the free Lite data.
@@ -46,7 +46,7 @@
 	# See https://51degrees.com/compare-data-options to get data files.
     #
     # Set the location of the source data file for the web server.
-	my $filename = "../../data/51Degrees-LiteV3.2.trie";
+	my $filename = "../../data/51Degrees-LiteV3.4.trie";
 
     # Create a device detection provider with a cache for 50,000 User-Agents
     # and 20 concurrent detections.

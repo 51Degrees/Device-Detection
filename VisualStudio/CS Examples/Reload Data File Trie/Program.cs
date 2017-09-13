@@ -254,7 +254,7 @@ namespace FiftyOne.Example.Illustration.CSharp.Reload_Data_File_Trie
         /// </param>
         public static void Main(string[] args)
         {
-            string fileName = args.Length > 0 ? args[0] : "../../../../../../data/51Degrees-LiteV3.2.trie";
+            string fileName = args.Length > 0 ? args[0] : "../../../../../../data/51Degrees-LiteV3.4.trie";
             string userAgents = args.Length > 1 ? args[1] : "../../../../../../data/20000 User Agents.csv";
             string properties = args.Length > 2 ? args[2] : "IsMobile,BrowserName";
             Program program = new Program(fileName, userAgents, properties);

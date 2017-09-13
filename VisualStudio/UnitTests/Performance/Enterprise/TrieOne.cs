@@ -44,7 +44,7 @@ namespace FiftyOne.UnitTests.Performance.Enterprise
 
         protected override string DataFile
         {
-            get { return Constants.ENTERPRISE_TRIE_V32; }
+            get { return Constants.ENTERPRISE_TRIE_V34; }
         }
 
         [TestInitialize]
@@ -61,49 +61,49 @@ namespace FiftyOne.UnitTests.Performance.Enterprise
 
         [TestMethod]
         [TestCategory("Enterprise"), TestCategory("Trie"), TestCategory("Performance"), TestCategory("Initialize")]
-        public void EnterpriseV32Trie_Performance_InitializeTimeOne()
+        public void EnterpriseV34Trie_Performance_InitializeTimeOne()
         {
             InitializeTime();
         }
         
         [TestMethod]
         [TestCategory("Enterprise"), TestCategory("Trie"), TestCategory("Performance"), TestCategory("Multi"), TestCategory("Bad"), TestCategory("One")]
-        public void EnterpriseV32Trie_Performance_BadUserAgentsMultiOne()
+        public void EnterpriseV34Trie_Performance_BadUserAgentsMultiOne()
         {
             BadUserAgentsMulti(1);
         }
 
         [TestMethod]
         [TestCategory("Enterprise"), TestCategory("Trie"), TestCategory("Performance"), TestCategory("Single"), TestCategory("Bad"), TestCategory("One")]
-        public void EnterpriseV32Trie_Performance_BadUserAgentsSingleOne()
+        public void EnterpriseV34Trie_Performance_BadUserAgentsSingleOne()
         {
             BadUserAgentsSingle(9);
         }
 
         [TestMethod]
         [TestCategory("Enterprise"), TestCategory("Trie"), TestCategory("Performance"), TestCategory("Multi"), TestCategory("Unique"), TestCategory("One")]
-        public void EnterpriseV32Trie_Performance_UniqueUserAgentsMultiOne()
+        public void EnterpriseV34Trie_Performance_UniqueUserAgentsMultiOne()
         {
             UniqueUserAgentsMulti(1);
         }
 
         [TestMethod]
         [TestCategory("Enterprise"), TestCategory("Trie"), TestCategory("Performance"), TestCategory("Single"), TestCategory("Unique"), TestCategory("One")]
-        public void EnterpriseV32Trie_Performance_UniqueUserAgentsSingleOne()
+        public void EnterpriseV34Trie_Performance_UniqueUserAgentsSingleOne()
         {
             UniqueUserAgentsSingle(1);
         }
 
         [TestMethod]
         [TestCategory("Enterprise"), TestCategory("Trie"), TestCategory("Performance"), TestCategory("Multi"), TestCategory("Random"), TestCategory("One")]
-        public void EnterpriseV32Trie_Performance_RandomUserAgentsMultiOne()
+        public void EnterpriseV34Trie_Performance_RandomUserAgentsMultiOne()
         {
             RandomUserAgentsMulti(1);
         }
 
         [TestMethod]
         [TestCategory("Enterprise"), TestCategory("Trie"), TestCategory("Performance"), TestCategory("Single"), TestCategory("Random"), TestCategory("One")]
-        public void EnterpriseV32Trie_Performance_RandomUserAgentsSingleOne()
+        public void EnterpriseV34Trie_Performance_RandomUserAgentsSingleOne()
         {
             RandomUserAgentsSingle(1);
         }

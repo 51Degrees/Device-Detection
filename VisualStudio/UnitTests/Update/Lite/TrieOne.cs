@@ -21,6 +21,7 @@
 
 using System.Collections.Generic;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
+using System;
 
 namespace FiftyOne.UnitTests.Update.Lite
 {
@@ -39,7 +40,7 @@ namespace FiftyOne.UnitTests.Update.Lite
 
         protected override string DataFile
         {
-            get { return Constants.LITE_TRIE_V32; }
+            get { return Constants.LITE_TRIE_V34; }
         }
 
         [TestInitialize]
@@ -56,16 +57,24 @@ namespace FiftyOne.UnitTests.Update.Lite
 
         [TestMethod]
         [TestCategory("Lite"), TestCategory("Update"), TestCategory("Trie"), TestCategory("One")]
-        public void LiteV32Trie_Update_File_One()
+        public void LiteV34Trie_Update_File_One()
         {
-            UpdateTest();
+            UpdateTest(ReloadMode.File);
         }
 
         [TestMethod]
         [TestCategory("Lite"), TestCategory("Update"), TestCategory("Trie"), TestCategory("One")]
-        public void LiteV32Trie_Update_Memory_One()
+        public void LiteV34Trie_Update_Memory_One()
         {
-            UpdateTest(true);
+            UpdateTest(ReloadMode.Memory);
+        }
+
+        [TestMethod]
+        [TestCategory("Lite"), TestCategory("Update"), TestCategory("Trie"), TestCategory("One")]
+        [ExpectedException(typeof(ApplicationException))]
+        public void LiteV34Trie_Update_Empty_One()
+        {
+            UpdateTestEmpty();
         }
     }
 }

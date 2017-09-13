@@ -21,10 +21,9 @@
 
 using System;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
-using FiftyOne.UnitTests;
 using System.Collections.Specialized;
 
-namespace UnitTests.API.Premium
+namespace FiftyOne.UnitTests.API.Premium
 {
     [TestClass]
     public class Pattern : PatternBase

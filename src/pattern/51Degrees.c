@@ -6013,3 +6013,17 @@ void fiftyoneDegreesFreeWorkset(const fiftyoneDegreesWorkset *ws) {
 void fiftyoneDegreesDestroy(const fiftyoneDegreesDataSet *dataSet) {
 	fiftyoneDegreesDataSetFree(dataSet);
 }
+
+/**
+* \cond
+* Determines if the compiled code supports multi threading.
+* @return boolean where true means multi threading is supported.
+* \endcond
+*/
+int fiftyoneDegreesGetIsThreadSafe() {
+#if FIFTYONEDEGREES_NO_THREADING
+	return FALSE;
+#else
+	return TRUE;
+#endif
+};
