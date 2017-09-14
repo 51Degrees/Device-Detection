@@ -16,11 +16,3 @@ if (os.type() === "Linux")
 		}
 	});
 }
-
-// Check the node version.
-var nodeVersion = process.versions.node;
-var nodeVersionMajor = nodeVersion.split(".")[0];
-console.log(nodeVersionMajor);
-if (nodeVersionMajor >= 7) {
-	throw "Node version must be < v7. For a beta version that supports 7 and up, use 'npm install fiftyonedegreescore@dev'";
-}
