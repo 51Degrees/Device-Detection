@@ -12,7 +12,7 @@ $(eval $(API):;@:)
 
 ifdef ARGNEEDED
 ifeq ($(API),pattern)
-	ARGS := "-DFIFTYONEDEGREES_PATTERN -DFIFTYONEDEGREES_NO_THREADING -Wno-ignored-qualifiers -Wno-unused-result"
+	ARGS := "-DFIFTYONEDEGREES_PATTERN -DFIFTYONEDEGREES_NO_THREADING -Wno-ignored-qualifiers -Wno-unused-result -Wno-unused-but-set-variable -Wno-unused-function"
 else ifeq ($(API),trie)
 	ARGS := "-DFIFTYONEDEGREES_TRIE -DFIFTYONEDEGREES_NO_THREADING"
 else
@@ -72,6 +72,7 @@ install: build
 	$(MODULE_ARG)=$(CURDIR)/51Degrees_module \
 	--with-compat \
 	--with-cc-opt=$(ARGS) \
+	--with-debug \
 	--sbin-path=$(CURDIR) \
 	--conf-path="nginx.conf"
 	cd $(CURDIR)/vendor/nginx-$(VERSION) && make install
@@ -86,7 +87,10 @@ all-versions:
 	mv build/modules/ngx_http_51D_module.so modules/ngx_http_51D_pattern-1.11.5.so
 	$(MAKE) install trie VERSION=1.11.10
 	mv build/modules/ngx_http_51D_module.so modules/ngx_http_51D_trie-1.11.5.so
-
+	$(MAKE) install pattern VERSION=1.13.4
+	mv build/modules/ngx_http_51D_module.so modules/ngx_http_51D_pattern-1.13.4.so
+	$(MAKE) install trie VERSION=1.13.4
+	mv build/modules/ngx_http_51D_module.so modules/ngx_http_51D_trie-1.13.4.so
 
 test:
 	./test.sh

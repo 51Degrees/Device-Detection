@@ -1445,6 +1445,7 @@ ngx_http_51D_handler(ngx_http_request_t *r)
 						hash = ngx_hash(hash, ngx_hash_key(searchResult->value.data, searchResult->value.len));
 					}
 				}
+				hash = ngx_hash(hash, multi);
 				// Look in the cache for a match with the hash.
 				node = ngx_http_51D_lookup_node_lru(&r->headers_in.user_agent[0].value, hash);
 			}
