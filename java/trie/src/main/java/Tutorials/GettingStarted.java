@@ -23,12 +23,11 @@
 
 package Tutorials;
 
-import FiftyOneDegreesTrieV3.FiftyOneDegreesTrieV3;
 import FiftyOneDegreesTrieV3.Match;
 import FiftyOneDegreesTrieV3.Provider;
+import FiftyOneDegreesTrieV3.LibLoader;
 
 import java.io.IOException;
-import java.net.URL;
 
 /**
  * <tutorial>
@@ -103,9 +102,8 @@ public class GettingStarted {
      */
     public static void main(String[] args) throws IOException {
         // Load the C/C++ native library. Uncomment dll line for windows and so line in linux.
-        URL res = FiftyOneDegreesTrieV3.class.getResource("/FiftyOneDegreesTrieV3.dll");
-        // URL res = FiftyOneDegreesTrieV3.class.getResource("/FiftyOneDegreesTrieV3.so");
-        System.load(res.getPath());
+        LibLoader.load("/FiftyOneDegreesTrieV3.dll");
+        // LibLoader.load("/FiftyOneDegreesTrieV3.so");
 
         // Create a new provider.
         Provider provider = new Provider("../../data/51Degrees-LiteV3.4.trie");
