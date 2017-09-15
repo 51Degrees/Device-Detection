@@ -23,13 +23,12 @@
 
 package Tutorials;
 
-import FiftyOneDegreesTrieV3.FiftyOneDegreesTrieV3;
 import FiftyOneDegreesTrieV3.Match;
 import FiftyOneDegreesTrieV3.Provider;
 import FiftyOneDegreesTrieV3.VectorString;
+import FiftyOneDegreesTrieV3.LibLoader;
 
 import java.io.*;
-import java.net.URL;
 
 /**
  * <tutorial>
@@ -102,8 +101,6 @@ public class OfflineProcessingExample implements Closeable {
     // pattern detection matching provider
     private final Provider provider;
 
-    private final URL res;
-
     /**
      * Loads the 51Degrees Hash Trie library and initialises the device
      * detection Provider with the Lite data file. For more data see:
@@ -115,9 +112,8 @@ public class OfflineProcessingExample implements Closeable {
      */
     public OfflineProcessingExample() throws IOException {
         // Load the C/C++ native library. Uncomment dll line for windows and so line in linux.
-        res = FiftyOneDegreesTrieV3.class.getResource("/FiftyOneDegreesTrieV3.dll");
-        // res = FiftyOneDegreesTrieV3.class.getResource("/FiftyOneDegreesTrieV3.so");
-        System.load(res.getPath());
+        LibLoader.load("/FiftyOneDegreesTrieV3.dll");
+        // LibLoader.load("/FiftyOneDegreesTrieV3.so");
 
         // Create a new provider.
         provider = new Provider("../../data/51Degrees-LiteV3.4.trie");
