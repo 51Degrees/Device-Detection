@@ -262,8 +262,8 @@ struct fiftyoneDegrees_active_dataset_t {
 	fiftyoneDegreesDataSet *dataSet; /* Pointer to an initialised data set. */
 	fiftyoneDegreesProvider *provider; /* Pointer to the provider the active
 									   wrapper relates to. */
-	int inUse; /* Counter indicating how many device offsets are still linked
-			   to this dataset. */
+	volatile long inUse; /* Counter indicating how many device offsets are still
+						linked to this dataset. */
 };
 
 /* Provider structure containing the dataset used for detections. */
