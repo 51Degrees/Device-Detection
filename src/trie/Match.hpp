@@ -22,8 +22,10 @@
  ********************************************************************** */
 
 #include <string>
+#include <cstring>
 #include <vector>
 #include <map>
+#include <stdlib.h>
 #include "51Degrees.h"
 
 #ifndef FIFTYONEDEGREESMATCH_HPP
@@ -50,12 +52,24 @@ public:
 	virtual ~Match();
 
 	vector<string> getValues(const char *propertyName);
-	vector<string> getValues(string &propertyName);
+	vector<string> getValues(const string &propertyName);
 	vector<string> getValues(int requiredPropertyIndex);
 
 	string getValue(const char *propertyName);
-	string getValue(string &propertyName);
+	string getValue(const string &propertyName);
 	string getValue(int requiredPropertyIndex);
+	
+	bool getValueAsBool(const char *propertyName);
+	bool getValueAsBool(const string &propertyName);
+	bool getValueAsBool(int requiredPropertyIndex);
+
+	int getValueAsInteger(const char *propertyName);
+	int getValueAsInteger(const string &propertyName);
+	int getValueAsInteger(int requiredPropertyIndex);
+
+	double getValueAsDouble(const char *propertyName);
+	double getValueAsDouble(const string &propertyName);
+	double getValueAsDouble(int requiredPropertyIndex);
 
 	string getDeviceId();
 	int getRank();
@@ -69,7 +83,9 @@ public:
 protected:
 
 private:
-	fiftyoneDegreesDataSet *dataSet;
+
+	const char* getValuePointer(int requiredPropertyIndex);
+
 	fiftyoneDegreesDeviceOffsets *offsets;
 	string userAgent;
 };

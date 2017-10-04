@@ -2681,12 +2681,18 @@ static void evaluateBinaryNode(match_t *match) {
 static void initialiseMatch(
 	const fiftyoneDegreesDataSet *dataSet,
 	const char *userAgent,
+	int userAgentLength,
 	int drift,
 	int difference,
 	match_t *match) {
 	match->dataSet = dataSet;
 	match->userAgent = userAgent;
-	match->userAgentLength = (int16_t)strlen(userAgent);
+	if (userAgentLength < 0) {
+		match->userAgentLength = (int16_t)strlen(userAgent);		
+	}
+	else {
+		match->userAgentLength = (int16_t)userAgentLength;
+	}
 	match->node = NODE(dataSet, 0);
 	match->drift = dataSet->baseDrift + drift;
 	match->difference = dataSet->baseDifference + difference;
@@ -2710,11 +2716,12 @@ static void initialiseMatch(
 static int32_t getDeviceIndex(
 	const fiftyoneDegreesDataSet *dataSet,
 	const char *userAgent,
+	int userAgentLength,
 	char *matchedUserAgent,
 	int drift,
 	int difference) {
 	match_t match;
-	initialiseMatch(dataSet, userAgent, drift, difference, &match);
+	initialiseMatch(dataSet, userAgent, userAgentLength, drift, difference, &match);
 	
 	// Set the matched User-Agent array to spaces and null terminate at the 
 	// User-Agent length so that the string displays as expected.
@@ -2758,7 +2765,7 @@ int fiftyoneDegreesGetMatchedUserAgentLengthWithTolerances(
 	match_t match;
 	int i = 0;
 	char matchedUserAgent[500];
-	initialiseMatch(dataSet, userAgent, drift, difference, &match);
+	initialiseMatch(dataSet, userAgent, -1, drift, difference, &match);
 	memset(&matchedUserAgent, 0, match.userAgentLength + 1);
 	match.matchedUserAgent = &matchedUserAgent[0];
 	while (match.node != NULL) {
@@ -2806,10 +2813,50 @@ int fiftyoneDegreesGetMatchedUserAgentLength(
  * \endcond
  */
 int32_t fiftyoneDegreesGetDeviceOffset(
-		fiftyoneDegreesDataSet *dataSet,
-		const char* userAgent) {
-	return getDeviceIndex(dataSet, userAgent, NULL, 0, 0) * 
-			dataSet->devicesIntegerCount;
+	fiftyoneDegreesDataSet *dataSet,
+	const char* userAgent) {
+return getDeviceIndex(dataSet, userAgent, -1, NULL, 0, 0) * 
+		dataSet->devicesIntegerCount;
+}
+
+/**
+ * \cond
+ * Sets the offsets structure passed to the method for the User-Agent provided.
+ * @param dataSet pointer to an initialised dataset.
+ * @param userAgent to match for.
+ * @param userAgentLength of the User-Agent.
+ * @param httpHeaderIndex of the User-Agent.
+ * @param offset to set.
+ * @param drift to extend the search range by.
+ * @param difference to allow in hash values.
+ * \endcond
+ */
+void fiftyoneDegreesSetDeviceOffsetFromArrayWithTolerances(
+	fiftyoneDegreesDataSet *dataSet,
+	const char* userAgent,
+	int userAgentLength,
+	int httpHeaderIndex,
+	fiftyoneDegreesDeviceOffset *offset,
+	int drift,
+	int difference) {
+	offset->httpHeaderOffset =
+		dataSet->uniqueHttpHeaders.firstElement[httpHeaderIndex];
+	offset->length = strlen(userAgent);
+	offset->difference = 0;
+#ifdef _DEBUG
+	offset->userAgent = (char*)fiftyoneDegreesMalloc(
+		offset->length + 1 * sizeof(char));
+#else
+	offset->userAgent = NULL;
+#endif
+	offset->deviceOffset = getDeviceIndex(
+		dataSet, 
+		userAgent, 
+		userAgentLength,
+		offset->userAgent, 
+		drift, 
+		difference) *
+		(dataSet->devicePropertiesCount + dataSet->components.count);
 }
 
 /**
@@ -2830,23 +2877,14 @@ void fiftyoneDegreesSetDeviceOffsetWithTolerances(
 	fiftyoneDegreesDeviceOffset *offset,
 	int drift,
 	int difference) {
-	offset->httpHeaderOffset =
-		dataSet->uniqueHttpHeaders.firstElement[httpHeaderIndex];
-	offset->length = strlen(userAgent);
-	offset->difference = 0;
-#ifdef _DEBUG
-	offset->userAgent = (char*)fiftyoneDegreesMalloc(
-		offset->length + 1 * sizeof(char));
-#else
-	offset->userAgent = NULL;
-#endif
-	offset->deviceOffset = getDeviceIndex(
-		dataSet, 
-		userAgent, 
-		offset->userAgent, 
-		drift, 
-		difference) *
-		(dataSet->devicePropertiesCount + dataSet->components.count);
+	fiftyoneDegreesSetDeviceOffsetFromArrayWithTolerances(
+			dataSet,
+			userAgent,
+			-1,
+			httpHeaderIndex,
+			offset,
+			drift,
+			difference);
 }
 
 /**

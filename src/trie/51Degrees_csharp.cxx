@@ -1811,46 +1811,19 @@ SWIGEXPORT void SWIGSTDCALL CSharp_FiftyOnefMobilefDetectionfProviderfInteropfTr
 SWIGEXPORT void * SWIGSTDCALL CSharp_FiftyOnefMobilefDetectionfProviderfInteropfTrie_Match_getValues__SWIG_0___(void * jarg1, char * jarg2) {
   void * jresult ;
   Match *arg1 = (Match *) 0 ;
-  char *arg2 = (char *) 0 ;
-  std::vector< std::string > result;
-  
-  arg1 = (Match *)jarg1; 
-  arg2 = (char *)jarg2; 
-  {
-    try {
-      result = (arg1)->getValues((char const *)arg2);;
-    }
-    catch(runtime_error& e) {
-      {
-        SWIG_CSharpException(SWIG_RuntimeError, e.what()); return 0; 
-      };
-    }
-    catch(invalid_argument& e) {
-      {
-        SWIG_CSharpException(SWIG_ValueError, e.what()); return 0; 
-      };
-    }
-  }
-  jresult = new std::vector< std::string >((const std::vector< std::string > &)result); 
-  return jresult;
-}
-
-
-SWIGEXPORT void * SWIGSTDCALL CSharp_FiftyOnefMobilefDetectionfProviderfInteropfTrie_Match_getValues__SWIG_1___(void * jarg1, void * jarg2) {
-  void * jresult ;
-  Match *arg1 = (Match *) 0 ;
   std::string *arg2 = 0 ;
   std::vector< std::string > result;
   
   arg1 = (Match *)jarg1; 
-  arg2 = (std::string *)jarg2;
-  if (!arg2) {
-    SWIG_CSharpSetPendingExceptionArgument(SWIG_CSharpArgumentNullException, "std::string & type is null", 0);
+  if (!jarg2) {
+    SWIG_CSharpSetPendingExceptionArgument(SWIG_CSharpArgumentNullException, "null string", 0);
     return 0;
-  } 
+  }
+  std::string arg2_str(jarg2);
+  arg2 = &arg2_str; 
   {
     try {
-      result = (arg1)->getValues(*arg2);;
+      result = (arg1)->getValues((std::string const &)*arg2);;
     }
     catch(runtime_error& e) {
       {
@@ -1868,7 +1841,7 @@ SWIGEXPORT void * SWIGSTDCALL CSharp_FiftyOnefMobilefDetectionfProviderfInteropf
 }
 
 
-SWIGEXPORT void * SWIGSTDCALL CSharp_FiftyOnefMobilefDetectionfProviderfInteropfTrie_Match_getValues__SWIG_2___(void * jarg1, int jarg2) {
+SWIGEXPORT void * SWIGSTDCALL CSharp_FiftyOnefMobilefDetectionfProviderfInteropfTrie_Match_getValues__SWIG_1___(void * jarg1, int jarg2) {
   void * jresult ;
   Match *arg1 = (Match *) 0 ;
   int arg2 ;
@@ -1899,46 +1872,19 @@ SWIGEXPORT void * SWIGSTDCALL CSharp_FiftyOnefMobilefDetectionfProviderfInteropf
 SWIGEXPORT char * SWIGSTDCALL CSharp_FiftyOnefMobilefDetectionfProviderfInteropfTrie_Match_getValue__SWIG_0___(void * jarg1, char * jarg2) {
   char * jresult ;
   Match *arg1 = (Match *) 0 ;
-  char *arg2 = (char *) 0 ;
-  std::string result;
-  
-  arg1 = (Match *)jarg1; 
-  arg2 = (char *)jarg2; 
-  {
-    try {
-      result = (arg1)->getValue((char const *)arg2);;
-    }
-    catch(runtime_error& e) {
-      {
-        SWIG_CSharpException(SWIG_RuntimeError, e.what()); return 0; 
-      };
-    }
-    catch(invalid_argument& e) {
-      {
-        SWIG_CSharpException(SWIG_ValueError, e.what()); return 0; 
-      };
-    }
-  }
-  jresult = SWIG_csharp_string_callback((&result)->c_str()); 
-  return jresult;
-}
-
-
-SWIGEXPORT char * SWIGSTDCALL CSharp_FiftyOnefMobilefDetectionfProviderfInteropfTrie_Match_getValue__SWIG_1___(void * jarg1, void * jarg2) {
-  char * jresult ;
-  Match *arg1 = (Match *) 0 ;
   std::string *arg2 = 0 ;
   std::string result;
   
   arg1 = (Match *)jarg1; 
-  arg2 = (std::string *)jarg2;
-  if (!arg2) {
-    SWIG_CSharpSetPendingExceptionArgument(SWIG_CSharpArgumentNullException, "std::string & type is null", 0);
+  if (!jarg2) {
+    SWIG_CSharpSetPendingExceptionArgument(SWIG_CSharpArgumentNullException, "null string", 0);
     return 0;
-  } 
+  }
+  std::string arg2_str(jarg2);
+  arg2 = &arg2_str; 
   {
     try {
-      result = (arg1)->getValue(*arg2);;
+      result = (arg1)->getValue((std::string const &)*arg2);;
     }
     catch(runtime_error& e) {
       {
@@ -1956,7 +1902,7 @@ SWIGEXPORT char * SWIGSTDCALL CSharp_FiftyOnefMobilefDetectionfProviderfInteropf
 }
 
 
-SWIGEXPORT char * SWIGSTDCALL CSharp_FiftyOnefMobilefDetectionfProviderfInteropfTrie_Match_getValue__SWIG_2___(void * jarg1, int jarg2) {
+SWIGEXPORT char * SWIGSTDCALL CSharp_FiftyOnefMobilefDetectionfProviderfInteropfTrie_Match_getValue__SWIG_1___(void * jarg1, int jarg2) {
   char * jresult ;
   Match *arg1 = (Match *) 0 ;
   int arg2 ;
@@ -1980,6 +1926,189 @@ SWIGEXPORT char * SWIGSTDCALL CSharp_FiftyOnefMobilefDetectionfProviderfInteropf
     }
   }
   jresult = SWIG_csharp_string_callback((&result)->c_str()); 
+  return jresult;
+}
+
+
+SWIGEXPORT unsigned int SWIGSTDCALL CSharp_FiftyOnefMobilefDetectionfProviderfInteropfTrie_Match_getValueAsBool__SWIG_0___(void * jarg1, char * jarg2) {
+  unsigned int jresult ;
+  Match *arg1 = (Match *) 0 ;
+  std::string *arg2 = 0 ;
+  bool result;
+  
+  arg1 = (Match *)jarg1; 
+  if (!jarg2) {
+    SWIG_CSharpSetPendingExceptionArgument(SWIG_CSharpArgumentNullException, "null string", 0);
+    return 0;
+  }
+  std::string arg2_str(jarg2);
+  arg2 = &arg2_str; 
+  {
+    try {
+      result = (bool)(arg1)->getValueAsBool((std::string const &)*arg2);;
+    }
+    catch(runtime_error& e) {
+      {
+        SWIG_CSharpException(SWIG_RuntimeError, e.what()); return 0; 
+      };
+    }
+    catch(invalid_argument& e) {
+      {
+        SWIG_CSharpException(SWIG_ValueError, e.what()); return 0; 
+      };
+    }
+  }
+  jresult = result; 
+  return jresult;
+}
+
+
+SWIGEXPORT unsigned int SWIGSTDCALL CSharp_FiftyOnefMobilefDetectionfProviderfInteropfTrie_Match_getValueAsBool__SWIG_1___(void * jarg1, int jarg2) {
+  unsigned int jresult ;
+  Match *arg1 = (Match *) 0 ;
+  int arg2 ;
+  bool result;
+  
+  arg1 = (Match *)jarg1; 
+  arg2 = (int)jarg2; 
+  {
+    try {
+      result = (bool)(arg1)->getValueAsBool(arg2);;
+    }
+    catch(runtime_error& e) {
+      {
+        SWIG_CSharpException(SWIG_RuntimeError, e.what()); return 0; 
+      };
+    }
+    catch(invalid_argument& e) {
+      {
+        SWIG_CSharpException(SWIG_ValueError, e.what()); return 0; 
+      };
+    }
+  }
+  jresult = result; 
+  return jresult;
+}
+
+
+SWIGEXPORT int SWIGSTDCALL CSharp_FiftyOnefMobilefDetectionfProviderfInteropfTrie_Match_getValueAsInteger__SWIG_0___(void * jarg1, char * jarg2) {
+  int jresult ;
+  Match *arg1 = (Match *) 0 ;
+  std::string *arg2 = 0 ;
+  int result;
+  
+  arg1 = (Match *)jarg1; 
+  if (!jarg2) {
+    SWIG_CSharpSetPendingExceptionArgument(SWIG_CSharpArgumentNullException, "null string", 0);
+    return 0;
+  }
+  std::string arg2_str(jarg2);
+  arg2 = &arg2_str; 
+  {
+    try {
+      result = (int)(arg1)->getValueAsInteger((std::string const &)*arg2);;
+    }
+    catch(runtime_error& e) {
+      {
+        SWIG_CSharpException(SWIG_RuntimeError, e.what()); return 0; 
+      };
+    }
+    catch(invalid_argument& e) {
+      {
+        SWIG_CSharpException(SWIG_ValueError, e.what()); return 0; 
+      };
+    }
+  }
+  jresult = result; 
+  return jresult;
+}
+
+
+SWIGEXPORT int SWIGSTDCALL CSharp_FiftyOnefMobilefDetectionfProviderfInteropfTrie_Match_getValueAsInteger__SWIG_1___(void * jarg1, int jarg2) {
+  int jresult ;
+  Match *arg1 = (Match *) 0 ;
+  int arg2 ;
+  int result;
+  
+  arg1 = (Match *)jarg1; 
+  arg2 = (int)jarg2; 
+  {
+    try {
+      result = (int)(arg1)->getValueAsInteger(arg2);;
+    }
+    catch(runtime_error& e) {
+      {
+        SWIG_CSharpException(SWIG_RuntimeError, e.what()); return 0; 
+      };
+    }
+    catch(invalid_argument& e) {
+      {
+        SWIG_CSharpException(SWIG_ValueError, e.what()); return 0; 
+      };
+    }
+  }
+  jresult = result; 
+  return jresult;
+}
+
+
+SWIGEXPORT double SWIGSTDCALL CSharp_FiftyOnefMobilefDetectionfProviderfInteropfTrie_Match_getValueAsDouble__SWIG_0___(void * jarg1, char * jarg2) {
+  double jresult ;
+  Match *arg1 = (Match *) 0 ;
+  std::string *arg2 = 0 ;
+  double result;
+  
+  arg1 = (Match *)jarg1; 
+  if (!jarg2) {
+    SWIG_CSharpSetPendingExceptionArgument(SWIG_CSharpArgumentNullException, "null string", 0);
+    return 0;
+  }
+  std::string arg2_str(jarg2);
+  arg2 = &arg2_str; 
+  {
+    try {
+      result = (double)(arg1)->getValueAsDouble((std::string const &)*arg2);;
+    }
+    catch(runtime_error& e) {
+      {
+        SWIG_CSharpException(SWIG_RuntimeError, e.what()); return 0; 
+      };
+    }
+    catch(invalid_argument& e) {
+      {
+        SWIG_CSharpException(SWIG_ValueError, e.what()); return 0; 
+      };
+    }
+  }
+  jresult = result; 
+  return jresult;
+}
+
+
+SWIGEXPORT double SWIGSTDCALL CSharp_FiftyOnefMobilefDetectionfProviderfInteropfTrie_Match_getValueAsDouble__SWIG_1___(void * jarg1, int jarg2) {
+  double jresult ;
+  Match *arg1 = (Match *) 0 ;
+  int arg2 ;
+  double result;
+  
+  arg1 = (Match *)jarg1; 
+  arg2 = (int)jarg2; 
+  {
+    try {
+      result = (double)(arg1)->getValueAsDouble(arg2);;
+    }
+    catch(runtime_error& e) {
+      {
+        SWIG_CSharpException(SWIG_RuntimeError, e.what()); return 0; 
+      };
+    }
+    catch(invalid_argument& e) {
+      {
+        SWIG_CSharpException(SWIG_ValueError, e.what()); return 0; 
+      };
+    }
+  }
+  jresult = result; 
   return jresult;
 }
 

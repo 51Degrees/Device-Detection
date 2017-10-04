@@ -46,14 +46,8 @@ public partial class Match : global::System.IDisposable {
     return ret;
   }
 
-  public VectorString getValues(SWIGTYPE_p_std__string propertyName) {
-    VectorString ret = new VectorString(FiftyOneDegreesTrieV3PINVOKE.Match_getValues__SWIG_1(swigCPtr, SWIGTYPE_p_std__string.getCPtr(propertyName)), true);
-    if (FiftyOneDegreesTrieV3PINVOKE.SWIGPendingException.Pending) throw FiftyOneDegreesTrieV3PINVOKE.SWIGPendingException.Retrieve();
-    return ret;
-  }
-
   public VectorString getValues(int propertyIndex) {
-    VectorString ret = new VectorString(FiftyOneDegreesTrieV3PINVOKE.Match_getValues__SWIG_2(swigCPtr, propertyIndex), true);
+    VectorString ret = new VectorString(FiftyOneDegreesTrieV3PINVOKE.Match_getValues__SWIG_1(swigCPtr, propertyIndex), true);
     if (FiftyOneDegreesTrieV3PINVOKE.SWIGPendingException.Pending) throw FiftyOneDegreesTrieV3PINVOKE.SWIGPendingException.Retrieve();
     return ret;
   }
@@ -64,14 +58,44 @@ public partial class Match : global::System.IDisposable {
     return ret;
   }
 
-  public string getValue(SWIGTYPE_p_std__string propertyName) {
-    string ret = FiftyOneDegreesTrieV3PINVOKE.Match_getValue__SWIG_1(swigCPtr, SWIGTYPE_p_std__string.getCPtr(propertyName));
+  public string getValue(int propertyIndex) {
+    string ret = FiftyOneDegreesTrieV3PINVOKE.Match_getValue__SWIG_1(swigCPtr, propertyIndex);
     if (FiftyOneDegreesTrieV3PINVOKE.SWIGPendingException.Pending) throw FiftyOneDegreesTrieV3PINVOKE.SWIGPendingException.Retrieve();
     return ret;
   }
 
-  public string getValue(int propertyIndex) {
-    string ret = FiftyOneDegreesTrieV3PINVOKE.Match_getValue__SWIG_2(swigCPtr, propertyIndex);
+  public bool getValueAsBool(string propertyName) {
+    bool ret = FiftyOneDegreesTrieV3PINVOKE.Match_getValueAsBool__SWIG_0(swigCPtr, propertyName);
+    if (FiftyOneDegreesTrieV3PINVOKE.SWIGPendingException.Pending) throw FiftyOneDegreesTrieV3PINVOKE.SWIGPendingException.Retrieve();
+    return ret;
+  }
+
+  public bool getValueAsBool(int requiredPropertyIndex) {
+    bool ret = FiftyOneDegreesTrieV3PINVOKE.Match_getValueAsBool__SWIG_1(swigCPtr, requiredPropertyIndex);
+    if (FiftyOneDegreesTrieV3PINVOKE.SWIGPendingException.Pending) throw FiftyOneDegreesTrieV3PINVOKE.SWIGPendingException.Retrieve();
+    return ret;
+  }
+
+  public int getValueAsInteger(string propertyName) {
+    int ret = FiftyOneDegreesTrieV3PINVOKE.Match_getValueAsInteger__SWIG_0(swigCPtr, propertyName);
+    if (FiftyOneDegreesTrieV3PINVOKE.SWIGPendingException.Pending) throw FiftyOneDegreesTrieV3PINVOKE.SWIGPendingException.Retrieve();
+    return ret;
+  }
+
+  public int getValueAsInteger(int requiredPropertyIndex) {
+    int ret = FiftyOneDegreesTrieV3PINVOKE.Match_getValueAsInteger__SWIG_1(swigCPtr, requiredPropertyIndex);
+    if (FiftyOneDegreesTrieV3PINVOKE.SWIGPendingException.Pending) throw FiftyOneDegreesTrieV3PINVOKE.SWIGPendingException.Retrieve();
+    return ret;
+  }
+
+  public double getValueAsDouble(string propertyName) {
+    double ret = FiftyOneDegreesTrieV3PINVOKE.Match_getValueAsDouble__SWIG_0(swigCPtr, propertyName);
+    if (FiftyOneDegreesTrieV3PINVOKE.SWIGPendingException.Pending) throw FiftyOneDegreesTrieV3PINVOKE.SWIGPendingException.Retrieve();
+    return ret;
+  }
+
+  public double getValueAsDouble(int requiredPropertyIndex) {
+    double ret = FiftyOneDegreesTrieV3PINVOKE.Match_getValueAsDouble__SWIG_1(swigCPtr, requiredPropertyIndex);
     if (FiftyOneDegreesTrieV3PINVOKE.SWIGPendingException.Pending) throw FiftyOneDegreesTrieV3PINVOKE.SWIGPendingException.Retrieve();
     return ret;
   }

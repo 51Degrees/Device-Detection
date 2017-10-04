@@ -357,6 +357,26 @@ EXTERNAL void fiftyoneDegreesSetDeviceOffsetWithTolerances(
 	int drift,
 	int difference);
 
+	/**
+ * \ingroup FiftyOneDegreesFunctions
+ * Sets the offsets structure passed to the method for the User-Agent provided.
+ * @param dataSet pointer to an initialised dataset.
+ * @param userAgent to match for.
+ * @param userAgentLength of the User-Agent.
+ * @param httpHeaderIndex of the User-Agent.
+ * @param offset to set.
+ * @param drift to extend the search range by.
+ * @param difference to allow in hash values.
+ */
+EXTERNAL void fiftyoneDegreesSetDeviceOffsetFromArrayWithTolerances(
+	fiftyoneDegreesDataSet *dataSet,
+	const char* userAgent,
+	int userAgentLength,
+	int httpHeaderIndex,
+	fiftyoneDegreesDeviceOffset *offset,
+	int drift,
+	int difference);
+
 /**
  * \ingroup FiftyOneDegreesFunctions
  * Returns the offsets to a matching devices based on the HTTP headers provided.

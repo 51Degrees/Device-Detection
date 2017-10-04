@@ -32,11 +32,15 @@ public class FiftyOneDegreesTrieV3JNI {
   public final static native void delete_VectorString(long jarg1);
   public final static native void delete_Match(long jarg1);
   public final static native long Match_getValues__SWIG_0(long jarg1, Match jarg1_, String jarg2);
-  public final static native long Match_getValues__SWIG_1(long jarg1, Match jarg1_, long jarg2);
-  public final static native long Match_getValues__SWIG_2(long jarg1, Match jarg1_, int jarg2);
+  public final static native long Match_getValues__SWIG_1(long jarg1, Match jarg1_, int jarg2);
   public final static native String Match_getValue__SWIG_0(long jarg1, Match jarg1_, String jarg2);
-  public final static native String Match_getValue__SWIG_1(long jarg1, Match jarg1_, long jarg2);
-  public final static native String Match_getValue__SWIG_2(long jarg1, Match jarg1_, int jarg2);
+  public final static native String Match_getValue__SWIG_1(long jarg1, Match jarg1_, int jarg2);
+  public final static native boolean Match_getValueAsBool__SWIG_0(long jarg1, Match jarg1_, String jarg2);
+  public final static native boolean Match_getValueAsBool__SWIG_1(long jarg1, Match jarg1_, int jarg2);
+  public final static native int Match_getValueAsInteger__SWIG_0(long jarg1, Match jarg1_, String jarg2);
+  public final static native int Match_getValueAsInteger__SWIG_1(long jarg1, Match jarg1_, int jarg2);
+  public final static native double Match_getValueAsDouble__SWIG_0(long jarg1, Match jarg1_, String jarg2);
+  public final static native double Match_getValueAsDouble__SWIG_1(long jarg1, Match jarg1_, int jarg2);
   public final static native String Match_getDeviceId(long jarg1, Match jarg1_);
   public final static native int Match_getRank(long jarg1, Match jarg1_);
   public final static native int Match_getDifference(long jarg1, Match jarg1_);
@@ -55,6 +59,7 @@ public class FiftyOneDegreesTrieV3JNI {
   public final static native int Provider_getDataSetSignatureCount(long jarg1, Provider jarg1_);
   public final static native int Provider_getDataSetDeviceCombinations(long jarg1, Provider jarg1_);
   public final static native long Provider_getMatch__SWIG_0(long jarg1, Provider jarg1_, String jarg2);
+  public final static native long Provider_getMatchForByteArray(long jarg1, Provider jarg1_, byte[] jarg2);
   public final static native long Provider_getMatch__SWIG_1(long jarg1, Provider jarg1_, long jarg2, MapStringString jarg2_);
   public final static native long Provider_getMatchWithTolerances__SWIG_0(long jarg1, Provider jarg1_, String jarg2, int jarg3, int jarg4);
   public final static native long Provider_getMatchWithTolerances__SWIG_1(long jarg1, Provider jarg1_, long jarg2, MapStringString jarg2_, int jarg3, int jarg4);

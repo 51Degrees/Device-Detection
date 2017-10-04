@@ -84,6 +84,11 @@ public class Provider {
     return (cPtr == 0) ? null : new Match(cPtr, true);
   }
 
+  public Match getMatchForByteArray(byte[] userAgent) {
+    long cPtr = FiftyOneDegreesTrieV3JNI.Provider_getMatchForByteArray(swigCPtr, this, userAgent);
+    return (cPtr == 0) ? null : new Match(cPtr, true);
+  }
+
   public Match getMatch(MapStringString headers) {
     long cPtr = FiftyOneDegreesTrieV3JNI.Provider_getMatch__SWIG_1(swigCPtr, this, MapStringString.getCPtr(headers), headers);
     return (cPtr == 0) ? null : new Match(cPtr, true);

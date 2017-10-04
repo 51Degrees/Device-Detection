@@ -136,14 +136,21 @@ class Match {
 
 	virtual ~Match();
 
-    std::vector<std::string> getValues(const char *propertyName);
-    std::vector<std::string> getValues(std::string &propertyName);
+	std::vector<std::string> getValues(const std::string &propertyName);
     std::vector<std::string> getValues(int propertyIndex);
 
-    std::string getValue(const char *propertyName);
-    std::string getValue(std::string &propertyName);
+	std::string getValue(const std::string &propertyName);
     std::string getValue(int propertyIndex);
 
+	bool getValueAsBool(const std::string &propertyName);
+	bool getValueAsBool(int requiredPropertyIndex);
+
+	int getValueAsInteger(const std::string &propertyName);
+	int getValueAsInteger(int requiredPropertyIndex);
+
+	double getValueAsDouble(const std::string &propertyName);
+	double getValueAsDouble(int requiredPropertyIndex);
+	
     std::string getDeviceId();
     int getRank();
     int getDifference();
@@ -156,13 +163,18 @@ class Match {
 #endif
 };
 
+#ifdef SWIGJAVA
+%apply (char *STRING, size_t LENGTH) { (const char userAgent[], size_t length) }
+%newobject Provider::getMatchForByteArray;
+#endif
+
 class Provider {
 
 	public:
 
 	Provider(const std::string &fileName);
 	Provider(const std::string &fileName, const std::string &propertyString);
-    Provider(const std::string &fileName, std::vector<std::string> &propertiesArray);
+	Provider(const std::string &fileName, std::vector<std::string> &propertiesArray);
 	virtual ~Provider();
 
     std::vector<std::string> getHttpHeaders();
@@ -174,13 +186,16 @@ class Provider {
     int getDataSetSignatureCount();
     int getDataSetDeviceCombinations();
 
-    Match* getMatch(const std::string &userAgent);
+	Match* getMatch(const std::string &userAgent);
+#ifdef SWIGJAVA
+	Match* getMatchForByteArray(const char userAgent[], size_t length);
+#endif
     Match* getMatch(const std::map<std::string, std::string> &headers);
 
-    Match* getMatchWithTolerances(const std::string &userAgent, int drift, int difference);
+	Match* getMatchWithTolerances(const std::string &userAgent, int drift, int difference);
     Match* getMatchWithTolerances(const std::map<std::string, std::string> &headers, int drift, int difference);
 
-    std::string getMatchJson(const std::string &userAgent);
+	std::string getMatchJson(const std::string &userAgent);
     std::string getMatchJson(const std::map<std::string, std::string> &headers);
 
 	void setDrift(int drift);

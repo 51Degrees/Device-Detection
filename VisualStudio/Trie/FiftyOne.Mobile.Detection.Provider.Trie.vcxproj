@@ -20,6 +20,7 @@
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="..\..\src\cache.h" />
+    <ClInclude Include="..\..\src\threading.h" />
     <ClInclude Include="..\..\src\trie\51Degrees.h" />
     <ClInclude Include="..\..\src\trie\Match.hpp" />
     <ClInclude Include="..\..\src\trie\Provider.hpp" />
@@ -27,6 +28,7 @@
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="..\..\src\cache.c" />
+    <ClCompile Include="..\..\src\threading.c" />
     <ClCompile Include="..\..\src\trie\51Degrees.c">
       <FileType>CppCode</FileType>
     </ClCompile>

@@ -32,32 +32,44 @@ Match::Match(fiftyoneDegreesDeviceOffsets *offsets) {
 }
 
 /**
- * Releases the memory used to store the device offsets.
+ * Releases the memory used to store the device offsets if this was set.
  */
 Match::~Match() {
 	fiftyoneDegreesProviderFreeDeviceOffsets(offsets);
 }
 
 /**
+ * Gets a pointer to the value string associated with the required property 
+ * index. Checks if multiple offsets are available, or a single integer offset.
+ * @param requiredPropertyIndex of the property required
+ * @returns pointer to a string representation of the value for the property
+ */
+const char* Match::getValuePointer(int requiredPropertyIndex) {
+	const char *value = NULL;
+	if (requiredPropertyIndex >= 0 &&
+		requiredPropertyIndex <
+		fiftyoneDegreesGetRequiredPropertiesCount(offsets->active->dataSet)) {
+		value = fiftyoneDegreesGetValuePtrFromOffsets(
+			offsets->active->dataSet,
+			offsets,
+			requiredPropertyIndex);
+	}
+	return value;
+}
+
+/**
  * Returns a string representation of the value associated with the required
  * property index. If the index is not valid an empty string is returned. If
  * the property relates to a list with more than one value then values are
- * seperated by | characters.
+ * separated by | characters.
  * @param requiredPropertyIndex of the property required
  * @returns a string representation of the value for the property
  */
 string Match::getValue(int requiredPropertyIndex) {
 	string result;
-	if (requiredPropertyIndex >= 0 &&
-			requiredPropertyIndex <
-			fiftyoneDegreesGetRequiredPropertiesCount(dataSet)) {
-		const char *value = fiftyoneDegreesGetValuePtrFromOffsets(
-			dataSet,
-			offsets,
-			requiredPropertyIndex);
-		if (value != NULL) {
-			result.assign(value);
-		}
+	const char *value = getValuePointer(requiredPropertyIndex);
+	if (value != NULL) {
+		result.assign(value);
 	}
 	return result;
 }
@@ -66,24 +78,147 @@ string Match::getValue(int requiredPropertyIndex) {
  * Returns a string representation of the value associated with the required
  * property name. If the property name is not valid an empty string is
  * returned.If the property relates to a list with more than one value then
- * values are seperated by | characters.
+ * values are separated by | characters.
  * @param propertyName pointer to a string containing the property name
  * @returns a string representation of the value for the property
  */
 string Match::getValue(const char* propertyName) {
-	return getValue(fiftyoneDegreesGetRequiredPropertyIndex(dataSet, propertyName));
+	return getValue(
+		fiftyoneDegreesGetRequiredPropertyIndex(
+			offsets->active->dataSet,
+			propertyName));
 }
 
 /**
- * Returns a string representation of the value associated with the required
- * property name. If the property name is not valid an empty string is
- * returned.If the property relates to a list with more than one value then
- * values are seperated by | characters.
- * @param propertyName string containing the property name
- * @returns a string representation of the value for the property
- */
-string Match::getValue(string &propertyName) {
+* Returns a string representation of the value associated with the required
+* property name. If the property name is not valid an empty string is
+* returned.If the property relates to a list with more than one value then
+* values are separated by | characters.
+* @param propertyName string containing the property name
+* @returns a string representation of the value for the property
+*/
+string Match::getValue(const string &propertyName) {
 	return getValue(propertyName.c_str());
+}
+
+/**
+* Returns a boolean representation of the value associated with the required
+* property index. If the property index is not valid then false is returned.
+* @param requiredPropertyIndex in the required properties
+* @returns a boolean representation of the value for the property
+*/
+bool Match::getValueAsBool(int requiredPropertyIndex) {
+	const char *value = getValuePointer(requiredPropertyIndex);
+	return value != NULL && strcmp(value, "True") == 0;
+}
+
+/**
+* Returns a boolean representation of the value associated with the required
+* property name. If the property name is not valid then false is returned.
+* @param propertyName string containing the property name
+* @returns a boolean representation of the value for the property
+*/
+bool Match::getValueAsBool(const char* propertyName) {
+	return getValueAsBool(
+		fiftyoneDegreesGetRequiredPropertyIndex(
+			offsets->active->dataSet, 
+			propertyName));
+}
+
+/**
+* Returns a boolean representation of the value associated with the required
+* property name. If the property name is not valid then false is returned.
+* @param propertyName string containing the property name
+* @returns a boolean representation of the value for the property
+*/
+bool Match::getValueAsBool(const string &propertyName) {
+	return getValueAsBool(propertyName.c_str());
+}
+
+/**
+* Returns an integer representation of the value associated with the required
+* property index. If the property index is not valid then 0 is returned.
+* Using a property which returns non-numeric characters will result in
+* unexpected behaviour.
+* @param requiredPropertyIndex in the required properties
+* @returns an integer representation of the value for the property
+*/
+int Match::getValueAsInteger(int requiredPropertyIndex) {
+	const char *value = getValuePointer(requiredPropertyIndex);
+	if (value != NULL) {
+		return atoi(value);
+	}
+	return 0;
+}
+
+/**
+* Returns an integer representation of the value associated with the required
+* property index. If the property name is not valid then 0 is returned.
+* Using a property which returns non-numeric characters will result in
+* unexpected behaviour.
+* @param propertyName string containing the property name
+* @returns an integer representation of the value for the property
+*/
+int Match::getValueAsInteger(const char* propertyName) {
+	return getValueAsInteger(
+		fiftyoneDegreesGetRequiredPropertyIndex(
+			offsets->active->dataSet, 
+			propertyName));
+}
+
+/**
+* Returns an integer representation of the value associated with the required
+* property name. If the property name is not valid then 0 is returned.
+* Using a property which returns non-numeric characters will result in
+* unexpected behaviour.
+* @param propertyName string containing the property name
+* @returns an integer representation of the value for the property
+*/
+int Match::getValueAsInteger(const string &propertyName) {
+	return getValueAsInteger(propertyName.c_str());
+}
+
+/**
+* Returns a double representation of the value associated with the required
+* property index. If the property index is not valid then 0 is returned.
+* Using a property which returns non-numeric characters will result in
+* unexpected behaviour.
+* @param requiredPropertyIndex in the required properties
+* @returns a double representation of the value for the property
+*/
+double Match::getValueAsDouble(int requiredPropertyIndex) {
+	const char *value = getValuePointer(requiredPropertyIndex);
+	if (value != NULL) {
+		return strtod(value, NULL);
+	}
+	return 0;
+}
+
+/**
+* Returns a double representation of the value associated with the required
+* property name. If the property name is not valid then 0 is returned.
+* Using a property which returns non-numeric characters will result in
+* unexpected behaviour.
+* @param propertyName string containing the property name
+* @returns a double representation of the value for the property
+*/
+double Match::getValueAsDouble(const char* propertyName) {
+	return getValueAsDouble(
+		fiftyoneDegreesGetRequiredPropertyIndex(
+			offsets->active->dataSet, 
+			propertyName));
+}
+
+/**
+* Returns a double representation of the value associated with the required
+* property name. If the property name is not valid then 0 is returned.
+* Using a property which returns non-numeric characters will result in
+* unexpected behaviour.
+* @param propertyName string containing the property name
+* @returns a double representation of the value for the property
+*/
+double Match::getValueAsDouble(const string &propertyName) {
+	return getValueAsDouble(propertyName.c_str());
 }
 
 /**
@@ -95,11 +230,10 @@ string Match::getValue(string &propertyName) {
 vector<string> Match::getValues(int requiredPropertyIndex) {
 	vector<string> result;
 	if (requiredPropertyIndex >= 0 &&
-		requiredPropertyIndex < fiftyoneDegreesGetRequiredPropertiesCount(dataSet)) {
-		char *start = (char*)fiftyoneDegreesGetValuePtrFromOffsets(
-			dataSet,
-			offsets,
-			requiredPropertyIndex);
+		requiredPropertyIndex < 
+			fiftyoneDegreesGetRequiredPropertiesCount(
+				offsets->active->dataSet)) {
+		char *start = (char*)getValuePointer(requiredPropertyIndex);
 		if (start != NULL) {
 			char *current = start, *last = start;
 			while (*current != 0) {
@@ -126,7 +260,9 @@ vector<string> Match::getValues(int requiredPropertyIndex) {
  * @returns a vector of values for the property
  */
 vector<string> Match::getValues(const char *propertyName) {
-	return getValues(fiftyoneDegreesGetRequiredPropertyIndex(dataSet, propertyName));
+	return getValues(fiftyoneDegreesGetRequiredPropertyIndex(
+		offsets->active->dataSet,
+		propertyName));
 }
 
 /**
@@ -135,7 +271,7 @@ vector<string> Match::getValues(const char *propertyName) {
  * @param propertyName string containing the property name
  * @returns a vector of values for the property
  */
-vector<string> Match::getValues(string &propertyName) {
+vector<string> Match::getValues(const string &propertyName) {
 	return getValues(propertyName.c_str());
 }
 
@@ -145,7 +281,7 @@ vector<string> Match::getValues(string &propertyName) {
  * @returns string set to the HTTP header value matched
  */
 string Match::getUserAgent() {
-	return string(offsets->firstOffset->userAgent);
+	return offsets != NULL ? string(offsets->firstOffset->userAgent) : "";
 }
 
 /**
@@ -170,8 +306,10 @@ int Match::getRank() {
  */
 int Match::getDifference() {
 	int difference = 0;
-	for (int offsetIndex = 0; offsetIndex < offsets->size; offsetIndex++) {
-		difference += offsets->firstOffset[offsetIndex].difference;
+	if (offsets != NULL) {
+		for (int offsetIndex = 0; offsetIndex < offsets->size; offsetIndex++) {
+			difference += offsets->firstOffset[offsetIndex].difference;
+		}
 	}
 	return difference;
 }
@@ -186,7 +324,7 @@ int Match::getMethod() {
 
 /**
  * Manual dispose method for node.
- * Depricated: match object is now freed by the garbage collector in
+ * Deprecated: match object is now freed by the garbage collector in
  * all languages, so this does nothing.
  */
 void Match::close() {
