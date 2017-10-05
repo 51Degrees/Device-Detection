@@ -49,9 +49,8 @@ $ sudo apt-get install gcc make
 and the Nginx source will be automatically downloaded by the make file.
 
 ## Install
-
+<installation>
 ### Linux
-
 #### Test Installation
 This is the quickest and easiest way to build Nginx in a local directory to try out the module. Just use
 ```
@@ -74,35 +73,55 @@ which will all pass if the local installation was successful.
 **Note: If ApacheBench tests fail even though the dependencies are fulfilled it may need to be recompiled using the correct compiler for your OS. This can be done using Device-Detection/CodeBlocks/ApacheBench.cbp**
 
 #### For an existing Nginx deployment
+##### Static Module
+To compile the module into an existing Nginx deployment,
+first clone 51Degrees/Device-Detection repository with
+```
+$ git clone https://github.com/51Degrees/Device-Detection.git
+```
+Move to the Nginx directory with
+```
+$ cd Device-Detection/nginx
+```
+and put together the module directory with either
+```
+$ make build pattern
+```
+or
+```
+$ make build trie
+```
+Copy the module to the Nginx modules directory with
+```
+$ cp -r 51Degrees_module [MODULE DIRECTORY]
+```
+In the Nginx source directory, run ``./configure`` as normal and add the module, the linker option ``-lm`` and the definitions ``FIFTYONEDEGREES_PATTERN`` and ``FIFTYONEDEGREES_NO_THREADING`` (or ``FIFTYONEDEGREES_TRIE`` for the Trie module). A basic example is,
+```
+$ ./configure \
+    --prefix=[NGINX INSTALL DIRECTORY] \
+    --with-ld-opt="-lm" \
+    --with-cc-opt="-DFIFTYONEDEGREES_PATTERN -DFIFTYONEDEGREES_NO_THREADING"
+    --add-module=[MODULE DIRECTORY]/51Degrees_module
+```
+**Note: with Pattern the arguments ``-Wno-ignored-qualifiers -Wno-unused-result`` are also needed.**
 
+Then install with
+```
+$ sudo make install
+```
 ##### Dynamic Module
-51Degrees dynamic module can be used in Nginx version 1.9.11 or later.
+51Degrees can also be build as a dynamic module for Nginx version 1.9 or later.
 
-For versions 1.11.5 (R11) and 1.11.10 (R12) there are pre-built modules in the `nginx/modules` directory.
-
-To build the module as ngx_http_51D_module.so for another version, define `VERSION` when calling make like:
-```
-$ make install pattern VERSION=1.9.11
-```
-
-By default, the module will be built to the `build/modules` directory.
-
-To load the module, copy the .so to your modules directory and include the following near the top of the Nginx config file.
+To build the module as ngx_http_51D_module.so, follow the same instructions as the static build above, but replace the ``add_module`` argument with ``add_dynamic_module``. By default, the module will be built to Nginx's module directory. The only extra thing which will need to be added to the config file is the line
 ```
 load_module modules/ngx_http_51D_module.so;
 ```
-
-##### Static Module
-To compile as a static module rather than dynamically, define `STATIC_BUILD` when calling make like:
-```
-$ make install pattern STATIC_BUILD=1
-```
-
+**Note: Nginx insists on the same compile arguments being used in both the Nginx executable and the dynamic module.**
+</installation>
 ## Configure
+<configuration>
 Before start matching user agents, you may wish to configure the solution to use a different database for example.
-
 ### Settings
-
 #### General Settings
 These settings are valid in the main configuration block and should only be set once.
  - ``51D_filePath`` (defaults to ``'51Degrees.dat'``). Sets the location of the data file.
@@ -118,10 +137,8 @@ These settings are valid in a location configuration block and should only be se
  - ``51D_match_all`` (defaults to disabled). Gets device properties using multiple HTTP headers. Takes the name the resultant header will be set as, and a comma separated list of properties to return.
 
 ## Usage
-
 ### The Config File
 An example configuration file is included in this repository. It shows how to pass device information when using Nginx as a reverse proxy, and when passing to a fast-cgi provider.
-
 #### HTTP Block
 Within the HTTP block is where the detector settings are set, these should be set like
 ```
@@ -131,10 +148,8 @@ http {
   ...
 }
 ```
-
 #### Location Block
 Within a location block is where the match settings are set. They can be set in one of two ways:
-
 ##### User-Agent match
 To get properties using the device's User-Agent use:
 ```
@@ -143,7 +158,6 @@ location / {
   ...
 }
 ```
-
 ##### Multiple HTTP header matches
 To get properties from all the relevant HTTP headers from the device use:
 ```
@@ -152,10 +166,8 @@ location / {
   ...
 }
 ```
-
 ##### Proxy Passing
 When using the ``proxy_pass`` directive in a location block where a match directive is used, the properties selected are passed as additional HTTP headers with the name specified in the first argument of ``51D_match_single``/``51D_match_all``.
-
 ##### Fast-CGI
 Using ``include fastcgi_params;`` makes these additional headers available via the ``$_SERVER`` variable.
 

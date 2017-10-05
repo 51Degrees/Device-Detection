@@ -33,7 +33,7 @@ Match::Match(fiftyoneDegreesDeviceOffsets *offsets) {
  * Releases the memory used to store the device offsets.
  */
 Match::~Match() {
-	fiftyoneDegreesFreeDeviceOffsets(offsets);
+	fiftyoneDegreesProviderFreeDeviceOffsets(offsets);
 }
 
 /**
@@ -48,8 +48,9 @@ string Match::getValue(int requiredPropertyIndex) {
 	string result;
 	if (requiredPropertyIndex >= 0 &&
 			requiredPropertyIndex <
-			fiftyoneDegreesGetRequiredPropertiesCount()) {
+			fiftyoneDegreesGetRequiredPropertiesCount(dataSet)) {
 		const char *value = fiftyoneDegreesGetValuePtrFromOffsets(
+			dataSet,
 			offsets,
 			requiredPropertyIndex);
 		if (value != NULL) {
@@ -68,7 +69,7 @@ string Match::getValue(int requiredPropertyIndex) {
  * @returns a string representation of the value for the property
  */
 string Match::getValue(const char* propertyName) {
-	return getValue(fiftyoneDegreesGetRequiredPropertyIndex(propertyName));
+	return getValue(fiftyoneDegreesGetRequiredPropertyIndex(dataSet, propertyName));
 }
 
 /**
@@ -92,8 +93,9 @@ string Match::getValue(string &propertyName) {
 vector<string> Match::getValues(int requiredPropertyIndex) {
 	vector<string> result;
 	if (requiredPropertyIndex >= 0 &&
-		requiredPropertyIndex < fiftyoneDegreesGetRequiredPropertiesCount()) {
+		requiredPropertyIndex < fiftyoneDegreesGetRequiredPropertiesCount(dataSet)) {
 		char *start = (char*)fiftyoneDegreesGetValuePtrFromOffsets(
+			dataSet,
 			offsets,
 			requiredPropertyIndex);
 		if (start != NULL) {
@@ -122,7 +124,7 @@ vector<string> Match::getValues(int requiredPropertyIndex) {
  * @returns a vector of values for the property
  */
 vector<string> Match::getValues(const char *propertyName) {
-	return getValues(fiftyoneDegreesGetRequiredPropertyIndex(propertyName));
+	return getValues(fiftyoneDegreesGetRequiredPropertyIndex(dataSet, propertyName));
 }
 
 /**
@@ -178,4 +180,11 @@ int Match::getDifference() {
  */
 int Match::getMethod() {
 	return 0;
+}
+
+/**
+ * Manual dispose method for node.
+ */
+void Match::close() {
+    fiftyoneDegreesFreeDeviceOffsets(offsets);
 }

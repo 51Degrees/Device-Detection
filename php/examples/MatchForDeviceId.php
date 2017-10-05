@@ -43,7 +43,7 @@ and have FiftyOneDegreesPatternV3.php in this directory.
 </tutorial>
 */
 // Snippet Start
-require("FiftyOneDegreesPatternV3.php");
+require("../pattern/FiftyOneDegreesPatternV3.php");
 $provider = FiftyOneDegreesPatternV3::provider_get();
 
 // User-Agent string of an iPhone mobile device.

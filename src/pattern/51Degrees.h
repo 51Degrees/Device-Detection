@@ -42,10 +42,19 @@
 #define EXTERNAL
 #endif
 
+#ifdef _MSC_VER
+/* Needs to be set to __cdecl to prevent optimiser problems */
+#define FIFTYONEDEGREES_CALL_CONV __cdecl
+#else
+#define FIFTYONEDEGREES_CALL_CONV
+#endif
+
 #include <stdint.h>
 #include <limits.h>
 #include <time.h>
+#ifndef FIFTYONEDEGREES_NO_THREADING
 #include "../threading.h"
+#endif
 
 /* Used to represent bytes */
 typedef unsigned char byte;
@@ -86,6 +95,42 @@ typedef struct fiftyoneDegreesRange_t {
 /**
  * DATA FILE MAPPED STRUCTURES - DO NOT ALTER
  */
+
+#define FIFTYONE_DEGREES_COMMON_SET_FIELDS \
+	/* A pointer to the data set to use for the match */ \
+	const fiftyoneDegreesDataSet *dataSet; \
+	/* An array of bytes representing the target user agent */ \
+	byte *targetUserAgentArray; \
+	/* The length of the target user agent */ \
+	uint16_t targetUserAgentArrayLength; \
+	/* The hash code of the target user agent */ \
+	uint64_t targetUserAgentHashCode; \
+	/* 0 if the hash code has not been calculated */ \
+	byte hashCodeSet; \
+	/* The method used to provide the match result */ \
+	fiftyoneDegreesMatchMethod method; \
+	/* The difference score between the signature found and the target */ \
+	int32_t difference; \
+	/* The number of root nodes evaluated */ \
+	int32_t rootNodesEvaluated; \
+	/* The number of strings read */ \
+	int32_t stringsRead; \
+	/* The number of nodes read during the detection */ \
+	int32_t nodesEvaluated; \
+	/* The number of signatures read in full and compared to the target */ \
+	int32_t signaturesCompared; \
+	/* The number of signatures read in full */ \
+	int32_t signaturesRead; \
+	/* The total number of closest signatures available */ \
+	int32_t closestSignatures; \
+	/* Pointer to a list of profiles returned for the match */ \
+	const fiftyoneDegreesProfile **profiles; \
+	/* The number of profiles the match contains */ \
+	int32_t profileCount; \
+	/* The signature found if only one exists */ \
+	byte *signature; \
+	/* Pointer to the cache associated with the set */ \
+	const struct fiftyoneDegrees_resultset_cache_t *cache;
 
 #pragma pack(push, 1)
 typedef struct fiftyoneDegrees_ascii_string_t {
@@ -338,7 +383,7 @@ typedef struct fiftyoneDegrees_dataset_t {
 	const int32_t *nodeRankedSignatureIndexes;
 	const int32_t *rankedSignatureIndexes;
 	const byte *nodes;
-	const fiftyoneDegreesNode **rootNodes;
+	const fiftyoneDegreesNode **rootNodes; /* Array of root nodes equal to the size of the max user agent length */
 	const fiftyoneDegreesProfileOffset *profileOffsets;
 	int32_t httpHeadersCount; /* Number of unique HTTP headers in the array */
 	fiftyoneDegreesHttpHeader *httpHeaders; /* Array of HTTP headers the data set can process */
@@ -365,67 +410,36 @@ typedef struct fiftyoneDegrees_linked_signature_list_t {
 
 #pragma pack(push, 1)
 typedef struct fiftyoneDegrees_resultset_t {
-	const fiftyoneDegreesDataSet *dataSet; /* A pointer to the data set to use for the match */
-	byte *targetUserAgentArray; /* An array of bytes representing the target user agent */
-	uint16_t targetUserAgentArrayLength; /* The length of the target user agent */
-	uint64_t targetUserAgentHashCode; /* The hash code of the target user agent */
-	byte hashCodeSet; /* 0 if the hash code has not been calculated */
-	fiftyoneDegreesMatchMethod method; /* The method used to provide the match result */
-	int32_t difference; /* The difference score between the signature found and the target */
-	int32_t rootNodesEvaluated; /* The number of root nodes evaluated */
-	int32_t stringsRead; /* The number of strings read */
-	int32_t nodesEvaluated; /* The number of nodes read during the detection */
-	int32_t signaturesCompared; /* The number of signatures read in full and compared to the target */
-	int32_t signaturesRead; /* The number of signatures read in full */
-	int32_t closestSignatures; /* The total number of closest signatures available */
-	const fiftyoneDegreesProfile *profiles; /* Pointer to a list of profiles returned for the match */
-	int32_t profileCount; /* The number of profiles the match contains */
-	byte *signature; /* The signature found if only one exists */
-	struct fiftyoneDegrees_resultset_t *previous; /* The previous item in the linked list, or NULL if first */
-	struct fiftyoneDegrees_resultset_t *next; /* The next item in the linked list, or NULL if last */
-	fiftyoneDegreesResultsetCacheState state; /* Indicates if the result set is in the active, background or both lists */
+	FIFTYONE_DEGREES_COMMON_SET_FIELDS
+	struct fiftyoneDegrees_resultset_t *listPrevious; /* The previous item in the linked list, or NULL if first */
+	struct fiftyoneDegrees_resultset_t *listNext; /* The next item in the linked list, or NULL if last */
+	struct fiftyoneDegrees_resultset_t *treeParent; /* Pointer to the parent item, or NULL if the root */
+	struct fiftyoneDegrees_resultset_t *treeLeft; /* Pointer to the item to the left of this one, or NULL if none */
+	struct fiftyoneDegrees_resultset_t *treeRight; /* Pointer to the item to the right of this one, or NULL if none */
+	byte colour; /* The colour of the resultset in the red black tree */
 } fiftyoneDegreesResultset;
 #pragma pack(pop)
 
 #pragma pack(push, 4)
-typedef struct fiftyoneDegrees_resultset_cache_t fiftyoneDegreesResultsetCache;
-#pragma pack(pop)
-
-#pragma pack(push, 4)
-typedef struct fiftyoneDegrees_resultset_cache_list_t {
-	struct fiftyoneDegrees_resultset_cache_t *cache; /* Pointer to the cache the list is a part of */
-	fiftyoneDegreesResultset **resultSets; /* Hashcode ordered list of pointers to resultsets in the cache list */
-	int32_t allocated; /* The number of resultsets currently allocated in the list */
-} fiftyoneDegreesResultsetCacheList;
-#pragma pack(pop)
-
-#pragma pack(push, 4)
-typedef struct fiftyoneDegrees_resultset_cache_link_list_t {
-	fiftyoneDegreesResultset *first; /* Pointer to the first item in the linked list */
-	fiftyoneDegreesResultset *last; /* Pointer to the last item in the linked list */
-	int32_t count; /* Number of items in the linked list */
-} fiftyoneDegreesResultsetCacheLinkedList;
-#pragma pack(pop)
-
-#pragma pack(push, 4)
-struct fiftyoneDegrees_resultset_cache_t {
+typedef struct fiftyoneDegrees_resultset_cache_t {
 	const fiftyoneDegreesDataSet *dataSet; /* A pointer to the data set to use with the cache */
-	const fiftyoneDegreesResultset *resultSets; /* The start of the list of resultsets in the cache */
-	int32_t sizeOfResultset; /* The number of bytes used for each resultset */
-	int32_t total; /* The number of resultset items in the cache */
-	fiftyoneDegreesResultsetCacheLinkedList free; /* Linked list of pointers to free resultsets */
-	fiftyoneDegreesResultsetCacheLinkedList allocated; /* Linked list of pointers to allocated resultsets */
-	fiftyoneDegreesResultsetCacheList *active; /* List of cache items that are actively being checked */
-	fiftyoneDegreesResultsetCacheList *background; /* List of cache items that are being recorded as recently accessed */
-	int32_t switchLimit; /* The number of items that can be allocated before the caches are switched */
+	const fiftyoneDegreesResultset *resultSets; /* Pointer to the array of result sets */
+	const byte *targetUserAgentArrays; /* Pointer to memory used to store target user agents */
+	const fiftyoneDegreesProfile **profiles; /* Pointer to memory used to store profile pointers */
+	fiftyoneDegreesResultset *listFirst; /* Pointer to the first resultset in the linked list */
+	fiftyoneDegreesResultset *listLast; /* Pointer to the last resultset in the linked list */
+	fiftyoneDegreesResultset root; /* Root resultset of the red black tree */
+	fiftyoneDegreesResultset empty; /* Empty resultset - set to black */
+	int32_t total; /* Capacity of the cache */
+	int32_t allocated; /* Number of resultsets currently used in the cache */
 	int32_t hits; /* The number of times an item was found in the cache */
 	int32_t misses; /* The number of times an item was not found in the cache */
-	int32_t switches; /* The number of times the cache has been switched */
+	int32_t switches; /* Always xero and no longer used */
+	int32_t maxIterations; /* The maximum number of iterations needed to fetch */
 #ifndef FIFTYONEDEGREES_NO_THREADING
-	FIFTYONEDEGREES_MUTEX activeLock; /* Used to lock access to the active cache list */
-	FIFTYONEDEGREES_MUTEX backgroundLock; /* Used to lock access to the background cache list */
+	FIFTYONEDEGREES_MUTEX lock; /* Used to lock access to the cache */
 #endif
-};
+} fiftyoneDegreesResultsetCache;
 #pragma pack(pop)
 
 #pragma pack(push, 4)
@@ -442,22 +456,7 @@ typedef struct fiftyoneDegrees_workset_pool_t fiftyoneDegreesWorksetPool;
 
 #pragma pack(push, 1)
 typedef struct fiftyoneDegrees_workset_t {
-	const fiftyoneDegreesDataSet *dataSet; /* A pointer to the data set to use for the match */
-	char *targetUserAgentArray; /* An array of bytes representing the target user agent */
-	uint16_t targetUserAgentArrayLength; /* The length of the target user agent */
-	uint64_t targetUserAgentHashCode; /* The hash code of the target user agent */
-	byte hashCodeSet; /* 0 if the hash code has not been calculated */
-	fiftyoneDegreesMatchMethod method; /* The method used to provide the match result */
-	int32_t difference; /* The difference score between the signature found and the target */
-	int32_t rootNodesEvaluated; /* The number of root nodes evaluated */
-	int32_t stringsRead; /* The number of strings read */
-	int32_t nodesEvaluated; /* The number of nodes read during the detection */
-	int32_t signaturesCompared; /* The number of signatures read in full and compared to the target */
-	int32_t signaturesRead; /* The number of signatures read in full */
-	int32_t closestSignatures; /* The total number of closest signatures available */
-	const fiftyoneDegreesProfile **profiles; /* Pointer to a list of profiles returned for the match */
-	int32_t profileCount; /* The number of profiles the match contains */
-	byte *signature; /* The signature found if only one exists */
+	FIFTYONE_DEGREES_COMMON_SET_FIELDS
 	const fiftyoneDegreesValue **values; /* Pointers to values associated with the property requested */
 	int32_t valuesCount; /* Number of values available */
 	char *input; /* An input buffer large enough to store the User-Agent to be matched */
@@ -475,7 +474,6 @@ typedef struct fiftyoneDegrees_workset_t {
 	byte startWithInitialScore; /* True if the NEAREST and CLOSEST methods should start with an initial score */
 	int(*functionPtrGetScore)(struct fiftyoneDegrees_workset_t *ws, const fiftyoneDegreesNode *node); /* Returns scores for each different node between signature and match */
 	const byte* (*functionPtrNextClosestSignature)(struct fiftyoneDegrees_workset_t *ws); /* Returns the next closest signature */
-	const fiftyoneDegreesResultsetCache *cache; /* Pointer to the cache, or NULL if not available. */
 	const fiftyoneDegreesProfile **tempProfiles; /* Pointer to a list of working profiles used during a multi header match */
 	int32_t importantHeadersCount; /* Number of elements included in the important headers array */
 	fiftyoneDegreesHttpHeaderWorkset *importantHeaders; /* Array of headers that are available and are important to detection */
@@ -571,9 +569,9 @@ EXTERNAL fiftyoneDegreesDataSetInitStatus fiftyoneDegreesInitProviderWithPropert
 /**
  * \ingroup FiftyOneDegreesFunctions
  * Creates a new dataset, pool and cache using the same configuration options
- * as the current data set, pool and cache associated with the provider. The 
- * original file location is used to create the new data set. 
- * The exisitng data set, pool and cache are marked to be freed if worksets are 
+ * as the current data set, pool and cache associated with the provider. The
+ * original file location is used to create the new data set.
+ * The exisitng data set, pool and cache are marked to be freed if worksets are
  * being used by other threads, or if no work sets are in use they are freed
  * immediately.
  * @param provider pointer to the provider whose data set should be reloaded
@@ -609,9 +607,9 @@ EXTERNAL fiftyoneDegreesDataSetInitStatus fiftyoneDegreesProviderReloadFromMemor
 	void *source,
 	long length);
 
-/** 
+/**
  * \ingroup FiftyOneDegreesFunctions
- * Releases all the resources used by the provider. The provider can not be 
+ * Releases all the resources used by the provider. The provider can not be
  * used without being reinitialised after calling this method.
  * @param provider pointer to the provider to be freed
  */
@@ -620,7 +618,7 @@ EXTERNAL void fiftyoneDegreesProviderFree(fiftyoneDegreesProvider *provider);
 /**
  * \ingroup FiftyOneDegreesFunctions
  * Retrieves a work set from the pool associated with the provider. In multi
- * threaded operation will always return a work set. In single threaded 
+ * threaded operation will always return a work set. In single threaded
  * operation may return NULL if no work sets are available in the pool.
  * The work set returned must be released back to the provider by calling
  * fiftyoneDegreesWorksetRelease when finished with.
@@ -934,6 +932,19 @@ EXTERNAL const char* fiftyoneDegreesGetPropertyName(
 	const fiftyoneDegreesProperty *property);
 
 /**
+* \ingroup FiftyOneDegreesFunctions
+* Returns whether or not the property is a list property or not as an integer
+* i.e. 1=true 0=false, or -1 if the property cannot be found.
+* @param dataSet pointer to an initialised dataset.
+* @param propertyName pointer to the name of the property required.
+* @return 1 if the property can return a list, 0 if not, or -1 if the property
+*         does not exist.
+*/
+EXTERNAL int32_t fiftyoneDegreesGetPropertyIsList(
+	const fiftyoneDegreesDataSet *dataSet,
+	char *propertyName);
+
+/**
  * \ingroup FiftyOneDegreesFunctions
  * Gets the required property name at the index provided.
  * @param dataset pointer to an initialised dataset
@@ -1093,6 +1104,82 @@ EXTERNAL void fiftyoneDegreesFreeProfilesStruct(
 	fiftyoneDegreesProfilesStruct *profiles);
 
 /**
+ * \ingroup FiftyOneDegreesFunctions
+ * Malloc function, defaults to malloc.
+ * @param __size the size of memory to allocate.
+ * @returns void* pointer to allocated memory.
+ */
+EXTERNAL void *(FIFTYONEDEGREES_CALL_CONV *fiftyoneDegreesMalloc)(size_t __size);
+
+/**
+ * \ingroup FiftyOneDegreesFunctions
+ * Calloc function, defaults to calloc.
+ * @param __nmemb the number of elements to allocate.
+ * @param __size the size of memory to allocate for each element.
+ * @returns void* pointer to allocated memory.
+ */
+EXTERNAL void *(FIFTYONEDEGREES_CALL_CONV *fiftyoneDegreesCalloc)(size_t __nmemb, size_t __size);
+
+/**
+ * \ingroup FiftyOneDegreesFunctions
+ * Free function, defaults to free.
+ * @param __ptr the pointer to memory to be freed.
+ */
+EXTERNAL void (FIFTYONEDEGREES_CALL_CONV *fiftyoneDegreesFree)(void *__ptr);
+
+/**
+* \ingroup FiftyOneDegreesFunctions
+* Calculates the amount of memory that the provider will need to allocate for
+* the given data file and initialisation parameters. This should be used with
+* the fiftyoneDegreesInitProviderWithPropertyString function.
+* NOTE: This function will over estimate by about 10 bytes to account for a
+* possible increase in http headers.
+* @param fileName the file path of the data file.
+* @param properties the comma separated string of properties that will be
+* initialised.
+* @param poolSize the number of worksets the pool will contain.
+* @param cacheSize the size of the resultset cache.
+* @return size_t the total size in bytes that is needed to initilaise the
+* provider with the given parameters.
+*/
+EXTERNAL size_t fiftyoneDegreesGetProviderSizeWithPropertyString(
+	const char *fileName,
+	const char *properties,
+	int poolSize,
+	int cacheSize);
+
+/**
+* \ingroup FiftyOneDegreesFunctions
+* Calculates the amount of memory that the provider will need to allocate for
+* the given data file and initialisation parameters. This should be used with
+* the fiftyoneDegreesInitProviderWithPropertyArray function.
+* NOTE: This function will over estimate by about 10 bytes to account for a
+* possible increase in http headers.
+* @param fileName the file path of the data file.
+* @param propertyCount the number of properties in the properties array.
+* @param poolSize the number of worksets the pool will contain.
+* @param cacheSize the size of the resultset cache.
+* @return size_t the total size in bytes that is needed to initialise the
+* provider with the given parameters.
+*/
+EXTERNAL size_t fiftyoneDegreesGetProviderSizeWithPropertyCount(
+	const char *fileName,
+	int propertyCount,
+	int poolSize,
+	int cacheSize);
+
+/**
+* \ingroup FiftyOneDegreesFunctions
+* Finds the maximum string length of the values associated with the given
+* property name.
+* @param dataSet pointer to a fiftyoneDegreesDataSet.
+* @param propertyName the name of the property to find the value length for.
+* @returns size_t the maximum string length of the values associated with the
+* given property.
+*/
+EXTERNAL size_t fiftyoneDegreesGetMaxValueLength(const fiftyoneDegreesDataSet *dataSet, char *propertyName);
+
+/**
  * OBSOLETE METHODS - RETAINED FOR BACKWARDS COMPAITABILITY
  */
 
@@ -1116,4 +1203,3 @@ EXTERNAL void fiftyoneDegreesDestroy(const fiftyoneDegreesDataSet *dataSet);
 EXTERNAL void fiftyoneDegreesWorksetPoolRelease(fiftyoneDegreesWorksetPool *pool, fiftyoneDegreesWorkset *ws);
 
 #endif // 51DEGREES_H_INCLUDED
-

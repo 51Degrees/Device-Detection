@@ -23,6 +23,7 @@
 #include <vector>
 #include <map>
 #include <stdexcept>
+#include <stdlib.h>
 #include <sstream>
 #include "Match.hpp"
 
@@ -79,6 +80,13 @@ class Provider {
         string getMatchJson(const string &userAgent);
         string getMatchJson(const map<string, string> &headers);
 
+		void reloadFromFile();
+		void reloadFromMemory(const char *source, int length);
+		void reloadFromMemory(const string &source, int length);
+
+		Provider(const string &fileName, const string &propertyString,
+			bool validate);
+
 	protected:
 
 	private:
@@ -89,8 +97,8 @@ class Provider {
 		void init(const string &fileName, vector<string> &propertyString);
 		void init(const string &fileName);
 		void initHttpHeaders();
-		void initAvailableProperites();
-		void initExecption(fiftyoneDegreesDataSetInitStatus initStatus,
+		void initAvailableproperties();
+		void initException(fiftyoneDegreesDataSetInitStatus initStatus,
 			const string &fileName);
 		void initComplete(fiftyoneDegreesDataSetInitStatus initStatus,
 			const string &fileName);
@@ -99,6 +107,12 @@ class Provider {
 		void buildArray(int offset, map<string, vector<string> > *result);
 		fiftyoneDegreesDeviceOffsets* matchForHttpHeaders(
 			const map<string, string> *headers);
+		void initMatch(Match *match);
+
+		int64_t initWithValidate(const string &fileName,
+			const string &properties);
+
+		fiftyoneDegreesProvider provider;
 };
 
 #endif // FIFTYONEDEGREESPROVIDER_HPP

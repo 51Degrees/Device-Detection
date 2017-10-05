@@ -96,8 +96,8 @@ class _V3WrapperMatcher(_Matcher):
                     'exist or is not readable. Please, '
                     'check your settings.' % settings.V3_WRAPPER_DATABASE)
             else:
-		from FiftyOneDegrees import fiftyone_degrees_mobile_detector_v3_wrapper
-		self.provider = fiftyone_degrees_mobile_detector_v3_wrapper.Provider(settings.V3_WRAPPER_DATABASE, settings.PROPERTIES, int(settings.CACHE_SIZE), int(settings.POOL_SIZE))
+                from FiftyOneDegrees import fiftyone_degrees_mobile_detector_v3_wrapper
+                self.provider = fiftyone_degrees_mobile_detector_v3_wrapper.Provider(settings.V3_WRAPPER_DATABASE, settings.PROPERTIES, int(settings.CACHE_SIZE), int(settings.POOL_SIZE))
         else:
             raise Exception(
                 'Trie-based detection method depends on an external '
@@ -116,23 +116,23 @@ class _V3WrapperMatcher(_Matcher):
         # Pythonize result.
         result = Device(self.ID)
 
-	if returnedMatch:
-		result.set_property('Id', returnedMatch.getDeviceId())
-		result.set_property('MatchMethod', returnedMatch.getMethod())
-		result.set_property('Difference', returnedMatch.getDifference())
-		result.set_property('Rank', returnedMatch.getRank())
-		if settings.PROPERTIES == '':
-			for key in self.provider.getAvailableProperties():
-				value = returnedMatch.getValues(key)
-				if value:
-					result.set_property(key, ' '.join(value))
-				else:
-					result.set_property(key, 'N/A in Lite')
-		else:
-			for key in settings.PROPERTIES.split(','):
-				value = returnedMatch.getValues(key)
-				if value:
-					result.set_property(key, ' '.join(value))
+        if returnedMatch:
+                result.set_property('Id', returnedMatch.getDeviceId())
+                result.set_property('MatchMethod', returnedMatch.getMethod())
+                result.set_property('Difference', returnedMatch.getDifference())
+                result.set_property('Rank', returnedMatch.getRank())
+                if settings.PROPERTIES == '':
+                        for key in self.provider.getAvailableProperties():
+                                value = returnedMatch.getValues(key)
+                                if value:
+                                        result.set_property(key, ' '.join(value))
+                                else:
+                                        result.set_property(key, 'N/A in Lite')
+                else:
+                        for key in settings.PROPERTIES.split(','):
+                                value = returnedMatch.getValues(key)
+                                if value:
+                                        result.set_property(key, ' '.join(value))
 
         # Done!
         return result
@@ -154,8 +154,8 @@ class _V3TrieWrapperMatcher(_Matcher):
                     'exist or is not readable. Please, '
                     'check your settings.' % settings.V3_TRIE_WRAPPER_DATABASE)
             else:
-		from FiftyOneDegrees import fiftyone_degrees_mobile_detector_v3_trie_wrapper
-		self.provider = fiftyone_degrees_mobile_detector_v3_trie_wrapper.Provider(settings.V3_TRIE_WRAPPER_DATABASE, settings.PROPERTIES)
+                from FiftyOneDegrees import fiftyone_degrees_mobile_detector_v3_trie_wrapper
+                self.provider = fiftyone_degrees_mobile_detector_v3_trie_wrapper.Provider(settings.V3_TRIE_WRAPPER_DATABASE, settings.PROPERTIES)
         else:
             raise Exception(
                 'Trie-based detection method depends on an external '
@@ -174,20 +174,20 @@ class _V3TrieWrapperMatcher(_Matcher):
         # Pythonize result.
         result = Device(self.ID)
 
-	print settings.PROPERTIES
-	if returnedMatch:
-		if settings.PROPERTIES == '':
-			for key in self.provider.getAvailableProperties():
-				value = returnedMatch.getValues(key)
-				if value:
-					result.set_property(key, ' '.join(value))
-				else:
-					result.set_property(key, 'N/A in Lite')
-		else:
-			for key in settings.PROPERTIES.split(','):
-				value = returnedMatch.getValues(key)
-				if value:
-					result.set_property(key, ' '.join(value))
+        print settings.PROPERTIES
+        if returnedMatch:
+                if settings.PROPERTIES == '':
+                        for key in self.provider.getAvailableProperties():
+                                value = returnedMatch.getValues(key)
+                                if value:
+                                        result.set_property(key, ' '.join(value))
+                                else:
+                                        result.set_property(key, 'N/A in Lite')
+                else:
+                        for key in settings.PROPERTIES.split(','):
+                                value = returnedMatch.getValues(key)
+                                if value:
+                                        result.set_property(key, ' '.join(value))
 
         # Done!
         return result

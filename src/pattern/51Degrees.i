@@ -49,6 +49,35 @@
 %include std_map.i
 
 /*
+ * For node.js, override the overloader constructor template to
+ * carry though the correct error message. The additions are the
+ * two "goto fail"'s.
+ */
+#ifdef BUILDING_NODE_EXTENSION
+%fragment ("js_ctor_dispatch_case", "templates")
+%{
+	if(args.Length() == $jsargcount) {
+		errorHandler.err.Clear();
+#if (V8_MAJOR_VERSION-0) < 4 && (SWIG_V8_VERSION < 0x031903)
+		self = $jswrapper(args, errorHandler);
+		if(errorHandler.err.IsEmpty()) {
+			SWIGV8_ESCAPE(self);
+		} else {
+			goto fail;
+		}
+#else
+		$jswrapper(args, errorHandler);
+		if(errorHandler.err.IsEmpty()) {
+			return;
+		} else {
+			goto fail;
+		}
+#endif
+	}
+%}
+#endif
+
+/*
  * Exceptions returned by the C++ code are handled here.
  */
 %exception {
@@ -72,8 +101,10 @@
  * language to be responsible for memory cleanup.
  */
 %nodefaultctor Match;
+#ifndef BUILDING_NODE_EXTENSION
 %newobject Provider::getMatch;
 %newobject Provider::getMatchForDeviceId;
+#endif
 %nodefaultctor Profiles;
 %newobject Provider::findProfiles;
 
@@ -104,6 +135,8 @@ Provider *provider;
 
 	delete provider;
 }
+
+%rename(findProfilesInProfiles) findProfiles(const std::string propertyName, const std::string valueName, Profiles *profiles);
 #endif
 
 class Match {
@@ -125,6 +158,11 @@ class Match {
 	int getDifference();
 	int getMethod();
 	std::string getUserAgent();
+    
+    // Manual dispose method for node.
+#ifdef BUILDING_NODE_EXTENSION
+    void close();
+#endif
 };
 
 class Profiles {
@@ -171,4 +209,12 @@ class Provider {
 	Profiles* findProfiles(const std::string propertyName, const std::string valueName, Profiles *profiles);
 
 	void reloadFromFile();
+	void reloadFromMemory(const std::string &source, int length);
+
+	int getCacheHits();
+	int getCacheMisses();
+	int getCacheMaxIterations();
+
+	Provider(const std::string &fileName, const std::string &propertyString, int cacheSize, int poolSize, bool validate);
+
 };

@@ -40,8 +40,6 @@ echo "worker_processes 4;" >> build/nginx.conf
 echo "worker_rlimit_core  500M;" >> build/nginx.conf
 echo "working_directory   coredumps/;" >> build/nginx.conf
 echo "" >> build/nginx.conf
-echo "load_module modules/ngx_http_51D_module.so;" >> build/nginx.conf
-echo "" >> build/nginx.conf
 echo "events {" >> build/nginx.conf
 echo "	worker_connections 1024;" >> build/nginx.conf
 echo "}" >> build/nginx.conf

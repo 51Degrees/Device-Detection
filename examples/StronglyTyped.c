@@ -92,6 +92,10 @@ The example shows how to:
 </p>
 </tutorial>
 */
+
+#include <stdio.h>
+#include <string.h>
+#include <stdbool.h>
 #ifdef _DEBUG
 #ifdef _MSC_VER
 #define _CRTDBG_MAP_ALLOC
@@ -103,9 +107,6 @@ The example shows how to:
 #endif
 
 // Snippet Start
-#include <stdio.h>
-#include <string.h>
-#include <stdbool.h>
 #include "../src/pattern/51Degrees.h"
 
 // Global settings and properties.

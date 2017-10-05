@@ -49,6 +49,7 @@ public:
 	Match();
 	virtual ~Match();
 
+
 	vector<string> getValues(const char *propertyName);
 	vector<string> getValues(string &propertyName);
 	vector<string> getValues(int requiredPropertyIndex);
@@ -62,6 +63,9 @@ public:
 	int getDifference();
 	int getMethod();
 	string getUserAgent();
+
+    // Manual dispose method for node.
+    void close();
 
 protected:
 

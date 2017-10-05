@@ -1,6 +1,6 @@
 /*
 This Source Code Form is copyright of 51Degrees Mobile Experts Limited.
-Copyright (c) 2017 51Degrees Mobile Experts Limited, 5 Charlotte Close,
+Copyright (c) 2015 51Degrees Mobile Experts Limited, 5 Charlotte Close,
 Caversham, Reading, Berkshire, United Kingdom RG4 7BY
 
 This Source Code Form is the subject of the following patent
@@ -64,6 +64,7 @@ rl.on('line', function (userAgent) {
             outStream.write("|" + match[property]);
         })
         outStream.write("\n");
+        match.close();
     }
     i++;
 });
@@ -114,6 +115,7 @@ var outputOfflineProcessing = function() {
                 outStream.write("|" + match[property]);
             })
             outStream.write("\n");
+            match.close();
         }
         i++;
     });

@@ -31,9 +31,9 @@ var update = function (provider, errorHandler) {
     }
     // Set the request options to get the update from.
     var requestOptions = {
-        host: "distributor.51degrees.com",
+        host: "51degrees.com",
         port: 443,
-        path: "/api/v2/download?" + querystring.stringify(parameters)
+        path: "/products/downloads/premium?" + querystring.stringify(parameters)
     };
     var request = https.get(requestOptions);
     // When recieving response, if gzip download file, if not, return error.

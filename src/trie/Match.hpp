@@ -60,10 +60,14 @@ public:
 	int getDifference();
 	int getMethod();
 	string getUserAgent();
+    
+    // Manual dispose method for node.
+    void close();
 
 protected:
 
 private:
+	fiftyoneDegreesDataSet *dataSet;
 	fiftyoneDegreesDeviceOffsets *offsets;
 	string userAgent;
 };

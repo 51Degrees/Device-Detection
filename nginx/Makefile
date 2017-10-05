@@ -1,4 +1,3 @@
-VERSION := 1.11.10
 ifeq (build,$(firstword $(MAKECMDGOALS)))
 	API := $(word 2,$(words $(MAKECMDGOALS)),$(MAKECMDGOALS))
 	ARGNEEDED := 1
@@ -7,7 +6,6 @@ ifeq (install,$(firstword $(MAKECMDGOALS)))
 	API := $(word 2,$(words $(MAKECMDGOALS)),$(MAKECMDGOALS))
 	ARGNEEDED := 1
 endif
-
 $(eval $(API):;@:)
 
 ifdef ARGNEEDED
@@ -18,14 +16,6 @@ else ifeq ($(API),trie)
 else
 $(error $(API) is not a valid argument, must be pattern or trie)
 endif
-endif
-
-ifndef STATIC_BUILD
-	BUILD_MODE := dynamic
-	MODULE_ARG := --add-dynamic-module
-else
-	BUILD_MODE := static
-	MODULE_ARG := --add-module
 endif
 
 .PHONY pattern:
@@ -42,8 +32,8 @@ clean:
 	if [ -f "nginx" ]; then \
 		rm -f nginx; \
 	fi
-	if [ -f "vendor/nginx-$(VERSION)/Makefile" ]; then \
-		cd $(CURDIR)/vendor/nginx-$(VERSION) && make clean; \
+	if [ -f "vendor/nginx/Makefile" ]; then \
+		cd $(CURDIR)/vendor/nginx && make clean; \
 	fi
 
 build: clean
@@ -59,34 +49,26 @@ build: clean
 
 
 get-source:
-	if [ ! -d "vendor" ]; then mkdir vendor; fi
-	cd vendor && curl -L -O "http://nginx.org/download/nginx-$(VERSION).tar.gz"
-	cd vendor && tar xzf "nginx-$(VERSION).tar.gz"
+	if [ -d "vendor" ]; then rm -r vendor; fi
+	mkdir -p vendor/nginx
+	curl -L -O "http://nginx.org/download/nginx-1.10.0.tar.gz"
+	tar xzf "nginx-1.10.0.tar.gz"
+	mv nginx-1.10.0.tar.gz vendor/
+	mv -f nginx-1.10.0/* vendor/nginx
+	rmdir nginx-1.10.0
 
 install: build
-	if [ ! -d "vendor/nginx-$(VERSION)" ]; then $(MAKE) get-source; fi
-	cd $(CURDIR)/vendor/nginx-$(VERSION) && \
+	if [ ! -d "vendor/nginx" ]; then $(MAKE) get-source; fi
+	cd $(CURDIR)/vendor/nginx && \
 	./configure \
 	--prefix=$(CURDIR)/build \
 	--with-ld-opt="-lm" \
-	$(MODULE_ARG)=$(CURDIR)/51Degrees_module \
-	--with-compat \
+	--add-module=$(CURDIR)/51Degrees_module \
 	--with-cc-opt=$(ARGS) \
 	--sbin-path=$(CURDIR) \
 	--conf-path="nginx.conf"
-	cd $(CURDIR)/vendor/nginx-$(VERSION) && make install
+	cd $(CURDIR)/vendor/nginx && make install
 	cp example/$(API).conf build/nginx.conf
-
-all-versions:
-	$(MAKE) install pattern VERSION=1.11.10
-	mv build/modules/ngx_http_51D_module.so modules/ngx_http_51D_pattern-1.11.10.so
-	$(MAKE) install trie VERSION=1.11.10
-	mv build/modules/ngx_http_51D_module.so modules/ngx_http_51D_trie-1.11.10.so
-	$(MAKE) install pattern VERSION=1.11.5
-	mv build/modules/ngx_http_51D_module.so modules/ngx_http_51D_pattern-1.11.5.so
-	$(MAKE) install trie VERSION=1.11.10
-	mv build/modules/ngx_http_51D_module.so modules/ngx_http_51D_trie-1.11.5.so
-
 
 test:
 	./test.sh

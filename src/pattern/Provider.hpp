@@ -23,6 +23,7 @@
 #include <vector>
 #include <map>
 #include <stdexcept>
+#include <stdlib.h>
 #include <sstream>
 #include "Match.hpp"
 #include "Profiles.hpp"
@@ -68,6 +69,7 @@ class Provider {
         Match* getMatch(const char *userAgent);
         Match* getMatch(const string &userAgent);
         Match* getMatch(const map<string, string> &headers);
+        Match* getMatchForHttpHeaders(const map<string, string> &headers);
 
         map<string, vector<string> >& getMatchMap(const char *userAgent);
 		map<string, vector<string> >& getMatchMap(const string &userAgent);
@@ -87,7 +89,17 @@ class Provider {
 		Profiles* findProfiles(const char *propertyName, const char *valueName, Profiles* profiles);
 
 		void reloadFromFile();
-	protected:
+		void reloadFromMemory(const char *source, int length);
+		void reloadFromMemory(const string &source, int length);
+
+		int getCacheHits();
+		int getCacheMisses();
+		int getCacheMaxIterations();
+
+		Provider(const string &fileName, const string &propertyString,
+			int cacheSize, int poolSize, bool validate);
+
+protected:
 
 	private:
 		vector<string> httpHeaders;
@@ -99,8 +111,8 @@ class Provider {
 			int cacheSize, int poolSize);
 		void init(const string &fileName, int cacheSize, int poolSize);
 		void initHttpHeaders();
-		void initAvailableProperites();
-		void initExecption(fiftyoneDegreesDataSetInitStatus initStatus,
+		void initAvailableproperties();
+		void initException(fiftyoneDegreesDataSetInitStatus initStatus,
 			const string &fileName);
 		void initMatch(Match *match);
 		void initComplete(fiftyoneDegreesDataSetInitStatus initStatus,
@@ -109,6 +121,9 @@ class Provider {
 			map<string, vector<string> > *result);
 		void matchForHttpHeaders(fiftyoneDegreesWorkset *ws,
 			const map<string, string> *headers);
+
+		int64_t initWithValidate(const string &fileName,
+			const string &properties, int cacheSize, int poolSize);
 
 		fiftyoneDegreesProvider provider;
 };

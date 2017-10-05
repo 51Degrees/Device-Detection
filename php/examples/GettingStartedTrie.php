@@ -46,7 +46,7 @@ pattern method, you can see the differences are the module name.
 </tutorial>
 */
 // Snippet Start
-require("FiftyOneDegreesTrieV3.php");
+require("../trie/FiftyOneDegreesTrieV3.php");
 
 $provider = FiftyOneDegreesTrieV3::provider_get();
 

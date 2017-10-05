@@ -1,6 +1,6 @@
 {
     "name": "fiftyonedegreeslitetrie",
-    "version": "3.2.13",
+    "version": "3.2.10",
     "description": "51degrees trie data for nodejs",
     "main": "fiftyonedegreeslitetrie.js",
     "repository": {

@@ -11,11 +11,13 @@ if test "$PHP_FIFTYONEDEGREESPATTERNV3" = "yes"; then
   AC_CONFIG_COMMANDS_PRE(cp ../../src/pattern/* src/pattern)
   AC_CONFIG_COMMANDS_PRE(cp ../../src/threading.* src)
   AC_CONFIG_COMMANDS_PRE(cp ../../src/cityhash/city.* src/cityhash)
-  AC_CONFIG_COMMANDS_PRE(swig2.0 -php -c++ -o src/pattern/51Degrees_PHP.cpp src/pattern/51Degrees.i)
+  AC_CONFIG_COMMANDS_PRE(swig -php -c++ -o src/pattern/51Degrees_PHP.cpp src/pattern/51Degrees.i)
   AC_CONFIG_COMMANDS_PRE(mkdir includes)
   AC_CONFIG_COMMANDS_PRE(cp src/pattern/FiftyOneDegreesPatternV3.php includes/)
 
   AC_DEFINE(HAVE_FIFTYONEDEGREESPATTERNV3, 1, [Whether you have 51Degrees Detector Enabled])
+  CFLAGS="$CFLAGS -lrt"
+  PHP_SUBST([CFLAGS])
   PHP_SUBST(FIFTYONEDEGREESPATTERNV3_LIBADD)
 
   PHP_NEW_EXTENSION(FiftyOneDegreesPatternV3, src/cityhash/city.c src/threading.c src/pattern/51Degrees.c src/pattern/51Degrees_PHP.cpp src/pattern/Provider.cpp src/pattern/Match.cpp src/pattern/Profiles.cpp, $ext_shared, ,,"yes")

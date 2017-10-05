@@ -111,7 +111,6 @@ shows how to:
 
 // Snippet Start
 #include <stdio.h>
-#include <string.h>
 #include "../src/pattern/51Degrees.h"
 
 // Global settings and properties.
