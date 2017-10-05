@@ -70,11 +70,17 @@ class Provider {
 		int getDataSetDeviceCombinations();
 
         Match* getMatch(const char *userAgent);
-        Match* getMatch(const string &userAgent);
+		Match* getMatch(const string &userAgent);
+		Match* getMatchForByteArray(const char userAgent[], size_t length);
         Match* getMatch(const map<string, string> &headers);
 
 		Match* getMatchWithTolerances(
 			const char *userAgent, 
+			int drift, 
+			int difference);
+		Match* getMatchWithTolerances(
+			const char *userAgent, 
+			int userAgentLength,
 			int drift, 
 			int difference);
 		Match* getMatchWithTolerances(
@@ -129,7 +135,6 @@ class Provider {
 			const map<string, string> *headers,
 			int drift,
 			int difference);
-		void initMatch(Match *match);
 
 		int64_t initWithValidate(const string &fileName,
 			const string &properties);

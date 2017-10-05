@@ -1056,42 +1056,6 @@ SWIGEXPORT void JNICALL Java_FiftyOneDegreesTrieV3_FiftyOneDegreesTrieV3JNI_dele
 SWIGEXPORT jlong JNICALL Java_FiftyOneDegreesTrieV3_FiftyOneDegreesTrieV3JNI_Match_1getValues_1_1SWIG_10(JNIEnv *jenv, jclass jcls, jlong jarg1, jobject jarg1_, jstring jarg2) {
   jlong jresult = 0 ;
   Match *arg1 = (Match *) 0 ;
-  char *arg2 = (char *) 0 ;
-  std::vector< std::string > result;
-  
-  (void)jenv;
-  (void)jcls;
-  (void)jarg1_;
-  arg1 = *(Match **)&jarg1; 
-  arg2 = 0;
-  if (jarg2) {
-    arg2 = (char *)jenv->GetStringUTFChars(jarg2, 0);
-    if (!arg2) return 0;
-  }
-  {
-    try {
-      result = (arg1)->getValues((char const *)arg2);;
-    }
-    catch(runtime_error& e) {
-      {
-        SWIG_JavaException(jenv, SWIG_RuntimeError, e.what()); return 0; 
-      };
-    }
-    catch(invalid_argument& e) {
-      {
-        SWIG_JavaException(jenv, SWIG_ValueError, e.what()); return 0; 
-      };
-    }
-  }
-  *(std::vector< std::string > **)&jresult = new std::vector< std::string >((const std::vector< std::string > &)result); 
-  if (arg2) jenv->ReleaseStringUTFChars(jarg2, (const char *)arg2);
-  return jresult;
-}
-
-
-SWIGEXPORT jlong JNICALL Java_FiftyOneDegreesTrieV3_FiftyOneDegreesTrieV3JNI_Match_1getValues_1_1SWIG_11(JNIEnv *jenv, jclass jcls, jlong jarg1, jobject jarg1_, jlong jarg2) {
-  jlong jresult = 0 ;
-  Match *arg1 = (Match *) 0 ;
   std::string *arg2 = 0 ;
   std::vector< std::string > result;
   
@@ -1099,14 +1063,18 @@ SWIGEXPORT jlong JNICALL Java_FiftyOneDegreesTrieV3_FiftyOneDegreesTrieV3JNI_Mat
   (void)jcls;
   (void)jarg1_;
   arg1 = *(Match **)&jarg1; 
-  arg2 = *(std::string **)&jarg2;
-  if (!arg2) {
-    SWIG_JavaThrowException(jenv, SWIG_JavaNullPointerException, "std::string & reference is null");
+  if(!jarg2) {
+    SWIG_JavaThrowException(jenv, SWIG_JavaNullPointerException, "null string");
     return 0;
-  } 
+  }
+  const char *arg2_pstr = (const char *)jenv->GetStringUTFChars(jarg2, 0); 
+  if (!arg2_pstr) return 0;
+  std::string arg2_str(arg2_pstr);
+  arg2 = &arg2_str;
+  jenv->ReleaseStringUTFChars(jarg2, arg2_pstr); 
   {
     try {
-      result = (arg1)->getValues(*arg2);;
+      result = (arg1)->getValues((std::string const &)*arg2);;
     }
     catch(runtime_error& e) {
       {
@@ -1124,7 +1092,7 @@ SWIGEXPORT jlong JNICALL Java_FiftyOneDegreesTrieV3_FiftyOneDegreesTrieV3JNI_Mat
 }
 
 
-SWIGEXPORT jlong JNICALL Java_FiftyOneDegreesTrieV3_FiftyOneDegreesTrieV3JNI_Match_1getValues_1_1SWIG_12(JNIEnv *jenv, jclass jcls, jlong jarg1, jobject jarg1_, jint jarg2) {
+SWIGEXPORT jlong JNICALL Java_FiftyOneDegreesTrieV3_FiftyOneDegreesTrieV3JNI_Match_1getValues_1_1SWIG_11(JNIEnv *jenv, jclass jcls, jlong jarg1, jobject jarg1_, jint jarg2) {
   jlong jresult = 0 ;
   Match *arg1 = (Match *) 0 ;
   int arg2 ;
@@ -1158,42 +1126,6 @@ SWIGEXPORT jlong JNICALL Java_FiftyOneDegreesTrieV3_FiftyOneDegreesTrieV3JNI_Mat
 SWIGEXPORT jstring JNICALL Java_FiftyOneDegreesTrieV3_FiftyOneDegreesTrieV3JNI_Match_1getValue_1_1SWIG_10(JNIEnv *jenv, jclass jcls, jlong jarg1, jobject jarg1_, jstring jarg2) {
   jstring jresult = 0 ;
   Match *arg1 = (Match *) 0 ;
-  char *arg2 = (char *) 0 ;
-  std::string result;
-  
-  (void)jenv;
-  (void)jcls;
-  (void)jarg1_;
-  arg1 = *(Match **)&jarg1; 
-  arg2 = 0;
-  if (jarg2) {
-    arg2 = (char *)jenv->GetStringUTFChars(jarg2, 0);
-    if (!arg2) return 0;
-  }
-  {
-    try {
-      result = (arg1)->getValue((char const *)arg2);;
-    }
-    catch(runtime_error& e) {
-      {
-        SWIG_JavaException(jenv, SWIG_RuntimeError, e.what()); return 0; 
-      };
-    }
-    catch(invalid_argument& e) {
-      {
-        SWIG_JavaException(jenv, SWIG_ValueError, e.what()); return 0; 
-      };
-    }
-  }
-  jresult = jenv->NewStringUTF((&result)->c_str()); 
-  if (arg2) jenv->ReleaseStringUTFChars(jarg2, (const char *)arg2);
-  return jresult;
-}
-
-
-SWIGEXPORT jstring JNICALL Java_FiftyOneDegreesTrieV3_FiftyOneDegreesTrieV3JNI_Match_1getValue_1_1SWIG_11(JNIEnv *jenv, jclass jcls, jlong jarg1, jobject jarg1_, jlong jarg2) {
-  jstring jresult = 0 ;
-  Match *arg1 = (Match *) 0 ;
   std::string *arg2 = 0 ;
   std::string result;
   
@@ -1201,14 +1133,18 @@ SWIGEXPORT jstring JNICALL Java_FiftyOneDegreesTrieV3_FiftyOneDegreesTrieV3JNI_M
   (void)jcls;
   (void)jarg1_;
   arg1 = *(Match **)&jarg1; 
-  arg2 = *(std::string **)&jarg2;
-  if (!arg2) {
-    SWIG_JavaThrowException(jenv, SWIG_JavaNullPointerException, "std::string & reference is null");
+  if(!jarg2) {
+    SWIG_JavaThrowException(jenv, SWIG_JavaNullPointerException, "null string");
     return 0;
-  } 
+  }
+  const char *arg2_pstr = (const char *)jenv->GetStringUTFChars(jarg2, 0); 
+  if (!arg2_pstr) return 0;
+  std::string arg2_str(arg2_pstr);
+  arg2 = &arg2_str;
+  jenv->ReleaseStringUTFChars(jarg2, arg2_pstr); 
   {
     try {
-      result = (arg1)->getValue(*arg2);;
+      result = (arg1)->getValue((std::string const &)*arg2);;
     }
     catch(runtime_error& e) {
       {
@@ -1226,7 +1162,7 @@ SWIGEXPORT jstring JNICALL Java_FiftyOneDegreesTrieV3_FiftyOneDegreesTrieV3JNI_M
 }
 
 
-SWIGEXPORT jstring JNICALL Java_FiftyOneDegreesTrieV3_FiftyOneDegreesTrieV3JNI_Match_1getValue_1_1SWIG_12(JNIEnv *jenv, jclass jcls, jlong jarg1, jobject jarg1_, jint jarg2) {
+SWIGEXPORT jstring JNICALL Java_FiftyOneDegreesTrieV3_FiftyOneDegreesTrieV3JNI_Match_1getValue_1_1SWIG_11(JNIEnv *jenv, jclass jcls, jlong jarg1, jobject jarg1_, jint jarg2) {
   jstring jresult = 0 ;
   Match *arg1 = (Match *) 0 ;
   int arg2 ;
@@ -1253,6 +1189,216 @@ SWIGEXPORT jstring JNICALL Java_FiftyOneDegreesTrieV3_FiftyOneDegreesTrieV3JNI_M
     }
   }
   jresult = jenv->NewStringUTF((&result)->c_str()); 
+  return jresult;
+}
+
+
+SWIGEXPORT jboolean JNICALL Java_FiftyOneDegreesTrieV3_FiftyOneDegreesTrieV3JNI_Match_1getValueAsBool_1_1SWIG_10(JNIEnv *jenv, jclass jcls, jlong jarg1, jobject jarg1_, jstring jarg2) {
+  jboolean jresult = 0 ;
+  Match *arg1 = (Match *) 0 ;
+  std::string *arg2 = 0 ;
+  bool result;
+  
+  (void)jenv;
+  (void)jcls;
+  (void)jarg1_;
+  arg1 = *(Match **)&jarg1; 
+  if(!jarg2) {
+    SWIG_JavaThrowException(jenv, SWIG_JavaNullPointerException, "null string");
+    return 0;
+  }
+  const char *arg2_pstr = (const char *)jenv->GetStringUTFChars(jarg2, 0); 
+  if (!arg2_pstr) return 0;
+  std::string arg2_str(arg2_pstr);
+  arg2 = &arg2_str;
+  jenv->ReleaseStringUTFChars(jarg2, arg2_pstr); 
+  {
+    try {
+      result = (bool)(arg1)->getValueAsBool((std::string const &)*arg2);;
+    }
+    catch(runtime_error& e) {
+      {
+        SWIG_JavaException(jenv, SWIG_RuntimeError, e.what()); return 0; 
+      };
+    }
+    catch(invalid_argument& e) {
+      {
+        SWIG_JavaException(jenv, SWIG_ValueError, e.what()); return 0; 
+      };
+    }
+  }
+  jresult = (jboolean)result; 
+  return jresult;
+}
+
+
+SWIGEXPORT jboolean JNICALL Java_FiftyOneDegreesTrieV3_FiftyOneDegreesTrieV3JNI_Match_1getValueAsBool_1_1SWIG_11(JNIEnv *jenv, jclass jcls, jlong jarg1, jobject jarg1_, jint jarg2) {
+  jboolean jresult = 0 ;
+  Match *arg1 = (Match *) 0 ;
+  int arg2 ;
+  bool result;
+  
+  (void)jenv;
+  (void)jcls;
+  (void)jarg1_;
+  arg1 = *(Match **)&jarg1; 
+  arg2 = (int)jarg2; 
+  {
+    try {
+      result = (bool)(arg1)->getValueAsBool(arg2);;
+    }
+    catch(runtime_error& e) {
+      {
+        SWIG_JavaException(jenv, SWIG_RuntimeError, e.what()); return 0; 
+      };
+    }
+    catch(invalid_argument& e) {
+      {
+        SWIG_JavaException(jenv, SWIG_ValueError, e.what()); return 0; 
+      };
+    }
+  }
+  jresult = (jboolean)result; 
+  return jresult;
+}
+
+
+SWIGEXPORT jint JNICALL Java_FiftyOneDegreesTrieV3_FiftyOneDegreesTrieV3JNI_Match_1getValueAsInteger_1_1SWIG_10(JNIEnv *jenv, jclass jcls, jlong jarg1, jobject jarg1_, jstring jarg2) {
+  jint jresult = 0 ;
+  Match *arg1 = (Match *) 0 ;
+  std::string *arg2 = 0 ;
+  int result;
+  
+  (void)jenv;
+  (void)jcls;
+  (void)jarg1_;
+  arg1 = *(Match **)&jarg1; 
+  if(!jarg2) {
+    SWIG_JavaThrowException(jenv, SWIG_JavaNullPointerException, "null string");
+    return 0;
+  }
+  const char *arg2_pstr = (const char *)jenv->GetStringUTFChars(jarg2, 0); 
+  if (!arg2_pstr) return 0;
+  std::string arg2_str(arg2_pstr);
+  arg2 = &arg2_str;
+  jenv->ReleaseStringUTFChars(jarg2, arg2_pstr); 
+  {
+    try {
+      result = (int)(arg1)->getValueAsInteger((std::string const &)*arg2);;
+    }
+    catch(runtime_error& e) {
+      {
+        SWIG_JavaException(jenv, SWIG_RuntimeError, e.what()); return 0; 
+      };
+    }
+    catch(invalid_argument& e) {
+      {
+        SWIG_JavaException(jenv, SWIG_ValueError, e.what()); return 0; 
+      };
+    }
+  }
+  jresult = (jint)result; 
+  return jresult;
+}
+
+
+SWIGEXPORT jint JNICALL Java_FiftyOneDegreesTrieV3_FiftyOneDegreesTrieV3JNI_Match_1getValueAsInteger_1_1SWIG_11(JNIEnv *jenv, jclass jcls, jlong jarg1, jobject jarg1_, jint jarg2) {
+  jint jresult = 0 ;
+  Match *arg1 = (Match *) 0 ;
+  int arg2 ;
+  int result;
+  
+  (void)jenv;
+  (void)jcls;
+  (void)jarg1_;
+  arg1 = *(Match **)&jarg1; 
+  arg2 = (int)jarg2; 
+  {
+    try {
+      result = (int)(arg1)->getValueAsInteger(arg2);;
+    }
+    catch(runtime_error& e) {
+      {
+        SWIG_JavaException(jenv, SWIG_RuntimeError, e.what()); return 0; 
+      };
+    }
+    catch(invalid_argument& e) {
+      {
+        SWIG_JavaException(jenv, SWIG_ValueError, e.what()); return 0; 
+      };
+    }
+  }
+  jresult = (jint)result; 
+  return jresult;
+}
+
+
+SWIGEXPORT jdouble JNICALL Java_FiftyOneDegreesTrieV3_FiftyOneDegreesTrieV3JNI_Match_1getValueAsDouble_1_1SWIG_10(JNIEnv *jenv, jclass jcls, jlong jarg1, jobject jarg1_, jstring jarg2) {
+  jdouble jresult = 0 ;
+  Match *arg1 = (Match *) 0 ;
+  std::string *arg2 = 0 ;
+  double result;
+  
+  (void)jenv;
+  (void)jcls;
+  (void)jarg1_;
+  arg1 = *(Match **)&jarg1; 
+  if(!jarg2) {
+    SWIG_JavaThrowException(jenv, SWIG_JavaNullPointerException, "null string");
+    return 0;
+  }
+  const char *arg2_pstr = (const char *)jenv->GetStringUTFChars(jarg2, 0); 
+  if (!arg2_pstr) return 0;
+  std::string arg2_str(arg2_pstr);
+  arg2 = &arg2_str;
+  jenv->ReleaseStringUTFChars(jarg2, arg2_pstr); 
+  {
+    try {
+      result = (double)(arg1)->getValueAsDouble((std::string const &)*arg2);;
+    }
+    catch(runtime_error& e) {
+      {
+        SWIG_JavaException(jenv, SWIG_RuntimeError, e.what()); return 0; 
+      };
+    }
+    catch(invalid_argument& e) {
+      {
+        SWIG_JavaException(jenv, SWIG_ValueError, e.what()); return 0; 
+      };
+    }
+  }
+  jresult = (jdouble)result; 
+  return jresult;
+}
+
+
+SWIGEXPORT jdouble JNICALL Java_FiftyOneDegreesTrieV3_FiftyOneDegreesTrieV3JNI_Match_1getValueAsDouble_1_1SWIG_11(JNIEnv *jenv, jclass jcls, jlong jarg1, jobject jarg1_, jint jarg2) {
+  jdouble jresult = 0 ;
+  Match *arg1 = (Match *) 0 ;
+  int arg2 ;
+  double result;
+  
+  (void)jenv;
+  (void)jcls;
+  (void)jarg1_;
+  arg1 = *(Match **)&jarg1; 
+  arg2 = (int)jarg2; 
+  {
+    try {
+      result = (double)(arg1)->getValueAsDouble(arg2);;
+    }
+    catch(runtime_error& e) {
+      {
+        SWIG_JavaException(jenv, SWIG_RuntimeError, e.what()); return 0; 
+      };
+    }
+    catch(invalid_argument& e) {
+      {
+        SWIG_JavaException(jenv, SWIG_ValueError, e.what()); return 0; 
+      };
+    }
+  }
+  jresult = (jdouble)result; 
   return jresult;
 }
 
@@ -1818,6 +1964,50 @@ SWIGEXPORT jlong JNICALL Java_FiftyOneDegreesTrieV3_FiftyOneDegreesTrieV3JNI_Pro
     }
   }
   *(Match **)&jresult = result; 
+  return jresult;
+}
+
+
+SWIGEXPORT jlong JNICALL Java_FiftyOneDegreesTrieV3_FiftyOneDegreesTrieV3JNI_Provider_1getMatchForByteArray(JNIEnv *jenv, jclass jcls, jlong jarg1, jobject jarg1_, jbyteArray jarg2) {
+  jlong jresult = 0 ;
+  Provider *arg1 = (Provider *) 0 ;
+  char *arg2 ;
+  size_t arg3 ;
+  Match *result = 0 ;
+  
+  (void)jenv;
+  (void)jcls;
+  (void)jarg1_;
+  arg1 = *(Provider **)&jarg1; 
+  {
+    if (jarg2) {
+      arg2 = (char *) jenv->GetByteArrayElements(jarg2, 0);
+      arg3 = (size_t) jenv->GetArrayLength(jarg2);
+    } else {
+      arg2 = 0;
+      arg3 = 0;
+    }
+  }
+  {
+    try {
+      result = (Match *)(arg1)->getMatchForByteArray((char const (*))arg2,arg3);;
+    }
+    catch(runtime_error& e) {
+      {
+        SWIG_JavaException(jenv, SWIG_RuntimeError, e.what()); return 0; 
+      };
+    }
+    catch(invalid_argument& e) {
+      {
+        SWIG_JavaException(jenv, SWIG_ValueError, e.what()); return 0; 
+      };
+    }
+  }
+  *(Match **)&jresult = result; 
+  {
+    if (jarg2) jenv->ReleaseByteArrayElements(jarg2, (jbyte *)arg2, 0);
+  }
+  
   return jresult;
 }
 

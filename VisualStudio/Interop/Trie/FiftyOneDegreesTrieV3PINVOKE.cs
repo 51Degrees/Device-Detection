@@ -315,19 +315,31 @@ class FiftyOneDegreesTrieV3PINVOKE {
   public static extern global::System.IntPtr Match_getValues__SWIG_0(global::System.Runtime.InteropServices.HandleRef jarg1, string jarg2);
 
   [global::System.Runtime.InteropServices.DllImport("FiftyOne.Mobile.Detection.Provider.Trie.dll", EntryPoint="CSharp_FiftyOnefMobilefDetectionfProviderfInteropfTrie_Match_getValues__SWIG_1___")]
-  public static extern global::System.IntPtr Match_getValues__SWIG_1(global::System.Runtime.InteropServices.HandleRef jarg1, global::System.Runtime.InteropServices.HandleRef jarg2);
-
-  [global::System.Runtime.InteropServices.DllImport("FiftyOne.Mobile.Detection.Provider.Trie.dll", EntryPoint="CSharp_FiftyOnefMobilefDetectionfProviderfInteropfTrie_Match_getValues__SWIG_2___")]
-  public static extern global::System.IntPtr Match_getValues__SWIG_2(global::System.Runtime.InteropServices.HandleRef jarg1, int jarg2);
+  public static extern global::System.IntPtr Match_getValues__SWIG_1(global::System.Runtime.InteropServices.HandleRef jarg1, int jarg2);
 
   [global::System.Runtime.InteropServices.DllImport("FiftyOne.Mobile.Detection.Provider.Trie.dll", EntryPoint="CSharp_FiftyOnefMobilefDetectionfProviderfInteropfTrie_Match_getValue__SWIG_0___")]
   public static extern string Match_getValue__SWIG_0(global::System.Runtime.InteropServices.HandleRef jarg1, string jarg2);
 
   [global::System.Runtime.InteropServices.DllImport("FiftyOne.Mobile.Detection.Provider.Trie.dll", EntryPoint="CSharp_FiftyOnefMobilefDetectionfProviderfInteropfTrie_Match_getValue__SWIG_1___")]
-  public static extern string Match_getValue__SWIG_1(global::System.Runtime.InteropServices.HandleRef jarg1, global::System.Runtime.InteropServices.HandleRef jarg2);
+  public static extern string Match_getValue__SWIG_1(global::System.Runtime.InteropServices.HandleRef jarg1, int jarg2);
 
-  [global::System.Runtime.InteropServices.DllImport("FiftyOne.Mobile.Detection.Provider.Trie.dll", EntryPoint="CSharp_FiftyOnefMobilefDetectionfProviderfInteropfTrie_Match_getValue__SWIG_2___")]
-  public static extern string Match_getValue__SWIG_2(global::System.Runtime.InteropServices.HandleRef jarg1, int jarg2);
+  [global::System.Runtime.InteropServices.DllImport("FiftyOne.Mobile.Detection.Provider.Trie.dll", EntryPoint="CSharp_FiftyOnefMobilefDetectionfProviderfInteropfTrie_Match_getValueAsBool__SWIG_0___")]
+  public static extern bool Match_getValueAsBool__SWIG_0(global::System.Runtime.InteropServices.HandleRef jarg1, string jarg2);
+
+  [global::System.Runtime.InteropServices.DllImport("FiftyOne.Mobile.Detection.Provider.Trie.dll", EntryPoint="CSharp_FiftyOnefMobilefDetectionfProviderfInteropfTrie_Match_getValueAsBool__SWIG_1___")]
+  public static extern bool Match_getValueAsBool__SWIG_1(global::System.Runtime.InteropServices.HandleRef jarg1, int jarg2);
+
+  [global::System.Runtime.InteropServices.DllImport("FiftyOne.Mobile.Detection.Provider.Trie.dll", EntryPoint="CSharp_FiftyOnefMobilefDetectionfProviderfInteropfTrie_Match_getValueAsInteger__SWIG_0___")]
+  public static extern int Match_getValueAsInteger__SWIG_0(global::System.Runtime.InteropServices.HandleRef jarg1, string jarg2);
+
+  [global::System.Runtime.InteropServices.DllImport("FiftyOne.Mobile.Detection.Provider.Trie.dll", EntryPoint="CSharp_FiftyOnefMobilefDetectionfProviderfInteropfTrie_Match_getValueAsInteger__SWIG_1___")]
+  public static extern int Match_getValueAsInteger__SWIG_1(global::System.Runtime.InteropServices.HandleRef jarg1, int jarg2);
+
+  [global::System.Runtime.InteropServices.DllImport("FiftyOne.Mobile.Detection.Provider.Trie.dll", EntryPoint="CSharp_FiftyOnefMobilefDetectionfProviderfInteropfTrie_Match_getValueAsDouble__SWIG_0___")]
+  public static extern double Match_getValueAsDouble__SWIG_0(global::System.Runtime.InteropServices.HandleRef jarg1, string jarg2);
+
+  [global::System.Runtime.InteropServices.DllImport("FiftyOne.Mobile.Detection.Provider.Trie.dll", EntryPoint="CSharp_FiftyOnefMobilefDetectionfProviderfInteropfTrie_Match_getValueAsDouble__SWIG_1___")]
+  public static extern double Match_getValueAsDouble__SWIG_1(global::System.Runtime.InteropServices.HandleRef jarg1, int jarg2);
 
   [global::System.Runtime.InteropServices.DllImport("FiftyOne.Mobile.Detection.Provider.Trie.dll", EntryPoint="CSharp_FiftyOnefMobilefDetectionfProviderfInteropfTrie_Match_getDeviceId___")]
   public static extern string Match_getDeviceId(global::System.Runtime.InteropServices.HandleRef jarg1);

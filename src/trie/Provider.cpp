@@ -403,8 +403,32 @@ void Provider::buildArray(int offset, map<string, vector<string> > *result) {
 	}
 }
 
-void Provider::initMatch(Match *match) {
-	match->dataSet = match->offsets->active->dataSet;
+/**
+* Completes device detection for the User-Agent provided.
+* @param User-Agent whose results need to be obtained
+* @param userAgentLength of the User-Agent.
+* @param drift to extend the search range by.
+* @param difference to allow in hash values.
+* @returns new Match instance configured to provide access to the results
+*/
+Match* Provider::getMatchWithTolerances(
+	const char* userAgent,
+	int userAgentLength,
+	int drift,
+	int difference) {
+	fiftyoneDegreesDeviceOffsets* offsets =
+		fiftyoneDegreesProviderCreateDeviceOffsets(&provider);
+	offsets->size = 1;
+	fiftyoneDegreesSetDeviceOffsetFromArrayWithTolerances(
+		provider.active->dataSet,
+		userAgent,
+		userAgentLength,
+		0,
+		offsets->firstOffset,
+		drift,
+		difference);
+	Match *result = new Match(offsets);
+	return result;
 }
 
 /**
@@ -418,19 +442,7 @@ Match* Provider::getMatchWithTolerances(
 	const char* userAgent,
 	int drift,
 	int difference) {
-	fiftyoneDegreesDeviceOffsets* offsets =
-		fiftyoneDegreesProviderCreateDeviceOffsets(&provider);
-	offsets->size = 1;
-	fiftyoneDegreesSetDeviceOffsetWithTolerances(
-		provider.active->dataSet,
-		userAgent,
-		0,
-		offsets->firstOffset,
-		drift,
-		difference);
-	Match *result = new Match(offsets);
-	initMatch(result);
-	return result;
+	return getMatchWithTolerances(userAgent, -1, drift, difference);
 }
 
 /**
@@ -442,9 +454,9 @@ Match* Provider::getMatchWithTolerances(
 */
 Match* Provider::getMatchWithTolerances(
 	const string& userAgent,
-	int drift, int
-	difference) {
-	return getMatchWithTolerances(userAgent.c_str(), drift, difference);
+	int drift,
+	int difference) {
+	return getMatchWithTolerances(userAgent.c_str(), -1, drift, difference);
 }
 
 /**
@@ -458,11 +470,10 @@ Match* Provider::getMatchWithTolerances(
 	const map<string, string>& headers,
 	int drift,
 	int difference) {
-	Match *result = new Match(matchForHttpHeaders(&headers, drift, difference));
-	initMatch(result);
+	Match *result = new Match(
+		matchForHttpHeaders(&headers, drift, difference));
 	return result;
 }
-
 
 /**
 * Completes device detection for the User-Agent provided.
@@ -470,7 +481,7 @@ Match* Provider::getMatchWithTolerances(
 * @returns new Match instance configured to provide access to the results
 */
 Match* Provider::getMatch(const char* userAgent) {
-	return getMatchWithTolerances(userAgent, 0, 0);
+	return getMatchWithTolerances(userAgent, -1, 0, 0);
 }
 
 /**
@@ -480,6 +491,15 @@ Match* Provider::getMatch(const char* userAgent) {
 */
 Match* Provider::getMatch(const string& userAgent) {
 	return getMatch(userAgent.c_str());
+}
+
+/**
+* Completes device detection for the User-Agent byte array provided.
+* @param User-Agent whose results need to be obtained
+* @returns new Match instance configured to provide access to the results
+*/
+Match* Provider::getMatchForByteArray(const char userAgent[], size_t length) {
+	return getMatchWithTolerances((const char*)userAgent, (int)length, 0, 0);
 }
 
 /**

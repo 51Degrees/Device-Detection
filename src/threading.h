@@ -38,6 +38,9 @@
 
 #ifdef _MSC_VER
 #include <windows.h>
+#include <intrin.h>  
+#pragma intrinsic (_InterlockedIncrement) 
+#pragma intrinsic (_InterlockedDecrement) 
 #else
 #include <pthread.h>
 #endif
@@ -223,4 +226,16 @@ int fiftyoneDegreesSignalValid(fiftyoneDegreesSignal *signal);
 #endif
 
 #endif
+#endif
+
+#ifdef _MSC_VER
+#define FIFTYONEDEGREES_INTERLOCK_INC(v) _InterlockedIncrement(v)
+#else
+#define FIFTYONEDEGREES_INTERLOCK_INC(v) __sync_fetch_and_add(v, 1)
+#endif
+
+#ifdef _MSC_VER
+#define FIFTYONEDEGREES_INTERLOCK_DEC(v) _InterlockedDecrement(v)
+#else
+#define FIFTYONEDEGREES_INTERLOCK_DEC(v) __sync_fetch_and_add(v, -1)
 #endif

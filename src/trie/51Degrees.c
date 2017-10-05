@@ -1841,6 +1841,11 @@ fiftyoneDegreesDataSetInitStatus fiftyoneDegreesProviderReloadFromMemory(
 	// method from freeing memory that was not allocated.
 	newDataSet->fileName = NULL;
 
+	// Set the full data set pointer to NULL to indicate that when this
+	// new data set is released the memory shouldn't be freed by 51Degrees but
+	// by the consumer.
+	newDataSet->memoryToFree = NULL;
+
 	// Initialise the new data set with the data pointed to by source.
 	reader.current = (byte*)source;
 	reader.length = length;
@@ -1850,12 +1855,7 @@ fiftyoneDegreesDataSetInitStatus fiftyoneDegreesProviderReloadFromMemory(
 		fiftyoneDegreesFree(newDataSet);
 		return status;
 	}
-
-	// Set the full data set pointer to NULL to indicate that when this
-	// new data set is released the memory shouldn't be freed by 51Degrees but
-	// by the consumer.
-	newDataSet->memoryToFree = NULL;
-
+	
 	// Reload common components.
 	status = reloadCommon(provider, newDataSet);
 	if (status != DATA_SET_INIT_STATUS_SUCCESS) {
@@ -2681,12 +2681,18 @@ static void evaluateBinaryNode(match_t *match) {
 static void initialiseMatch(
 	const fiftyoneDegreesDataSet *dataSet,
 	const char *userAgent,
+	int userAgentLength,
 	int drift,
 	int difference,
 	match_t *match) {
 	match->dataSet = dataSet;
 	match->userAgent = userAgent;
-	match->userAgentLength = (int16_t)strlen(userAgent);
+	if (userAgentLength < 0) {
+		match->userAgentLength = (int16_t)strlen(userAgent);		
+	}
+	else {
+		match->userAgentLength = (int16_t)userAgentLength;
+	}
 	match->node = NODE(dataSet, 0);
 	match->drift = dataSet->baseDrift + drift;
 	match->difference = dataSet->baseDifference + difference;
@@ -2710,11 +2716,12 @@ static void initialiseMatch(
 static int32_t getDeviceIndex(
 	const fiftyoneDegreesDataSet *dataSet,
 	const char *userAgent,
+	int userAgentLength,
 	char *matchedUserAgent,
 	int drift,
 	int difference) {
 	match_t match;
-	initialiseMatch(dataSet, userAgent, drift, difference, &match);
+	initialiseMatch(dataSet, userAgent, userAgentLength, drift, difference, &match);
 	
 	// Set the matched User-Agent array to spaces and null terminate at the 
 	// User-Agent length so that the string displays as expected.
@@ -2758,7 +2765,7 @@ int fiftyoneDegreesGetMatchedUserAgentLengthWithTolerances(
 	match_t match;
 	int i = 0;
 	char matchedUserAgent[500];
-	initialiseMatch(dataSet, userAgent, drift, difference, &match);
+	initialiseMatch(dataSet, userAgent, -1, drift, difference, &match);
 	memset(&matchedUserAgent, 0, match.userAgentLength + 1);
 	match.matchedUserAgent = &matchedUserAgent[0];
 	while (match.node != NULL) {
@@ -2806,10 +2813,50 @@ int fiftyoneDegreesGetMatchedUserAgentLength(
  * \endcond
  */
 int32_t fiftyoneDegreesGetDeviceOffset(
-		fiftyoneDegreesDataSet *dataSet,
-		const char* userAgent) {
-	return getDeviceIndex(dataSet, userAgent, NULL, 0, 0) * 
-			dataSet->devicesIntegerCount;
+	fiftyoneDegreesDataSet *dataSet,
+	const char* userAgent) {
+return getDeviceIndex(dataSet, userAgent, -1, NULL, 0, 0) * 
+		dataSet->devicesIntegerCount;
+}
+
+/**
+ * \cond
+ * Sets the offsets structure passed to the method for the User-Agent provided.
+ * @param dataSet pointer to an initialised dataset.
+ * @param userAgent to match for.
+ * @param userAgentLength of the User-Agent.
+ * @param httpHeaderIndex of the User-Agent.
+ * @param offset to set.
+ * @param drift to extend the search range by.
+ * @param difference to allow in hash values.
+ * \endcond
+ */
+void fiftyoneDegreesSetDeviceOffsetFromArrayWithTolerances(
+	fiftyoneDegreesDataSet *dataSet,
+	const char* userAgent,
+	int userAgentLength,
+	int httpHeaderIndex,
+	fiftyoneDegreesDeviceOffset *offset,
+	int drift,
+	int difference) {
+	offset->httpHeaderOffset =
+		dataSet->uniqueHttpHeaders.firstElement[httpHeaderIndex];
+	offset->length = strlen(userAgent);
+	offset->difference = 0;
+#ifdef _DEBUG
+	offset->userAgent = (char*)fiftyoneDegreesMalloc(
+		offset->length + 1 * sizeof(char));
+#else
+	offset->userAgent = NULL;
+#endif
+	offset->deviceOffset = getDeviceIndex(
+		dataSet, 
+		userAgent, 
+		userAgentLength,
+		offset->userAgent, 
+		drift, 
+		difference) *
+		(dataSet->devicePropertiesCount + dataSet->components.count);
 }
 
 /**
@@ -2830,23 +2877,14 @@ void fiftyoneDegreesSetDeviceOffsetWithTolerances(
 	fiftyoneDegreesDeviceOffset *offset,
 	int drift,
 	int difference) {
-	offset->httpHeaderOffset =
-		dataSet->uniqueHttpHeaders.firstElement[httpHeaderIndex];
-	offset->length = strlen(userAgent);
-	offset->difference = 0;
-#ifdef _DEBUG
-	offset->userAgent = (char*)fiftyoneDegreesMalloc(
-		offset->length + 1 * sizeof(char));
-#else
-	offset->userAgent = NULL;
-#endif
-	offset->deviceOffset = getDeviceIndex(
-		dataSet, 
-		userAgent, 
-		offset->userAgent, 
-		drift, 
-		difference) *
-		(dataSet->devicePropertiesCount + dataSet->components.count);
+	fiftyoneDegreesSetDeviceOffsetFromArrayWithTolerances(
+			dataSet,
+			userAgent,
+			-1,
+			httpHeaderIndex,
+			offset,
+			drift,
+			difference);
 }
 
 /**
@@ -2938,32 +2976,52 @@ void fiftyoneDegreesFreeDeviceOffsets(fiftyoneDegreesDeviceOffsets* offsets) {
 /**
  * \cond
  * Creates a new device offsets structure with memory allocated and increments
- * the inUse counter in the provider so the dataset will not be freed until this
- * is. A corresponding call to fiftyoneDegreesProviderFreeDeviceOffsets must be
- * made when these offsets are finished with.
+ * the inUse counter in the provider so the dataset will not be freed until 
+ * this is. A corresponding call to fiftyoneDegreesProviderFreeDeviceOffsets
+ * must be made when these offsets are finished with.
  * @param provider pointer to an initialised provider.
  * @returns fiftyoneDegreesDeviceOffsets* newly created device offsets.
  * \endcond
  */
 fiftyoneDegreesDeviceOffsets* fiftyoneDegreesProviderCreateDeviceOffsets(
-		fiftyoneDegreesProvider *provider) {
-	const fiftyoneDegreesActiveDataSet *active;
+	fiftyoneDegreesProvider *provider) {
 	fiftyoneDegreesDeviceOffsets *offsets;
+	fiftyoneDegreesActiveDataSet *active = NULL;
+
 #ifndef FIFTYONEDEGREES_NO_THREADING
-	FIFTYONEDEGREES_MUTEX_LOCK(&provider->lock);
-#endif
-	// Create a link to the dataset which these offsets will be created from.
+	do {
+		// If the we've an old active data set and it's no longer in use
+		// after we've decremented the use counter then free it.
+		if (active != NULL) {
+			fiftyoneDegreesProviderFreeDeviceOffsets(offsets);
+		}
+
+		// Get the active data set.
+		active = (fiftyoneDegreesActiveDataSet*)provider->active;
+
+		// Increment the inUse counter for the active data set so that we can
+		// track any offsets that are created.
+		FIFTYONEDEGREES_INTERLOCK_INC(&active->inUse);
+
+		// Create the offsets.
+		offsets = fiftyoneDegreesCreateDeviceOffsets(active->dataSet);
+		offsets->active = active;
+
+		// If the current active data set is the same as the local one then 
+		// continue.
+	} while (active != provider->active);
+#else
+	// Get the active data set.
 	active = (fiftyoneDegreesActiveDataSet*)provider->active;
 
-	// Increment the inUse counter so the dataset is not freed while these
-	// offsets are still in use.
-	provider->active->inUse++;
-#ifndef FIFTYONEDEGREES_NO_THREADING
-	FIFTYONEDEGREES_MUTEX_UNLOCK(&provider->lock);
-#endif
+	// Increment the in use counter.
+	active->inUse++;
+
 	// Create the offsets.
 	offsets = fiftyoneDegreesCreateDeviceOffsets(active->dataSet);
-	offsets->active = (fiftyoneDegreesActiveDataSet*)active;
+	offsets->active = active; 
+#endif
+
 	return offsets;
 }
 
@@ -2978,20 +3036,20 @@ fiftyoneDegreesDeviceOffsets* fiftyoneDegreesProviderCreateDeviceOffsets(
 void fiftyoneDegreesProviderFreeDeviceOffsets(
 		fiftyoneDegreesDeviceOffsets *offsets) {
 	fiftyoneDegreesProvider* provider= offsets->active->provider;
-#ifndef FIFTYONEDEGREES_NO_THREADING
-	FIFTYONEDEGREES_MUTEX_LOCK(&provider->lock);
-#endif
-	offsets->active->inUse--;
+
 	// If the dataset the offsets are associated with is not the active
 	// one and no other offsets are using it, then dispose of it.
-	if (offsets->active != NULL &&
-		provider->active != offsets->active &&
-		offsets->active->inUse == 0) {
+#ifndef FIFTYONEDEGREES_NO_THREADING
+	if (FIFTYONEDEGREES_INTERLOCK_DEC(&offsets->active->inUse) == 0 &&
+		provider->active != offsets->active) {
 		fiftyoneDegreesActiveDataSetFree(offsets->active);
 	}
-
-#ifndef FIFTYONEDEGREES_NO_THREADING
-	FIFTYONEDEGREES_MUTEX_UNLOCK(&provider->lock);
+#else
+	offsets->active->inUse--;
+	if (offsets->active->inUse == 0 &&
+		provider->active != offsets->active) {
+		fiftyoneDegreesActiveDataSetFree(offsets->active);
+	}
 #endif
 	fiftyoneDegreesFreeDeviceOffsets(offsets);
 }

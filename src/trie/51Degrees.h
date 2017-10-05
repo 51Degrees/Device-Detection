@@ -262,8 +262,8 @@ struct fiftyoneDegrees_active_dataset_t {
 	fiftyoneDegreesDataSet *dataSet; /* Pointer to an initialised data set. */
 	fiftyoneDegreesProvider *provider; /* Pointer to the provider the active
 									   wrapper relates to. */
-	int inUse; /* Counter indicating how many device offsets are still linked
-			   to this dataset. */
+	volatile long inUse; /* Counter indicating how many device offsets are still
+						linked to this dataset. */
 };
 
 /* Provider structure containing the dataset used for detections. */
@@ -352,6 +352,26 @@ EXTERNAL void fiftyoneDegreesSetDeviceOffset(
 EXTERNAL void fiftyoneDegreesSetDeviceOffsetWithTolerances(
 	fiftyoneDegreesDataSet *dataSet,
 	const char* userAgent,
+	int httpHeaderIndex,
+	fiftyoneDegreesDeviceOffset *offset,
+	int drift,
+	int difference);
+
+	/**
+ * \ingroup FiftyOneDegreesFunctions
+ * Sets the offsets structure passed to the method for the User-Agent provided.
+ * @param dataSet pointer to an initialised dataset.
+ * @param userAgent to match for.
+ * @param userAgentLength of the User-Agent.
+ * @param httpHeaderIndex of the User-Agent.
+ * @param offset to set.
+ * @param drift to extend the search range by.
+ * @param difference to allow in hash values.
+ */
+EXTERNAL void fiftyoneDegreesSetDeviceOffsetFromArrayWithTolerances(
+	fiftyoneDegreesDataSet *dataSet,
+	const char* userAgent,
+	int userAgentLength,
 	int httpHeaderIndex,
 	fiftyoneDegreesDeviceOffset *offset,
 	int drift,

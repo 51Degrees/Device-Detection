@@ -96,11 +96,6 @@ how to:
 */
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
-using System.IO;
 using FiftyOne.Mobile.Detection.Provider.Interop.Trie;
 
 namespace FiftyOne.Example.Illustration.CSharp.GettingStartedTrie
