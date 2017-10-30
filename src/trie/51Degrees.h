@@ -36,12 +36,29 @@
 
 #include <stdint.h>
 #include <stdio.h>
+
 #ifndef FIFTYONEDEGREES_NO_THREADING
-#include "../threading.h"
+#if defined(__has_include)
+#if __has_include("flatdir.h")
+#include "flatdir.h"
+#endif
+#endif
+#ifndef FIFTYONE_THREADING_H
+#define FIFTYONE_THREADING_H "../threading.h"
+#endif
+#include FIFTYONE_THREADING_H
 #endif
 
 #ifdef FIFTYONEDEGREES_INDIRECT
-#include "../cache.h"
+#if defined(__has_include)
+#if __has_include("flatdir.h")
+#include "flatdir.h"
+#endif
+#endif
+#ifndef FIFTYONE_CACHE
+#define FIFTYONE_CACHE "../cache.h"
+#endif
+#include FIFTYONE_CACHE
 #endif
 
 #ifdef __cplusplus
