@@ -1,0 +1,16 @@
+{
+    "name": "fiftyonedegrees/php-common-api",
+    "description": "The 51Degrees PHP common API aims to make implementing Device Detection in PHP easier than ever.",
+    "keywords": ["device detection"],
+    "homepage": "https://51degrees.com",
+    "license": "MPL-2.0",
+    "support": {
+        "issues": "https://github.com/51Degrees/Device-Detection/issues",
+        "forum": "https://51degrees.com/support/forum",
+        "source": "https://github.com/51Degrees/Device-Detection/tree/master/php/common-api/",
+        "docs": "https://51degrees.com/Developers/Documentation/APIs/PHP-Ext-V32"
+    },
+    "require": {
+        "php": "^5.3 || ^7.0",
+    }
+}
