@@ -32,6 +32,12 @@ All methods use an external data file which can easilly be updated.
 - Lua
 - gcc/g++ >=4.7 *or* Visual C++ Build tools
 
+On Ubuntu do:
+```console
+sudo apt-get update
+sudo apt-get install build-essential lua5.2 liblua5.2-dev
+```
+
 ## Install
 Install the 51Degrees module with:
 ```
