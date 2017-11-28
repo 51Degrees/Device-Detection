@@ -31,5 +31,6 @@ build-trie:
 
 
 install: build-pattern build-trie
+    mkdir --parents $(LUAMODULEDIR)
 	sudo cp pattern/FiftyOneDegreesPatternV3.so $(LUAMODULEDIR)
 	sudo cp trie/FiftyOneDegreesTrieV3.so $(LUAMODULEDIR)
