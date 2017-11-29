@@ -33,7 +33,7 @@ namespace FiftyOne.UnitTests.HttpHeaders
         protected void OperaMini_Samsung()
         {
             base.Process(
-                "(?i)Opera Mini",
+                "(?i)Opera Mini(?<!MAUI.*)",
                 "(?i)SAMSUNG GT-I", 
                 new Validation() {
                     { "BrowserName", "Opera" },
@@ -44,7 +44,7 @@ namespace FiftyOne.UnitTests.HttpHeaders
         protected void OperaMini_iPhone()
         {
             base.Process(
-                "(?i)Opera Mini",
+                "(?i)Opera Mini(?<!MAUI.*)",
                 @"^Mozilla/5\.0 \(iPhone; CPU iPhone OS ",
                 new Validation() {
                     { "BrowserName", "Opera" },
@@ -55,7 +55,7 @@ namespace FiftyOne.UnitTests.HttpHeaders
         protected void OperaMini_HTC()
         {
             base.Process(
-                "(?i)Opera Mini",
+                "(?i)Opera Mini(?<!MAUI.*)",
                 " HTC ",
                 new Validation() {
                     { "BrowserName", "Opera" },

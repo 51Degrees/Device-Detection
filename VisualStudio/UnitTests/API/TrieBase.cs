@@ -90,8 +90,12 @@ namespace FiftyOne.UnitTests.API
 
         protected void TestDifference(IWrapper provider)
         {
-            var userAgent = "Mozilla/4.0 (compatible; MSIE 8.0; Windows NT 5.1; Sindup)";
-            var alteredUserAgent = "Mozilla/4.0 (compatible; MSIE 8.1; Windows NT 5.1; Sindup)";
+            var userAgent = "Mozilla/5.0 (Linux; Android 4.4.2; GT-N7105 " +
+                "Build/KOT49H) AppleWebKit/537.36 (KHTML, like Gecko) " + 
+                "Chrome/32.0.1700.58 Mobile Safari/537.36";
+            var alteredUserAgent = "Mozilla/5.0 (Linux; Android 4.4.1; " + 
+                "GT-N7105 Build/KOT49H) AppleWebKit/537.36 (KHTML, like Gecko)" +
+                " Chrome/32.0.1700.58 Mobile Safari/537.36";
             var match = provider.Match(userAgent);
             provider.Difference = 1;
             var alteredMatch = provider.Match(alteredUserAgent);
