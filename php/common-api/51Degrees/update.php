@@ -89,10 +89,15 @@ function uncompress($srcName, $dstName) {
 function autoUpdate($provider, $licence) {
 
     global $datafile;
+    
+    if ($provider->getDataSetFormat() === "3.2")
+        $type = "BinaryV32";
+    else
+        $type = $provider->getDataSetFormat();
 
     $parameters = array(
         "LicenseKeys" => $licence,
-        "Type" => "BinaryV32",
+        "Type" => $type,
         "Download" => "True",
         "Product" => $provider->getDataSetName()
     );
@@ -131,7 +136,7 @@ $updateDate = $provider->getDataSetNextUpdateDate();
 
 if (strtotime($updateDate) < time()) {
 
-    $key = ini_get("FiftyOneDegrees".$datafile.".license_key");
+    $key = get_cfg_var("FiftyOneDegrees".$datafile.".license_key");
 
     if(isset($key) && $key){
 
