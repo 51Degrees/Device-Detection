@@ -1,6 +1,6 @@
 {
     "name": "fiftyonedegreescore",
-    "version": "3.2.17",
+    "version": "3.2.18",
     "description": "51degrees device detection for nodejs",
     "main": "fiftyonedegreescore.js",
     "scripts": {
