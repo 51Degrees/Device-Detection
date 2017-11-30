@@ -243,7 +243,7 @@ searchHeaders(const struct vrt_ctx *ctx, const char *headerName)
 	int i;
 	for (i = 0; i < ctx->http_req->nhd; i++)
 	{
-		currentHeader = ctx->http_req->hd[i].b;
+		currentHeader = (char*)ctx->http_req->hd[i].b;
 		if (currentHeader != NULL
 			&& strncmp(currentHeader, headerName, strlen(headerName)) == 0)
 		{

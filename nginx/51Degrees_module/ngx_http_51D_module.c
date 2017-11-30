@@ -95,6 +95,8 @@ struct ngx_http_51D_header_to_set_t {
     ngx_str_t **property;      /* Array of properties to set. */
     ngx_str_t name;            /* The header name to set. */
     ngx_str_t lowerName;       /* The header name in lower case. */
+    ngx_str_t variableName;    /* The name of the variable to use a
+	                              User-Agent */
     size_t maxString;          /* The max string length the header value can
 	                              take. */
 	ngx_http_51D_header_to_set *next; /* The next header in the list. */
@@ -139,6 +141,10 @@ typedef struct {
     fiftyoneDegreesWorkset *ws;                  /* 51Degrees workset, local
                                                     to each process. */
 #endif // FIFTYONEDEGREES_PATTERN
+#ifdef FIFTYONEDEGREES_TRIE
+	fiftyoneDegreesDeviceOffsets *offsets;       /* 51Degrees offsets, local
+	                                                to each process. */
+#endif // FIFTYONEDEGREES_TRIE
 	fiftyoneDegreesDataSet *dataSet;             /* 51Degrees data set, shared
 	                                                across all process'. */
 	ngx_str_t valueSeparator;                    /* Match header value
@@ -286,8 +292,8 @@ ngx_http_51D_post_conf(ngx_conf_t *cf)
 
 	// Set default data file if necessary.
 	if ((int)fdmcf->dataFile.len <= 0) {
-		fdmcf->dataFile.data = FIFTYONEDEGREES_DEFAULTFILE;
-		fdmcf->dataFile.len = ngx_strlen(fdmcf->dataFile.data);
+		ngx_log_error(NGX_LOG_INFO, cf->cycle->log, 0, "51D_filePath was not set. No provider was loaded.");
+		return NGX_OK;
 	}
 #ifdef FIFTYONEDEGREES_PATTERN
 	// Set the cache size to 0 if not set.
@@ -948,6 +954,9 @@ ngx_http_51D_init_module(ngx_cycle_t *cycle)
 	// Get module main config.
 	fdmcf = ngx_http_cycle_get_module_main_conf(cycle, ngx_http_51D_module);
 
+	if (ngx_http_51D_shm_dataSet == NULL) {
+		return NGX_OK;
+	}
 	fdmcf->dataSet = (fiftyoneDegreesDataSet*)ngx_http_51D_shm_dataSet->data;
 
 	shpool = (ngx_slab_pool_t*)ngx_http_51D_shm_dataSet->shm.addr;
@@ -992,21 +1001,21 @@ ngx_http_51D_init_module(ngx_cycle_t *cycle)
 static ngx_command_t  ngx_http_51D_commands[] = {
 
 	{ ngx_string("51D_match_single"),
-	NGX_HTTP_LOC_CONF|NGX_CONF_TAKE2,
+	NGX_HTTP_LOC_CONF|NGX_CONF_TAKE23,
 	ngx_http_51D_set_loc,
 	NGX_HTTP_LOC_CONF_OFFSET,
     0,
 	NULL },
 
 	{ ngx_string("51D_match_single"),
-	NGX_HTTP_SRV_CONF|NGX_CONF_TAKE2,
+	NGX_HTTP_SRV_CONF|NGX_CONF_TAKE23,
 	ngx_http_51D_set_srv,
 	NGX_HTTP_LOC_CONF_OFFSET,
     0,
 	NULL },
 
 	{ ngx_string("51D_match_single"),
-	NGX_HTTP_MAIN_CONF|NGX_CONF_TAKE2,
+	NGX_HTTP_MAIN_CONF|NGX_CONF_TAKE23,
 	ngx_http_51D_set_main,
 	NGX_HTTP_LOC_CONF_OFFSET,
     0,
@@ -1085,11 +1094,20 @@ static ngx_http_module_t ngx_http_51D_module_ctx = {
 static ngx_int_t
 ngx_http_51D_init_process(ngx_cycle_t *cycle)
 {
-#ifdef FIFTYONEDEGREES_PATTERN
 	ngx_http_51D_main_conf_t *fdmcf;
+
+	if (ngx_http_51D_shm_dataSet == NULL) {
+		return NGX_OK;
+	}
+
 	fdmcf = ngx_http_cycle_get_module_main_conf(cycle, ngx_http_51D_module);
+
+#ifdef FIFTYONEDEGREES_PATTERN
 	fdmcf->ws = fiftyoneDegreesWorksetCreate(fdmcf->dataSet, NULL);
 #endif // FIFTYONEDEGREES_PATTERN
+#ifdef FIFTYONEDEGREES_TRIE
+	fdmcf->offsets = fiftyoneDegreesCreateDeviceOffsets(fdmcf->dataSet);
+#endif // FIFTYONEDEGREES_TRIE
 
 	// Increment the workers which are using the dataset.
 	ngx_atomic_fetch_add(ngx_http_51D_worker_count, 1);
@@ -1106,13 +1124,22 @@ void
 ngx_http_51D_exit_process(ngx_cycle_t *cycle)
 {
 	ngx_slab_pool_t *shpool;
-	fiftyoneDegreesDataSet *dataSet = (fiftyoneDegreesDataSet*)ngx_http_51D_shm_dataSet->data;
+	fiftyoneDegreesDataSet *dataSet;
+	ngx_http_51D_main_conf_t *fdmcf;
+
+	if (ngx_http_51D_shm_dataSet == NULL) {
+		return;
+	}
+
+	dataSet = (fiftyoneDegreesDataSet*)ngx_http_51D_shm_dataSet->data;
+	fdmcf = ngx_http_cycle_get_module_main_conf(cycle, ngx_http_51D_module);
 
 #ifdef FIFTYONEDEGREES_PATTERN
-	ngx_http_51D_main_conf_t *fdmcf;
-	fdmcf = ngx_http_cycle_get_module_main_conf(cycle, ngx_http_51D_module);
 	fiftyoneDegreesWorksetFree(fdmcf->ws);
 #endif // FIFTYONEDEGREES_PATTERN
+#ifdef FIFTYONEDEGREES_TRIE
+	fiftyoneDegreesFreeDeviceOffsets(fdmcf->offsets);
+#endif // FIFTYONEDEGREES_TRIE
 
 	shpool = (ngx_slab_pool_t*)ngx_http_51D_shm_dataSet->shm.addr;
 
@@ -1205,27 +1232,20 @@ static void add_value(char *delimiter, char *val, char *buffer)
 /**
  * Get match function. Gets a match from the work set for either a single
  * User-Agent or all request headers.
- * @param ws a 51Degrees work set.
+ * @param fdmcf module main config.
  * @param r the current HTTP request.
  * @param multi 0 for a single User-Agent match, 1 for a multiple HTTP
  *              header match.
  */
-#ifdef FIFTYONEDEGREES_PATTERN
-void ngx_http_51D_get_match(fiftyoneDegreesWorkset *ws, ngx_http_request_t *r, int multi)
+void ngx_http_51D_get_match(ngx_http_51D_main_conf_t *fdmcf, ngx_http_request_t *r, int multi, ngx_str_t *userAgent)
 {
 	int headerIndex;
 	ngx_table_elt_t *searchResult;
-
+#ifdef FIFTYONEDEGREES_PATTERN
+	fiftyoneDegreesWorkset *ws = fdmcf->ws;
 	// If single requested, match for single User-Agent.
 	if (multi == 0) {
-	ngx_log_debug1(NGX_LOG_DEBUG_ALL, ngx_cycle->log, 0, "51Degrees match get %p", ws);
-		if (r->headers_in.user_agent) {
-			fiftyoneDegreesMatch(ws, (const char*)r->headers_in.user_agent[0].value.data);
-		}
-		else {
-			// If there is no User-Agent, match with an empty string.
-			fiftyoneDegreesMatch(ws, "");
-		}
+			fiftyoneDegreesMatch(ws, (const char*)userAgent->data);
 	}
 	// If multi requested, match for multiple http headers.
 	else if (multi == 1) {
@@ -1241,45 +1261,27 @@ void ngx_http_51D_get_match(fiftyoneDegreesWorkset *ws, ngx_http_request_t *r, i
 			fiftyoneDegreesMatchForHttpHeaders(ws);
 		}
 	}
-}
 #endif // FIFTYONEDEGREES_PATTERN
-
 #ifdef FIFTYONEDEGREES_TRIE
-
-/**
- * Get match function. Gets a match from the work set for either a single
- * User-Agent or all request headers.
- * @param ws a 51Degrees work set.
- * @param r the current HTTP request.
- * @param multi 0 for a single User-Agent match, 1 for a multiple HTTP
- *              header match.
- */
-void ngx_http_51D_get_match(fiftyoneDegreesDataSet *dataSet, ngx_http_request_t *r, int multi, fiftyoneDegreesDeviceOffsets *offsets)
-{
-	int headerIndex;
+	fiftyoneDegreesDataSet *dataSet = fdmcf->dataSet;
+	fiftyoneDegreesDeviceOffsets *offsets = fdmcf->offsets;
 
 	// If single requested, match for single User-Agent.
 	if (multi == 0) {
 		offsets->size = 1;
-		if (r->headers_in.user_agent) {
-            fiftyoneDegreesSetDeviceOffset(dataSet, (const char*)r->headers_in.user_agent[0].value.data, 0, offsets->firstOffset);
-		}
-		else {
-			fiftyoneDegreesSetDeviceOffset(dataSet, "", 0, offsets->firstOffset);
-		}
+            fiftyoneDegreesSetDeviceOffset(dataSet, (const char*)userAgent->data, 0, offsets->firstOffset);
 	}
 	// If multi requested, match for multiple http headers.
 	else if (multi == 1) {
 		headerIndex = 0;
 		offsets->size = 0;
-		ngx_table_elt_t *httpHeaderValue;
 		const char *httpHeaderName = fiftyoneDegreesGetHttpHeaderNamePointer(dataSet, headerIndex);
 		while (httpHeaderName != NULL) {
-			httpHeaderValue = search_headers_in(r, (u_char*)httpHeaderName, ngx_strlen(httpHeaderName));
-			if (httpHeaderValue != NULL) {
+			searchResult = search_headers_in(r, (u_char*)httpHeaderName, ngx_strlen(httpHeaderName));
+			if (searchResult!= NULL) {
 				fiftyoneDegreesSetDeviceOffset(
 					dataSet,
-					(const char*)httpHeaderValue->value.data,
+					(const char*)searchResult->value.data,
 					headerIndex,
 					&offsets->firstOffset[offsets->size]);
 				offsets->size++;
@@ -1288,10 +1290,9 @@ void ngx_http_51D_get_match(fiftyoneDegreesDataSet *dataSet, ngx_http_request_t 
 			httpHeaderName = fiftyoneDegreesGetHttpHeaderNamePointer(dataSet, headerIndex);
 		}
 	}
-}
 #endif // FIFTYONEDEGREES_TRIE
+}
 
-#ifdef FIFTYONEDEGREES_PATTERN
 /**
  * Get value function. Gets the requested value for the current match and
  * appends the value to the list of values separated by the delimiter specified
@@ -1302,6 +1303,7 @@ void ngx_http_51D_get_match(fiftyoneDegreesDataSet *dataSet, ngx_http_request_t 
  */
 void ngx_http_51D_get_value(ngx_http_51D_main_conf_t *fdmcf, char *values_string, const char *requiredPropertyName)
 {
+#ifdef FIFTYONEDEGREES_PATTERN
 	fiftyoneDegreesWorkset *ws = fdmcf->ws;
 	char *valueDelimiter = (char*)fdmcf->valueSeparator.data;
 	char *methodName, *propertyName;
@@ -1354,20 +1356,10 @@ void ngx_http_51D_get_value(ngx_http_51D_main_conf_t *fdmcf, char *values_string
 			add_value(valueDelimiter, FIFTYONEDEGREES_PROPERTY_NOT_AVAILABLE, values_string);
 		}
 	}
-}
 #endif // FIFTYONEDEGREES_PATTERN
 #ifdef FIFTYONEDEGREES_TRIE
-/**
- * Get value function. Gets the requested value for the current match and
- * appends the value to the list of values separated by the delimiter specified
- * with 51D_valueSeparator.
- * @param fdmcf 51Degrees module main config.
- * @param values_string the string to append the returned value to.
- * @param requiredPropertyName the name of the property to get the value for.
- */
-void ngx_http_51D_get_value(ngx_http_51D_main_conf_t *fdmcf, char *values_string, const char *requiredPropertyName, fiftyoneDegreesDeviceOffsets *offsets)
-{
 	fiftyoneDegreesDataSet *dataSet = fdmcf->dataSet;
+	fiftyoneDegreesDeviceOffsets *offsets = fdmcf->offsets;
 	char *valueDelimiter = (char*)fdmcf->valueSeparator.data;
 	int requiredPropertyIndex = fiftyoneDegreesGetRequiredPropertyIndex(dataSet, requiredPropertyName);
 	if (requiredPropertyIndex >= 0 &&
@@ -1384,8 +1376,88 @@ void ngx_http_51D_get_value(ngx_http_51D_main_conf_t *fdmcf, char *values_string
 	else {
 		add_value(valueDelimiter, FIFTYONEDEGREES_PROPERTY_NOT_AVAILABLE, values_string);
 	}
-}
 #endif // FIFTYONEDEGREES_TRIE
+}
+
+
+static ngx_str_t* emptyString(ngx_http_request_t *r) {
+	ngx_str_t *str = (ngx_str_t*)ngx_palloc(r->pool, sizeof(ngx_str_t));
+	str->len = 0;
+	str->data = (u_char*)"";
+	return str;
+}
+
+static ngx_str_t*
+ngx_http_51D_get_user_agent(ngx_http_request_t *r, ngx_http_51D_header_to_set *header)
+{
+	u_char *src, *dst;
+	ngx_uint_t variableNameHash;
+	ngx_variable_value_t *variable;
+	ngx_str_t *userAgent;
+	// Get the User-Agent from the request or variable.
+	if (header != NULL && (int)header->variableName.len > 0) {
+		variableNameHash = ngx_hash_strlow(header->variableName.data,
+							header->variableName.data,
+							header->variableName.len);
+		variable = ngx_http_get_variable(r, &header->variableName, variableNameHash);
+		if ((int)variable->len > 0) {
+			userAgent = (ngx_str_t*)ngx_palloc(r->pool, sizeof(ngx_str_t));
+			userAgent->data = ngx_palloc(r->pool, sizeof(char*) * (size_t)variable->len);
+			src = variable->data;
+			dst = userAgent->data;
+			ngx_unescape_uri(&dst, &src, variable->len, 0);
+			userAgent->len = dst - userAgent->data;
+		}
+		else {
+			userAgent = emptyString(r);
+		}
+	}
+	else if (r->headers_in.user_agent != NULL) {
+		userAgent = &r->headers_in.user_agent[0].value;
+	}
+	else {
+		userAgent = emptyString(r);
+	}
+	return userAgent;
+}
+
+int
+process(ngx_http_request_t *r,
+		ngx_http_51D_main_conf_t *fdmcf,
+		ngx_http_51D_header_to_set *header,
+		ngx_table_elt_t *h[],
+		int matchIndex,
+		int haveMatch,
+		ngx_str_t *userAgent) {
+#ifdef FIFTYONEDEGREES_PATTERN
+	if ((int)header->maxString < 0) {
+		ngx_http_51D_set_max_string(fdmcf, header);
+	}
+#endif // FIFTYONEDEGREES_PATTERN
+	// Allocate the value string in the request pool.
+	char *valueString = (char*)ngx_palloc(r->pool, header->maxString);
+	valueString[0] = '\0';
+	// Get a match. If there are multiple instances of
+	// 51D_match_single or 51D_match_all, then don't get the
+	// match if it has already been fetched.
+	if (haveMatch == 0) {
+		ngx_http_51D_get_match(fdmcf, r, header->multi, userAgent);
+	}
+	// For each property, set the value in values_string_array.
+	int property_index;
+	for (property_index=0; property_index < (int)header->propertyCount; property_index++) {
+		ngx_http_51D_get_value(fdmcf, valueString, (const char*) header->property[property_index]->data);
+	}
+	// For each property value pair, set a new header name and value.
+	h[matchIndex] = ngx_list_push(&r->headers_in.headers);
+	h[matchIndex]->key.data = (u_char*)header->name.data;
+	h[matchIndex]->key.len = ngx_strlen(h[matchIndex]->key.data);
+	h[matchIndex]->hash = ngx_hash_key(h[matchIndex]->key.data, h[matchIndex]->key.len);
+	h[matchIndex]->value.data = (u_char*)valueString;
+	h[matchIndex]->value.len = ngx_strlen(h[matchIndex]->value.data);
+	h[matchIndex]->lowcase_key = (u_char*)header->lowerName.data;
+	return 1;
+}
 
 /**
  * Module handler, gets a match using either the User-Agent or multiple http
@@ -1404,19 +1476,17 @@ ngx_http_51D_handler(ngx_http_request_t *r)
 	ngx_uint_t matchIndex = 0, multi, haveMatch;
 	ngx_http_51D_header_to_set *currentHeader;
 	int totalHeaderCount, matchConfIndex;
-#ifdef FIFTYONEDEGREES_TRIE
-	fiftyoneDegreesDeviceOffsets *offsets;
-#endif // FIFTYONEDEGREES_TRIE
+	ngx_str_t *userAgent, *nextUserAgent;
 #ifdef FIFTYONEDEGREES_PATTERN
 	ngx_http_51D_matched_header_t *header;
 	ngx_http_51D_cache_node_t *node;
 	uint32_t hash;
 	int headerIndex;
 	ngx_table_elt_t *searchResult;
-	ngx_slab_pool_t *shpool = (ngx_slab_pool_t*)ngx_http_51D_shm_cache->shm.addr;
+	ngx_slab_pool_t *shpool;
 #endif // FIFTYONEDEGREES_PATTERN
 
-	if (r->main->internal) {
+	if (r->main->internal || ngx_http_51D_shm_dataSet == NULL) {
 		return NGX_DECLINED;
 	}
 	r->main->internal = 1;
@@ -1436,6 +1506,8 @@ ngx_http_51D_handler(ngx_http_request_t *r)
 
 	ngx_table_elt_t *h[totalHeaderCount];
 
+	userAgent = ngx_http_51D_get_user_agent(r, NULL);
+
 	// If no headers are specified in this location, tell nginx
 	// this handler is done.
 	if ((int)totalHeaderCount == 0) {
@@ -1444,11 +1516,12 @@ ngx_http_51D_handler(ngx_http_request_t *r)
 #ifdef FIFTYONEDEGREES_PATTERN
 	hash = 0;
 	if (ngx_http_51D_cacheSize > 0) {
+		shpool = (ngx_slab_pool_t*)ngx_http_51D_shm_cache->shm.addr;
 		// Get the hash for this location and request headers.
 		hash = ngx_hash(hash, matchConf[0]->key);
 		hash = ngx_hash(hash, matchConf[1]->key);
 		hash = ngx_hash(hash, matchConf[2]->key);
-		hash = ngx_hash(hash, ngx_hash_key(r->headers_in.user_agent[0].value.data, r->headers_in.user_agent[0].value.len));
+		hash = ngx_hash(hash, ngx_hash_key(userAgent->data, userAgent->len));
 		for (headerIndex = 0; headerIndex < fdmcf->dataSet->httpHeadersCount; headerIndex++) {
 			searchResult = search_headers_in(r, (u_char*)fdmcf->dataSet->httpHeaders[headerIndex].headerName, ngx_strlen(fdmcf->dataSet->httpHeaders[headerIndex].headerName));
 			if (searchResult != NULL) {
@@ -1457,17 +1530,17 @@ ngx_http_51D_handler(ngx_http_request_t *r)
 		}
 		// Look in the cache for a match with the hash.
 		ngx_shmtx_lock(&shpool->mutex);
-		node = ngx_http_51D_lookup_node_lru(&r->headers_in.user_agent[0].value, hash);
+		node = ngx_http_51D_lookup_node_lru(userAgent, hash);
 	}
 	else {
 		node = NULL;
 	}
 	// If a match is not found in the cache, carry out a match.
 	if (node == NULL) {
-		ngx_shmtx_unlock(&shpool->mutex);
 		// Create a new node so the match can be added to the cache.
 		if (ngx_http_51D_cacheSize > 0) {
-			node = ngx_http_51D_create_node(&r->headers_in.user_agent[0].value, hash, totalHeaderCount);
+			ngx_shmtx_unlock(&shpool->mutex);
+			node = ngx_http_51D_create_node(userAgent, hash, totalHeaderCount);
 		}
 #endif // FIFTYONEDEGREES_PATTERN
 		// Look for single User-Agent matches, then multiple HTTP header
@@ -1475,62 +1548,20 @@ ngx_http_51D_handler(ngx_http_request_t *r)
 		// a match instead of retrieving it multiple times.
 		for (multi = 0; multi < 2; multi++) {
 			haveMatch = 0;
+
 			// Go through the requested matches in location, server and
 			// main configs.
 			for (matchConfIndex = 0; matchConfIndex < 3; matchConfIndex++)
 			{
 
-#ifdef FIFTYONEDEGREES_TRIE
-				offsets = fiftyoneDegreesCreateDeviceOffsets(fdmcf->dataSet);
-#endif // FIFTYONEDEGREES_TRIE
 				// Loop over all match instances in the config.
 				currentHeader = matchConf[matchConfIndex]->header;
 				while (currentHeader != NULL)
 				{
 					// Process the match if it is the type we are looking for on
 					// this pass.
-					if (currentHeader->multi == multi) {
-#ifdef FIFTYONEDEGREES_PATTERN
-						if ((int)currentHeader->maxString < 0) {
-							ngx_http_51D_set_max_string(fdmcf, currentHeader);
-						}
-#endif // FIFTYONEDEGREES_PATTERN
-						// Allocate the value string in the request pool.
-						char *valueString = (char*)ngx_palloc(r->pool, currentHeader->maxString);
-						valueString[0] = '\0';
-						// Get a match. If there are multiple instances of
-						// 51D_match_single or 51D_match_all, then don't get the
-						// match if it has already been fetched.
-#ifdef FIFTYONEDEGREES_PATTERN
-						if (haveMatch == 0) {
-							ngx_http_51D_get_match(fdmcf->ws, r, currentHeader->multi);
-							haveMatch = 1;
-						}
-#endif // FIFTYONEDEGREES_PATTERN
-#ifdef FIFTYONEDEGREES_TRIE
-						if (haveMatch == 0) {
-							ngx_http_51D_get_match(fdmcf->dataSet, r, currentHeader->multi, offsets);
-							haveMatch = 1;
-						}
-#endif // FIFTYONEDEGREES_TRIE
-						// For each property, set the value in values_string_array.
-						int property_index;
-						for (property_index=0; property_index < (int)currentHeader->propertyCount; property_index++) {
-#ifdef FIFTYONEDEGREES_PATTERN
-							ngx_http_51D_get_value(fdmcf, valueString, (const char*) currentHeader->property[property_index]->data);
-#endif // FIFTYONEDEGREES_PATTERN
-#ifdef FIFTYONEDEGREES_TRIE
-							ngx_http_51D_get_value(fdmcf, valueString, (const char*) currentHeader->property[property_index]->data, offsets);
-#endif // FIFTYONEDEGREES_TRIE
-						}
-						// For each property value pair, set a new header name and value.
-						h[matchIndex] = ngx_list_push(&r->headers_in.headers);
-						h[matchIndex]->key.data = (u_char*)currentHeader->name.data;
-						h[matchIndex]->key.len = ngx_strlen(h[matchIndex]->key.data);
-						h[matchIndex]->hash = ngx_hash_key(h[matchIndex]->key.data, h[matchIndex]->key.len);
-						h[matchIndex]->value.data = (u_char*)valueString;
-						h[matchIndex]->value.len = ngx_strlen(h[matchIndex]->value.data);
-						h[matchIndex]->lowcase_key = (u_char*)currentHeader->lowerName.data;
+					if (currentHeader->multi == multi && (int)currentHeader->variableName.len < 0) {
+						haveMatch = process(r, fdmcf, currentHeader, h, matchIndex, haveMatch, userAgent);
 #ifdef FIFTYONEDEGREES_PATTERN
 						// Add the current header to the cache node.
 						if (ngx_http_51D_cacheSize > 0) {
@@ -1542,12 +1573,9 @@ ngx_http_51D_handler(ngx_http_request_t *r)
 					// Look at the next header.
 					currentHeader = currentHeader->next;
 				}
-#ifdef FIFTYONEDEGREES_TRIE
-				// Free the match offsets.
-				fiftyoneDegreesFreeDeviceOffsets(offsets);
-#endif // FIFTYONEDEGREES_TRIE
 			}
 		}
+
 #ifdef FIFTYONEDEGREES_PATTERN
 		// Add the match to the cache.
 		if (ngx_http_51D_cacheSize > 0) {
@@ -1569,6 +1597,26 @@ ngx_http_51D_handler(ngx_http_request_t *r)
 	}
 #endif // FIFTYONEDEGREES_PATTERN
 
+	userAgent = &(ngx_str_t)ngx_string("");
+	for (matchConfIndex = 0; matchConfIndex < 3; matchConfIndex++)
+	{
+		currentHeader = matchConf[matchConfIndex]->header;
+		while (currentHeader != NULL)
+		{
+			if (currentHeader->multi == 0 && (int)currentHeader->variableName.len > 0) {
+				nextUserAgent = ngx_http_51D_get_user_agent(r, currentHeader);
+					if (strcmp((const char*)userAgent->data, (const char*)nextUserAgent->data) == 0) {
+						process(r, fdmcf, currentHeader, h, matchIndex, 1, userAgent);
+				} else {
+					userAgent = nextUserAgent;
+					process(r, fdmcf, currentHeader, h, matchIndex, 0, userAgent);
+				}
+				matchIndex++;
+			}
+			currentHeader = currentHeader->next;
+		}
+	}
+
 	// Tell nginx to continue with other module handlers.
 	return NGX_DECLINED;
 }
@@ -1582,7 +1630,7 @@ ngx_http_51D_handler(ngx_http_request_t *r)
  * @param value the values passed from the config file.
  * @param fdmcf 51Degrees main config.
  */
-void
+char*
 ngx_http_51D_set_header(ngx_conf_t *cf, ngx_http_51D_header_to_set *header, ngx_str_t *value, ngx_http_51D_main_conf_t *fdmcf)
 {
 	char *tok;
@@ -1634,6 +1682,27 @@ ngx_http_51D_set_header(ngx_conf_t *cf, ngx_http_51D_header_to_set *header, ngx_
 		header->propertyCount++;
 		tok = strtok(NULL, ",");
 	}
+
+	// Set the variable name if one is specified.
+	if ((int)cf->args->nelts == 4) {
+		if (value[3].data[0] == '$') {
+			header->variableName.data = value[3].data + 1;
+			header->variableName.len = value[3].len -1;
+		}
+		else {
+			ngx_log_error(NGX_LOG_ERR,
+							cf->cycle->log,
+							0,
+							"Argument '%s' is a string, this should be a variable",
+							(const char*)value[3].data);
+			return NGX_CONF_ERROR;
+		}
+	}
+	else {
+		header->variableName.data = NULL;
+		header->variableName.len = -1;
+	}
+	return NGX_OK;
 }
 
 /**
@@ -1650,6 +1719,7 @@ static char *ngx_http_51D_set(ngx_conf_t *cf, ngx_command_t *cmd, ngx_http_51D_m
 	ngx_http_51D_main_conf_t *fdmcf;
 	ngx_http_51D_header_to_set *header;
 	ngx_str_t *value;
+	char *status;
 
 	// Get the arguments from the config.
 	value = cf->args->elts;
@@ -1690,7 +1760,10 @@ static char *ngx_http_51D_set(ngx_conf_t *cf, ngx_command_t *cmd, ngx_http_51D_m
 	}
 
 	// Set the properties for the selected location.
-	ngx_http_51D_set_header(cf, header, value, fdmcf);
+	status = ngx_http_51D_set_header(cf, header, value, fdmcf);
+	if (status != NGX_OK) {
+		return status;
+	}
 
 #ifdef FIFTYONEDEGREES_PATTERN
 	// Add the arguments to the locations hash key, this is used to

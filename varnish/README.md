@@ -37,11 +37,12 @@ All methods use an external data file which can easilly be updated.
 ## Dependencies
 - gcc
 - make
+- varnish-dev
 - Varnish source
 
 For Ubuntu based distributions gcc can be found on apt, use
 ```
-$ sudo apt-get install gcc make
+$ sudo apt-get install gcc make varnish varnish-dev
 ```
 and the Varnish source will be automatically downloaded by the make file.
 

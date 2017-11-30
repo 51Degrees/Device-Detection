@@ -49,11 +49,13 @@ $ sudo apt-get install gcc make
 and the Nginx source will be automatically downloaded by the make file.
 
 ## Install
-
+<installation>
 ### Linux
+#### Pre-compiled module
+Pre-compiled modules are available in the "modules" sub-directory. The correct version can simply be placed in Nginx's module directory (this is usually `/etc/nginx/modules`). The Nginx version, and Nginx's module directory , can be found by running `nginx -V`.
 
 #### Test Installation
-This is the quickest and easiest way to build Nginx in a local directory to try out the module. Just use
+This is a good way to build Nginx in a local directory to try out the module if Nginx is not already installed on the system. Just use
 ```
 $ git clone https://github.com/51Degrees/Device-Detection.git
 $ cd Device-Detection/nginx
@@ -74,15 +76,14 @@ which will all pass if the local installation was successful.
 **Note: If ApacheBench tests fail even though the dependencies are fulfilled it may need to be recompiled using the correct compiler for your OS. This can be done using Device-Detection/CodeBlocks/ApacheBench.cbp**
 
 #### For an existing Nginx deployment
-
 ##### Dynamic Module
 51Degrees dynamic module can be used in Nginx version 1.9.11 or later.
 
-For versions 1.11.5 (R11) and 1.11.10 (R12) there are pre-built modules in the `nginx/modules` directory.
+For versions 1.11.5 (R11), 1.11.10 (R12) and 1.13.4 (R13) there are pre-built modules in the `nginx/modules` directory.
 
 To build the module as ngx_http_51D_module.so for another version, define `VERSION` when calling make like:
 ```
-$ make install pattern VERSION=1.9.11
+$ make module pattern VERSION=1.9.11
 ```
 
 By default, the module will be built to the `build/modules` directory.
@@ -91,18 +92,16 @@ To load the module, copy the .so to your modules directory and include the follo
 ```
 load_module modules/ngx_http_51D_module.so;
 ```
-
 ##### Static Module
 To compile as a static module rather than dynamically, define `STATIC_BUILD` when calling make like:
 ```
 $ make install pattern STATIC_BUILD=1
 ```
-
+</installation>
 ## Configure
+<configuration>
 Before start matching user agents, you may wish to configure the solution to use a different database for example.
-
 ### Settings
-
 #### General Settings
 These settings are valid in the main configuration block and should only be set once.
  - ``51D_filePath`` (defaults to ``'51Degrees.dat'``). Sets the location of the data file.
@@ -111,19 +110,17 @@ These settings are valid in the main configuration block and should only be set 
  
  - ``51D_valueSeparator`` (defaults to ``','``). Sets the delimiter to separate values with.
 
-#### Location Settings
-These settings are valid in a location configuration block and should only be set once per location.
- - ``51D_match_single`` (defaults to disabled). Gets device properties using a User-Agent. Takes the name the resultant header will be set as, and a comma separated list of properties to return.
+#### Match Settings
+These settings are valid in a location, server, or main configuration block.
+ - ``51D_match_single`` (defaults to disabled). Gets device properties using a User-Agent. Takes the name the resultant header will be set as, a comma separated list of properties to return, and optionaly a variable containing the User-Agent to match with.
 
  - ``51D_match_all`` (defaults to disabled). Gets device properties using multiple HTTP headers. Takes the name the resultant header will be set as, and a comma separated list of properties to return.
 
 ## Usage
-
 ### The Config File
 An example configuration file is included in this repository. It shows how to pass device information when using Nginx as a reverse proxy, and when passing to a fast-cgi provider.
-
-#### HTTP Block
-Within the HTTP block is where the detector settings are set, these should be set like
+#### Initialisation
+Within the HTTP block is where the detector settings are set, these should be set like:
 ```
 http {
   51D_filePath data/51Degrees.dat;
@@ -131,10 +128,8 @@ http {
   ...
 }
 ```
-
-#### Location Block
-Within a location block is where the match settings are set. They can be set in one of two ways:
-
+#### Matching Block
+Within a location block is where the match settings are usually set, though they can be set in a server block to add a header to all locations contained in that server block, and similarly for an HTTP block. They can be set in one of three ways:
 ##### User-Agent match
 To get properties using the device's User-Agent use:
 ```
@@ -143,7 +138,6 @@ location / {
   ...
 }
 ```
-
 ##### Multiple HTTP header matches
 To get properties from all the relevant HTTP headers from the device use:
 ```
@@ -152,10 +146,16 @@ location / {
   ...
 }
 ```
-
+##### Variable matching
+A User-Agent other than the request's can also be used for a match by passing the variable which contains a User-Agent string as an argument. For example, for a User-Agent sent as a "ua" parameter in the query string of a request, use:
+```
+location / {
+  51D_match_single x-user-agent-match HardwareName,DeviceType,BrowserName $arg_ua;
+  ...
+}
+```
 ##### Proxy Passing
 When using the ``proxy_pass`` directive in a location block where a match directive is used, the properties selected are passed as additional HTTP headers with the name specified in the first argument of ``51D_match_single``/``51D_match_all``.
-
 ##### Fast-CGI
 Using ``include fastcgi_params;`` makes these additional headers available via the ``$_SERVER`` variable.
 

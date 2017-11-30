@@ -1,8 +1,8 @@
-![51Degrees](https://51degrees.com/DesktopModules/FiftyOne/Distributor/Logo.ashx?utm_source=Github&utm_medium=repository&utm_content=readme_main&utm_campaign=php-open-source "THE Fastest and Most Accurate Device Detection") **Device Detection in C** PHP C extension
+![51Degrees](https://51degrees.com/DesktopModules/FiftyOne/Distributor/Logo.ashx?utm_source=Github&utm_medium=repository&utm_content=readme_main&utm_campaign=php-open-source "THE Fastest and Most Accurate Device Detection") **Device Detection in C** PHP C extension & Common API
 
 [Supported Databases](https://51degrees.com/compare-data-options?utm_source=Github&utm_medium=repository&utm_content=compare-data-options&utm_campaign=php-open-source "Different device databases which can be used with 51Degrees device detection") | [Developer Documention](https://51degrees.com/support/documentation?utm_source=github&utm_medium=repository&utm_content=documentation&utm_campaign=php-open-source "Full getting started guide and advanced developer documentation") | [Available Properties](https://51degrees.com/resources/property-dictionary?utm_source=Github&utm_medium=repository&utm_content=property_dictionary&utm_campaign=php-open-source "View all available properties and values")
 
-<sup>Need [.NET](https://github.com/51Degrees/.NET-Device-Detection "THE Fastest and most Accurate device detection for .NET") | [Java](https://github.com/51Degrees/Java-Device-Detection "THE Fastest and most Accurate device detection for Java") | [PHP Script](https://github.com/51Degrees/51Degrees-PHP)?</sup>
+<sup>Need [C](https://github.com/51Degrees/Device-Detection "THE Fastest and most Accurate device detection for C") | [Java](https://github.com/51Degrees/Java-Device-Detection "THE Fastest and most Accurate device detection for Java") | [.NET](https://github.com/51Degrees/.NET-Device-Detection "THE Fastest and most Accurate device detection for .NET") | [Python](https://github.com/51Degrees/Device-Detection "THE Fastest and most Accurate device detection for Python") | [Perl](https://github.com/51Degrees/Device-Detection "THE Fastest and most Accurate device detection for Perl") | [Node.js](https://github.com/51Degrees/Device-Detection "THE Fastest and most Accurate device detection for Node.js")?</sup>
 
 ## Introduction
 
@@ -26,13 +26,91 @@ echo "<p>The type of your device is: ".$match->getValue('DeviceType').".</p>";
 
 Use this project to detect device properties using HTTP browser User-Agents as input. It can be used to process server web log files, or for real time device detection to support web optimisation.
 
-Two detection methods are supported.
+Three detection methods are supported.
 
 **Pattern:**  Searches for device signatures in a User-Agent returning metrics about the validity of the results. Does NOT use regular expressions.
 
-**Trie:** A large binary Trie (pronounced Try) populated with User-Agent signatures. Very fast.
+**Hash Trie:** A large binary Trie (pronounced Try) populated with User-Agent signatures. Very fast.
 
-All methods use an external data file which can easilly be updated.
+**Cloud:** Queries a RESTful API hosted by 51Degrees to enable device Detection. 
+
+Pattern and Hash Trie methods use an external data file which can easilly be updated.
+
+# Common API
+
+The PHP Common API aims to make switch from Cloud based Device-Detection to the On-Premise version much easier for developers. It allows developers to switch without the need to refactor code by providing a common API between the two solutions connected by an interface which communicates with the core software. 
+
+## Installation
+Getting started is as simple as copying the contents of the `common-api/51Degrees` directory into your webservers document root.
+
+```bash
+# For apache based webservers
+$ cp -R Device-Detection/php/common-api/51Degrees /var/www/html/
+```
+
+## Configuration
+
+Edit the `config.php` file within the `common-api/51Degrees` directory to configure the Common API. Include this file using `require()` in a PHP script before initialising the provider:
+
+```php
+require("../config.php");
+$provider = FiftyOneDegrees\FiftyOneDegreesGetProvider($settings);
+```
+
+### Both cloud and on premise
+
+Passed in during provider initialisation.
+
+* `FiftyOneProvider` – String – mandatory - Set to Cloud/TRIE/Pattern
+* `FiftyoneShareUsage` – Boolean – Optional – default True – Whether the API should send usage data.
+* `FiftyOneLicence` – String – Not required for On-Premise as manual datafile updates can be used rather than automatic updates. Required for Cloud. No default.
+* `FiftyOneLogLevel` – String – Either Debug, Info, Warn or Fatal – minimum log level to log to file. Fatal default.
+* `FiftyOneLogFile` – String – Path to log file. Default to current directory and 51degrees.log
+
+### Cloud only
+
+Passed in during provider initialisation, these can be left blank when using On-Premise Device-Detection.
+
+* `FiftyOneUseSession` – Boolean – Optional – default True – Whether the cloud API should store detection results in the session.
+* `FiftyOneSessionLifetime` – Integer – Optional – length of time to keep matches in session for.
+* `FiftyOneProperties` – String Array – Optional – An array of which properties to fetch (if left blank all are fetched). For the On-Premise version this is set in the extension properties. For more information about available properties see the Property Dictionary.
+
+## Example 
+
+The following shows an example of the contents of `config.php`. 
+
+```php
+$settings = array(
+    "FiftyOneProvider"=>"Cloud",
+    "FiftyoneShareUsage"=>true,
+    "FiftyOneLicence"=>"***YOUR_LICENCE_KEY***",
+    "FiftyOneLogLevel"=>"fatal",
+    "FiftyOneLogFile"=>"51degrees.log",
+    "FiftyOneUseSession"=>true,
+    "FiftyOneSessionLifetime"=>"60",
+    "FiftyOneProperties"=>array("IsMobile","HardwareVendor","PlatformName")
+);
+```
+
+
+## Usage
+
+To use the 51Degrees PHP Common API, create a new session then require the common API and configuration files. Fetch the provider, this will have been initialised on server startup if you have migrated to an On-Premise extension. This object can be called to process a new match object which can return properties of the specific mathced device.
+
+```php
+<?php
+session_start();
+require("../51degrees.php");
+require("../config.php");
+$provider = FiftyOneDegrees\FiftyOneDegreesGetProvider($settings);
+$match = $provider->getMatch($_SERVER['HTTP_USER_AGENT']);
+echo $match->getValue('IsMobile');
+?>
+```
+
+# On-Premise Extensions
+
+This section describes how to install and configure the PHP On-Premise extensions. This can either be used stand-alone or as part of the common API which is especially useful when migrating from Cloud to On-Premise Device-Detection. 
 
 ## Breaking Changes
 
@@ -45,12 +123,13 @@ The PHP API is now built from the same source as every other C based API. This m
 - php5
 - php5-dev
 - git
-- SWIG 2.0
+- Optional: SWIG 2.0 (>=3.0.13 for php7)
 
 For Ubuntu based distributions these can be found on apt, use
 ```
 $ sudo apt-get install g++ make php5 php5-dev git swig2.0
 ```
+Building the SWIG generated wrappers is optional as the SWIG generated files are included for the Pattern and Hash Trie extensions, with variations for both PHP5 and PHP7. Building the SWIG wrapper for PHP7 will also require you install SWIG version >= 3.0.13. At the present time there is no stable release for SWIG which supports PHP7, however SWIG 3.0.13 or higher can be built from the SWIG source code: https://github.com/swig/swig
 
 ## Install
 
@@ -69,16 +148,31 @@ For Trie:
 $ cd Device-Detection/php/trie
 ```
 Install by running the following commands:
-#### For PHP 5
+##### For PHP 5
 ```console
 phpize
 ./configure
 sudo make install
 ```
-#### Or for PHP 7
+##### Or for PHP 7
 ```console
 phpize
 ./configure PHP7=1
+sudo make install
+```
+
+#### If Rebuilding SWIG Wrappers
+##### PHP 5
+```console
+phpize
+./configure SWIG=1 
+sudo make install
+```
+
+##### PHP 7
+```console
+phpize
+./configure PHP7=1 SWIG=1 
 sudo make install
 ```
 
@@ -135,7 +229,7 @@ FiftyOneDegreesPatternV3.cache_size=10000
 FiftyOneDegreesPatternV3.pool_size=20
 ```
 
-In both Pattern and Trie directories, there is a php file which contains all the classes needed. So put this in a directory accessible by your web server, e.g. /var/www/html/51Degrees. This can then be included at the top of any php script using the detector with
+In both Pattern and Trie directories, there is a php file which contains all the classes needed. When running the extensions stand-alone, put this in a directory accessible by your web server, e.g. /var/www/html/51Degrees. This can then be included at the top of any php script using the detector with
 ```php5
 require(path/to/FiftyOneDegreesPatternV3.php);
 ```
@@ -203,4 +297,4 @@ To use these examples, first make sure that all settings (see [Configuration](#c
 ```
 php -S localhost:8080
 ```
-in the eamples directory to run start a server, and all examples will be available in a browser at, for example, `localhost:8080/example.php`. Or any of the other files in that directory.
+in the eamples directory to run start a server (only available in php 5.4+), and all examples will be available in a browser at, for example, `localhost:8080/example.php`. Or any of the other files in that directory.

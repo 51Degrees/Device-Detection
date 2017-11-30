@@ -1,4 +1,6 @@
-VERSION := 1.11.10
+VERSION := 1.13.4
+TESTS := tests/51degrees.t
+
 
 ifeq (build,$(firstword $(MAKECMDGOALS)))
 	ARGNEEDED := 1
@@ -23,6 +25,16 @@ else ifeq ($(API),trie)
 	ARGS := "-DFIFTYONEDEGREES_TRIE -DFIFTYONEDEGREES_NO_THREADING"
 else
 $(error $(API) is not a valid argument, must be pattern or trie)
+endif
+endif
+
+ifeq (test,$(firstword $(MAKECMDGOALS)))
+FULLPATH := $(shell pwd)
+ifneq (,$(findstring TRIE,"$(shell ./nginx -V 2>&1)"))
+	DATAFILE := "51Degrees-LiteV3.4.trie"
+endif
+ifneq (,$(findstring PATTERN,"$(shell ./nginx -V 2>&1)"))
+	DATAFILE := "51Degrees-LiteV3.2.dat"
 endif
 endif
 
@@ -51,6 +63,9 @@ clean:
 	if [ -f "vendor/nginx-$(VERSION)/Makefile" ]; then \
 		cd $(CURDIR)/vendor/nginx-$(VERSION) && make clean; \
 	fi
+	if [ -d "tests/nginx-tests" ]; then \
+		rm -r tests/nginx-tests; \
+	fi;
 
 build: clean
 	mkdir -p 51Degrees_module/src/$(API)
@@ -83,7 +98,6 @@ configure: build
 	--conf-path="nginx.conf"
 
 install: configure
-
 	cd $(CURDIR)/vendor/nginx-$(VERSION) && make install
 	cp example/$(API).conf build/nginx.conf
 
@@ -93,18 +107,26 @@ module: configure
 	cp $(CURDIR)/vendor/nginx-$(VERSION)/objs/*.so build/modules
 
 all-versions:
-	$(MAKE) module pattern VERSION=1.11.10
-	mv build/modules/ngx_http_51D_module.so modules/ngx_http_51D_pattern-1.11.10.so
-	$(MAKE) module trie VERSION=1.11.10
-	mv build/modules/ngx_http_51D_module.so modules/ngx_http_51D_trie-1.11.10.so
-	$(MAKE) module pattern VERSION=1.11.5
-	mv build/modules/ngx_http_51D_module.so modules/ngx_http_51D_pattern-1.11.5.so
-	$(MAKE) module trie VERSION=1.11.10
-	mv build/modules/ngx_http_51D_module.so modules/ngx_http_51D_trie-1.11.5.so
-	$(MAKE) module pattern VERSION=1.13.4
-	mv build/modules/ngx_http_51D_module.so modules/ngx_http_51D_pattern-1.13.4.so
-	$(MAKE) module trie VERSION=1.13.4
-	mv build/modules/ngx_http_51D_module.so modules/ngx_http_51D_trie-1.13.4.so
+	$(foreach api, \
+	pattern trie, \
+		$(foreach version, \
+		1.11.10 1.11.5 1.13.4, \
+		$(MAKE) module $(api) VERSION=$(version); \
+		mv build/modules/ngx_http_51D_module.so modules/ngx_http_51D_$(api)_module-$(version).so;) \
+	)
+
+test-full:
+	$(MAKE) test TESTS="$(TESTS) tests/nginx-tests"
 
 test:
-	./test.sh
+	if [ ! -f "tests/nginx-tests/lib/Test/Nginx.pm" ]; then \
+	rm -r tests/nginx-tests*; \
+	cd tests && curl -L -O "http://hg.nginx.org/nginx-tests/archive/tip.tar.gz"; \
+	tar zxf tip.tar.gz; \
+	mv nginx-tests* nginx-tests; \
+	fi;
+ifeq (,$(FULLPATH))
+	$(error Local binary must be build first (use "make install pattern" or "make install trie"))
+else
+	TEST_NGINX_BINARY="$(FULLPATH)/nginx" TEST_NGINX_GLOBALS="load_module $(FULLPATH)/build/modules/ngx_http_51D_module.so;" TEST_NGINX_GLOBALS_HTTP="51D_filePath $(FULLPATH)/../data/$(DATAFILE);"  prove -v $(TESTS)
+endif

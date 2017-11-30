@@ -881,9 +881,6 @@ static void stringsLoader(
 		return;
 	}
 
-	// Allocate an extra byte for the null terminator.
-	length++;
-
 	// Force the allocation of more memory if the node does not contain 
 	// sufficient memory.
 	if (cacheNode->data != NULL && length > cacheNode->size) {
