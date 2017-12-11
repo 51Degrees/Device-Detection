@@ -1,3 +1,25 @@
+/* *********************************************************************
+ * This Source Code Form is copyright of 51Degrees Mobile Experts Limited.
+ * Copyright 2017 51Degrees Mobile Experts Limited, 5 Charlotte Close,
+ * Caversham, Reading, Berkshire, United Kingdom RG4 7BY
+ *
+ * This Source Code Form is the subject of the following patents and patent
+ * applications, owned by 51Degrees Mobile Experts Limited of 5 Charlotte
+ * Close, Caversham, Reading, Berkshire, United Kingdom RG4 7BY:
+ * European Patent No. 2871816;
+ * European Patent Application No. 17184134.9;
+ * United States Patent Nos. 9,332,086 and 9,350,823; and
+ * United States Patent Application No. 15/686,066.
+ *
+ * This Source Code Form is subject to the terms of the Mozilla Public
+ * License, v. 2.0.
+ *
+ * If a copy of the MPL was not distributed with this file, You can obtain
+ * one at http://mozilla.org/MPL/2.0/.
+ *
+ * This Source Code Form is "Incompatible With Secondary Licenses", as
+ * defined by the Mozilla Public License, v. 2.0.
+ ********************************************************************** */
 var fs = require("fs");
 var zlib = require("zlib");
 var crypto = require("crypto");
@@ -119,21 +141,11 @@ module.exports = function (provider, FOD) {
     else if (provider.getDataSetName().indexOf('Enterprise') !== -1) {
         product = 'Enterprise';
     }
-    else if (provider.getDataSetName().indexOf('Trie') !== -1) {
-        // Trie data file does not contain the product name, so use
-        // the file name instead.
-        if (provider.config.fileName.indexOf('Premium') !== -1) {
-            product = 'Premium';
-        }
-        else if (provider.config.fileName.indexOf('Enterprise') !== -1) {
-            product = 'Enterprise';
-        }
-        else {
-            FOD.log.emit('info', '[' + provider.Id + '] ' + 'Lite data file does not support automatic' + ' updates. See https://51degrees.com/compare-data-' + 'options for more information.');
-        }
-    }
+    else if (provider.getDataSetName().indexOf('Lite') !== -1 && provider.getDataSetFormat().indexOf('HashTrieV34') !== -1) {
+        product = 'Lite';
+	}
     else {
-        FOD.log.emit('info', '[' + provider.Id + '] ' + 'Lite data file does not support automatic' + ' updates. See https://51degrees.com/compare-data-' + 'options for more information.');
+        FOD.log.emit('info', '[' + provider.Id + '] ' + 'Lite Pattern data file does not support automatic' + ' updates. See https://51degrees.com/compare-data-' + 'options for more information.');
     }
     // Regularly check if the data file is up to date against the current time.
     var timer = setInterval(function () {

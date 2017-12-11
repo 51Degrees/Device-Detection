@@ -1,23 +1,25 @@
-﻿/* *********************************************************************
- * This Source Code Form is copyright of 51Degrees Mobile Experts Limited. 
+/* *********************************************************************
+ * This Source Code Form is copyright of 51Degrees Mobile Experts Limited.
  * Copyright 2017 51Degrees Mobile Experts Limited, 5 Charlotte Close,
  * Caversham, Reading, Berkshire, United Kingdom RG4 7BY
- * 
- * This Source Code Form is the subject of the following patent 
+ *
+ * This Source Code Form is the subject of the following patents and patent
  * applications, owned by 51Degrees Mobile Experts Limited of 5 Charlotte
- * Close, Caversham, Reading, Berkshire, United Kingdom RG4 7BY: 
- * European Patent Application No. 13192291.6; and
- * United States Patent Application Nos. 14/085,223 and 14/085,301.
+ * Close, Caversham, Reading, Berkshire, United Kingdom RG4 7BY:
+ * European Patent No. 2871816;
+ * European Patent Application No. 17184134.9;
+ * United States Patent Nos. 9,332,086 and 9,350,823; and
+ * United States Patent Application No. 15/686,066.
  *
  * This Source Code Form is subject to the terms of the Mozilla Public
  * License, v. 2.0.
- * 
+ *
  * If a copy of the MPL was not distributed with this file, You can obtain
  * one at http://mozilla.org/MPL/2.0/.
- * 
- * This Source Code Form is “Incompatible With Secondary Licenses”, as
+ *
+ * This Source Code Form is "Incompatible With Secondary Licenses", as
  * defined by the Mozilla Public License, v. 2.0.
- * ********************************************************************* */
+ ********************************************************************** */
 
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 
@@ -33,7 +35,7 @@ namespace FiftyOne.UnitTests.Performance.Lite
 
         protected override string DataFile
         {
-            get { return Constants.LITE_TRIE_V32; }
+            get { return Constants.LITE_TRIE_V34; }
         }
 
         [TestInitialize]
@@ -50,49 +52,49 @@ namespace FiftyOne.UnitTests.Performance.Lite
 
         [TestMethod]
         [TestCategory("Lite"), TestCategory("Trie"), TestCategory("Performance"), TestCategory("Initialize")]
-        public void LiteV32Trie_Performance_InitializeTimeAll()
+        public void LiteV34Trie_Performance_InitializeTimeAll()
         {
             InitializeTime();
         }
         
         [TestMethod]
         [TestCategory("Lite"), TestCategory("Trie"), TestCategory("Performance"), TestCategory("Multi"), TestCategory("Bad"), TestCategory("All")]
-        public void LiteV32Trie_Performance_BadUserAgentsMultiAll()
+        public void LiteV34Trie_Performance_BadUserAgentsMultiAll()
         {
             BadUserAgentsMulti(1);
         }
 
         [TestMethod]
         [TestCategory("Lite"), TestCategory("Trie"), TestCategory("Performance"), TestCategory("Single"), TestCategory("Bad"), TestCategory("All")]
-        public void LiteV32Trie_Performance_BadUserAgentsSingleAll()
+        public void LiteV34Trie_Performance_BadUserAgentsSingleAll()
         {
             BadUserAgentsSingle(1);
         }
 
         [TestMethod]
         [TestCategory("Lite"), TestCategory("Trie"), TestCategory("Performance"), TestCategory("Multi"), TestCategory("Unique"), TestCategory("All")]
-        public void LiteV32Trie_Performance_UniqueUserAgentsMultiAll()
+        public void LiteV34Trie_Performance_UniqueUserAgentsMultiAll()
         {
             UniqueUserAgentsMulti(1);
         }
 
         [TestMethod]
         [TestCategory("Lite"), TestCategory("Trie"), TestCategory("Performance"), TestCategory("Single"), TestCategory("Unique"), TestCategory("All")]
-        public void LiteV32Trie_Performance_UniqueUserAgentsSingleAll()
+        public void LiteV34Trie_Performance_UniqueUserAgentsSingleAll()
         {
             UniqueUserAgentsSingle(1);
         }
 
         [TestMethod]
         [TestCategory("Lite"), TestCategory("Trie"), TestCategory("Performance"), TestCategory("Multi"), TestCategory("Random"), TestCategory("All")]
-        public void LiteV32Trie_Performance_RandomUserAgentsMultiAll()
+        public void LiteV34Trie_Performance_RandomUserAgentsMultiAll()
         {
             RandomUserAgentsMulti(1);
         }
 
         [TestMethod]
         [TestCategory("Lite"), TestCategory("Trie"), TestCategory("Performance"), TestCategory("Single"), TestCategory("Random"), TestCategory("All")]
-        public void LiteV32Trie_Performance_RandomUserAgentsSingleAll()
+        public void LiteV34Trie_Performance_RandomUserAgentsSingleAll()
         {
             RandomUserAgentsSingle(1);
         }

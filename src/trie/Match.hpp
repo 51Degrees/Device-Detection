@@ -3,11 +3,13 @@
  * Copyright 2017 51Degrees Mobile Experts Limited, 5 Charlotte Close,
  * Caversham, Reading, Berkshire, United Kingdom RG4 7BY
  *
- * This Source Code Form is the subject of the following patent
+ * This Source Code Form is the subject of the following patents and patent
  * applications, owned by 51Degrees Mobile Experts Limited of 5 Charlotte
  * Close, Caversham, Reading, Berkshire, United Kingdom RG4 7BY:
- * European Patent Application No. 13192291.6; and
- * United States Patent Application Nos. 14/085,223 and 14/085,301.
+ * European Patent No. 2871816;
+ * European Patent Application No. 17184134.9;
+ * United States Patent Nos. 9,332,086 and 9,350,823; and
+ * United States Patent Application No. 15/686,066.
  *
  * This Source Code Form is subject to the terms of the Mozilla Public
  * License, v. 2.0.
@@ -20,8 +22,10 @@
  ********************************************************************** */
 
 #include <string>
+#include <cstring>
 #include <vector>
 #include <map>
+#include <stdlib.h>
 #include "51Degrees.h"
 
 #ifndef FIFTYONEDEGREESMATCH_HPP
@@ -48,12 +52,24 @@ public:
 	virtual ~Match();
 
 	vector<string> getValues(const char *propertyName);
-	vector<string> getValues(string &propertyName);
+	vector<string> getValues(const string &propertyName);
 	vector<string> getValues(int requiredPropertyIndex);
 
 	string getValue(const char *propertyName);
-	string getValue(string &propertyName);
+	string getValue(const string &propertyName);
 	string getValue(int requiredPropertyIndex);
+	
+	bool getValueAsBool(const char *propertyName);
+	bool getValueAsBool(const string &propertyName);
+	bool getValueAsBool(int requiredPropertyIndex);
+
+	int getValueAsInteger(const char *propertyName);
+	int getValueAsInteger(const string &propertyName);
+	int getValueAsInteger(int requiredPropertyIndex);
+
+	double getValueAsDouble(const char *propertyName);
+	double getValueAsDouble(const string &propertyName);
+	double getValueAsDouble(int requiredPropertyIndex);
 
 	string getDeviceId();
 	int getRank();
@@ -67,7 +83,9 @@ public:
 protected:
 
 private:
-	fiftyoneDegreesDataSet *dataSet;
+
+	const char* getValuePointer(int requiredPropertyIndex);
+
 	fiftyoneDegreesDeviceOffsets *offsets;
 	string userAgent;
 };

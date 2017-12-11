@@ -24,12 +24,18 @@
     <ClCompile Include="..\..\..\examples\ReloadFromMemoryTrie.c">
       <Filter>Source Files</Filter>
     </ClCompile>
+    <ClCompile Include="..\..\..\src\cache.c">
+      <Filter>Source Files</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="..\..\..\src\threading.h">
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="..\..\..\src\trie\51Degrees.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\src\cache.h">
       <Filter>Header Files</Filter>
     </ClInclude>
   </ItemGroup>

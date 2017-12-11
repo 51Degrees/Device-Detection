@@ -1,14 +1,16 @@
 #!/usr/bin/env perl
 =copyright
 This Source Code Form is copyright of 51Degrees Mobile Experts Limited.
-Copyright (c) 2017 51Degrees Mobile Experts Limited, 5 Charlotte Close,
+Copyright 2017 51Degrees Mobile Experts Limited, 5 Charlotte Close,
 Caversham, Reading, Berkshire, United Kingdom RG4 7BY
 
-This Source Code Form is the subject of the following patent
+This Source Code Form is the subject of the following patents and patent
 applications, owned by 51Degrees Mobile Experts Limited of 5 Charlotte
 Close, Caversham, Reading, Berkshire, United Kingdom RG4 7BY:
-European Patent Application No. 13192291.6; and
-United States Patent Application Nos. 14/085,223 and 14/085,301.
+European Patent No. 2871816;
+European Patent Application No. 17184134.9;
+United States Patent Nos. 9,332,086 and 9,350,823; and
+United States Patent Application No. 15/686,066.
 
 This Source Code Form is subject to the terms of the Mozilla Public
 License, v. 2.0.

@@ -3,11 +3,13 @@
  * Copyright 2017 51Degrees Mobile Experts Limited, 5 Charlotte Close,
  * Caversham, Reading, Berkshire, United Kingdom RG4 7BY
  *
- * This Source Code Form is the subject of the following patent
+ * This Source Code Form is the subject of the following patents and patent
  * applications, owned by 51Degrees Mobile Experts Limited of 5 Charlotte
  * Close, Caversham, Reading, Berkshire, United Kingdom RG4 7BY:
- * European Patent Application No. 13192291.6; and
- * United States Patent Application Nos. 14/085,223 and 14/085,301.
+ * European Patent No. 2871816;
+ * European Patent Application No. 17184134.9;
+ * United States Patent Nos. 9,332,086 and 9,350,823; and
+ * United States Patent Application No. 15/686,066.
  *
  * This Source Code Form is subject to the terms of the Mozilla Public
  * License, v. 2.0.
@@ -41,8 +43,8 @@ using namespace std;
  * can only be initialised once one provider should be created per process.
  *
  * The Provider can be constructed with a cache to improve performance in
- * situations where requets will be repeated for the same User-Agent. The cache
- * has a fixed size in memory and does not grow or shrink over time.
+ * situations where requests will be repeated for the same User-Agent. The 
+ * cache has a fixed size in memory and does not grow or shrink over time.
  *
  * A pool of worksets can be configured to recycle the memory allocated to a
  * previous detection match. In a multi threaded environment the pool size
@@ -68,8 +70,27 @@ class Provider {
 		int getDataSetDeviceCombinations();
 
         Match* getMatch(const char *userAgent);
-        Match* getMatch(const string &userAgent);
+		Match* getMatch(const string &userAgent);
+		Match* getMatchForByteArray(const char userAgent[], size_t length);
         Match* getMatch(const map<string, string> &headers);
+
+		Match* getMatchWithTolerances(
+			const char *userAgent, 
+			int drift, 
+			int difference);
+		Match* getMatchWithTolerances(
+			const char *userAgent, 
+			int userAgentLength,
+			int drift, 
+			int difference);
+		Match* getMatchWithTolerances(
+			const string &userAgent, 
+			int drift, 
+			int difference);
+		Match* getMatchWithTolerances(
+			const map<string, string> &headers, 
+			int drift, 
+			int difference);
 
         map<string, vector<string> >& getMatchMap(const char *userAgent);
 		map<string, vector<string> >& getMatchMap(const string &userAgent);
@@ -80,9 +101,14 @@ class Provider {
         string getMatchJson(const string &userAgent);
         string getMatchJson(const map<string, string> &headers);
 
+		void setDrift(int drift);
+		void setDifference(int difference);
+
 		void reloadFromFile();
-		void reloadFromMemory(const char *source, int length);
-		void reloadFromMemory(const string &source, int length);
+		void reloadFromMemory(void *source, int length);
+		void reloadFromMemory(unsigned char source[], int length);
+
+		bool getIsThreadSafe();
 
 		Provider(const string &fileName, const string &propertyString,
 			bool validate);
@@ -106,8 +132,9 @@ class Provider {
 			map<string, vector<string> > *result);
 		void buildArray(int offset, map<string, vector<string> > *result);
 		fiftyoneDegreesDeviceOffsets* matchForHttpHeaders(
-			const map<string, string> *headers);
-		void initMatch(Match *match);
+			const map<string, string> *headers,
+			int drift,
+			int difference);
 
 		int64_t initWithValidate(const string &fileName,
 			const string &properties);

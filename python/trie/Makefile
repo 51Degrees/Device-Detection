@@ -9,7 +9,7 @@ build: clean
 	cp -r ../../src/trie src/trie
 	cp -r ../../src/cityhash src/cityhash
 	cp ../../src/threading.* src/
-	cp ../../data/51Degrees-LiteV3.2.trie data/
+	cp ../../data/51Degrees-LiteV3.4.trie data/
 	swig -python -c++ -module fiftyone_degrees_mobile_detector_v3_trie_wrapper -outdir FiftyOneDegrees -o src/trie/51Degrees_python.cxx src/trie/51Degrees.i
 
 sdist: build
