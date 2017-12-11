@@ -21,9 +21,9 @@ FiftyOneDegreesPatternV3.DeleteMatch(match)
 
 Use this project to detect device properties using HTTP browser User-Agents as input. It can be used to process server web log files, or for real time device detection to support web optimisation.
 
-Currently only one method is supported.
-
 **Pattern:**  Searches for device signatures in a useragent returning metrics about the validity of the results. Does NOT use regular expressions.
+
+**Hash Trie:** A large binary Trie file (pronounced Try) populated with hashes of User-Agent signatures. Very fast. 
 
 All methods use an external data file which can easilly be updated.
 
@@ -36,40 +36,48 @@ All methods use an external data file which can easilly be updated.
 - make
 - SWIG
 
-To install Golang, follow the guide on [golang.org](https://golang.org/doc/install)
-
-For Ubuntu based distributions the other dependencies can be found on apt, use
+For Ubuntu based distributions, dependencies can be found on apt. Use:
 ```
-$ sudo apt-get install gcc g++ make swig
+$ sudo apt-get install gcc g++ make swig golang
 ```
+Golang is available in some package mangers, if it is not available you can still install Golang by follwing the guide on [golang.org](https://golang.org/doc/install)
 
 ## Install
 <installation>
 ### Linux
 
-Move to the go directory 
+Move to the go directory:
 ```
 $ cd ../go
 ```
-Install with
+To set up the environment with the Pattern algorithm, do:
 
 ```
 $ make
+```
+For the Hash Trie algorithm, do:
+```
+$ make TRIE=1
 ```
 </installation>
 
 
 #### Examples
-In the examples folder, you can find examples of various functionalities that the 51Degrees detector has such as:
+To go folder contains various examples which show how to use 51Degrees in various use cases, including:
 - HTTP Server
 - Offline processing
 - Finding profiles
 
 A full explanation of these can be found within the files or at [Go Tutorials](https://51Degrees/support/documentation/Go/tutorials).
 
-
-Go package also include the following examples
+The Go api also include the following examples:
 
 - FindProfiles.go
 - GettingStarted.go
-
+- GettingStartedTrie.go
+- MatchForDeviceId.go
+- OfflineProcessing.go
+- OfflineProcessingTrie.go
+- server.go
+- StronglyTyped.go
+- StronglyTypedTrie.go
