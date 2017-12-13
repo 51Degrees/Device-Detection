@@ -1,23 +1,26 @@
-/**
-* This Source Code Form is copyright of 51Degrees Mobile Experts Limited.
-* Copyright (c) 2017 51Degrees Mobile Experts Limited, 5 Charlotte Close,
-* Caversham, Reading, Berkshire, United Kingdom RG4 7BY
-*
-* This Source Code Form is the subject of the following patent
-* applications, owned by 51Degrees Mobile Experts Limited of 5 Charlotte
-* Close, Caversham, Reading, Berkshire, United Kingdom RG4 7BY:
-* European Patent Application No. 13192291.6; and
-* United States Patent Application Nos. 14/085,223 and 14/085,301.
-*
-* This Source Code Form is subject to the terms of the Mozilla Public
-* License, v. 2.0.
-*
-* If a copy of the MPL was not distributed with this file, You can obtain
-* one at http://mozilla.org/MPL/2.0/.
-*
-* This Source Code Form is "Incompatible With Secondary Licenses", as
-* defined by the Mozilla Public License, v. 2.0.
-*/
+/* *********************************************************************
+ * This Source Code Form is copyright of 51Degrees Mobile Experts Limited.
+ * Copyright 2017 51Degrees Mobile Experts Limited, 5 Charlotte Close,
+ * Caversham, Reading, Berkshire, United Kingdom RG4 7BY
+ *
+ * This Source Code Form is the subject of the following patents and patent
+ * applications, owned by 51Degrees Mobile Experts Limited of 5 Charlotte
+ * Close, Caversham, Reading, Berkshire, United Kingdom RG4 7BY:
+ * European Patent No. 2871816;
+ * European Patent Application No. 17184134.9;
+ * United States Patent Nos. 9,332,086 and 9,350,823; and
+ * United States Patent Application No. 15/686,066.
+ *
+ * This Source Code Form is subject to the terms of the Mozilla Public
+ * License, v. 2.0.
+ *
+ * If a copy of the MPL was not distributed with this file, You can obtain
+ * one at http://mozilla.org/MPL/2.0/.
+ *
+ * This Source Code Form is "Incompatible With Secondary Licenses", as
+ * defined by the Mozilla Public License, v. 2.0.
+ ********************************************************************** */
+
 /*
 <tutorial>
 Getting started example of using 51Degrees device detection.
@@ -71,6 +74,23 @@ Visual Studio solution. Additionally, when running the program, the
 location of a 51Degrees data file must be passed as a command line
 argument if you wish to use Premium or Enterprise data files.
 </p>
+<p>
+This, and any other Trie example can be built to stream from file to reduce
+memory overhead by defining FIFTYONEDEGREES_INDIRECT at compile time. This
+encurs a performance penalty due to disk read and cache locking. Currently
+the caching used for an indirect (file stream) data set does not reserve an
+entity it has given out, so care should be taken to ensure an entity is not
+removed from the cache while another thread is using it. This can be done by
+defining FIFTYONEDEGREES_NO_THREADING and using the provider in a single
+threaded environment. Alternatively, for a multi threaded environment, the
+stream caches should be set to a higher number of entries than you expect to
+be handed out to threads at any one time. This is done by defining:
+	FIFTYONEDEGREES_STRING_CACHE_SIZE,
+	FIFTYONEDEGREES_NODE_CACHE_SIZE,
+	FIFTYONEDEGREES_DEVICE_CACHE_SIZE and
+	FIFTYONEDEGREES_PROFILE_CACHE_SIZE
+accordingly.
+</p>
 </tutorial>
 */
 
@@ -100,8 +120,8 @@ const char* getIsMobile(fiftyoneDegreesDataSet *dataSet, fiftyoneDegreesDeviceOf
 void run(fiftyoneDegreesDataSet* DataSet);
 
 int main(int argc, char* argv[]) {
-	const char* properties = "IsMobile";
-	const char* fileName = argc > 1 ? argv[1] : "../../../data/51Degrees-LiteV3.2.trie";
+	const char* properties = "ScreenPixelsWidth,HardwareModel,IsMobile,BrowserName";
+	const char* fileName = argc > 1 ? argv[1] : "../../../data/51Degrees-LiteV3.4.trie";
 
 #ifdef _DEBUG
 #ifndef _MSC_VER
@@ -195,7 +215,7 @@ void run(fiftyoneDegreesDataSet* dataSet) {
 */
 const char* getIsMobile(fiftyoneDegreesDataSet* dataSet, fiftyoneDegreesDeviceOffsets *offsets) {
 	int32_t requiredPropertyIndex;
-	const char* isMobile;
+	const char* isMobile = NULL;
 	const char* property = "IsMobile";
 
 	requiredPropertyIndex = fiftyoneDegreesGetRequiredPropertyIndex(dataSet, property);

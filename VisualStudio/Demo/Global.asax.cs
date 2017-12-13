@@ -45,7 +45,7 @@ namespace FiftyOne.Demo.WebSite
             _trie = new TrieWrapper(
             Path.Combine(
                 AppDomain.CurrentDomain.BaseDirectory,
-                "..\\..\\data\\51Degrees-LiteV3.2.trie"));
+                "..\\..\\data\\51Degrees-LiteV3.4.trie"));
         }
 
         /// <summary>

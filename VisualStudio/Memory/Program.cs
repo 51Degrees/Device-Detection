@@ -91,7 +91,7 @@ namespace ConsoleApplication1
             {
                 Process(pattern);
             }
-            using (var trie = new TrieWrapper("../../../../../data/51Degrees-LiteV3.2.trie"))
+            using (var trie = new TrieWrapper("../../../../../data/51Degrees-LiteV3.4.trie"))
             {
                 Process(trie);
             }

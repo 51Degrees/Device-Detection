@@ -1,23 +1,26 @@
 /* *********************************************************************
-* This Source Code Form is copyright of 51Degrees Mobile Experts Limited.
-* Copyright 2017 51Degrees Mobile Experts Limited, 5 Charlotte Close,
-* Caversham, Reading, Berkshire, United Kingdom RG4 7BY
-*
-* This Source Code Form is the subject of the following patent
-* applications, owned by 51Degrees Mobile Experts Limited of 5 Charlotte
-* Close, Caversham, Reading, Berkshire, United Kingdom RG4 7BY:
-* European Patent Application No. 13192291.6; and
-* United States Patent Application Nos. 14/085,223 and 14/085,301.
-*
-* This Source Code Form is subject to the terms of the Mozilla Public
-* License, v. 2.0.
-*
-* If a copy of the MPL was not distributed with this file, You can obtain
-* one at http://mozilla.org/MPL/2.0/.
-*
-* This Source Code Form is "Incompatible With Secondary Licenses", as
-* defined by the Mozilla Public License, v. 2.0.
-********************************************************************** */
+ * This Source Code Form is copyright of 51Degrees Mobile Experts Limited.
+ * Copyright 2017 51Degrees Mobile Experts Limited, 5 Charlotte Close,
+ * Caversham, Reading, Berkshire, United Kingdom RG4 7BY
+ *
+ * This Source Code Form is the subject of the following patents and patent
+ * applications, owned by 51Degrees Mobile Experts Limited of 5 Charlotte
+ * Close, Caversham, Reading, Berkshire, United Kingdom RG4 7BY:
+ * European Patent No. 2871816;
+ * European Patent Application No. 17184134.9;
+ * United States Patent Nos. 9,332,086 and 9,350,823; and
+ * United States Patent Application No. 15/686,066.
+ *
+ * This Source Code Form is subject to the terms of the Mozilla Public
+ * License, v. 2.0.
+ *
+ * If a copy of the MPL was not distributed with this file, You can obtain
+ * one at http://mozilla.org/MPL/2.0/.
+ *
+ * This Source Code Form is "Incompatible With Secondary Licenses", as
+ * defined by the Mozilla Public License, v. 2.0.
+ ********************************************************************** */
+
 
 /**
  * Define macros if compiler directive is not explicitly requesting single
@@ -35,6 +38,9 @@
 
 #ifdef _MSC_VER
 #include <windows.h>
+#include <intrin.h>  
+#pragma intrinsic (_InterlockedIncrement) 
+#pragma intrinsic (_InterlockedDecrement) 
 #else
 #include <pthread.h>
 #endif
@@ -220,4 +226,16 @@ int fiftyoneDegreesSignalValid(fiftyoneDegreesSignal *signal);
 #endif
 
 #endif
+#endif
+
+#ifdef _MSC_VER
+#define FIFTYONEDEGREES_INTERLOCK_INC(v) _InterlockedIncrement(v)
+#else
+#define FIFTYONEDEGREES_INTERLOCK_INC(v) __sync_fetch_and_add(v, 1)
+#endif
+
+#ifdef _MSC_VER
+#define FIFTYONEDEGREES_INTERLOCK_DEC(v) _InterlockedDecrement(v)
+#else
+#define FIFTYONEDEGREES_INTERLOCK_DEC(v) __sync_fetch_and_add(v, -1)
 #endif

@@ -15,6 +15,12 @@ if test "$PHP_FIFTYONEDEGREESPATTERNV3" = "yes"; then
   else
     WRAP_SOURCE="php5"
   fi
+  
+  if test -n "$SWIG"; then
+    SWIG_COMMAND="swig -c++ -$WRAP_SOURCE -outdir src/$WRAP_SOURCE -o src/$WRAP_SOURCE/51Degrees_PHP.cpp src/pattern/51Degrees.i"
+  else
+    SWIG_COMMAND=""
+  fi
 
   AC_CONFIG_COMMANDS_PRE(mkdir src)
   AC_CONFIG_COMMANDS_PRE(mkdir src/$WRAP_SOURCE)
@@ -25,8 +31,7 @@ if test "$PHP_FIFTYONEDEGREESPATTERNV3" = "yes"; then
   AC_CONFIG_COMMANDS_PRE(cp ../../src/threading.* src)
   AC_CONFIG_COMMANDS_PRE(cp ../../src/cityhash/city.* src/cityhash)
 
-
-  AC_CONFIG_COMMANDS_PRE(swig -c++ -$WRAP_SOURCE -outdir src/$WRAP_SOURCE -o src/$WRAP_SOURCE/51Degrees_PHP.cpp src/pattern/51Degrees.i)
+  AC_CONFIG_COMMANDS_PRE($SWIG_COMMAND)
 
   AC_CONFIG_COMMANDS_PRE(cp src/$WRAP_SOURCE/* src/pattern/)
 

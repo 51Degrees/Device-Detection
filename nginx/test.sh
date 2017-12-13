@@ -54,7 +54,7 @@ if [ $PATTERN == '1' ]; then
 	echo "	## enable cacheing ##" >> build/nginx.conf
 	echo "	51D_cache ${REQUESTS};" >> build/nginx.conf
 else
-	echo "	51D_filePath ../data/51Degrees-LiteV3.2.trie;" >> build/nginx.conf
+	echo "	51D_filePath ../data/51Degrees-LiteV3.4.trie;" >> build/nginx.conf
 fi
 echo "" >> build/nginx.conf
 echo "	server {" >> build/nginx.conf

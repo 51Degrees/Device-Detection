@@ -21,12 +21,10 @@
 
 using System;
 using System.Collections.Generic;
-using System.Text;
-using System.Runtime.InteropServices;
-using System.Threading;
 using System.IO;
 using System.Collections.Specialized;
 using System.Diagnostics;
+using FiftyOne.Mobile.Detection.Provider.Interop.Trie;
 
 namespace FiftyOne.Mobile.Detection.Provider.Interop
 {
@@ -39,25 +37,16 @@ namespace FiftyOne.Mobile.Detection.Provider.Interop
         #region Fields
 
         /// <summary>
-        /// The number of instances of the wrapper.
-        /// </summary>
-        private static int _instanceCount = 0;
-
-        /// <summary>
-        /// Used to lock initialise and destroy calls.
-        /// </summary>
-        private static object _lock = new Object();
-
-        /// <summary>
         /// Collection of property names to indexes.
         /// </summary>
-        internal readonly SortedList<string, int> PropertyIndexes = new SortedList<string, int>();
+        internal readonly SortedList<string, int> PropertyIndexes = 
+            new SortedList<string, int>();
 
         /// <summary>
         /// The name of the file used to create the current 
         /// single underlying provider.
         /// </summary>
-        private static string _fileName;
+        private string _fileName;
 
         /// <summary>
         /// Set to true when dispose has run for the wrapper
@@ -86,7 +75,8 @@ namespace FiftyOne.Mobile.Detection.Provider.Interop
         /// </summary>
         /// <param name="fileName">The full path to the file containing device data.</param>
         /// <param name="properties">Array of properties to include in the results.</param>
-        public TrieWrapper(string fileName, string[] properties) : this(fileName, String.Join(",", properties)) { }
+        public TrieWrapper(string fileName, string[] properties) 
+            : this(fileName, String.Join(",", properties)) { }
 
         /// <summary>
         /// Construct the wrapper.
@@ -135,25 +125,19 @@ namespace FiftyOne.Mobile.Detection.Provider.Interop
         /// <param name="disposing"></param>
         protected virtual void Disposing(bool disposing)
         {
-            lock (_lock)
+            if (_disposed == false)
             {
-                if (_disposed == false)
+                if (_fileName != null)
                 {
-                    if (_instanceCount == 1 &&
-                        _fileName != null)
-                    {
-                        // Clear down any static data and free memory.
-                        HttpHeaders.Clear();
-                        PropertyIndexes.Clear();
-                        _fileName = null;
-                        _provider.Dispose();
-                        _disposed = true;
-
-                        Debug.WriteLine("Freed Trie Data");
-                    }
-                    _instanceCount--;
+                    // Clear down any static data and free memory.
+                    HttpHeaders.Clear();
+                    PropertyIndexes.Clear();
+                    _fileName = null;
+                    _provider.Dispose();
                     _disposed = true;
+                    Debug.WriteLine("Freed Trie Data");
                 }
+                _disposed = true;
             }
         }
 
@@ -219,7 +203,7 @@ namespace FiftyOne.Mobile.Detection.Provider.Interop
 
         public IMatchResult Match(NameValueCollection headers)
         {
-            using (var mappedHeaders = new Trie.MapStringString())
+            using (var mappedHeaders = new MapStringString())
             {
                 foreach (var header in HttpHeaders)
                 {
@@ -274,8 +258,21 @@ namespace FiftyOne.Mobile.Detection.Provider.Interop
         /// </summary>
         public void ReloadFromMemory()
         {
-            byte[] bytes = File.ReadAllBytes(_fileName);
-            _provider.reloadFromMemory(bytes.ToString(), bytes.GetLength(0));
+            ReloadFromMemory(File.ReadAllBytes(_fileName));
+        }
+        
+        /// <summary>
+        /// Makes a copy of the byte array provided for use with the reloaded
+        /// data set within the provider.
+        /// </summary>
+        /// <param name="original">Uncompressed array of new device data</param>
+        public unsafe void ReloadFromMemory(byte[] original)
+        {
+            fixed (byte *ptr = original)
+            {
+                var swigPtr = new SWIGTYPE_p_unsigned_char((IntPtr)ptr, false);
+                _provider.reloadFromMemory(swigPtr, original.Length);
+            }
         }
 
         /// <summary>
@@ -300,6 +297,39 @@ namespace FiftyOne.Mobile.Detection.Provider.Interop
             get
             {
                 throw new NotImplementedException();
+            }
+        }
+
+        /// <summary>
+        /// Sets the drift value to use when searching for hash codes.
+        /// </summary>
+        public int Drift
+        {
+            set
+            {
+                _provider.setDrift(value);
+            }
+        }
+
+        /// <summary>
+        /// Sets the difference value to use when searching for hash codes.
+        /// </summary>
+        public int Difference
+        {
+            set
+            {
+                _provider.setDifference(value);
+            }
+        }
+
+        /// <summary>
+        /// True if the provider is thread safe otherwise false.
+        /// </summary>
+        public bool IsThreadSafe
+        {
+            get
+            {
+                return _provider.getIsThreadSafe();
             }
         }
 

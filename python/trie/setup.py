@@ -55,13 +55,13 @@ if has_snprintf():
     define_macros.append(('HAVE_SNPRINTF', None))
 setup(
     name='51degrees-mobile-detector-v3-trie-wrapper',
-    version='3.2.13.5',
+    version='3.2.16.5',
     author='51Degrees.com',
     author_email='info@51degrees.com',
     cmdclass={'build_ext': build_ext},
     packages=find_packages(),
     include_package_data=True,
-    data_files=[(os.path.expanduser('~/51Degrees'), ['data/51Degrees-LiteV3.2.trie'])],
+    data_files=[(os.path.expanduser('~/51Degrees'), ['data/51Degrees-LiteV3.4.trie'])],
     ext_modules=[
         Extension('_fiftyone_degrees_mobile_detector_v3_trie_wrapper',
             sources=[
@@ -104,7 +104,7 @@ setup(
         'Operating System :: MacOS :: MacOS X',
     ],
     install_requires=[
-        'distribute',
+        'setuptools',
 	'51degrees-mobile-detector',
     ],
 )
