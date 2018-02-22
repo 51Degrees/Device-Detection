@@ -29,7 +29,7 @@ Two detection methods are supported.
 
 **Pattern:**  Searches for device signatures in a useragent returning metrics about the validity of the results. Does NOT use regular expressions.
 
-**Trie:** A large binary Trie (pronounced Try) populated with User-Agent signatures. Very fast.
+**Hash Trie:** A small binary data file containing User-Agents stored as Hash sequences. Very fast detection time.
 
 All methods use an external data file which can easilly be updated.
 
@@ -49,7 +49,7 @@ $ sudo apt-get install gcc make
 and the Nginx source will be automatically downloaded by the make file.
 
 ## Install
-<installation>
+
 ### Linux
 #### Pre-compiled module
 Pre-compiled modules are available in the "modules" sub-directory. The correct version can simply be placed in Nginx's module directory (this is usually `/etc/nginx/modules`). The Nginx version, and Nginx's module directory , can be found by running `nginx -V`.
@@ -77,8 +77,8 @@ which will all pass if the local installation was successful.
 
 #### For an existing Nginx deployment
 ##### Dynamic Module
-51Degrees dynamic module can be used in Nginx version 1.9.11 or later.
-
+51Degrees dynamic module can be used in Nginx version 1.9.11 or later. It is important to check you have '--with-compat' available within your configure arguments. You can check this by doing `nginx -V`.
+ 
 For versions 1.11.5 (R11), 1.11.10 (R12) and 1.13.4 (R13) there are pre-built modules in the `nginx/modules` directory.
 
 To build the module as ngx_http_51D_module.so for another version, define `VERSION` when calling make like:
@@ -97,24 +97,24 @@ To compile as a static module rather than dynamically, define `STATIC_BUILD` whe
 ```
 $ make install pattern STATIC_BUILD=1
 ```
-</installation>
+
 ## Configure
-<configuration>
+
 Before start matching user agents, you may wish to configure the solution to use a different database for example.
 ### Settings
 #### General Settings
 These settings are valid in the main configuration block and should only be set once.
- - ``51D_filePath`` (defaults to ``'51Degrees.dat'``). Sets the location of the data file.
+ - `51D_filePath` (defaults to `'51Degrees.dat'`). Sets the location of the data file.
 
- - ``51D_cache`` (defaults to ``0``). Sets the size of the workset cache.
+ - `51D_cache` (defaults to `0`). Sets the size of the workset cache.
  
- - ``51D_valueSeparator`` (defaults to ``','``). Sets the delimiter to separate values with.
+ - `51D_valueSeparator` (defaults to `','`). Sets the delimiter to separate values with.
 
 #### Match Settings
 These settings are valid in a location, server, or main configuration block.
- - ``51D_match_single`` (defaults to disabled). Gets device properties using a User-Agent. Takes the name the resultant header will be set as, a comma separated list of properties to return, and optionaly a variable containing the User-Agent to match with.
+ - `51D_match_single` - Gets device properties using a User-Agent. Takes the name the resultant header will be set as, a comma separated list of properties to return, and optionaly a variable containing the User-Agent to match with.
 
- - ``51D_match_all`` (defaults to disabled). Gets device properties using multiple HTTP headers. Takes the name the resultant header will be set as, and a comma separated list of properties to return.
+ - `51D_match_all` - Gets device properties using multiple HTTP headers. Takes the name the resultant header will be set as, and a comma separated list of properties to return.
 
 ## Usage
 ### The Config File
@@ -155,16 +155,16 @@ location / {
 }
 ```
 ##### Proxy Passing
-When using the ``proxy_pass`` directive in a location block where a match directive is used, the properties selected are passed as additional HTTP headers with the name specified in the first argument of ``51D_match_single``/``51D_match_all``.
+When using the `proxy_pass` directive in a location block where a match directive is used, the properties selected are passed as additional HTTP headers with the name specified in the first argument of `51D_match_single`/`51D_match_all`.
 ##### Fast-CGI
-Using ``include fastcgi_params;`` makes these additional headers available via the ``$_SERVER`` variable.
+Using `include fastcgi_params;` makes these additional headers available via the `$_SERVER` variable.
 
 ##### Output Format
 The value of the header is set to a comma separated list of values (comma delimited is the default behaviour, but the delimiter can be set explicitly with ``51D_valueSeparator``), these are in the same order the properties are listed in the config file. So setting a header with the line:
 ```
 51D_match_all x-device HardwareName,BrowserName,PlatformName;
 ```
-will give a header named ``x-device`` with a value like ``Desktop,Firefox,Ubuntu``. Alternatively, headers can be set individually like:
+will give a header named `x-device` with a value like `Desktop,Firefox,Ubuntu`. Alternatively, headers can be set individually like:
 ```
 51D_match_all x-hardware HardwareName;
 51D_match_all x-browser BrowserName;
@@ -173,19 +173,19 @@ will give a header named ``x-device`` with a value like ``Desktop,Firefox,Ubuntu
 giving three seperate headers.
 
 ### Example
-If installing to a local directory using ``make install pattern``/``make install trie``, the executable is set up to use the example configuration and can be easily tested. Take ``example.php``, which just prints all request headers, and place it in apache's web directory (probably /var/www/html).
+If installing to a local directory using `make install pattern`/`make install trie`, the executable is set up to use the example configuration and can be easily tested. Take `example.php`, which just prints all request headers, and place it in apache's web directory (probably /var/www/html).
 Now, once Nginx is started by running
 ```
 $ ./nginx
 ```
-in the ``Device-Detection/nginx`` directory, accessing ``localhost:8888/example.php`` will display all request headers which will include the device properties:
+in the `Device-Detection/nginx` directory, accessing `localhost:8888/example.php` will display all request headers which will include the device properties:
 ```
 x-device: Desktop,Firefox,Ubuntu
 x-tablet: False
 x-smartphone: False
 x-metrics: 15364-18118-57666-18092,Exact,0,1538 
 ```
-Alternatively, the line ``add_header x-mobile http_x_mobile`` is included in the example config. This adds the header to the response headers, so can be viewed in the response without a PHP server set up. In a Linux environment, these can be viewed with the command:
+Alternatively, the line `add_header x-mobile http_x_mobile` is included in the example config. This adds the header to the response headers, so can be viewed in the response without a PHP server set up. In a Linux environment, these can be viewed with the command:
 ```
 $ curl localhost:8888 -I -A [SOME USER-AGENT]
 ```
