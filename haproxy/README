@@ -323,7 +323,7 @@ new HTTP header X-51D-Stats.
 These values indicate how confident 51Degrees is in the result that that was
 returned. More information is available on the 51Degrees web site at:
 
-    https://51degrees.com/support/documentation/pattern
+    https://51degrees.com/support/documentation/pattern?utm_source=github&utm_medium=repository&utm_content=readme_main&utm_campaign=HaProxy-open-source
 
 The above 51d.all fetch method uses all available HTTP headers for detection. A
 modest performance improvement can be obtained by only passing one HTTP header
@@ -348,7 +348,7 @@ The free Lite data file contains information about screen size in pixels and
 whether the device is a mobile. A full list of available properties is located
 on the 51Degrees web site at:
 
-    https://51degrees.com/resources/property-dictionary
+    https://51degrees.com/resources/property-dictionary?utm_source=github&utm_medium=repository&utm_content=readme_main&utm_campaign=HaProxy-open-source
 
 Some properties are only available in the paid for Premium and Enterprise
 versions of 51Degrees. These data sets not only contain more properties but
@@ -356,7 +356,7 @@ are updated weekly and daily and contain signatures for 100,000s of different
 device combinations. For more information see the data options comparison web
 page:
 
-    https://51degrees.com/compare-data-options
+    https://51degrees.com/compare-data-options?utm_source=github&utm_medium=repository&utm_content=readme_main&utm_campaign=HaProxy-open-source
 
 
 2) How to install it
