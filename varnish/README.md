@@ -4,8 +4,6 @@
 
 <sup>Need [.NET](https://github.com/51Degrees/.NET-Device-Detection "THE Fastest and most Accurate device detection for .NET") | [Java](https://github.com/51Degrees/Java-Device-Detection "THE Fastest and most Accurate device detection for Java") | [PHP Script](https://github.com/51Degrees/51Degrees-PHP)?</sup>
 
-The Varnish module is currently in beta. Any bugs reported will be added to the stable release.
-
 ## Introduction
 
 In a VCL file, use like...
@@ -30,7 +28,7 @@ Two detection methods are supported.
 
 **Pattern:**  Searches for device signatures in a useragent returning metrics about the validity of the results. Does NOT use regular expressions.
 
-**Trie:** A large binary Trie (pronounced Try) populated with User-Agent signatures. Very fast.
+**Hash Trie:** A small binary data file containing User-Agents stored as Hash sequences. Very fast detection time.
 
 All methods use an external data file which can easilly be updated.
 
