@@ -42,6 +42,16 @@
 
 %}
 
+#ifdef SWIGGO
+%insert(go_begin) %{
+/*
+#include "../threading.c"
+#include "../cache.c"
+*/
+import "C"
+%}
+#endif
+
 %include exception.i
 %include std_string.i
 %include std_pair.i

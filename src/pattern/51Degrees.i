@@ -44,6 +44,16 @@
 	#endif
 %}
 
+#ifdef SWIGGO
+%insert(go_begin) %{
+/*
+#include "../threading.c"
+#include "../cityhash/city.c"
+*/
+import "C"
+%}
+#endif
+
 %include exception.i
 %include std_string.i
 %include std_pair.i
