@@ -42,9 +42,29 @@
 
 %}
 
+/*
+ * For Go API, force the Go Build tool to include sources from directories
+ * outside the main package directories, e.g. pattern/trie.
+ *
+ * If building the Swig wrapper for Go, insert code snippet at the beginning of 
+ * the generated go file. This code imports the threading and cache sources 
+ * which are located outside of the pattern package directory. This allows Go 
+ * Build access to the source code. Otherwise, as these paths are not copied to 
+ * the temporary 'work' directory used by Go Build, the build will fail even 
+ * though they are referenced in the C source.
+ *
+ * For building on windows, add -lpthread linker flag and include time.h to 
+ * support `clock_gettime()` used in threading.
+ *
+ * References:
+ * http://www.swig.org/Doc3.0/SWIGDocumentation.html#Go_adding_additional_code
+ * https://golang.org/cmd/cgo/#hdr-Go_references_to_C
+ */
 #ifdef SWIGGO
 %insert(go_begin) %{
 /*
+#cgo LDFLAGS: -lpthread
+#include <time.h>
 #include "../threading.c"
 #include "../cache.c"
 */

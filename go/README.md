@@ -11,13 +11,13 @@ In Go, use like...
 // Declare Resources.
 var provider FiftyOneDegreesPatternV3.Provider
 // Initialise provider.
-provider = FiftyOneDegreesPatternV3.NewProvider([PATH TO DATA FILE])
+provider = FiftyOneDegreesPatternV3.NewProvider([string]PATH TO DATA FILE)
 // Perform detection.
-match := provider.GetMatch([DEVICE USER AGENT])
+match := provider.GetMatch([string]DEVICE USER AGENT)
 //Release the Match Object back to the pool.
 FiftyOneDegreesPatternV3.DeleteMatch(match)
 ```
-... to turn User-Agent HTTP headers into useful information about physical screen size, device price and type of device.
+... to turn User-Agent HTTP headers into useful information about a device such as physical screen size, device price and type of device.
 
 Use this project to detect device properties using HTTP browser User-Agents as input. It can be used to process server web log files, or for real time device detection to support web optimisation.
 
@@ -28,56 +28,98 @@ Use this project to detect device properties using HTTP browser User-Agents as i
 All methods use an external data file which can be easily updated.
 
 ## Dependencies
-#### Essential
+#### Linux/MacOS
 
-- golang
+- Golang
 - make
-- SWIG
+- SWIG - if regenerating the wrapper.
 
 For Ubuntu based distributions, dependencies can be found on apt. Use:
 ```
 $ sudo apt-get install gcc g++ make swig golang
 ```
-Golang is available in some package managers, if it is not available or if you are using Windows or MacOS you can still install Golang by following the guide on [golang.org](https://golang.org/doc/install)
+
+#### Windows
+
+- Golang
+- MinGW-w64 - GCC 64bit environment for windows.
+- SwigWin - Precompiled SWIG binarys - needed if regenerating the wrapper.
+
+Make sure to add the SwigWin and MinGW to your Path environment variable.
+
+Golang is available in some package managers, if it is not available or if you are using Windows or MacOS you can still install Golang by following the guide on [golang.org](https://golang.org/doc/install). For MacOS, the other dependencies can be obtained using Homebrew.
 
 ## Install
-<installation>
-### Linux
+Clone the Device-Detection repository:
+```
+$ git clone https://github.com/51Degrees/Device-Detection.git
+```
 
 Move to the go directory:
 ```
-$ cd ../go
+$ cd Device-Detection/go
 ```
+### Linux/MacOS
+
 To set up the environment with the Pattern algorithm, do:
 
 ```
-$ make
+$ make pattern
 ```
 For the Hash Trie algorithm, do:
 ```
-$ make TRIE=1
+$ make hash
 ```
-</installation>
+
+If you wish to regenerate the swig wrapper as well then do:
+`$ make swig-pat` or `$ make swig-hash`
+
+### Windows
+
+To set up the environment with both the Pattern and Hash Trie algorithms, do:
+
+```
+> PreBuild.bat
+```
+For the Hash Trie algorithm, do:
+```
+> PreBuild.bat HASH
+```
+If you wish to regenerate the swig wrapper as well then do:
+`> PreBuild.bat SWIG` or `> PreBuild.bat HASH SWIG`
 
 
-#### Examples
-The go folder contains various examples which show how to use 51Degrees in various use cases, including:
-- HTTP Server
-- Offline processing
-- Finding profiles
-- Performance Testing
+## Examples
+The go folder contains various examples which show how to use 51Degrees in various use cases, a full explanation of these can be found within the files or at [Go Tutorials](https://51degrees.com/Developers/Documentation/APIs/Go/Tutorials).
 
-A full explanation of these can be found within the files or at [Go Tutorials](https://51degrees.com/Developers/Documentation/APIs/Go/Tutorials).
+The Go api also includes the following examples:
 
-The Go api also include the following examples:
+| Filename                      | Description                                                       |
+| :---------------------------- | :---------------------------------------------------------------- |
+| FindProfiles.go               | Get Profiles with a specific Property:Value                       |
+| GettingStarted.go             | Match some User-Agents                                            |
+| GettingStartedHashTrie.go     | Match some User-Agents using Hash Trie                            |
+| MatchForDeviceId.go           | Match and retieve data from a Device Id                           |
+| OfflineProcessing.go          | Process a list of User-Agents                                     |
+| OfflineProcessingHashTrie.go  | Process a list of User-Agents using Hash Trie                     |
+| PerfHashTrie.go               | Benchmark for Hash Trie algorithm                                 |
+| server.go                     | Http server example                                               |
+| StronglyTyped.go              | Strongly typed example of matching a User-Agent                   |
+| StronglyTypedHashTrie.go      | Strongly typed example of matching a User-Agent using Hash Trie   |
 
-- FindProfiles.go
-- GettingStarted.go
-- GettingStartedHashTrie.go
-- MatchForDeviceId.go
-- OfflineProcessing.go
-- OfflineProcessingHashTrie.go
-- PerfHashTrie.go
-- server.go
-- StronglyTyped.go
-- StronglyTypedHashTrie.go
+Build an exmaple to running: `go build <filename>.go`. Or run an example by doing: `go run <filename>.go`.
+
+## Common Problems
+#### Cannot find package
+##### Problem:
+`cannot find package "./src/trie" ...`
+
+OR
+
+`cannot find package "./src/pattern" ...`
+
+##### Resolution:
+
+The 51Degrees Go API has not yet been initialized. Run make command if on Linux/MacOS or PreBuild.bat script if on Windows.
+
+
