@@ -911,6 +911,21 @@ void ngx_http_51D_cache_insert(ngx_http_51D_cache_node_t *node)
 }
 
 /**
+ * Appends a value to the cache key if there is enough space.
+ * @param cacheKey the key to append.
+ * @param value the string to add to the key.
+ * @param maxLength the number of bytes allocated to the key.
+ */
+void
+ngx_http_51D_cache_append_key(ngx_str_t *cacheKey, ngx_str_t *value, size_t maxLength) {
+	size_t len = cacheKey->len + value->len > maxLength ?
+		maxLength - cacheKey->len :
+		value->len;
+    strncpy((char*)cacheKey->data + cacheKey->len, (const char*)value->data, len);
+    cacheKey->len += len;
+}
+
+/**
  * Set max string function. Gets the maximum possible length of the returned
  * list of values for specified header structure and allocates space for it.
  * @param fdmcf 51Degrees module main config.
@@ -1481,6 +1496,9 @@ ngx_http_51D_handler(ngx_http_request_t *r)
 	ngx_http_51D_matched_header_t *header;
 	ngx_http_51D_cache_node_t *node;
 	uint32_t hash;
+	ngx_str_t cacheKey;
+	u_char cacheKeyData[FIFTYONEDEGREES_MAX_STRING];
+	cacheKey.data = cacheKeyData;
 	int headerIndex;
 	ngx_table_elt_t *searchResult;
 	ngx_slab_pool_t *shpool;
@@ -1515,6 +1533,7 @@ ngx_http_51D_handler(ngx_http_request_t *r)
 	}
 #ifdef FIFTYONEDEGREES_PATTERN
 	hash = 0;
+	cacheKey.len = 0;
 	if (ngx_http_51D_cacheSize > 0) {
 		shpool = (ngx_slab_pool_t*)ngx_http_51D_shm_cache->shm.addr;
 		// Get the hash for this location and request headers.
@@ -1525,24 +1544,40 @@ ngx_http_51D_handler(ngx_http_request_t *r)
 		for (headerIndex = 0; headerIndex < fdmcf->dataSet->httpHeadersCount; headerIndex++) {
 			searchResult = search_headers_in(r, (u_char*)fdmcf->dataSet->httpHeaders[headerIndex].headerName, ngx_strlen(fdmcf->dataSet->httpHeaders[headerIndex].headerName));
 			if (searchResult != NULL) {
+				ngx_http_51D_cache_append_key(&cacheKey, &searchResult->value, sizeof(cacheKeyData));
 				hash = ngx_hash(hash, ngx_hash_key(searchResult->value.data, searchResult->value.len));
 			}
 		}
+		// Also hash any parameters which are matched.
+		for (matchConfIndex = 0; matchConfIndex < 3; matchConfIndex++)
+		{
+			currentHeader = matchConf[matchConfIndex]->header;
+			while (currentHeader != NULL)
+			{
+				if (currentHeader->multi == 0 && (int)currentHeader->variableName.len > 0) {
+					nextUserAgent = ngx_http_51D_get_user_agent(r, currentHeader);
+					ngx_http_51D_cache_append_key(&cacheKey, nextUserAgent, sizeof(cacheKeyData));
+					hash = ngx_hash(hash, ngx_hash_key(nextUserAgent->data, nextUserAgent->len));
+				}
+				currentHeader = currentHeader->next;
+			}
+		}
+
 		// Look in the cache for a match with the hash.
 		ngx_shmtx_lock(&shpool->mutex);
-		node = ngx_http_51D_lookup_node_lru(userAgent, hash);
+		node = ngx_http_51D_lookup_node_lru(&cacheKey, hash);
 	}
 	else {
 		node = NULL;
 	}
 	// If a match is not found in the cache, carry out a match.
 	if (node == NULL) {
-		// Create a new node so the match can be added to the cache.
+		// Release the cache lock as it is not needed while matching.
 		if (ngx_http_51D_cacheSize > 0) {
 			ngx_shmtx_unlock(&shpool->mutex);
-			node = ngx_http_51D_create_node(userAgent, hash, totalHeaderCount);
 		}
 #endif // FIFTYONEDEGREES_PATTERN
+
 		// Look for single User-Agent matches, then multiple HTTP header
 		// matches. Single and multi matches are done separately to reuse
 		// a match instead of retrieving it multiple times.
@@ -1562,12 +1597,6 @@ ngx_http_51D_handler(ngx_http_request_t *r)
 					// this pass.
 					if (currentHeader->multi == multi && (int)currentHeader->variableName.len < 0) {
 						haveMatch = process(r, fdmcf, currentHeader, h, matchIndex, haveMatch, userAgent);
-#ifdef FIFTYONEDEGREES_PATTERN
-						// Add the current header to the cache node.
-						if (ngx_http_51D_cacheSize > 0) {
-							ngx_http_51D_add_header_to_node(node, h[matchIndex]);
-						}
-#endif // FIFTYONEDEGREES_PATTERN
 						matchIndex++;
 					}
 					// Look at the next header.
@@ -1576,9 +1605,34 @@ ngx_http_51D_handler(ngx_http_request_t *r)
 			}
 		}
 
+		userAgent = &(ngx_str_t)ngx_string("");
+		for (matchConfIndex = 0; matchConfIndex < 3; matchConfIndex++)
+		{
+			currentHeader = matchConf[matchConfIndex]->header;
+			while (currentHeader != NULL)
+			{
+				if (currentHeader->multi == 0 && (int)currentHeader->variableName.len > 0) {
+					nextUserAgent = ngx_http_51D_get_user_agent(r, currentHeader);
+					if (strcmp((const char*)userAgent->data, (const char*)nextUserAgent->data) == 0) {
+						process(r, fdmcf, currentHeader, h, matchIndex, 1, userAgent);
+					} else {
+						userAgent = nextUserAgent;
+						process(r, fdmcf, currentHeader, h, matchIndex, 0, userAgent);
+					}
+					matchIndex++;
+				}
+				currentHeader = currentHeader->next;
+			}
+		}
+
 #ifdef FIFTYONEDEGREES_PATTERN
 		// Add the match to the cache.
 		if (ngx_http_51D_cacheSize > 0) {
+			// Create a new node so the match can be added to the cache.
+			node = ngx_http_51D_create_node(&cacheKey, hash, totalHeaderCount);
+			while (node->headersCount < matchIndex) {
+				ngx_http_51D_add_header_to_node(node, h[node->headersCount]);
+			}
 			ngx_http_51D_cache_insert(node);
 		}
 	}
@@ -1596,26 +1650,6 @@ ngx_http_51D_handler(ngx_http_request_t *r)
 		ngx_shmtx_unlock(&shpool->mutex);
 	}
 #endif // FIFTYONEDEGREES_PATTERN
-
-	userAgent = &(ngx_str_t)ngx_string("");
-	for (matchConfIndex = 0; matchConfIndex < 3; matchConfIndex++)
-	{
-		currentHeader = matchConf[matchConfIndex]->header;
-		while (currentHeader != NULL)
-		{
-			if (currentHeader->multi == 0 && (int)currentHeader->variableName.len > 0) {
-				nextUserAgent = ngx_http_51D_get_user_agent(r, currentHeader);
-					if (strcmp((const char*)userAgent->data, (const char*)nextUserAgent->data) == 0) {
-						process(r, fdmcf, currentHeader, h, matchIndex, 1, userAgent);
-				} else {
-					userAgent = nextUserAgent;
-					process(r, fdmcf, currentHeader, h, matchIndex, 0, userAgent);
-				}
-				matchIndex++;
-			}
-			currentHeader = currentHeader->next;
-		}
-	}
 
 	// Tell nginx to continue with other module handlers.
 	return NGX_DECLINED;
