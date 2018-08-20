@@ -32,10 +32,21 @@ varnish v1 -vcl+backend {
 	import fiftyonedegrees from "${vmod_topbuild}/src/.libs/libvmod_fiftyonedegrees.so";
 
 	sub vcl_deliver {
+		set resp.http.pass = "false";
 		set resp.http.version = fiftyonedegrees.get_dataset_format();
+		if ("${vmod_fod_datafile}" ~ ".dat") {
+			if (resp.http.version == "3.2") {
+				set resp.http.pass = "true";
+			}
+		}
+		if ("${vmod_fod_datafile}" ~ ".trie") {
+			if (resp.http.version == "HashTrieV34") {
+				set resp.http.pass = "true";
+			}
+		}
 	}
 	sub vcl_init {
-		fiftyonedegrees.start("${vmod_topbuild}/data/51Degrees-LiteV3.2.dat");
+		fiftyonedegrees.start("${vmod_fod_datafile}");
 	}
 
 } -start
@@ -43,7 +54,8 @@ varnish v1 -vcl+backend {
 client c1 {
 	txreq -url "/" -hdr "User-Agent: Mozilla/5.0 (Windows NT 6.3; WOW64; rv:41.0) Gecko/20100101 Firefox/41.0"
 	rxresp
-	expect resp.http.version == "3.2"
+
+	expect resp.http.pass == "true"
 }
 
 client c1 -run

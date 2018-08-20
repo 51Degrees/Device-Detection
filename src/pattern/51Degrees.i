@@ -39,7 +39,7 @@
 	PHP_INI_ENTRY("FiftyOneDegreesPatternV3.data_file", "/usr/lib/php5/51Degrees.dat", PHP_INI_ALL, NULL)
 	PHP_INI_ENTRY("FiftyOneDegreesPatternV3.pool_size", "10", PHP_INI_ALL, NULL)
 	PHP_INI_ENTRY("FiftyOneDegreesPatternV3.cache_size", "10000", PHP_INI_ALL, NULL)
-	PHP_INI_ENTRY("FiftyOneDegreesPatternV3.property_list", NULL, PHP_INI_ALL, NULL)
+	PHP_INI_ENTRY("FiftyOneDegreesPatternV3.property_list", "", PHP_INI_ALL, NULL)
 	PHP_INI_END()
 	#endif
 %}

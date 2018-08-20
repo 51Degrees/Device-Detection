@@ -2982,7 +2982,7 @@ void fiftyoneDegreesFreeDeviceOffsets(fiftyoneDegreesDeviceOffsets* offsets) {
  */
 fiftyoneDegreesDeviceOffsets* fiftyoneDegreesProviderCreateDeviceOffsets(
 	fiftyoneDegreesProvider *provider) {
-	fiftyoneDegreesDeviceOffsets *offsets;
+	fiftyoneDegreesDeviceOffsets *offsets = NULL;
 	fiftyoneDegreesActiveDataSet *active = NULL;
 
 #ifndef FIFTYONEDEGREES_NO_THREADING

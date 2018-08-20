@@ -39,7 +39,7 @@ varnish v1 -vcl+backend {
 	}
 	sub vcl_init {
 		fiftyonedegrees.set_properties("BrowserName,PlatformName");
-		fiftyonedegrees.start("${vmod_topbuild}/data/51Degrees-LiteV3.2.dat");
+		fiftyonedegrees.start("${vmod_fod_datafile}");
 	}
 
 } -start

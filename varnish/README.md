@@ -24,23 +24,26 @@ sub vcl_init {
 
 Use this project to detect device properties using HTTP browser User-Agents as input using the patented pattern detection method.
 
+Detection method:
+
 Two detection methods are supported.
 
-**Pattern:**  Searches for device signatures in a useragent returning metrics about the validity of the results. Does NOT use regular expressions.
+**Hash:** A small binary data file containing User-Agents stored as Hash sequences. Very fast detection time.
 
-**Hash Trie:** A small binary data file containing User-Agents stored as Hash sequences. Very fast detection time.
+**Pattern:**  Searches for device signatures in a useragent returning metrics about the validity of the results. Does NOT use regular expressions.
 
 All methods use an external data file which can easilly be updated.
 
 ## Dependencies
 - gcc
-- make
-- varnish-dev
+- autoconf
+- automake
+- libvarnishapi-dev
 - Varnish source
 
 For Ubuntu based distributions gcc can be found on apt, use
 ```
-$ sudo apt-get install gcc make varnish varnish-dev
+$ sudo apt-get install gcc autoconf automake libvarnishapi-dev varnish
 ```
 and the Varnish source will be automatically downloaded by the make file.
 
@@ -48,23 +51,12 @@ and the Varnish source will be automatically downloaded by the make file.
 
 ### Linux
 
-#### Test Installation
-This is the quickest and easiest way to build Varnish in a local directory to try out the module. Just use
-```
-$ git clone https://github.com/51Degrees/Device-Detection.git
-$ cd Device-Detection/varnish
-$ ./build
-
-```
-To install to the local directory.
-
-Then run the included tests with:
-```
-$ make check
-```
-which will all pass if the local installation was successful.
-
 #### For an existing Varnish deployment
+
+##### Enhanced Device Data
+By default the module will be built with the Lite Pattern data file.
+
+The build scripts will copy data files available in ..\data\ into the varnish directory. Copy your enhanced data file into this location and amend `src/Makefile.am` to use the name of your Premium or Enterprise data file.
 
 ##### Static Module
 To install the module into an existing Varnish deployment,
@@ -79,12 +71,19 @@ $ cd Device-Detection/varnish
 and install the module with
 ```
 $ .autogen.sh
-$ ./configure VARNISHSRC=DIR [VMODDIR=DIR]
+$ ./configure --with-detection=pattern/hash VARNISHSRC=DIR [VMODDIR=DIR]
 $ make
 $ sudo make install
 
 ```
-Where `VARNISHSRC` is set to the source for the correct varnish version (if you have run `./build` then this will be `./varnish-cache`), and `VMODDIR` is the directory to install the module to.
+Where `--with-detection` [optional] sets the detection method you would prefer to use. Defaults to Pattern.
+`VARNISHSRC` [optional] is set to the source for the correct varnish version when installed in a non standard directory and `VMODDIR` is the directory to install the module to.
+
+Then run the included tests with:
+```
+$ make check
+```
+which will all pass if the local installation was successful.
 
 ## Configure
 Before start matching user agents, you may wish to configure the solution to use a different database for example.
@@ -157,9 +156,9 @@ set resp.http.X-PlatformName = fiftyonedegrees.match_all("PlatformName");
 giving three seperate headers.
 
 ### Example
-If installing to a local directory using ``./build`, the executable is set up to use the example and can be easily tested. Start Varnish using the example VCL with:
+Start Varnish using the example VCL within the Device-Detection Varnish directory with:
 ```
-$ ./run
+$ varnishd -f example.vcl -a localhost:8080 -d
 ```
 In a Linux environment, the headers can be viewed with the command:
 ```

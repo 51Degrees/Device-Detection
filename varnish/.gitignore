@@ -6,7 +6,9 @@ autom4te.cache/*
 src/.deps/*
 src/.libs/*
 src/src/*
-varnish-cache/*
+src/vmod_fiftyonedegrees.vcc
+bin/*
+varnish-cache*/*
 *.o
 *.lo
 *.la

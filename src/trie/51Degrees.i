@@ -36,7 +36,7 @@
 
 	PHP_INI_BEGIN()
 	PHP_INI_ENTRY("FiftyOneDegreesTrieV3.data_file", "/usr/lib/php5/51Degrees.trie", PHP_INI_ALL, NULL)
-	PHP_INI_ENTRY("FiftyOneDegreesTrieV3.property_list", NULL, PHP_INI_ALL, NULL)
+	PHP_INI_ENTRY("FiftyOneDegreesTrieV3.property_list", "", PHP_INI_ALL, NULL)
 	PHP_INI_END()
 	#endif
 

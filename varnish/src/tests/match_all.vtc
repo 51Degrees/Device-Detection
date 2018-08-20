@@ -34,7 +34,7 @@ varnish v1 -vcl+backend {
 		set resp.http.ismobile = fiftyonedegrees.match_all("IsMobile");
 	}
 	sub vcl_init {
-		fiftyonedegrees.start("${vmod_topbuild}/data/51Degrees-LiteV3.2.dat");
+		fiftyonedegrees.start("${vmod_fod_datafile}");
 	}
 
 } -start

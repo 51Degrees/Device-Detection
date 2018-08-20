@@ -38,6 +38,9 @@
 #ifdef _MSC_VER
 #define _CRTDBG_MAP_ALLOC
 #include <stdlib.h>
+#ifdef _malloca
+#undef _malloca
+#endif
 #include <crtdbg.h>
 #else
 #include "dmalloc.h"
