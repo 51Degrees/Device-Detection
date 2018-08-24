@@ -20,7 +20,8 @@ if (os.type() === "Linux")
 // Check the node version.
 var nodeVersion = process.versions.node;
 var nodeVersionMajor = nodeVersion.split(".")[0];
-console.log(nodeVersionMajor);
-if (nodeVersionMajor >= 7) {
-	throw "Node version must be < v7. For a beta version that supports 7 and up, use 'npm install fiftyonedegreescore@dev'";
+var nodeVersionMinor = nodeVersion.split(".")[1];
+console.log(nodeVersionMajor + "." + nodeVersionMinor);
+if ((nodeVersionMajor < 6 && nodeVersionMinor < 5) || nodeVersionMajor >= 10) {
+	throw "Node version must be >= 6.5 and < 10.";
 }

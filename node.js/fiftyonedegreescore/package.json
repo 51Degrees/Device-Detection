@@ -1,6 +1,6 @@
 {
     "name": "fiftyonedegreescore",
-    "version": "3.2.19",
+    "version": "3.2.20",
     "description": "51degrees device detection for nodejs",
     "main": "fiftyonedegreescore.js",
     "scripts": {
@@ -12,15 +12,15 @@
         "type": "git",
         "url": "git@github.com:51Degrees/Device-Detection.git"
     },
-    "author": "Ben Shillito <Ben@51Degrees.com>",
+    "author": "51Degrees <support@51Degrees.com>",
     "license": "MPL-2.0",
     "gypfile": true,
     "bugs": {
         "url": "https://github.com/51Degrees/Device-Detection/issues"
     },
     "dependencies": {
-        "fiftyonedegreeslitepattern": ">=3.2.19",
-        "fiftyonedegreeslitetrie": ">=3.2.19"
+        "fiftyonedegreeslitepattern": "latest",
+        "fiftyonedegreeslitetrie": "latest"
     },
     "homepage": "https://github.com/51Degrees/Device-Detection"
 }

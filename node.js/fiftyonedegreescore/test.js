@@ -74,7 +74,7 @@ if (process.argv[3] === "--pattern") {
 }
 else if (process.argv[3] === "--trie") {
     var config = {
-        "dataFile": "../data/51Degrees-LiteV3.4.trie",
+        "dataFile": require("fiftyonedegreeslitetrie"),
         "properties": "IsMobile,BrowserName",
         "logLevel": "none",
         "UsageSharingEnabled": false

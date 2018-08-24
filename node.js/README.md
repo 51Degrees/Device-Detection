@@ -43,7 +43,7 @@ This will also install Pattern and Trie Lite data files as dependencies.
 ### Windows
 Node has know issues installing modules in Windows. Three things must be in place before installing.
 1. Install Visual C++ Build Tools
-2. Install Python 2.7 and run npm ``config set python python2.7``
+2. Install Python 2.7 and run ``npm config set python python2.7``
 3. Open a terminal and run ``npm config set msvs_version 2015``
 
 Alternatively, Microsoft have offered an npm package to install all this and can be run (in an elevated Power Shell) with ``npm install -g windows-build-tools``.

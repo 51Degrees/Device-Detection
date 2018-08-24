@@ -56,7 +56,7 @@ to the data file is relative.
 var fiftyonedegrees = require("fiftyonedegreescore");
 
 // Set the config.
-var config = {"dataFile" : require("fiftyonedegreeslitetrie"),
+var config = {"dataFile" : require("fiftyonedegreeslitetrie"), //"../../data/51Degrees-LiteV3.4.trie"
               "properties" : "IsMobile",
               "stronglyTyped": false
              };
