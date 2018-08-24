@@ -19,8 +19,8 @@
         "url": "https://github.com/51Degrees/Device-Detection/issues"
     },
     "dependencies": {
-        "fiftyonedegreeslitepattern": "latest",
-        "fiftyonedegreeslitetrie": "latest"
+        "fiftyonedegreeslitepattern": ">=3.2.20",
+        "fiftyonedegreeslitetrie": ">=3.2.20"
     },
     "homepage": "https://github.com/51Degrees/Device-Detection"
 }
