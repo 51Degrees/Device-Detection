@@ -16,8 +16,10 @@ import sys
 import subprocess
 import shutil
 import tempfile
+import io
 from setuptools import setup, find_packages, Extension
 from distutils import ccompiler
+from os import path
 
 def has_snprintf():
     '''Checks C function snprintf() is available in the platform.
@@ -48,9 +50,16 @@ define_macros = []
 if has_snprintf():
     define_macros.append(('HAVE_SNPRINTF', None))
 
+'''Gets the path to the README file and populates the long description
+to display a summary in PyPI.
+'''	
+this_directory = path.abspath(path.dirname(__file__))
+with io.open(path.join(this_directory, 'README.rst'), encoding='utf-8') as f:
+	long_description = f.read()
+	
 setup(
     name='51degrees-mobile-detector-v3-wrapper',
-    version='3.2.16.5',
+    version='3.2.18.2',
     author='51Degrees.com',
     author_email='support@51degrees.com',
     packages=find_packages(),
@@ -75,7 +84,8 @@ setup(
     ],
     url='http://51degrees.com',
     description='51Degrees Mobile Detector (C Pattern Wrapper).',
-    long_description=__doc__,
+    long_description=long_description,
+	long_description_content_type='text/x-rst',
     license='MPL2',
     classifiers = [
         'Development Status :: 5 - Production/Stable',

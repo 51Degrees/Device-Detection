@@ -11,6 +11,11 @@ sdist: build
 	@echo "> Creating Python source distribution package..."
 	cd "$(51DEGREES_PYTHON_CORE_ROOT)"; python setup.py sdist
 
+wheel:
+	@echo "> Creating Python distribution platform wheel..."
+	cd "$(51DEGREES_PYTHON_CORE_ROOT)"; python setup.py bdist_wheel
+
+
 clean:
 	rm -rf $(51DEGREES_PYTHON_CORE_ROOT)/{build,dist,*.egg-info}
 	find "$(51DEGREES_PYTHON_CORE_ROOT)" -name "*.pyc" | xargs rm -f

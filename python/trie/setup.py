@@ -16,9 +16,11 @@ import sys
 import subprocess
 import shutil
 import tempfile
+import io
 from setuptools import setup, find_packages, Extension
 from distutils.command.build_ext import build_ext as _build_ext
 from distutils import ccompiler
+from os import path
 
 def has_snprintf():
     '''Checks C function snprintf() is available in the platform.
@@ -45,7 +47,6 @@ def has_snprintf():
     finally:
         shutil.rmtree(tmpdir)
 
-
 class build_ext(_build_ext):
     def run(self, *args, **kwargs):
         return _build_ext.run(self, *args, **kwargs)
@@ -53,9 +54,17 @@ class build_ext(_build_ext):
 define_macros = []
 if has_snprintf():
     define_macros.append(('HAVE_SNPRINTF', None))
+	
+'''Gets the path to the README file and populates the long description
+to display a summary in PyPI.
+'''	
+this_directory = path.abspath(path.dirname(__file__))
+with io.open(path.join(this_directory, 'README.rst'), encoding='utf-8') as f:
+	long_description = f.read()
+
 setup(
     name='51degrees-mobile-detector-v3-trie-wrapper',
-    version='3.2.16.5',
+    version='3.2.18.2',
     author='51Degrees.com',
     author_email='info@51degrees.com',
     cmdclass={'build_ext': build_ext},
@@ -77,15 +86,13 @@ setup(
                 '-w',
                 # Let the linker strip duplicated symbols (required in OSX).
                 '-fcommon',
-                # Avoid 'Symbol not found' errors on extension load caused by
-                # usage of vendor specific '__inline' keyword.
-                '-std=gnu89',
             ],
         ),
     ],
     url='http://51degrees.com',
     description='51Degrees Mobile Detector (Lite C Trie Wrapper).',
-    long_description=__doc__,
+    long_description=long_description,
+    long_description_content_type='text/x-rst',
     license='MPL2',
     classifiers=[
         'Development Status :: 5 - Production/Stable',
