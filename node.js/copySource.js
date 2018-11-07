@@ -41,6 +41,8 @@ var errorCheck = function(err) {
 var copyFile = function(source, target, callback) {
     var calledback = false;
 
+    console.log("'" + source + "' -> '" + target + "'");
+
     // Copy the input file.
     var rd = fs.createReadStream(source);
     rd.on("error", function(err) {

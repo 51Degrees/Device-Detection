@@ -31,7 +31,9 @@
                 }\
                 console.log(string);\")",
                 "-Wno-maybe-uninitialized",
-                "-Wno-ignored-qualifiers"]
+                "-Wno-ignored-qualifiers",
+                "-Wno-unused-but-set-variable",
+                "-Wno-unused-function"]
         },
         {
             "target_name": "FiftyOneDegreesTrieV3",

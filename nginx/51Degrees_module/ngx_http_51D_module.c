@@ -47,8 +47,11 @@
 #define FIFTYONEDEGREES_VALUE_SEPARATOR (u_char*) ","
 #endif // FIFTYONEDEGREES_VALUE_SEPARATOR
 #ifndef FIFTYONEDEGREES_MAX_STRING
-#define FIFTYONEDEGREES_MAX_STRING 500
+#define FIFTYONEDEGREES_MAX_STRING 2048
 #endif // FIFTYONEDEGREES_MAX_STRING
+#ifndef FIFTYONEDEGREES_CACHE_KEY_LENGTH
+#define FIFTYONEDEGREES_CACHE_KEY_LENGTH 500
+#endif // FIFTYONEDEGREES_CACHE_KEY_LENGTH
 #define FIFTYONEDEGREES_IMPORTANT_HEADERS_COUNT 5
 
 // Module declaration.
@@ -1231,17 +1234,20 @@ search_headers_in(ngx_http_request_t *r, u_char *name, size_t len) {
  * Add value function. Appends a string to a list separated by the
  * delimiter specified with 51D_valueSeparator, or a comma by default.
  * @param delimiter to split values with.
- * @param val the string to add to the buffer.
- * @param buffer the string to append the val to.
+ * @param val the string to add to dst.
+ * @param dst the string to append the val to.
+ * @param length the size remaining to append val to dst.
  */
-static void add_value(char *delimiter, char *val, char *buffer)
+static void add_value(char *delimiter, char *val, char *dst, size_t length)
 {
 	// If the buffer already contains characters, append a pipe.
-	if (buffer[0] != '\0') {
-		strcat(buffer, delimiter);
+	if (dst[0] != '\0') {
+		strncat(dst, delimiter, length);
+		length -= strlen(delimiter);
 	}
-	// Append the value.
-	strcat(buffer, val);
+
+    // Append the value.
+    strncat(dst, val, length);
 }
 
 /**
@@ -1313,16 +1319,19 @@ void ngx_http_51D_get_match(ngx_http_51D_main_conf_t *fdmcf, ngx_http_request_t 
  * appends the value to the list of values separated by the delimiter specified
  * with 51D_valueSeparator.
  * @param fdmcf 51Degrees module main config.
+ * @param r the current HTTP request.
  * @param values_string the string to append the returned value to.
  * @param requiredPropertyName the name of the property to get the value for.
+ * @param length the size allocated to the values_string variable.
  */
-void ngx_http_51D_get_value(ngx_http_51D_main_conf_t *fdmcf, char *values_string, const char *requiredPropertyName)
+void ngx_http_51D_get_value(ngx_http_51D_main_conf_t *fdmcf, ngx_http_request_t *r, char *values_string, const char *requiredPropertyName, size_t length)
 {
+	size_t remainingLength = length - strlen(values_string);
 #ifdef FIFTYONEDEGREES_PATTERN
 	fiftyoneDegreesWorkset *ws = fdmcf->ws;
 	char *valueDelimiter = (char*)fdmcf->valueSeparator.data;
 	char *methodName, *propertyName;
-	char buffer[1000];
+	char *buffer = (char*)ngx_palloc(r->pool, length);
 	int i, j, found = 0;
 	if (ngx_strcmp("Method", requiredPropertyName) == 0) {
 		switch(ws->method) {
@@ -1333,23 +1342,29 @@ void ngx_http_51D_get_value(ngx_http_51D_main_conf_t *fdmcf, char *values_string
 			default:
 			case NONE: methodName = "None"; break;
 		}
-		add_value(valueDelimiter, methodName, values_string);
+		add_value(valueDelimiter, methodName, values_string, remainingLength);
 		found = 1;
 	}
 	else if (ngx_strcmp("Difference", requiredPropertyName) == 0) {
-		sprintf(buffer, "%d", ws->difference);
-		add_value(valueDelimiter, buffer, values_string);
+		if (snprintf(buffer, length, "%d", ws->difference) < (int)strlen(buffer)) {
+			ngx_log_error(NGX_LOG_WARN, r->connection->log, 0,
+				"Difference value was not printed in full.");
+		}
+		add_value(valueDelimiter, buffer, values_string, remainingLength);
 		found = 1;
 	}
 	else if (ngx_strcmp("Rank", requiredPropertyName) == 0) {
-		sprintf(buffer, "%d", fiftyoneDegreesGetSignatureRank(ws));
-		add_value(valueDelimiter, buffer, values_string);
+		if (snprintf(buffer, length, "%d", fiftyoneDegreesGetSignatureRank(ws)) < (int)strlen(buffer)) {
+			ngx_log_error(NGX_LOG_WARN, r->connection->log, 0,
+				"Rank value was not printed in full.");
+		}
+		add_value(valueDelimiter, buffer, values_string, remainingLength);
 		found = 1;
 	}
 	else if (ngx_strcmp("DeviceId", requiredPropertyName) == 0) {
-			fiftyoneDegreesGetDeviceId(ws, buffer, 24);
-			add_value(valueDelimiter, buffer, values_string);
-			found = 1;
+		fiftyoneDegreesGetDeviceId(ws, buffer, 24);
+		add_value(valueDelimiter, buffer, values_string, remainingLength);
+		found = 1;
 
 	}
 	else {
@@ -1360,15 +1375,15 @@ void ngx_http_51D_get_value(ngx_http_51D_main_conf_t *fdmcf, char *values_string
 				buffer[0] = '\0';
 				for (j = 0; j < ws->valuesCount; j++)
 				{
-					add_value("|", (char*)fiftyoneDegreesGetValueName(ws->dataSet, *(ws->values + j)), buffer);
+					add_value("|", (char*)fiftyoneDegreesGetValueName(ws->dataSet, *(ws->values + j)), buffer, length - strlen(buffer));
 				}
-				add_value(valueDelimiter, buffer, values_string);
+				add_value(valueDelimiter, buffer, values_string, remainingLength);
 				found = 1;
 				break;
 			}
 		}
 		if (!found) {
-			add_value(valueDelimiter, FIFTYONEDEGREES_PROPERTY_NOT_AVAILABLE, values_string);
+			add_value(valueDelimiter, FIFTYONEDEGREES_PROPERTY_NOT_AVAILABLE, values_string, remainingLength);
 		}
 	}
 #endif // FIFTYONEDEGREES_PATTERN
@@ -1385,11 +1400,11 @@ void ngx_http_51D_get_value(ngx_http_51D_main_conf_t *fdmcf, char *values_string
 			offsets,
 			requiredPropertyIndex);
 		if (value != NULL) {
-			add_value(valueDelimiter, value, values_string);
+			add_value(valueDelimiter, value, values_string, remainingLength);
 		}
 	}
 	else {
-		add_value(valueDelimiter, FIFTYONEDEGREES_PROPERTY_NOT_AVAILABLE, values_string);
+		add_value(valueDelimiter, FIFTYONEDEGREES_PROPERTY_NOT_AVAILABLE, values_string, remainingLength);
 	}
 #endif // FIFTYONEDEGREES_TRIE
 }
@@ -1450,7 +1465,7 @@ process(ngx_http_request_t *r,
 	}
 #endif // FIFTYONEDEGREES_PATTERN
 	// Allocate the value string in the request pool.
-	char *valueString = (char*)ngx_palloc(r->pool, header->maxString);
+	char *valueString = (char*)ngx_palloc(r->pool, header->maxString + 1);
 	valueString[0] = '\0';
 	// Get a match. If there are multiple instances of
 	// 51D_match_single or 51D_match_all, then don't get the
@@ -1460,15 +1475,23 @@ process(ngx_http_request_t *r,
 	}
 	// For each property, set the value in values_string_array.
 	int property_index;
-	for (property_index=0; property_index < (int)header->propertyCount; property_index++) {
-		ngx_http_51D_get_value(fdmcf, valueString, (const char*) header->property[property_index]->data);
+	for (property_index = 0; property_index < (int)header->propertyCount; property_index++) {
+		ngx_http_51D_get_value(fdmcf, r, valueString, (const char*) header->property[property_index]->data, header->maxString);
 	}
+
+	// Escape characters which cannot be added in a header value, most importantly '\n' and '\r'.
+	size_t valueStringLength = strlen(valueString);
+	size_t escapedChars = (size_t)ngx_escape_json(NULL, (u_char*)valueString, valueStringLength);
+	u_char* escapedValueString = (u_char*)ngx_palloc(r->pool, (valueStringLength + escapedChars) * sizeof(char));
+	ngx_escape_json(escapedValueString, (u_char*)valueString, valueStringLength);
+	escapedValueString[valueStringLength + escapedChars] = '\0';
+
 	// For each property value pair, set a new header name and value.
 	h[matchIndex] = ngx_list_push(&r->headers_in.headers);
 	h[matchIndex]->key.data = (u_char*)header->name.data;
 	h[matchIndex]->key.len = ngx_strlen(h[matchIndex]->key.data);
 	h[matchIndex]->hash = ngx_hash_key(h[matchIndex]->key.data, h[matchIndex]->key.len);
-	h[matchIndex]->value.data = (u_char*)valueString;
+	h[matchIndex]->value.data = escapedValueString;
 	h[matchIndex]->value.len = ngx_strlen(h[matchIndex]->value.data);
 	h[matchIndex]->lowcase_key = (u_char*)header->lowerName.data;
 	return 1;
@@ -1497,7 +1520,7 @@ ngx_http_51D_handler(ngx_http_request_t *r)
 	ngx_http_51D_cache_node_t *node;
 	uint32_t hash;
 	ngx_str_t cacheKey;
-	u_char cacheKeyData[FIFTYONEDEGREES_MAX_STRING];
+	u_char cacheKeyData[FIFTYONEDEGREES_CACHE_KEY_LENGTH];
 	cacheKey.data = cacheKeyData;
 	int headerIndex;
 	ngx_table_elt_t *searchResult;
@@ -1711,7 +1734,7 @@ ngx_http_51D_set_header(ngx_conf_t *cf, ngx_http_51D_header_to_set *header, ngx_
 		header->property[header->propertyCount]->data = (u_char*)tok;
 		header->property[header->propertyCount]->len = ngx_strlen(header->property[header->propertyCount]->data);
 		if (ngx_strstr(fdmcf->properties, tok) == NULL) {
-			add_value(",", tok, fdmcf->properties);
+			add_value(",", tok, fdmcf->properties, FIFTYONEDEGREES_MAX_STRING - strlen(fdmcf->properties));
 		}
 		header->propertyCount++;
 		tok = strtok(NULL, ",");

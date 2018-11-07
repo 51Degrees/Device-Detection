@@ -59,7 +59,7 @@ with io.open(path.join(this_directory, 'README.rst'), encoding='utf-8') as f:
 	
 setup(
     name='51degrees-mobile-detector-v3-wrapper',
-    version='3.2.18.2',
+    version='3.2.18.3',
     author='51Degrees.com',
     author_email='support@51degrees.com',
     packages=find_packages(),

@@ -28,7 +28,7 @@ shows how to:
 <ol>
 <li>Set the configuration using a json object
 <p><pre class="prettyprint lang-js">
-var config = {"dataFile" : "../../data/51Degrees-LiteV3.4.trie",
+var config = {"dataFile" : require("fiftyonedegreeslitetrie"),
               "properties" : "IsMobile",
               "stronglyTyped" : false
 };
@@ -68,7 +68,7 @@ var fiftyonedegrees = require("fiftyonedegreescore");
 // Set the config.
 var passes = 5
 
-var config = {"dataFile" : require("fiftyonedegreeslitetrie"), //"../../data/51Degrees-LiteV3.4.trie"
+var config = {"dataFile" : require("fiftyonedegreeslitetrie"),
               "properties" : "IsMobile",
               "stronglyTyped" : false
              };

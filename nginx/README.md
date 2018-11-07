@@ -90,11 +90,14 @@ To load the module, copy the .so to your modules directory and include the follo
 ```
 load_module modules/ngx_http_51D_module.so;
 ```
-##### Static Module
-To compile as a static module rather than dynamically, define `STATIC_BUILD` when calling make like:
-```
-$ make install pattern STATIC_BUILD=1
-```
+##### Compile Options
+When calling ``make install``, the following compile arguments are available.
+
+| Argument | Default | Description |
+| - | - | - |
+| ``STATIC_BUILD`` | Undefined | To compile as a static module rather than dynamically, set to 1. |
+| ``FIFTYONEDEGREES_CACHE_KEY_LENGTH`` | 500 | The number of characters to use as the cache key string. Only applies to Pattern. |
+| ``FIFTYONEDEGREES_VALUE_SEPARATOR`` | ',' | The separator to use when returning a list of values, e.g. "True,Chrome". |
 
 ## Configure
 

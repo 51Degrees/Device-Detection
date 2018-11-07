@@ -28,7 +28,7 @@ shows how to:
 <ol>
 <li>Set the configuration using a json object
 <p><pre class="prettyprint lang-js">
-var config = {"dataFile" : require("fiftyonedegreescore"),
+var config = {"dataFile" : require("fiftyonedegreeslitetrie"),
               "properties" : "IsMobile",
               "cacheSize" : 10000,
               "poolSize" : 4
@@ -82,7 +82,7 @@ var fs = require("fs"),
     readline = require("readline");
 
 // Set the config.
-var config = {"dataFile" : require("fiftyonedegreeslitetrie"), //"../../data/51Degrees-LiteV3.4.trie"
+var config = {"dataFile" : require("fiftyonedegreeslitetrie"),
               "properties" : "IsMobile,PlatformName,PlatformVersion",
               "stronglyTyped" : false
              };

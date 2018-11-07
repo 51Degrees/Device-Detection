@@ -22,6 +22,8 @@ var nodeVersion = process.versions.node;
 var nodeVersionMajor = nodeVersion.split(".")[0];
 var nodeVersionMinor = nodeVersion.split(".")[1];
 console.log(nodeVersionMajor + "." + nodeVersionMinor);
-if ((nodeVersionMajor < 6 && nodeVersionMinor < 5) || nodeVersionMajor >= 10) {
+if (nodeVersionMajor < 6 ||
+	(nodeVersionMajor == 6 && nodeVersionMinor < 5) ||
+	nodeVersionMajor >= 10) {
 	throw "Node version must be >= 6.5 and < 10.";
 }
