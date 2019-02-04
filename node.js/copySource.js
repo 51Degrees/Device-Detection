@@ -85,5 +85,5 @@ srcFiles.forEach(function(fileName) {
 });
 
 // Copy data files.
-copyFile('../data/' + patternDataFile, 'fiftyonedegreeslitepattern/' + patternDataFile, errorCheck);
-copyFile('../data/' + trieDataFile, 'fiftyonedegreeslitetrie/' + trieDataFile, errorCheck);
+copyFile('../data/' + patternDataFile, 'fiftyonedegreeslitepattern/51DegreesV3.2.dat', errorCheck);
+copyFile('../data/' + trieDataFile, 'fiftyonedegreeslitetrie/51DegreesV3.4.trie', errorCheck);

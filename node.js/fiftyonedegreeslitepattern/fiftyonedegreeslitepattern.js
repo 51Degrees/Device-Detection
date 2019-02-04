@@ -1,1 +1,1 @@
-module.exports = __dirname + '/51Degrees-LiteV3.2.dat';
+module.exports = __dirname + '/51DegreesV3.2.dat';

@@ -4,6 +4,8 @@
 
 <sup>Need [.NET](https://github.com/51Degrees/.NET-Device-Detection "THE Fastest and most Accurate device detection for .NET") | [Java](https://github.com/51Degrees/Java-Device-Detection "THE Fastest and most Accurate device detection for Java") | [PHP Script](https://github.com/51Degrees/51Degrees-PHP)?</sup>
 
+<mark>**IMPORTANT NOTE: From version 3.2.23 onwards the `fiftyonedegreeslitepattern` and `fiftyonedegreeslitetrie` data packages are no longer dependencies of this package.**</mark>
+
 ## Introduction
 Use this project with core node.js, HTTP module or Express to detect device properties using HTTP browser User-Agents as input. It can be used to process server web log files, or for real time device detection to support web optimisation. The module takes a User-Agent string, HTTP header array or HTTP request object and returns a Match object ontaining properties relating to the device's hardware, software and browser.
 
@@ -90,7 +92,9 @@ var provider = new fiftyonedegreescore(config);
  - String ``properties`` (defaults to all available). Comma separated list of case-sensitive property names to be fetched on every device detection. Leave empty to fetch all available properties.
 
  - String ``License``. Your 51Degrees license key. This is required if you want to set up the automatic package updates.
- 
+
+ - String ``Product``. Your preferred enhanced device data product. This is used to auto update your data file, provided you have a valid license key. As Lite is included by default you should add ``Premium`` or ``Enterprise``. 
+
 #### Pattern Specific Settings
  - Integer ``cacheSize`` (defaults to ``10000``). Sets the size of the workset cache.
 
@@ -105,7 +109,13 @@ var provider = new fiftyonedegreescore(config);
  - Boolean ``stronglyTyped`` (defaults to ``true``). Indicates whether the match getters return boolean values as a string (``True``/``False``) or a boolean type (``true``/``false``).
  
 #### Automatic updates
-If you want to set up automatic updates, add your license key to your settings and the provider will automatically update the data file whenvever a new one is available. This will replace the file in the location it has been loaded from when the provider was initialised.
+If you want to set up automatic updates, add your license key and product to your settings. The provider will automatically update the data file whenvever a new one is available. This will replace the file in the location it has been loaded from when the provider was initialised.
+
+When automatic updates are enabled a timer will check for a new data file every 30 minutes. You can stop this timer by closing the provider like...
+
+```js
+provider.close();
+```
 
 For Lite users, the data file can be updated by updating the Lite data package (either ``fiftyonedegreeslitepattern`` or ``fiftyonedegreeslitetrie``).
 

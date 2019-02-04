@@ -5230,7 +5230,10 @@ void fiftyoneDegreesMatchForHttpHeaders(fiftyoneDegreesWorkset *ws) {
 	}
 	else if (ws->importantHeadersCount == 1) {
 		// There is only one important header so no need to do anything complex.
-		fiftyoneDegreesMatch(ws, ws->importantHeaders[0].headerValue);
+		resetCounters(ws);
+		internalMatch(ws,
+			ws->importantHeaders[0].headerValue,
+			ws->importantHeaders[0].headerValueLength);
 	}
 	else {
 		// Loop through each component and get the results for the first header

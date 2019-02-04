@@ -51,6 +51,8 @@ FiftyOneDegrees.provider = function (configuration) {
     // The core 51Degrees library and the provider that will be returned
     // from the call to this function.
     var FODcore, returnedProvider;
+    var updater = undefined;
+    var usageSharer = undefined;
     // Set the default data file if not supplied.
     if (!config.dataFile) {
         config.dataFile = require('fiftyonedegreeslitepattern');
@@ -292,7 +294,7 @@ FiftyOneDegrees.provider = function (configuration) {
                 var req = arguments[0];
                 if (config.UsageSharingEnabled !== false) {
                     // Share usage is enabled, so record the device.
-                    shareUsage.recordNewDevice(req);
+                    usageSharer.recordNewDevice(req);
                 }
                 // If the request object already has a match attached,
                 // close it.
@@ -372,13 +374,22 @@ FiftyOneDegrees.provider = function (configuration) {
     // Start the auto update process in the background.
     if (config.License) {
         FiftyOneDegrees.log.emit('info', '[' + returnedProvider.Id + '] Starting auto updater');
-        require(__dirname + "/update")(returnedProvider, FiftyOneDegrees);
+        updater = require(__dirname + "/update")(returnedProvider, FiftyOneDegrees);
     }
     // Start the share usage process.
     if (config.UsageSharingEnabled !== false) {
         FiftyOneDegrees.log.emit('info', '[' + returnedProvider.Id + '] Starting usage sharer');
-        shareUsage = require(__dirname + "/shareUsage")(returnedProvider, FiftyOneDegrees);
+        usageSharer = require(__dirname + "/shareUsage")(returnedProvider, FiftyOneDegrees);
     }
+    
+    returnedProvider.close = function() {
+        FiftyOneDegrees.log.emit('info', '[' + returnedProvider.Id + '] Closing provider');
+        if (updater !== undefined) {
+            FiftyOneDegrees.log.emit('info', '[' + returnedProvider.Id + '] Ending auto updater');
+            clearInterval(updater);
+        }
+    };
+    
     // Return the provider object just created in this function.
     return returnedProvider;
 };

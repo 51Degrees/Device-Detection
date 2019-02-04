@@ -34,8 +34,12 @@ var validLicenseRegEx = new RegExp("^[A-Z\\d]+$");
 // Update function called when an update is due.
 var update = function (provider, errorHandler) {
     // Load config and make the querystring parameter and http request options.
-    var config = provider.config,
-        parameters = {
+    var config = provider.config
+    // Check to see if a preferred product has been requested.
+    if (config.Product) {
+        product = config.Product;
+    }
+    var parameters = {
             LicenseKeys: config.License,
             Type: config.Type,
             Download: 'True',
@@ -130,25 +134,32 @@ var update = function (provider, errorHandler) {
 };
 module.exports = function (provider, FOD) {
     var config = provider.config;
-    // Get the next update date of the data file (only called once on init).
-    dataSetNextUpdateDate = new Date(provider.getDataSetNextUpdateDate());
-    // Get the product name of the data file which is being used. If a lite
-    // file is being used then emit an info event stating automatic updates
-    // are not supported.
-    if (provider.getDataSetName().indexOf('Premium') !== -1) {
-        product = 'Premium';
-    }
-    else if (provider.getDataSetName().indexOf('Enterprise') !== -1) {
-        product = 'Enterprise';
-    }
-    else if (provider.getDataSetName().indexOf('Lite') !== -1 && provider.getDataSetFormat().indexOf('HashTrieV34') !== -1) {
-        product = 'Lite';
-	}
-    else {
-        FOD.log.emit('info', '[' + provider.Id + '] ' + 'Lite Pattern data file does not support automatic' + ' updates. See https://51degrees.com/compare-data-' + 'options for more information.');
+    var currentProduct = provider.getDataSetName();
+    // Update the data file immediately if the Product is supplied
+    // and the current data set is different to what was requested.
+    if (config.Product && currentProduct.indexOf(config.Product) === -1) {
+        dataSetNextUpdateDate = new Date(0);
+    } else {
+        // Get the next update date of the data file (only called once on init).
+        dataSetNextUpdateDate = new Date(provider.getDataSetNextUpdateDate());
+        // Get the product name of the data file which is being used. If a lite
+        // file is being used then emit an info event stating automatic updates
+        // are not supported.
+        if (currentProduct.indexOf('Premium') !== -1) {
+            product = 'Premium';
+        }
+        else if (currentProduct.indexOf('Enterprise') !== -1) {
+            product = 'Enterprise';
+        }
+        else if (currentProduct.indexOf('Lite') !== -1 && provider.getDataSetFormat().indexOf('HashTrieV34') !== -1) {
+            product = 'Lite';
+        }
+        else {
+            FOD.log.emit('info', '[' + provider.Id + '] ' + 'Lite Pattern data file does not support automatic' + ' updates. See https://51degrees.com/compare-data-' + 'options for more information.');
+        }
     }
     // Regularly check if the data file is up to date against the current time.
-    var timer = setInterval(function () {
+    var checkUpdate = function() {
         if (updating) {
             return false;
         }
@@ -174,7 +185,10 @@ module.exports = function (provider, FOD) {
         else {
             FOD.log.emit('info', '[' + provider.Id + '] ' + 'Could not update the data file reason: ' + 'The data file is current and does not need to be ' + 'updated');
         }
-        // Atempt to update every 30 minutes.
-    }, 1800000);
-    FOD.log.emit('info', '[' + provider.Id + '] ' + 'Auto updater started. Next update date ' + provider.getDataSetNextUpdateDate());
+    }
+    // Attempt the update process once then every 30 minutes.
+    checkUpdate();
+    var timer = setInterval(checkUpdate, 1800000);
+    FOD.log.emit('info', '[' + provider.Id + '] ' + 'Auto updater started. Next update date ' + dataSetNextUpdateDate);
+    return timer;
 };

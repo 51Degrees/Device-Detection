@@ -108,4 +108,3 @@ $ perl console.pl
 ```
 $ perl server.pl
 ```
-s
