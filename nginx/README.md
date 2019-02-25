@@ -75,9 +75,9 @@ which will all pass if the local installation was successful.
 
 #### For an existing Nginx deployment
 ##### Dynamic Module
-51Degrees dynamic module can be used in Nginx version 1.9.11 or later. It is important to check you have '--with-compat' available within your configure arguments. You can check this by doing `nginx -V`.
- 
-For versions 1.11.5 (R11), 1.11.10 (R12) and 1.13.4 (R13) there are pre-built modules in the `nginx/modules` directory.
+51Degrees dynamic module can be used in Nginx version 1.9.11 or later. For versions after 1.11.5 It is important to check you have '--with-compat' available within your configure arguments. You can check this by doing `nginx -V`. In order to compile dynamic modules before this version you will need to ensure the configure arguments in the Makefile (under the ``configure`` block) are identical to those in your current Nginx installation. 
+
+For versions 1.11.5 (R11), 1.11.10 (R12) and 1.13.4 (R13), 1.14.2, 1.15.2 (R16), 1.15.7 (R17) there are pre-built modules in the `nginx/modules` directory.
 
 To build the module as ngx_http_51D_module.so for another version, define `VERSION` when calling make like:
 ```
