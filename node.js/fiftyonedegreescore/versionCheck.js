@@ -24,6 +24,6 @@ var nodeVersionMinor = nodeVersion.split(".")[1];
 console.log(nodeVersionMajor + "." + nodeVersionMinor);
 if (nodeVersionMajor < 6 ||
 	(nodeVersionMajor == 6 && nodeVersionMinor < 5) ||
-	nodeVersionMajor >= 10) {
-	throw "Node version must be >= 6.5 and < 10.";
+	nodeVersionMajor >= 13) {
+	throw "Node version must be >= 6.5 and < 11.";
 }
