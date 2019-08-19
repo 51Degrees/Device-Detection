@@ -169,6 +169,8 @@ template <typename T> T SwigValueInit() {
 
 
 #include <node.h>
+//Older version of node.h does not include this
+#include <node_version.h>
 
 
 #include <v8.h>
@@ -222,6 +224,7 @@ template <typename T> T SwigValueInit() {
 /* Flags for pointer conversions */
 #define SWIG_POINTER_DISOWN        0x1
 #define SWIG_CAST_NEW_MEMORY       0x2
+#define SWIG_POINTER_NO_NULL       0x4
 
 /* Flags for new pointer objects */
 #define SWIG_POINTER_OWN           0x1
@@ -860,6 +863,32 @@ typedef v8::PropertyCallbackInfo<v8::Value> SwigV8PropertyCallbackInfo;
 #define SWIGV8_SET_CLASS_TEMPL(class_templ, class) class_templ.Reset(v8::Isolate::GetCurrent(), class);
 #endif
 
+#ifdef NODE_VERSION
+#if NODE_VERSION_AT_LEAST(10, 12, 0)
+#define SWIG_NODE_AT_LEAST_1012
+#endif
+#endif
+
+//Necessary to check Node.js version because V8 API changes are backported in Node.js
+#if (defined(NODE_VERSION) && !defined(SWIG_NODE_AT_LEAST_1012)) || \
+    (!defined(NODE_VERSION) && (V8_MAJOR_VERSION-0) < 7)
+#define SWIGV8_TO_OBJECT(handle) (handle)->ToObject()
+#define SWIGV8_TO_STRING(handle) (handle)->ToString()
+#define SWIGV8_NUMBER_VALUE(handle) (handle)->NumberValue()
+#define SWIGV8_INTEGER_VALUE(handle) (handle)->IntegerValue()
+#define SWIGV8_BOOLEAN_VALUE(handle) (handle)->BooleanValue()
+#define SWIGV8_WRITE_UTF8(handle, buffer, len) (handle)->WriteUtf8(buffer, len)
+#define SWIGV8_UTF8_LENGTH(handle) (handle)->Utf8Length()
+#else
+#define SWIGV8_TO_OBJECT(handle) (handle)->ToObject(SWIGV8_CURRENT_CONTEXT()).ToLocalChecked()
+#define SWIGV8_TO_STRING(handle) (handle)->ToString(SWIGV8_CURRENT_CONTEXT()).ToLocalChecked()
+#define SWIGV8_NUMBER_VALUE(handle) (handle)->NumberValue(SWIGV8_CURRENT_CONTEXT()).ToChecked()
+#define SWIGV8_INTEGER_VALUE(handle) (handle)->IntegerValue(SWIGV8_CURRENT_CONTEXT()).ToChecked()
+#define SWIGV8_BOOLEAN_VALUE(handle) (handle)->BooleanValue(SWIGV8_CURRENT_CONTEXT()).ToChecked()
+#define SWIGV8_WRITE_UTF8(handle, buffer, len) (handle)->WriteUtf8(v8::Isolate::GetCurrent(), buffer, len)
+#define SWIGV8_UTF8_LENGTH(handle) (handle)->Utf8Length(v8::Isolate::GetCurrent())
+#endif
+
 /* ---------------------------------------------------------------------------
  * Error handling
  *
@@ -906,7 +935,7 @@ public:
         SWIGV8_THROW_EXCEPTION(err);
     }
   }
-  v8::Handle<v8::Value> err;
+  v8::Local<v8::Value> err;
 };
 
 /* ---------------------------------------------------------------------------
@@ -971,13 +1000,13 @@ public:
 
 SWIGRUNTIME v8::Persistent<v8::FunctionTemplate> SWIGV8_SWIGTYPE_Proxy_class_templ;
 
-SWIGRUNTIME int SWIG_V8_ConvertInstancePtr(v8::Handle<v8::Object> objRef, void **ptr, swig_type_info *info, int flags) {
+SWIGRUNTIME int SWIG_V8_ConvertInstancePtr(v8::Local<v8::Object> objRef, void **ptr, swig_type_info *info, int flags) {
   SWIGV8_HANDLESCOPE();
 
   if(objRef->InternalFieldCount() < 1) return SWIG_ERROR;
 
 #if (V8_MAJOR_VERSION-0) < 4 && (SWIG_V8_VERSION < 0x031511)
-  v8::Handle<v8::Value> cdataRef = objRef->GetInternalField(0);
+  v8::Local<v8::Value> cdataRef = objRef->GetInternalField(0);
   SWIGV8_Proxy *cdata = static_cast<SWIGV8_Proxy *>(v8::External::Unwrap(cdataRef));
 #else
   SWIGV8_Proxy *cdata = static_cast<SWIGV8_Proxy *>(objRef->GetAlignedPointerFromInternalField(0));
@@ -1023,11 +1052,11 @@ SWIGRUNTIME void SWIGV8_Proxy_DefaultDtor(const v8::WeakCallbackInfo<SWIGV8_Prox
   delete proxy;
 }
 
-SWIGRUNTIME int SWIG_V8_GetInstancePtr(v8::Handle<v8::Value> valRef, void **ptr) {
+SWIGRUNTIME int SWIG_V8_GetInstancePtr(v8::Local<v8::Value> valRef, void **ptr) {
   if(!valRef->IsObject()) {
     return SWIG_TypeError;
   }
-  v8::Handle<v8::Object> objRef = valRef->ToObject();
+  v8::Local<v8::Object> objRef = SWIGV8_TO_OBJECT(valRef);
 
   if(objRef->InternalFieldCount() < 1) return SWIG_ERROR;
 
@@ -1047,7 +1076,7 @@ SWIGRUNTIME int SWIG_V8_GetInstancePtr(v8::Handle<v8::Value> valRef, void **ptr)
   return SWIG_OK;
 }
 
-SWIGRUNTIME void SWIGV8_SetPrivateData(v8::Handle<v8::Object> obj, void *ptr, swig_type_info *info, int flags) {
+SWIGRUNTIME void SWIGV8_SetPrivateData(v8::Local<v8::Object> obj, void *ptr, swig_type_info *info, int flags) {
   SWIGV8_Proxy *cdata = new SWIGV8_Proxy();
   cdata->swigCObject = ptr;
   cdata->swigCMemOwn = (flags & SWIG_POINTER_OWN) ? 1 : 0;
@@ -1110,25 +1139,25 @@ SWIGRUNTIME void SWIGV8_SetPrivateData(v8::Handle<v8::Object> obj, void *ptr, sw
 
 }
 
-SWIGRUNTIME int SWIG_V8_ConvertPtr(v8::Handle<v8::Value> valRef, void **ptr, swig_type_info *info, int flags) {
+SWIGRUNTIME int SWIG_V8_ConvertPtr(v8::Local<v8::Value> valRef, void **ptr, swig_type_info *info, int flags) {
   SWIGV8_HANDLESCOPE();
   
   /* special case: JavaScript null => C NULL pointer */
   if(valRef->IsNull()) {
     *ptr=0;
-    return SWIG_OK;
+    return (flags & SWIG_POINTER_NO_NULL) ? SWIG_NullReferenceError : SWIG_OK;
   }
   if(!valRef->IsObject()) {
     return SWIG_TypeError;
   }
-  v8::Handle<v8::Object> objRef = valRef->ToObject();
+  v8::Local<v8::Object> objRef = SWIGV8_TO_OBJECT(valRef);
   return SWIG_V8_ConvertInstancePtr(objRef, ptr, info, flags);
 }
 
-SWIGRUNTIME v8::Handle<v8::Value> SWIG_V8_NewPointerObj(void *ptr, swig_type_info *info, int flags) {
+SWIGRUNTIME v8::Local<v8::Value> SWIG_V8_NewPointerObj(void *ptr, swig_type_info *info, int flags) {
   SWIGV8_HANDLESCOPE_ESC();
   
-  v8::Handle<v8::FunctionTemplate> class_templ;
+  v8::Local<v8::FunctionTemplate> class_templ;
 
   if (ptr == NULL) {
 #if (V8_MAJOR_VERSION-0) < 4 && (SWIG_V8_VERSION < 0x031903)
@@ -1155,8 +1184,11 @@ SWIGRUNTIME v8::Handle<v8::Value> SWIG_V8_NewPointerObj(void *ptr, swig_type_inf
   }
 #endif
 
-//  v8::Handle<v8::Object> result = class_templ->InstanceTemplate()->NewInstance();
+#if (NODE_MODULE_VERSION < 72)
   v8::Local<v8::Object> result = class_templ->InstanceTemplate()->NewInstance();
+#else
+  v8::Local<v8::Object> result = class_templ->InstanceTemplate()->NewInstance(SWIGV8_CURRENT_CONTEXT()).ToLocalChecked();
+#endif
   SWIGV8_SetPrivateData(result, ptr, info, flags);
 
   SWIGV8_ESCAPE(result);
@@ -1176,7 +1208,7 @@ SWIGRUNTIME v8::Handle<v8::Value> SWIG_V8_NewPointerObj(void *ptr, swig_type_inf
 SWIGRUNTIME SwigV8ReturnValue _SWIGV8_wrap_equals(const SwigV8Arguments &args) {
   SWIGV8_HANDLESCOPE();
   
-  v8::Handle<v8::Value> jsresult;
+  v8::Local<v8::Value> jsresult;
   void *arg1 = (void *) 0 ;
   void *arg2 = (void *) 0 ;
   bool result;
@@ -1206,7 +1238,7 @@ fail:
 SWIGRUNTIME SwigV8ReturnValue _wrap_getCPtr(const SwigV8Arguments &args) {
   SWIGV8_HANDLESCOPE();
   
-  v8::Handle<v8::Value> jsresult;
+  v8::Local<v8::Value> jsresult;
   void *arg1 = (void *) 0 ;
   long result;
   int res1;
@@ -1245,10 +1277,10 @@ public:
 };
 
 SWIGRUNTIMEINLINE
-int SwigV8Packed_Check(v8::Handle<v8::Value> valRef) {
+int SwigV8Packed_Check(v8::Local<v8::Value> valRef) {
   SWIGV8_HANDLESCOPE();
   
-  v8::Handle<v8::Object> objRef = valRef->ToObject();
+  v8::Local<v8::Object> objRef = SWIGV8_TO_OBJECT(valRef);
   if(objRef->InternalFieldCount() < 1) return false;
 #if (V8_MAJOR_VERSION-0) < 5
   v8::Handle<v8::Value> flag = objRef->GetHiddenValue(SWIGV8_STRING_NEW("__swig__packed_data__"));
@@ -1258,17 +1290,17 @@ int SwigV8Packed_Check(v8::Handle<v8::Value> valRef) {
   if (!objRef->GetPrivate(SWIGV8_CURRENT_CONTEXT(), privateKey).ToLocal(&flag))
     return false;
 #endif
-  return (flag->IsBoolean() && flag->BooleanValue());
+  return (flag->IsBoolean() && SWIGV8_BOOLEAN_VALUE(flag));
 }
 
 SWIGRUNTIME
-swig_type_info *SwigV8Packed_UnpackData(v8::Handle<v8::Value> valRef, void *ptr, size_t size) {
+swig_type_info *SwigV8Packed_UnpackData(v8::Local<v8::Value> valRef, void *ptr, size_t size) {
   if (SwigV8Packed_Check(valRef)) {
     SWIGV8_HANDLESCOPE();
     
     SwigV8PackedData *sobj;
 
-    v8::Handle<v8::Object> objRef = valRef->ToObject();
+    v8::Local<v8::Object> objRef = SWIGV8_TO_OBJECT(valRef);
 
 #if (V8_MAJOR_VERSION-0) < 4 && (SWIG_V8_VERSION < 0x031511)
     v8::Handle<v8::Value> cdataRef = objRef->GetInternalField(0);
@@ -1285,7 +1317,7 @@ swig_type_info *SwigV8Packed_UnpackData(v8::Handle<v8::Value> valRef, void *ptr,
 }
 
 SWIGRUNTIME
-int SWIGV8_ConvertPacked(v8::Handle<v8::Value> valRef, void *ptr, size_t sz, swig_type_info *ty) {
+int SWIGV8_ConvertPacked(v8::Local<v8::Value> valRef, void *ptr, size_t sz, swig_type_info *ty) {
   swig_type_info *to = SwigV8Packed_UnpackData(valRef, ptr, sz);
   if (!to) return SWIG_ERROR;
   if (ty) {
@@ -1333,7 +1365,7 @@ SWIGRUNTIME void _wrap_SwigV8PackedData_delete(const v8::WeakCallbackInfo<SwigV8
 }
 
 SWIGRUNTIME
-v8::Handle<v8::Value> SWIGV8_NewPackedObj(void *data, size_t size, swig_type_info *type) {
+v8::Local<v8::Value> SWIGV8_NewPackedObj(void *data, size_t size, swig_type_info *type) {
   SWIGV8_HANDLESCOPE_ESC();
 
   SwigV8PackedData *cdata = new SwigV8PackedData(data, size, type);
@@ -1400,7 +1432,7 @@ SWIGRUNTIME
 #if (V8_MAJOR_VERSION-0) < 4 && (SWIG_V8_VERSION < 0x031903)
 v8::Handle<v8::Value> SWIGV8_AppendOutput(v8::Handle<v8::Value> result, v8::Handle<v8::Value> obj) {
 #else
-v8::Handle<v8::Value> SWIGV8_AppendOutput(v8::Local<v8::Value> result, v8::Handle<v8::Value> obj) {
+v8::Local<v8::Value> SWIGV8_AppendOutput(v8::Local<v8::Value> result, v8::Local<v8::Value> obj) {
 #endif
   SWIGV8_HANDLESCOPE_ESC();
   
@@ -1440,19 +1472,19 @@ typedef v8::PropertyCallbackInfo<void>  SwigV8PropertyCallbackInfoVoid;
 /**
  * Creates a class template for a class with specified initialization function.
  */
-SWIGRUNTIME v8::Handle<v8::FunctionTemplate> SWIGV8_CreateClassTemplate(const char* symbol) {
+SWIGRUNTIME v8::Local<v8::FunctionTemplate> SWIGV8_CreateClassTemplate(const char* symbol) {
     SWIGV8_HANDLESCOPE_ESC();
     
     v8::Local<v8::FunctionTemplate> class_templ = SWIGV8_FUNCTEMPLATE_NEW_VOID();
     class_templ->SetClassName(SWIGV8_SYMBOL_NEW(symbol));
 
-    v8::Handle<v8::ObjectTemplate> inst_templ = class_templ->InstanceTemplate();
+    v8::Local<v8::ObjectTemplate> inst_templ = class_templ->InstanceTemplate();
     inst_templ->SetInternalFieldCount(1);
 
-    v8::Handle<v8::ObjectTemplate> equals_templ = class_templ->PrototypeTemplate();
+    v8::Local<v8::ObjectTemplate> equals_templ = class_templ->PrototypeTemplate();
     equals_templ->Set(SWIGV8_SYMBOL_NEW("equals"), SWIGV8_FUNCTEMPLATE_NEW(_SWIGV8_wrap_equals));
 
-    v8::Handle<v8::ObjectTemplate> cptr_templ = class_templ->PrototypeTemplate();
+    v8::Local<v8::ObjectTemplate> cptr_templ = class_templ->PrototypeTemplate();
     cptr_templ->Set(SWIGV8_SYMBOL_NEW("getCPtr"), SWIGV8_FUNCTEMPLATE_NEW(_wrap_getCPtr));
 
     SWIGV8_ESCAPE(class_templ);
@@ -1461,33 +1493,37 @@ SWIGRUNTIME v8::Handle<v8::FunctionTemplate> SWIGV8_CreateClassTemplate(const ch
 /**
  * Registers a class method with given name for a given class template.
  */
-SWIGRUNTIME void SWIGV8_AddMemberFunction(v8::Handle<v8::FunctionTemplate> class_templ, const char* symbol,
+SWIGRUNTIME void SWIGV8_AddMemberFunction(v8::Local<v8::FunctionTemplate> class_templ, const char* symbol,
   SwigV8FunctionCallback _func) {
-    v8::Handle<v8::ObjectTemplate> proto_templ = class_templ->PrototypeTemplate();
+    v8::Local<v8::ObjectTemplate> proto_templ = class_templ->PrototypeTemplate();
     proto_templ->Set(SWIGV8_SYMBOL_NEW(symbol), SWIGV8_FUNCTEMPLATE_NEW(_func));
 }
 
 /**
  * Registers a class property with given name for a given class template.
  */
-SWIGRUNTIME void SWIGV8_AddMemberVariable(v8::Handle<v8::FunctionTemplate> class_templ, const char* symbol,
+SWIGRUNTIME void SWIGV8_AddMemberVariable(v8::Local<v8::FunctionTemplate> class_templ, const char* symbol,
   SwigV8AccessorGetterCallback getter, SwigV8AccessorSetterCallback setter) {
-  v8::Handle<v8::ObjectTemplate> proto_templ = class_templ->InstanceTemplate();
+  v8::Local<v8::ObjectTemplate> proto_templ = class_templ->InstanceTemplate();
   proto_templ->SetAccessor(SWIGV8_SYMBOL_NEW(symbol), getter, setter);
 }
 
 /**
  * Registers a class method with given name for a given object.
  */
-SWIGRUNTIME void SWIGV8_AddStaticFunction(v8::Handle<v8::Object> obj, const char* symbol,
+SWIGRUNTIME void SWIGV8_AddStaticFunction(v8::Local<v8::Object> obj, const char* symbol,
   const SwigV8FunctionCallback& _func) {
+#if (NODE_MODULE_VERSION < 72)
   obj->Set(SWIGV8_SYMBOL_NEW(symbol), SWIGV8_FUNCTEMPLATE_NEW(_func)->GetFunction());
+#else
+  obj->Set(SWIGV8_SYMBOL_NEW(symbol), SWIGV8_FUNCTEMPLATE_NEW(_func)->GetFunction(SWIGV8_CURRENT_CONTEXT()).ToLocalChecked());
+#endif
 }
 
 /**
  * Registers a class method with given name for a given object.
  */
-SWIGRUNTIME void SWIGV8_AddStaticVariable(v8::Handle<v8::Object> obj, const char* symbol,
+SWIGRUNTIME void SWIGV8_AddStaticVariable(v8::Local<v8::Object> obj, const char* symbol,
   SwigV8AccessorGetterCallback getter, SwigV8AccessorSetterCallback setter) {
 #if (V8_MAJOR_VERSION-0) < 5
   obj->SetAccessor(SWIGV8_SYMBOL_NEW(symbol), getter, setter);
@@ -1512,7 +1548,7 @@ SWIGRUNTIME void JS_veto_set_variable(v8::Local<v8::Name> property, v8::Local<v8
 #else
     v8::Local<v8::String> sproperty;
     if (property->ToString(SWIGV8_CURRENT_CONTEXT()).ToLocal(&sproperty)) {
-      sproperty->WriteUtf8(buffer, 256);
+      SWIGV8_WRITE_UTF8(sproperty, buffer, 256);
       res = sprintf(msg, "Tried to write read-only variable: %s.", buffer);
     }
     else {
@@ -1540,7 +1576,7 @@ fail: ;
 #define SWIGTYPE_p_key_type swig_types[5]
 #define SWIGTYPE_p_mapped_type swig_types[6]
 #define SWIGTYPE_p_size_type swig_types[7]
-#define SWIGTYPE_p_std__mapT_std__string_std__string_t swig_types[8]
+#define SWIGTYPE_p_std__mapT_std__string_std__string_std__lessT_std__string_t_t swig_types[8]
 #define SWIGTYPE_p_std__string swig_types[9]
 #define SWIGTYPE_p_std__vectorT_std__string_t swig_types[10]
 #define SWIGTYPE_p_value_type swig_types[11]
@@ -1557,8 +1593,8 @@ static swig_module_info swig_module = {swig_types, 12, 0, 0, 0, 0};
 #define SWIG_VERSION SWIGVERSION
 
 
-#define SWIG_as_voidptr(a) (void *)((const void *)(a)) 
-#define SWIG_as_voidptrptr(a) ((void)SWIG_as_voidptr(*a),(void**)(a)) 
+#define SWIG_as_voidptr(a) const_cast< void * >(static_cast< const void * >(a)) 
+#define SWIG_as_voidptrptr(a) ((void)SWIG_as_voidptr(*a),reinterpret_cast< void** >(a)) 
 
 
 #include <stdexcept>
@@ -1603,21 +1639,21 @@ static swig_module_info swig_module = {swig_types, 12, 0, 0, 0, 0};
 
 
 SWIGINTERNINLINE
-v8::Handle<v8::Value> SWIG_From_long  (long value)
+v8::Local<v8::Value> SWIG_From_long  (long value)
 {
   return SWIGV8_NUMBER_NEW(value);
 }
 
 
 SWIGINTERNINLINE
-v8::Handle<v8::Value> SWIG_From_unsigned_SS_long  (unsigned long value)
+v8::Local<v8::Value> SWIG_From_unsigned_SS_long  (unsigned long value)
 {
   return (value > LONG_MAX) ?
-    SWIGV8_INTEGER_NEW_UNS(value) : SWIGV8_INTEGER_NEW((long)(value));
+    SWIGV8_INTEGER_NEW_UNS(value) : SWIGV8_INTEGER_NEW(static_cast< long >(value));
 }
 
 
-SWIGINTERNINLINE v8::Handle<v8::Value>
+SWIGINTERNINLINE v8::Local<v8::Value>
 SWIG_From_unsigned_SS_int  (unsigned int value)
 {    
   return SWIG_From_unsigned_SS_long  (value);
@@ -1625,7 +1661,7 @@ SWIG_From_unsigned_SS_int  (unsigned int value)
 
 
 SWIGINTERNINLINE
-v8::Handle<v8::Value>
+v8::Local<v8::Value>
 SWIG_From_bool  (bool value)
 {
   return SWIGV8_BOOLEAN_NEW(value);
@@ -1646,14 +1682,14 @@ SWIG_pchar_descriptor(void)
 
 
 SWIGINTERN int
-SWIG_AsCharPtrAndSize(v8::Handle<v8::Value> valRef, char** cptr, size_t* psize, int *alloc)
+SWIG_AsCharPtrAndSize(v8::Local<v8::Value> valRef, char** cptr, size_t* psize, int *alloc)
 {
   if(valRef->IsString()) {
-    v8::Handle<v8::String> js_str = valRef->ToString();
+    v8::Local<v8::String> js_str = SWIGV8_TO_STRING(valRef);
 
-    size_t len = js_str->Utf8Length() + 1;
+    size_t len = SWIGV8_UTF8_LENGTH(js_str) + 1;
     char* cstr = new char[len];
-    js_str->WriteUtf8(cstr, len);
+    SWIGV8_WRITE_UTF8(js_str, cstr, len);
     
     if(alloc) *alloc = SWIG_NEWOBJ;
     if(psize) *psize = len;
@@ -1662,7 +1698,7 @@ SWIG_AsCharPtrAndSize(v8::Handle<v8::Value> valRef, char** cptr, size_t* psize, 
     return SWIG_OK;
   } else {
     if(valRef->IsObject()) {
-      v8::Handle<v8::Object> obj = valRef->ToObject();
+      v8::Local<v8::Object> obj = SWIGV8_TO_OBJECT(valRef);
       // try if the object is a wrapped char[]
       swig_type_info* pchar_descriptor = SWIG_pchar_descriptor();
       if (pchar_descriptor) {
@@ -1683,7 +1719,7 @@ SWIG_AsCharPtrAndSize(v8::Handle<v8::Value> valRef, char** cptr, size_t* psize, 
 
 
 SWIGINTERN int
-SWIG_AsPtr_std_string (v8::Handle<v8::Value> obj, std::string **val) 
+SWIG_AsPtr_std_string (v8::Local<v8::Value> obj, std::string **val) 
 {
   char* buf = 0 ; size_t size = 0; int alloc = SWIG_OLDOBJ;
   if (SWIG_IsOK((SWIG_AsCharPtrAndSize(obj, &buf, &size, &alloc)))) {
@@ -1713,14 +1749,14 @@ SWIG_AsPtr_std_string (v8::Handle<v8::Value> obj, std::string **val)
 }
 
 SWIGINTERN std::string const &std_map_Sl_std_string_Sc_std_string_Sg__get(std::map< std::string,std::string > *self,std::string const &key){
-                std::map<std::string,std::string >::iterator i = self->find(key);
+                std::map< std::string, std::string, std::less< std::string > >::iterator i = self->find(key);
                 if (i != self->end())
                     return i->second;
                 else
                     throw std::out_of_range("key not found");
             }
 
-SWIGINTERNINLINE v8::Handle<v8::Value>
+SWIGINTERNINLINE v8::Local<v8::Value>
 SWIG_FromCharPtrAndSize(const char* carray, size_t size)
 {
   if (carray) {
@@ -1728,7 +1764,7 @@ SWIG_FromCharPtrAndSize(const char* carray, size_t size)
       // TODO: handle extra long strings
       return SWIGV8_UNDEFINED();
     } else {
-      v8::Handle<v8::String> js_str = SWIGV8_STRING_NEW2(carray, size);
+      v8::Local<v8::String> js_str = SWIGV8_STRING_NEW2(carray, size);
       return js_str;
     }
   } else {
@@ -1737,7 +1773,7 @@ SWIG_FromCharPtrAndSize(const char* carray, size_t size)
 }
 
 
-SWIGINTERNINLINE v8::Handle<v8::Value>
+SWIGINTERNINLINE v8::Local<v8::Value>
 SWIG_From_std_string  (const std::string& s)
 {
   return SWIG_FromCharPtrAndSize(s.data(), s.size());
@@ -1747,24 +1783,24 @@ SWIGINTERN void std_map_Sl_std_string_Sc_std_string_Sg__set(std::map< std::strin
                 (*self)[key] = x;
             }
 SWIGINTERN void std_map_Sl_std_string_Sc_std_string_Sg__del(std::map< std::string,std::string > *self,std::string const &key){
-                std::map<std::string,std::string >::iterator i = self->find(key);
+                std::map< std::string, std::string, std::less< std::string > >::iterator i = self->find(key);
                 if (i != self->end())
                     self->erase(i);
                 else
                     throw std::out_of_range("key not found");
             }
 SWIGINTERN bool std_map_Sl_std_string_Sc_std_string_Sg__has_key(std::map< std::string,std::string > *self,std::string const &key){
-                std::map<std::string,std::string >::iterator i = self->find(key);
+                std::map< std::string, std::string, std::less< std::string > >::iterator i = self->find(key);
                 return i != self->end();
             }
 
 SWIGINTERN
-int SWIG_AsVal_double (v8::Handle<v8::Value> obj, double *val)
+int SWIG_AsVal_double (v8::Local<v8::Value> obj, double *val)
 {
   if(!obj->IsNumber()) {
     return SWIG_TypeError;
   }
-  if(val) *val = obj->NumberValue();
+  if(val) *val = SWIGV8_NUMBER_VALUE(obj);
 
   return SWIG_OK;
 }
@@ -1807,13 +1843,13 @@ SWIG_CanCastAsInteger(double *d, double min, double max) {
 
 
 SWIGINTERN
-int SWIG_AsVal_unsigned_SS_long (v8::Handle<v8::Value> obj, unsigned long *val)
+int SWIG_AsVal_unsigned_SS_long (v8::Local<v8::Value> obj, unsigned long *val)
 {
   if(!obj->IsNumber()) {
     return SWIG_TypeError;
   }
 
-  long longVal = (long) obj->NumberValue();
+  long longVal = (long) SWIGV8_NUMBER_VALUE(obj);
 
   if(longVal < 0) {
       return SWIG_OverflowError;
@@ -1842,13 +1878,13 @@ int SWIG_AsVal_unsigned_SS_long (v8::Handle<v8::Value> obj, unsigned long *val)
 
 #ifdef SWIG_LONG_LONG_AVAILABLE
 SWIGINTERN
-int SWIG_AsVal_unsigned_SS_long_SS_long (v8::Handle<v8::Value> obj, unsigned long long *val)
+int SWIG_AsVal_unsigned_SS_long_SS_long (v8::Local<v8::Value> obj, unsigned long long *val)
 {
   if(!obj->IsNumber()) {
     return SWIG_TypeError;
   }
 
-  long long longVal = (long long) obj->NumberValue();
+  long long longVal = (long long) SWIGV8_NUMBER_VALUE(obj);
 
   if(longVal < 0) {
       return SWIG_OverflowError;
@@ -1862,7 +1898,7 @@ int SWIG_AsVal_unsigned_SS_long_SS_long (v8::Handle<v8::Value> obj, unsigned lon
 
 
 SWIGINTERNINLINE int
-SWIG_AsVal_size_t (v8::Handle<v8::Value> obj, size_t *val)
+SWIG_AsVal_size_t (v8::Local<v8::Value> obj, size_t *val)
 {
   int res = SWIG_TypeError;
 #ifdef SWIG_LONG_LONG_AVAILABLE
@@ -1870,12 +1906,12 @@ SWIG_AsVal_size_t (v8::Handle<v8::Value> obj, size_t *val)
 #endif
     unsigned long v;
     res = SWIG_AsVal_unsigned_SS_long (obj, val ? &v : 0);
-    if (SWIG_IsOK(res) && val) *val = (size_t)(v);
+    if (SWIG_IsOK(res) && val) *val = static_cast< size_t >(v);
 #ifdef SWIG_LONG_LONG_AVAILABLE
   } else if (sizeof(size_t) <= sizeof(unsigned long long)) {
     unsigned long long v;
     res = SWIG_AsVal_unsigned_SS_long_SS_long (obj, val ? &v : 0);
-    if (SWIG_IsOK(res) && val) *val = (size_t)(v);
+    if (SWIG_IsOK(res) && val) *val = static_cast< size_t >(v);
   }
 #endif
   return res;
@@ -1884,7 +1920,7 @@ SWIG_AsVal_size_t (v8::Handle<v8::Value> obj, size_t *val)
 
 #ifdef SWIG_LONG_LONG_AVAILABLE
 SWIGINTERNINLINE
-v8::Handle<v8::Value> SWIG_From_long_SS_long  (long long value)
+v8::Local<v8::Value> SWIG_From_long_SS_long  (long long value)
 {
   return SWIGV8_NUMBER_NEW(value);
 }
@@ -1893,37 +1929,37 @@ v8::Handle<v8::Value> SWIG_From_long_SS_long  (long long value)
 
 #ifdef SWIG_LONG_LONG_AVAILABLE
 SWIGINTERNINLINE
-v8::Handle<v8::Value> SWIG_From_unsigned_SS_long_SS_long  (unsigned long long value)
+v8::Local<v8::Value> SWIG_From_unsigned_SS_long_SS_long  (unsigned long long value)
 {
   return (value > LONG_MAX) ?
-    SWIGV8_INTEGER_NEW_UNS(value) : SWIGV8_INTEGER_NEW((long)(value));
+    SWIGV8_INTEGER_NEW_UNS(value) : SWIGV8_INTEGER_NEW(static_cast< long >(value));
 }
 #endif
 
 
-SWIGINTERNINLINE v8::Handle<v8::Value>
+SWIGINTERNINLINE v8::Local<v8::Value>
 SWIG_From_size_t  (size_t value)
 {    
 #ifdef SWIG_LONG_LONG_AVAILABLE
   if (sizeof(size_t) <= sizeof(unsigned long)) {
 #endif
-    return SWIG_From_unsigned_SS_long  ((unsigned long)(value));
+    return SWIG_From_unsigned_SS_long  (static_cast< unsigned long >(value));
 #ifdef SWIG_LONG_LONG_AVAILABLE
   } else {
     /* assume sizeof(size_t) <= sizeof(unsigned long long) */
-    return SWIG_From_unsigned_SS_long_SS_long  ((unsigned long long)(value));
+    return SWIG_From_unsigned_SS_long_SS_long  (static_cast< unsigned long long >(value));
   }
 #endif
 }
 
 
 SWIGINTERN
-int SWIG_AsVal_int (v8::Handle<v8::Value> valRef, int* val)
+int SWIG_AsVal_int (v8::Local<v8::Value> valRef, int* val)
 {
   if (!valRef->IsNumber()) {
     return SWIG_TypeError;
   }
-  if(val) *val = valRef->IntegerValue();
+  if(val) *val = SWIGV8_INTEGER_VALUE(valRef);
 
   return SWIG_OK;
 }
@@ -1947,32 +1983,32 @@ SWIGINTERN void std_vector_Sl_std_string_Sg__set(std::vector< std::string > *sel
 
 
 SWIGINTERNINLINE
-v8::Handle<v8::Value> SWIG_From_int  (int value)
+v8::Local<v8::Value> SWIG_From_int  (int value)
 {
   return SWIGV8_INT32_NEW(value);
 }
 
 
 SWIGINTERN
-int SWIG_AsVal_long (v8::Handle<v8::Value> obj, long* val)
+int SWIG_AsVal_long (v8::Local<v8::Value> obj, long* val)
 {
   if (!obj->IsNumber()) {
     return SWIG_TypeError;
   }
-  if(val) *val = (long) obj->IntegerValue();
+  if(val) *val = (long) SWIGV8_INTEGER_VALUE(obj);
 
   return SWIG_OK;
 }
 
 
 SWIGINTERN
-int SWIG_AsVal_bool (v8::Handle<v8::Value> obj, bool *val)
+int SWIG_AsVal_bool (v8::Local<v8::Value> obj, bool *val)
 {
   if(!obj->IsBoolean()) {
     return SWIG_ERROR;
   }
 
-  if (val) *val = obj->BooleanValue();
+  if (val) *val = SWIGV8_BOOLEAN_VALUE(obj);
   return SWIG_OK;
 }
 
@@ -1990,7 +2026,7 @@ SWIGV8_ClientData _exports_Provider_clientData;
 static SwigV8ReturnValue _wrap_new_MapStringString__SWIG_0(const SwigV8Arguments &args, V8ErrorHandler &SWIGV8_ErrorHandler) {
   SWIGV8_HANDLESCOPE();
   
-  v8::Handle<v8::Object> self = args.Holder();
+  v8::Local<v8::Object> self = args.Holder();
   std::map< std::string,std::string > *result;
   if(args.Length() != 0) SWIG_exception_fail(SWIG_ERROR, "Illegal number of arguments for _wrap_new_MapStringString__SWIG_0.");
   {
@@ -2007,7 +2043,7 @@ static SwigV8ReturnValue _wrap_new_MapStringString__SWIG_0(const SwigV8Arguments
   
   
   
-  SWIGV8_SetPrivateData(self, result, SWIGTYPE_p_std__mapT_std__string_std__string_t, SWIG_POINTER_OWN);
+  SWIGV8_SetPrivateData(self, result, SWIGTYPE_p_std__mapT_std__string_std__string_std__lessT_std__string_t_t, SWIG_POINTER_OWN);
   SWIGV8_RETURN(self);
   
   goto fail;
@@ -2019,20 +2055,20 @@ fail:
 static SwigV8ReturnValue _wrap_new_MapStringString__SWIG_1(const SwigV8Arguments &args, V8ErrorHandler &SWIGV8_ErrorHandler) {
   SWIGV8_HANDLESCOPE();
   
-  v8::Handle<v8::Object> self = args.Holder();
+  v8::Local<v8::Object> self = args.Holder();
   std::map< std::string,std::string > *arg1 = 0 ;
   void *argp1 ;
   int res1 = 0 ;
   std::map< std::string,std::string > *result;
   if(args.Length() != 1) SWIG_exception_fail(SWIG_ERROR, "Illegal number of arguments for _wrap_new_MapStringString__SWIG_1.");
-  res1 = SWIG_ConvertPtr(args[0], &argp1, SWIGTYPE_p_std__mapT_std__string_std__string_t,  0 );
+  res1 = SWIG_ConvertPtr(args[0], &argp1, SWIGTYPE_p_std__mapT_std__string_std__string_std__lessT_std__string_t_t,  0 );
   if (!SWIG_IsOK(res1)) {
     SWIG_exception_fail(SWIG_ArgError(res1), "in method '" "new_MapStringString" "', argument " "1"" of type '" "std::map< std::string,std::string > const &""'"); 
   }
   if (!argp1) {
     SWIG_exception_fail(SWIG_ValueError, "invalid null reference " "in method '" "new_MapStringString" "', argument " "1"" of type '" "std::map< std::string,std::string > const &""'"); 
   }
-  arg1 = (std::map< std::string,std::string > *)(argp1);
+  arg1 = reinterpret_cast< std::map< std::string,std::string > * >(argp1);
   {
     try {
       result = (std::map< std::string,std::string > *)new std::map< std::string,std::string >((std::map< std::string,std::string > const &)*arg1);;
@@ -2048,7 +2084,7 @@ static SwigV8ReturnValue _wrap_new_MapStringString__SWIG_1(const SwigV8Arguments
   
   
   
-  SWIGV8_SetPrivateData(self, result, SWIGTYPE_p_std__mapT_std__string_std__string_t, SWIG_POINTER_OWN);
+  SWIGV8_SetPrivateData(self, result, SWIGTYPE_p_std__mapT_std__string_std__string_std__lessT_std__string_t_t, SWIG_POINTER_OWN);
   SWIGV8_RETURN(self);
   
   goto fail;
@@ -2061,7 +2097,7 @@ static SwigV8ReturnValue _wrap_new_MapStringString(const SwigV8Arguments &args) 
   SWIGV8_HANDLESCOPE();
   
   OverloadErrorHandler errorHandler;
-  v8::Handle<v8::Value> self;
+  v8::Local<v8::Value> self;
   
   // switch all cases by means of series of if-returns.
   
@@ -2115,7 +2151,7 @@ fail:
 static SwigV8ReturnValue _wrap_MapStringString_size(const SwigV8Arguments &args) {
   SWIGV8_HANDLESCOPE();
   
-  v8::Handle<v8::Value> jsresult;
+  v8::Local<v8::Value> jsresult;
   std::map< std::string,std::string > *arg1 = (std::map< std::string,std::string > *) 0 ;
   void *argp1 = 0 ;
   int res1 = 0 ;
@@ -2123,11 +2159,11 @@ static SwigV8ReturnValue _wrap_MapStringString_size(const SwigV8Arguments &args)
   
   if(args.Length() != 0) SWIG_exception_fail(SWIG_ERROR, "Illegal number of arguments for _wrap_MapStringString_size.");
   
-  res1 = SWIG_ConvertPtr(args.Holder(), &argp1,SWIGTYPE_p_std__mapT_std__string_std__string_t, 0 |  0 );
+  res1 = SWIG_ConvertPtr(args.Holder(), &argp1,SWIGTYPE_p_std__mapT_std__string_std__string_std__lessT_std__string_t_t, 0 |  0 );
   if (!SWIG_IsOK(res1)) {
     SWIG_exception_fail(SWIG_ArgError(res1), "in method '" "MapStringString_size" "', argument " "1"" of type '" "std::map< std::string,std::string > const *""'"); 
   }
-  arg1 = (std::map< std::string,std::string > *)(argp1);
+  arg1 = reinterpret_cast< std::map< std::string,std::string > * >(argp1);
   {
     try {
       result = (unsigned int)((std::map< std::string,std::string > const *)arg1)->size();;
@@ -2139,7 +2175,7 @@ static SwigV8ReturnValue _wrap_MapStringString_size(const SwigV8Arguments &args)
       SWIG_exception(SWIG_ValueError, e.what());
     }
   }
-  jsresult = SWIG_From_unsigned_SS_int((unsigned int)(result));
+  jsresult = SWIG_From_unsigned_SS_int(static_cast< unsigned int >(result));
   
   
   SWIGV8_RETURN(jsresult);
@@ -2153,7 +2189,7 @@ fail:
 static SwigV8ReturnValue _wrap_MapStringString_empty(const SwigV8Arguments &args) {
   SWIGV8_HANDLESCOPE();
   
-  v8::Handle<v8::Value> jsresult;
+  v8::Local<v8::Value> jsresult;
   std::map< std::string,std::string > *arg1 = (std::map< std::string,std::string > *) 0 ;
   void *argp1 = 0 ;
   int res1 = 0 ;
@@ -2161,11 +2197,11 @@ static SwigV8ReturnValue _wrap_MapStringString_empty(const SwigV8Arguments &args
   
   if(args.Length() != 0) SWIG_exception_fail(SWIG_ERROR, "Illegal number of arguments for _wrap_MapStringString_empty.");
   
-  res1 = SWIG_ConvertPtr(args.Holder(), &argp1,SWIGTYPE_p_std__mapT_std__string_std__string_t, 0 |  0 );
+  res1 = SWIG_ConvertPtr(args.Holder(), &argp1,SWIGTYPE_p_std__mapT_std__string_std__string_std__lessT_std__string_t_t, 0 |  0 );
   if (!SWIG_IsOK(res1)) {
     SWIG_exception_fail(SWIG_ArgError(res1), "in method '" "MapStringString_empty" "', argument " "1"" of type '" "std::map< std::string,std::string > const *""'"); 
   }
-  arg1 = (std::map< std::string,std::string > *)(argp1);
+  arg1 = reinterpret_cast< std::map< std::string,std::string > * >(argp1);
   {
     try {
       result = (bool)((std::map< std::string,std::string > const *)arg1)->empty();;
@@ -2177,7 +2213,7 @@ static SwigV8ReturnValue _wrap_MapStringString_empty(const SwigV8Arguments &args
       SWIG_exception(SWIG_ValueError, e.what());
     }
   }
-  jsresult = SWIG_From_bool((bool)(result));
+  jsresult = SWIG_From_bool(static_cast< bool >(result));
   
   
   SWIGV8_RETURN(jsresult);
@@ -2191,18 +2227,18 @@ fail:
 static SwigV8ReturnValue _wrap_MapStringString_clear(const SwigV8Arguments &args) {
   SWIGV8_HANDLESCOPE();
   
-  v8::Handle<v8::Value> jsresult;
+  v8::Local<v8::Value> jsresult;
   std::map< std::string,std::string > *arg1 = (std::map< std::string,std::string > *) 0 ;
   void *argp1 = 0 ;
   int res1 = 0 ;
   
   if(args.Length() != 0) SWIG_exception_fail(SWIG_ERROR, "Illegal number of arguments for _wrap_MapStringString_clear.");
   
-  res1 = SWIG_ConvertPtr(args.Holder(), &argp1,SWIGTYPE_p_std__mapT_std__string_std__string_t, 0 |  0 );
+  res1 = SWIG_ConvertPtr(args.Holder(), &argp1,SWIGTYPE_p_std__mapT_std__string_std__string_std__lessT_std__string_t_t, 0 |  0 );
   if (!SWIG_IsOK(res1)) {
     SWIG_exception_fail(SWIG_ArgError(res1), "in method '" "MapStringString_clear" "', argument " "1"" of type '" "std::map< std::string,std::string > *""'"); 
   }
-  arg1 = (std::map< std::string,std::string > *)(argp1);
+  arg1 = reinterpret_cast< std::map< std::string,std::string > * >(argp1);
   {
     try {
       (arg1)->clear();;
@@ -2228,7 +2264,7 @@ fail:
 static SwigV8ReturnValue _wrap_MapStringString_get(const SwigV8Arguments &args) {
   SWIGV8_HANDLESCOPE();
   
-  v8::Handle<v8::Value> jsresult;
+  v8::Local<v8::Value> jsresult;
   std::map< std::string,std::string > *arg1 = (std::map< std::string,std::string > *) 0 ;
   std::string *arg2 = 0 ;
   void *argp1 = 0 ;
@@ -2238,11 +2274,11 @@ static SwigV8ReturnValue _wrap_MapStringString_get(const SwigV8Arguments &args) 
   
   if(args.Length() != 1) SWIG_exception_fail(SWIG_ERROR, "Illegal number of arguments for _wrap_MapStringString_get.");
   
-  res1 = SWIG_ConvertPtr(args.Holder(), &argp1,SWIGTYPE_p_std__mapT_std__string_std__string_t, 0 |  0 );
+  res1 = SWIG_ConvertPtr(args.Holder(), &argp1,SWIGTYPE_p_std__mapT_std__string_std__string_std__lessT_std__string_t_t, 0 |  0 );
   if (!SWIG_IsOK(res1)) {
     SWIG_exception_fail(SWIG_ArgError(res1), "in method '" "MapStringString_get" "', argument " "1"" of type '" "std::map< std::string,std::string > *""'"); 
   }
-  arg1 = (std::map< std::string,std::string > *)(argp1);
+  arg1 = reinterpret_cast< std::map< std::string,std::string > * >(argp1);
   {
     std::string *ptr = (std::string *)0;
     res2 = SWIG_AsPtr_std_string(args[0], &ptr);
@@ -2269,7 +2305,7 @@ static SwigV8ReturnValue _wrap_MapStringString_get(const SwigV8Arguments &args) 
       SWIG_exception(SWIG_ValueError, e.what());
     }
   }
-  jsresult = SWIG_From_std_string((std::string)(*result));
+  jsresult = SWIG_From_std_string(static_cast< std::string >(*result));
   
   if (SWIG_IsNewObj(res2)) delete arg2;
   
@@ -2284,7 +2320,7 @@ fail:
 static SwigV8ReturnValue _wrap_MapStringString_set(const SwigV8Arguments &args) {
   SWIGV8_HANDLESCOPE();
   
-  v8::Handle<v8::Value> jsresult;
+  v8::Local<v8::Value> jsresult;
   std::map< std::string,std::string > *arg1 = (std::map< std::string,std::string > *) 0 ;
   std::string *arg2 = 0 ;
   std::string *arg3 = 0 ;
@@ -2295,11 +2331,11 @@ static SwigV8ReturnValue _wrap_MapStringString_set(const SwigV8Arguments &args) 
   
   if(args.Length() != 2) SWIG_exception_fail(SWIG_ERROR, "Illegal number of arguments for _wrap_MapStringString_set.");
   
-  res1 = SWIG_ConvertPtr(args.Holder(), &argp1,SWIGTYPE_p_std__mapT_std__string_std__string_t, 0 |  0 );
+  res1 = SWIG_ConvertPtr(args.Holder(), &argp1,SWIGTYPE_p_std__mapT_std__string_std__string_std__lessT_std__string_t_t, 0 |  0 );
   if (!SWIG_IsOK(res1)) {
     SWIG_exception_fail(SWIG_ArgError(res1), "in method '" "MapStringString_set" "', argument " "1"" of type '" "std::map< std::string,std::string > *""'"); 
   }
-  arg1 = (std::map< std::string,std::string > *)(argp1);
+  arg1 = reinterpret_cast< std::map< std::string,std::string > * >(argp1);
   {
     std::string *ptr = (std::string *)0;
     res2 = SWIG_AsPtr_std_string(args[0], &ptr);
@@ -2349,7 +2385,7 @@ fail:
 static SwigV8ReturnValue _wrap_MapStringString_del(const SwigV8Arguments &args) {
   SWIGV8_HANDLESCOPE();
   
-  v8::Handle<v8::Value> jsresult;
+  v8::Local<v8::Value> jsresult;
   std::map< std::string,std::string > *arg1 = (std::map< std::string,std::string > *) 0 ;
   std::string *arg2 = 0 ;
   void *argp1 = 0 ;
@@ -2358,11 +2394,11 @@ static SwigV8ReturnValue _wrap_MapStringString_del(const SwigV8Arguments &args) 
   
   if(args.Length() != 1) SWIG_exception_fail(SWIG_ERROR, "Illegal number of arguments for _wrap_MapStringString_del.");
   
-  res1 = SWIG_ConvertPtr(args.Holder(), &argp1,SWIGTYPE_p_std__mapT_std__string_std__string_t, 0 |  0 );
+  res1 = SWIG_ConvertPtr(args.Holder(), &argp1,SWIGTYPE_p_std__mapT_std__string_std__string_std__lessT_std__string_t_t, 0 |  0 );
   if (!SWIG_IsOK(res1)) {
     SWIG_exception_fail(SWIG_ArgError(res1), "in method '" "MapStringString_del" "', argument " "1"" of type '" "std::map< std::string,std::string > *""'"); 
   }
-  arg1 = (std::map< std::string,std::string > *)(argp1);
+  arg1 = reinterpret_cast< std::map< std::string,std::string > * >(argp1);
   {
     std::string *ptr = (std::string *)0;
     res2 = SWIG_AsPtr_std_string(args[0], &ptr);
@@ -2404,7 +2440,7 @@ fail:
 static SwigV8ReturnValue _wrap_MapStringString_has_key(const SwigV8Arguments &args) {
   SWIGV8_HANDLESCOPE();
   
-  v8::Handle<v8::Value> jsresult;
+  v8::Local<v8::Value> jsresult;
   std::map< std::string,std::string > *arg1 = (std::map< std::string,std::string > *) 0 ;
   std::string *arg2 = 0 ;
   void *argp1 = 0 ;
@@ -2414,11 +2450,11 @@ static SwigV8ReturnValue _wrap_MapStringString_has_key(const SwigV8Arguments &ar
   
   if(args.Length() != 1) SWIG_exception_fail(SWIG_ERROR, "Illegal number of arguments for _wrap_MapStringString_has_key.");
   
-  res1 = SWIG_ConvertPtr(args.Holder(), &argp1,SWIGTYPE_p_std__mapT_std__string_std__string_t, 0 |  0 );
+  res1 = SWIG_ConvertPtr(args.Holder(), &argp1,SWIGTYPE_p_std__mapT_std__string_std__string_std__lessT_std__string_t_t, 0 |  0 );
   if (!SWIG_IsOK(res1)) {
     SWIG_exception_fail(SWIG_ArgError(res1), "in method '" "MapStringString_has_key" "', argument " "1"" of type '" "std::map< std::string,std::string > *""'"); 
   }
-  arg1 = (std::map< std::string,std::string > *)(argp1);
+  arg1 = reinterpret_cast< std::map< std::string,std::string > * >(argp1);
   {
     std::string *ptr = (std::string *)0;
     res2 = SWIG_AsPtr_std_string(args[0], &ptr);
@@ -2441,7 +2477,7 @@ static SwigV8ReturnValue _wrap_MapStringString_has_key(const SwigV8Arguments &ar
       SWIG_exception(SWIG_ValueError, e.what());
     }
   }
-  jsresult = SWIG_From_bool((bool)(result));
+  jsresult = SWIG_From_bool(static_cast< bool >(result));
   
   if (SWIG_IsNewObj(res2)) delete arg2;
   
@@ -2493,7 +2529,7 @@ static void _wrap_delete_MapStringString(v8::Persistent<v8::Value> object, void 
 static SwigV8ReturnValue _wrap_new_VectorString__SWIG_0(const SwigV8Arguments &args, V8ErrorHandler &SWIGV8_ErrorHandler) {
   SWIGV8_HANDLESCOPE();
   
-  v8::Handle<v8::Object> self = args.Holder();
+  v8::Local<v8::Object> self = args.Holder();
   std::vector< std::string > *result;
   if(args.Length() != 0) SWIG_exception_fail(SWIG_ERROR, "Illegal number of arguments for _wrap_new_VectorString__SWIG_0.");
   {
@@ -2522,7 +2558,7 @@ fail:
 static SwigV8ReturnValue _wrap_new_VectorString__SWIG_1(const SwigV8Arguments &args, V8ErrorHandler &SWIGV8_ErrorHandler) {
   SWIGV8_HANDLESCOPE();
   
-  v8::Handle<v8::Object> self = args.Holder();
+  v8::Local<v8::Object> self = args.Holder();
   std::vector< std::string >::size_type arg1 ;
   size_t val1 ;
   int ecode1 = 0 ;
@@ -2532,10 +2568,51 @@ static SwigV8ReturnValue _wrap_new_VectorString__SWIG_1(const SwigV8Arguments &a
   if (!SWIG_IsOK(ecode1)) {
     SWIG_exception_fail(SWIG_ArgError(ecode1), "in method '" "new_VectorString" "', argument " "1"" of type '" "std::vector< std::string >::size_type""'");
   } 
-  arg1 = (std::vector< std::string >::size_type)(val1);
+  arg1 = static_cast< std::vector< std::string >::size_type >(val1);
   {
     try {
       result = (std::vector< std::string > *)new std::vector< std::string >(arg1);;
+    }
+    catch(runtime_error& e) {
+      SWIG_exception(SWIG_RuntimeError, e.what());
+    }
+    catch(invalid_argument& e) {
+      SWIG_exception(SWIG_ValueError, e.what());
+    }
+  }
+  
+  
+  
+  
+  SWIGV8_SetPrivateData(self, result, SWIGTYPE_p_std__vectorT_std__string_t, SWIG_POINTER_OWN);
+  SWIGV8_RETURN(self);
+  
+  goto fail;
+fail:
+  SWIGV8_RETURN(SWIGV8_UNDEFINED());
+}
+
+
+static SwigV8ReturnValue _wrap_new_VectorString__SWIG_2(const SwigV8Arguments &args, V8ErrorHandler &SWIGV8_ErrorHandler) {
+  SWIGV8_HANDLESCOPE();
+  
+  v8::Local<v8::Object> self = args.Holder();
+  std::vector< std::string > *arg1 = 0 ;
+  void *argp1 ;
+  int res1 = 0 ;
+  std::vector< std::string > *result;
+  if(args.Length() != 1) SWIG_exception_fail(SWIG_ERROR, "Illegal number of arguments for _wrap_new_VectorString__SWIG_2.");
+  res1 = SWIG_ConvertPtr(args[0], &argp1, SWIGTYPE_p_std__vectorT_std__string_t,  0 );
+  if (!SWIG_IsOK(res1)) {
+    SWIG_exception_fail(SWIG_ArgError(res1), "in method '" "new_VectorString" "', argument " "1"" of type '" "std::vector< std::string > const &""'"); 
+  }
+  if (!argp1) {
+    SWIG_exception_fail(SWIG_ValueError, "invalid null reference " "in method '" "new_VectorString" "', argument " "1"" of type '" "std::vector< std::string > const &""'"); 
+  }
+  arg1 = reinterpret_cast< std::vector< std::string > * >(argp1);
+  {
+    try {
+      result = (std::vector< std::string > *)new std::vector< std::string >((std::vector< std::string > const &)*arg1);;
     }
     catch(runtime_error& e) {
       SWIG_exception(SWIG_RuntimeError, e.what());
@@ -2561,7 +2638,7 @@ static SwigV8ReturnValue _wrap_new_VectorString(const SwigV8Arguments &args) {
   SWIGV8_HANDLESCOPE();
   
   OverloadErrorHandler errorHandler;
-  v8::Handle<v8::Value> self;
+  v8::Local<v8::Value> self;
   
   // switch all cases by means of series of if-returns.
   
@@ -2603,6 +2680,25 @@ static SwigV8ReturnValue _wrap_new_VectorString(const SwigV8Arguments &args) {
 #endif
   }
   
+  if(args.Length() == 1) {
+    errorHandler.err.Clear();
+#if (V8_MAJOR_VERSION-0) < 4 && (SWIG_V8_VERSION < 0x031903)
+    self = _wrap_new_VectorString__SWIG_2(args, errorHandler);
+    if(errorHandler.err.IsEmpty()) {
+      SWIGV8_ESCAPE(self);
+    } else {
+      goto fail;
+    }
+#else
+    _wrap_new_VectorString__SWIG_2(args, errorHandler);
+    if(errorHandler.err.IsEmpty()) {
+      return;
+    } else {
+      goto fail;
+    }
+#endif
+  }
+  
   
   // default:
   SWIG_exception_fail(SWIG_ERROR, "Illegal arguments for construction of _exports_VectorString");
@@ -2615,7 +2711,7 @@ fail:
 static SwigV8ReturnValue _wrap_VectorString_size(const SwigV8Arguments &args) {
   SWIGV8_HANDLESCOPE();
   
-  v8::Handle<v8::Value> jsresult;
+  v8::Local<v8::Value> jsresult;
   std::vector< std::string > *arg1 = (std::vector< std::string > *) 0 ;
   void *argp1 = 0 ;
   int res1 = 0 ;
@@ -2627,7 +2723,7 @@ static SwigV8ReturnValue _wrap_VectorString_size(const SwigV8Arguments &args) {
   if (!SWIG_IsOK(res1)) {
     SWIG_exception_fail(SWIG_ArgError(res1), "in method '" "VectorString_size" "', argument " "1"" of type '" "std::vector< std::string > const *""'"); 
   }
-  arg1 = (std::vector< std::string > *)(argp1);
+  arg1 = reinterpret_cast< std::vector< std::string > * >(argp1);
   {
     try {
       result = ((std::vector< std::string > const *)arg1)->size();;
@@ -2639,7 +2735,7 @@ static SwigV8ReturnValue _wrap_VectorString_size(const SwigV8Arguments &args) {
       SWIG_exception(SWIG_ValueError, e.what());
     }
   }
-  jsresult = SWIG_From_size_t((size_t)(result));
+  jsresult = SWIG_From_size_t(static_cast< size_t >(result));
   
   
   SWIGV8_RETURN(jsresult);
@@ -2653,7 +2749,7 @@ fail:
 static SwigV8ReturnValue _wrap_VectorString_capacity(const SwigV8Arguments &args) {
   SWIGV8_HANDLESCOPE();
   
-  v8::Handle<v8::Value> jsresult;
+  v8::Local<v8::Value> jsresult;
   std::vector< std::string > *arg1 = (std::vector< std::string > *) 0 ;
   void *argp1 = 0 ;
   int res1 = 0 ;
@@ -2665,7 +2761,7 @@ static SwigV8ReturnValue _wrap_VectorString_capacity(const SwigV8Arguments &args
   if (!SWIG_IsOK(res1)) {
     SWIG_exception_fail(SWIG_ArgError(res1), "in method '" "VectorString_capacity" "', argument " "1"" of type '" "std::vector< std::string > const *""'"); 
   }
-  arg1 = (std::vector< std::string > *)(argp1);
+  arg1 = reinterpret_cast< std::vector< std::string > * >(argp1);
   {
     try {
       result = ((std::vector< std::string > const *)arg1)->capacity();;
@@ -2677,7 +2773,7 @@ static SwigV8ReturnValue _wrap_VectorString_capacity(const SwigV8Arguments &args
       SWIG_exception(SWIG_ValueError, e.what());
     }
   }
-  jsresult = SWIG_From_size_t((size_t)(result));
+  jsresult = SWIG_From_size_t(static_cast< size_t >(result));
   
   
   SWIGV8_RETURN(jsresult);
@@ -2691,7 +2787,7 @@ fail:
 static SwigV8ReturnValue _wrap_VectorString_reserve(const SwigV8Arguments &args) {
   SWIGV8_HANDLESCOPE();
   
-  v8::Handle<v8::Value> jsresult;
+  v8::Local<v8::Value> jsresult;
   std::vector< std::string > *arg1 = (std::vector< std::string > *) 0 ;
   std::vector< std::string >::size_type arg2 ;
   void *argp1 = 0 ;
@@ -2705,12 +2801,12 @@ static SwigV8ReturnValue _wrap_VectorString_reserve(const SwigV8Arguments &args)
   if (!SWIG_IsOK(res1)) {
     SWIG_exception_fail(SWIG_ArgError(res1), "in method '" "VectorString_reserve" "', argument " "1"" of type '" "std::vector< std::string > *""'"); 
   }
-  arg1 = (std::vector< std::string > *)(argp1);
+  arg1 = reinterpret_cast< std::vector< std::string > * >(argp1);
   ecode2 = SWIG_AsVal_size_t(args[0], &val2);
   if (!SWIG_IsOK(ecode2)) {
     SWIG_exception_fail(SWIG_ArgError(ecode2), "in method '" "VectorString_reserve" "', argument " "2"" of type '" "std::vector< std::string >::size_type""'");
   } 
-  arg2 = (std::vector< std::string >::size_type)(val2);
+  arg2 = static_cast< std::vector< std::string >::size_type >(val2);
   {
     try {
       (arg1)->reserve(arg2);;
@@ -2737,7 +2833,7 @@ fail:
 static SwigV8ReturnValue _wrap_VectorString_isEmpty(const SwigV8Arguments &args) {
   SWIGV8_HANDLESCOPE();
   
-  v8::Handle<v8::Value> jsresult;
+  v8::Local<v8::Value> jsresult;
   std::vector< std::string > *arg1 = (std::vector< std::string > *) 0 ;
   void *argp1 = 0 ;
   int res1 = 0 ;
@@ -2749,7 +2845,7 @@ static SwigV8ReturnValue _wrap_VectorString_isEmpty(const SwigV8Arguments &args)
   if (!SWIG_IsOK(res1)) {
     SWIG_exception_fail(SWIG_ArgError(res1), "in method '" "VectorString_isEmpty" "', argument " "1"" of type '" "std::vector< std::string > const *""'"); 
   }
-  arg1 = (std::vector< std::string > *)(argp1);
+  arg1 = reinterpret_cast< std::vector< std::string > * >(argp1);
   {
     try {
       result = (bool)((std::vector< std::string > const *)arg1)->empty();;
@@ -2761,7 +2857,7 @@ static SwigV8ReturnValue _wrap_VectorString_isEmpty(const SwigV8Arguments &args)
       SWIG_exception(SWIG_ValueError, e.what());
     }
   }
-  jsresult = SWIG_From_bool((bool)(result));
+  jsresult = SWIG_From_bool(static_cast< bool >(result));
   
   
   SWIGV8_RETURN(jsresult);
@@ -2775,7 +2871,7 @@ fail:
 static SwigV8ReturnValue _wrap_VectorString_clear(const SwigV8Arguments &args) {
   SWIGV8_HANDLESCOPE();
   
-  v8::Handle<v8::Value> jsresult;
+  v8::Local<v8::Value> jsresult;
   std::vector< std::string > *arg1 = (std::vector< std::string > *) 0 ;
   void *argp1 = 0 ;
   int res1 = 0 ;
@@ -2786,7 +2882,7 @@ static SwigV8ReturnValue _wrap_VectorString_clear(const SwigV8Arguments &args) {
   if (!SWIG_IsOK(res1)) {
     SWIG_exception_fail(SWIG_ArgError(res1), "in method '" "VectorString_clear" "', argument " "1"" of type '" "std::vector< std::string > *""'"); 
   }
-  arg1 = (std::vector< std::string > *)(argp1);
+  arg1 = reinterpret_cast< std::vector< std::string > * >(argp1);
   {
     try {
       (arg1)->clear();;
@@ -2812,7 +2908,7 @@ fail:
 static SwigV8ReturnValue _wrap_VectorString_add(const SwigV8Arguments &args) {
   SWIGV8_HANDLESCOPE();
   
-  v8::Handle<v8::Value> jsresult;
+  v8::Local<v8::Value> jsresult;
   std::vector< std::string > *arg1 = (std::vector< std::string > *) 0 ;
   std::vector< std::string >::value_type *arg2 = 0 ;
   void *argp1 = 0 ;
@@ -2825,7 +2921,7 @@ static SwigV8ReturnValue _wrap_VectorString_add(const SwigV8Arguments &args) {
   if (!SWIG_IsOK(res1)) {
     SWIG_exception_fail(SWIG_ArgError(res1), "in method '" "VectorString_add" "', argument " "1"" of type '" "std::vector< std::string > *""'"); 
   }
-  arg1 = (std::vector< std::string > *)(argp1);
+  arg1 = reinterpret_cast< std::vector< std::string > * >(argp1);
   {
     std::string *ptr = (std::string *)0;
     res2 = SWIG_AsPtr_std_string(args[0], &ptr);
@@ -2863,7 +2959,7 @@ fail:
 static SwigV8ReturnValue _wrap_VectorString_get(const SwigV8Arguments &args) {
   SWIGV8_HANDLESCOPE();
   
-  v8::Handle<v8::Value> jsresult;
+  v8::Local<v8::Value> jsresult;
   std::vector< std::string > *arg1 = (std::vector< std::string > *) 0 ;
   int arg2 ;
   void *argp1 = 0 ;
@@ -2878,12 +2974,12 @@ static SwigV8ReturnValue _wrap_VectorString_get(const SwigV8Arguments &args) {
   if (!SWIG_IsOK(res1)) {
     SWIG_exception_fail(SWIG_ArgError(res1), "in method '" "VectorString_get" "', argument " "1"" of type '" "std::vector< std::string > *""'"); 
   }
-  arg1 = (std::vector< std::string > *)(argp1);
+  arg1 = reinterpret_cast< std::vector< std::string > * >(argp1);
   ecode2 = SWIG_AsVal_int(args[0], &val2);
   if (!SWIG_IsOK(ecode2)) {
     SWIG_exception_fail(SWIG_ArgError(ecode2), "in method '" "VectorString_get" "', argument " "2"" of type '" "int""'");
   } 
-  arg2 = (int)(val2);
+  arg2 = static_cast< int >(val2);
   {
     try {
       try {
@@ -2899,7 +2995,7 @@ static SwigV8ReturnValue _wrap_VectorString_get(const SwigV8Arguments &args) {
       SWIG_exception(SWIG_ValueError, e.what());
     }
   }
-  jsresult = SWIG_From_std_string((std::string)(*result));
+  jsresult = SWIG_From_std_string(static_cast< std::string >(*result));
   
   
   
@@ -2914,7 +3010,7 @@ fail:
 static SwigV8ReturnValue _wrap_VectorString_set(const SwigV8Arguments &args) {
   SWIGV8_HANDLESCOPE();
   
-  v8::Handle<v8::Value> jsresult;
+  v8::Local<v8::Value> jsresult;
   std::vector< std::string > *arg1 = (std::vector< std::string > *) 0 ;
   int arg2 ;
   std::vector< std::string >::value_type *arg3 = 0 ;
@@ -2930,12 +3026,12 @@ static SwigV8ReturnValue _wrap_VectorString_set(const SwigV8Arguments &args) {
   if (!SWIG_IsOK(res1)) {
     SWIG_exception_fail(SWIG_ArgError(res1), "in method '" "VectorString_set" "', argument " "1"" of type '" "std::vector< std::string > *""'"); 
   }
-  arg1 = (std::vector< std::string > *)(argp1);
+  arg1 = reinterpret_cast< std::vector< std::string > * >(argp1);
   ecode2 = SWIG_AsVal_int(args[0], &val2);
   if (!SWIG_IsOK(ecode2)) {
     SWIG_exception_fail(SWIG_ArgError(ecode2), "in method '" "VectorString_set" "', argument " "2"" of type '" "int""'");
   } 
-  arg2 = (int)(val2);
+  arg2 = static_cast< int >(val2);
   {
     std::string *ptr = (std::string *)0;
     res3 = SWIG_AsPtr_std_string(args[1], &ptr);
@@ -3053,7 +3149,7 @@ static SwigV8ReturnValue _wrap_Match_getValues__SWIG_0(const SwigV8Arguments &ar
 {
   SWIGV8_HANDLESCOPE();
   
-  v8::Handle<v8::Value> jsresult;
+  v8::Local<v8::Value> jsresult;
   Match *arg1 = (Match *) 0 ;
   char *arg2 = (char *) 0 ;
   void *argp1 = 0 ;
@@ -3067,12 +3163,12 @@ static SwigV8ReturnValue _wrap_Match_getValues__SWIG_0(const SwigV8Arguments &ar
   if (!SWIG_IsOK(res1)) {
     SWIG_exception_fail(SWIG_ArgError(res1), "in method '" "Match_getValues" "', argument " "1"" of type '" "Match *""'"); 
   }
-  arg1 = (Match *)(argp1);
+  arg1 = reinterpret_cast< Match * >(argp1);
   res2 = SWIG_AsCharPtrAndSize(args[0], &buf2, NULL, &alloc2);
   if (!SWIG_IsOK(res2)) {
     SWIG_exception_fail(SWIG_ArgError(res2), "in method '" "Match_getValues" "', argument " "2"" of type '" "char const *""'");
   }
-  arg2 = (char *)(buf2);
+  arg2 = reinterpret_cast< char * >(buf2);
   {
     try {
       result = (arg1)->getValues((char const *)arg2);;
@@ -3084,7 +3180,7 @@ static SwigV8ReturnValue _wrap_Match_getValues__SWIG_0(const SwigV8Arguments &ar
       SWIG_exception(SWIG_ValueError, e.what());
     }
   }
-  jsresult = SWIG_NewPointerObj((new std::vector< std::string >((const std::vector< std::string >&)(result))), SWIGTYPE_p_std__vectorT_std__string_t, SWIG_POINTER_OWN |  0 );
+  jsresult = SWIG_NewPointerObj((new std::vector< std::string >(static_cast< const std::vector< std::string >& >(result))), SWIGTYPE_p_std__vectorT_std__string_t, SWIG_POINTER_OWN |  0 );
   
   if (alloc2 == SWIG_NEWOBJ) delete[] buf2;
   
@@ -3100,7 +3196,7 @@ static SwigV8ReturnValue _wrap_Match_getValues__SWIG_1(const SwigV8Arguments &ar
 {
   SWIGV8_HANDLESCOPE();
   
-  v8::Handle<v8::Value> jsresult;
+  v8::Local<v8::Value> jsresult;
   Match *arg1 = (Match *) 0 ;
   std::string *arg2 = 0 ;
   void *argp1 = 0 ;
@@ -3113,7 +3209,7 @@ static SwigV8ReturnValue _wrap_Match_getValues__SWIG_1(const SwigV8Arguments &ar
   if (!SWIG_IsOK(res1)) {
     SWIG_exception_fail(SWIG_ArgError(res1), "in method '" "Match_getValues" "', argument " "1"" of type '" "Match *""'"); 
   }
-  arg1 = (Match *)(argp1);
+  arg1 = reinterpret_cast< Match * >(argp1);
   res2 = SWIG_ConvertPtr(args[0], &argp2, SWIGTYPE_p_std__string,  0 );
   if (!SWIG_IsOK(res2)) {
     SWIG_exception_fail(SWIG_ArgError(res2), "in method '" "Match_getValues" "', argument " "2"" of type '" "std::string &""'"); 
@@ -3121,7 +3217,7 @@ static SwigV8ReturnValue _wrap_Match_getValues__SWIG_1(const SwigV8Arguments &ar
   if (!argp2) {
     SWIG_exception_fail(SWIG_ValueError, "invalid null reference " "in method '" "Match_getValues" "', argument " "2"" of type '" "std::string &""'"); 
   }
-  arg2 = (std::string *)(argp2);
+  arg2 = reinterpret_cast< std::string * >(argp2);
   {
     try {
       result = (arg1)->getValues(*arg2);;
@@ -3133,7 +3229,7 @@ static SwigV8ReturnValue _wrap_Match_getValues__SWIG_1(const SwigV8Arguments &ar
       SWIG_exception(SWIG_ValueError, e.what());
     }
   }
-  jsresult = SWIG_NewPointerObj((new std::vector< std::string >((const std::vector< std::string >&)(result))), SWIGTYPE_p_std__vectorT_std__string_t, SWIG_POINTER_OWN |  0 );
+  jsresult = SWIG_NewPointerObj((new std::vector< std::string >(static_cast< const std::vector< std::string >& >(result))), SWIGTYPE_p_std__vectorT_std__string_t, SWIG_POINTER_OWN |  0 );
   
   
   
@@ -3149,7 +3245,7 @@ static SwigV8ReturnValue _wrap_Match_getValues__SWIG_2(const SwigV8Arguments &ar
 {
   SWIGV8_HANDLESCOPE();
   
-  v8::Handle<v8::Value> jsresult;
+  v8::Local<v8::Value> jsresult;
   Match *arg1 = (Match *) 0 ;
   int arg2 ;
   void *argp1 = 0 ;
@@ -3162,12 +3258,12 @@ static SwigV8ReturnValue _wrap_Match_getValues__SWIG_2(const SwigV8Arguments &ar
   if (!SWIG_IsOK(res1)) {
     SWIG_exception_fail(SWIG_ArgError(res1), "in method '" "Match_getValues" "', argument " "1"" of type '" "Match *""'"); 
   }
-  arg1 = (Match *)(argp1);
+  arg1 = reinterpret_cast< Match * >(argp1);
   ecode2 = SWIG_AsVal_int(args[0], &val2);
   if (!SWIG_IsOK(ecode2)) {
     SWIG_exception_fail(SWIG_ArgError(ecode2), "in method '" "Match_getValues" "', argument " "2"" of type '" "int""'");
   } 
-  arg2 = (int)(val2);
+  arg2 = static_cast< int >(val2);
   {
     try {
       result = (arg1)->getValues(arg2);;
@@ -3179,7 +3275,7 @@ static SwigV8ReturnValue _wrap_Match_getValues__SWIG_2(const SwigV8Arguments &ar
       SWIG_exception(SWIG_ValueError, e.what());
     }
   }
-  jsresult = SWIG_NewPointerObj((new std::vector< std::string >((const std::vector< std::string >&)(result))), SWIGTYPE_p_std__vectorT_std__string_t, SWIG_POINTER_OWN |  0 );
+  jsresult = SWIG_NewPointerObj((new std::vector< std::string >(static_cast< const std::vector< std::string >& >(result))), SWIGTYPE_p_std__vectorT_std__string_t, SWIG_POINTER_OWN |  0 );
   
   
   
@@ -3194,7 +3290,7 @@ fail:
 static SwigV8ReturnValue _wrap_Match__wrap_Match_getValues(const SwigV8Arguments &args) {
   SWIGV8_HANDLESCOPE();
   
-  v8::Handle<v8::Value> jsresult;
+  v8::Local<v8::Value> jsresult;
   OverloadErrorHandler errorHandler;
   
   
@@ -3258,7 +3354,7 @@ static SwigV8ReturnValue _wrap_Match_getValue__SWIG_0(const SwigV8Arguments &arg
 {
   SWIGV8_HANDLESCOPE();
   
-  v8::Handle<v8::Value> jsresult;
+  v8::Local<v8::Value> jsresult;
   Match *arg1 = (Match *) 0 ;
   char *arg2 = (char *) 0 ;
   void *argp1 = 0 ;
@@ -3272,12 +3368,12 @@ static SwigV8ReturnValue _wrap_Match_getValue__SWIG_0(const SwigV8Arguments &arg
   if (!SWIG_IsOK(res1)) {
     SWIG_exception_fail(SWIG_ArgError(res1), "in method '" "Match_getValue" "', argument " "1"" of type '" "Match *""'"); 
   }
-  arg1 = (Match *)(argp1);
+  arg1 = reinterpret_cast< Match * >(argp1);
   res2 = SWIG_AsCharPtrAndSize(args[0], &buf2, NULL, &alloc2);
   if (!SWIG_IsOK(res2)) {
     SWIG_exception_fail(SWIG_ArgError(res2), "in method '" "Match_getValue" "', argument " "2"" of type '" "char const *""'");
   }
-  arg2 = (char *)(buf2);
+  arg2 = reinterpret_cast< char * >(buf2);
   {
     try {
       result = (arg1)->getValue((char const *)arg2);;
@@ -3289,7 +3385,7 @@ static SwigV8ReturnValue _wrap_Match_getValue__SWIG_0(const SwigV8Arguments &arg
       SWIG_exception(SWIG_ValueError, e.what());
     }
   }
-  jsresult = SWIG_From_std_string((std::string)(result));
+  jsresult = SWIG_From_std_string(static_cast< std::string >(result));
   
   if (alloc2 == SWIG_NEWOBJ) delete[] buf2;
   
@@ -3305,7 +3401,7 @@ static SwigV8ReturnValue _wrap_Match_getValue__SWIG_1(const SwigV8Arguments &arg
 {
   SWIGV8_HANDLESCOPE();
   
-  v8::Handle<v8::Value> jsresult;
+  v8::Local<v8::Value> jsresult;
   Match *arg1 = (Match *) 0 ;
   std::string *arg2 = 0 ;
   void *argp1 = 0 ;
@@ -3318,7 +3414,7 @@ static SwigV8ReturnValue _wrap_Match_getValue__SWIG_1(const SwigV8Arguments &arg
   if (!SWIG_IsOK(res1)) {
     SWIG_exception_fail(SWIG_ArgError(res1), "in method '" "Match_getValue" "', argument " "1"" of type '" "Match *""'"); 
   }
-  arg1 = (Match *)(argp1);
+  arg1 = reinterpret_cast< Match * >(argp1);
   res2 = SWIG_ConvertPtr(args[0], &argp2, SWIGTYPE_p_std__string,  0 );
   if (!SWIG_IsOK(res2)) {
     SWIG_exception_fail(SWIG_ArgError(res2), "in method '" "Match_getValue" "', argument " "2"" of type '" "std::string &""'"); 
@@ -3326,7 +3422,7 @@ static SwigV8ReturnValue _wrap_Match_getValue__SWIG_1(const SwigV8Arguments &arg
   if (!argp2) {
     SWIG_exception_fail(SWIG_ValueError, "invalid null reference " "in method '" "Match_getValue" "', argument " "2"" of type '" "std::string &""'"); 
   }
-  arg2 = (std::string *)(argp2);
+  arg2 = reinterpret_cast< std::string * >(argp2);
   {
     try {
       result = (arg1)->getValue(*arg2);;
@@ -3338,7 +3434,7 @@ static SwigV8ReturnValue _wrap_Match_getValue__SWIG_1(const SwigV8Arguments &arg
       SWIG_exception(SWIG_ValueError, e.what());
     }
   }
-  jsresult = SWIG_From_std_string((std::string)(result));
+  jsresult = SWIG_From_std_string(static_cast< std::string >(result));
   
   
   
@@ -3354,7 +3450,7 @@ static SwigV8ReturnValue _wrap_Match_getValue__SWIG_2(const SwigV8Arguments &arg
 {
   SWIGV8_HANDLESCOPE();
   
-  v8::Handle<v8::Value> jsresult;
+  v8::Local<v8::Value> jsresult;
   Match *arg1 = (Match *) 0 ;
   int arg2 ;
   void *argp1 = 0 ;
@@ -3367,12 +3463,12 @@ static SwigV8ReturnValue _wrap_Match_getValue__SWIG_2(const SwigV8Arguments &arg
   if (!SWIG_IsOK(res1)) {
     SWIG_exception_fail(SWIG_ArgError(res1), "in method '" "Match_getValue" "', argument " "1"" of type '" "Match *""'"); 
   }
-  arg1 = (Match *)(argp1);
+  arg1 = reinterpret_cast< Match * >(argp1);
   ecode2 = SWIG_AsVal_int(args[0], &val2);
   if (!SWIG_IsOK(ecode2)) {
     SWIG_exception_fail(SWIG_ArgError(ecode2), "in method '" "Match_getValue" "', argument " "2"" of type '" "int""'");
   } 
-  arg2 = (int)(val2);
+  arg2 = static_cast< int >(val2);
   {
     try {
       result = (arg1)->getValue(arg2);;
@@ -3384,7 +3480,7 @@ static SwigV8ReturnValue _wrap_Match_getValue__SWIG_2(const SwigV8Arguments &arg
       SWIG_exception(SWIG_ValueError, e.what());
     }
   }
-  jsresult = SWIG_From_std_string((std::string)(result));
+  jsresult = SWIG_From_std_string(static_cast< std::string >(result));
   
   
   
@@ -3399,7 +3495,7 @@ fail:
 static SwigV8ReturnValue _wrap_Match__wrap_Match_getValue(const SwigV8Arguments &args) {
   SWIGV8_HANDLESCOPE();
   
-  v8::Handle<v8::Value> jsresult;
+  v8::Local<v8::Value> jsresult;
   OverloadErrorHandler errorHandler;
   
   
@@ -3462,7 +3558,7 @@ fail:
 static SwigV8ReturnValue _wrap_Match_getDeviceId(const SwigV8Arguments &args) {
   SWIGV8_HANDLESCOPE();
   
-  v8::Handle<v8::Value> jsresult;
+  v8::Local<v8::Value> jsresult;
   Match *arg1 = (Match *) 0 ;
   void *argp1 = 0 ;
   int res1 = 0 ;
@@ -3474,7 +3570,7 @@ static SwigV8ReturnValue _wrap_Match_getDeviceId(const SwigV8Arguments &args) {
   if (!SWIG_IsOK(res1)) {
     SWIG_exception_fail(SWIG_ArgError(res1), "in method '" "Match_getDeviceId" "', argument " "1"" of type '" "Match *""'"); 
   }
-  arg1 = (Match *)(argp1);
+  arg1 = reinterpret_cast< Match * >(argp1);
   {
     try {
       result = (arg1)->getDeviceId();;
@@ -3486,7 +3582,7 @@ static SwigV8ReturnValue _wrap_Match_getDeviceId(const SwigV8Arguments &args) {
       SWIG_exception(SWIG_ValueError, e.what());
     }
   }
-  jsresult = SWIG_From_std_string((std::string)(result));
+  jsresult = SWIG_From_std_string(static_cast< std::string >(result));
   
   
   SWIGV8_RETURN(jsresult);
@@ -3500,7 +3596,7 @@ fail:
 static SwigV8ReturnValue _wrap_Match_getRank(const SwigV8Arguments &args) {
   SWIGV8_HANDLESCOPE();
   
-  v8::Handle<v8::Value> jsresult;
+  v8::Local<v8::Value> jsresult;
   Match *arg1 = (Match *) 0 ;
   void *argp1 = 0 ;
   int res1 = 0 ;
@@ -3512,7 +3608,7 @@ static SwigV8ReturnValue _wrap_Match_getRank(const SwigV8Arguments &args) {
   if (!SWIG_IsOK(res1)) {
     SWIG_exception_fail(SWIG_ArgError(res1), "in method '" "Match_getRank" "', argument " "1"" of type '" "Match *""'"); 
   }
-  arg1 = (Match *)(argp1);
+  arg1 = reinterpret_cast< Match * >(argp1);
   {
     try {
       result = (int)(arg1)->getRank();;
@@ -3524,7 +3620,7 @@ static SwigV8ReturnValue _wrap_Match_getRank(const SwigV8Arguments &args) {
       SWIG_exception(SWIG_ValueError, e.what());
     }
   }
-  jsresult = SWIG_From_int((int)(result));
+  jsresult = SWIG_From_int(static_cast< int >(result));
   
   
   SWIGV8_RETURN(jsresult);
@@ -3538,7 +3634,7 @@ fail:
 static SwigV8ReturnValue _wrap_Match_getDifference(const SwigV8Arguments &args) {
   SWIGV8_HANDLESCOPE();
   
-  v8::Handle<v8::Value> jsresult;
+  v8::Local<v8::Value> jsresult;
   Match *arg1 = (Match *) 0 ;
   void *argp1 = 0 ;
   int res1 = 0 ;
@@ -3550,7 +3646,7 @@ static SwigV8ReturnValue _wrap_Match_getDifference(const SwigV8Arguments &args) 
   if (!SWIG_IsOK(res1)) {
     SWIG_exception_fail(SWIG_ArgError(res1), "in method '" "Match_getDifference" "', argument " "1"" of type '" "Match *""'"); 
   }
-  arg1 = (Match *)(argp1);
+  arg1 = reinterpret_cast< Match * >(argp1);
   {
     try {
       result = (int)(arg1)->getDifference();;
@@ -3562,7 +3658,7 @@ static SwigV8ReturnValue _wrap_Match_getDifference(const SwigV8Arguments &args) 
       SWIG_exception(SWIG_ValueError, e.what());
     }
   }
-  jsresult = SWIG_From_int((int)(result));
+  jsresult = SWIG_From_int(static_cast< int >(result));
   
   
   SWIGV8_RETURN(jsresult);
@@ -3576,7 +3672,7 @@ fail:
 static SwigV8ReturnValue _wrap_Match_getMethod(const SwigV8Arguments &args) {
   SWIGV8_HANDLESCOPE();
   
-  v8::Handle<v8::Value> jsresult;
+  v8::Local<v8::Value> jsresult;
   Match *arg1 = (Match *) 0 ;
   void *argp1 = 0 ;
   int res1 = 0 ;
@@ -3588,7 +3684,7 @@ static SwigV8ReturnValue _wrap_Match_getMethod(const SwigV8Arguments &args) {
   if (!SWIG_IsOK(res1)) {
     SWIG_exception_fail(SWIG_ArgError(res1), "in method '" "Match_getMethod" "', argument " "1"" of type '" "Match *""'"); 
   }
-  arg1 = (Match *)(argp1);
+  arg1 = reinterpret_cast< Match * >(argp1);
   {
     try {
       result = (int)(arg1)->getMethod();;
@@ -3600,7 +3696,7 @@ static SwigV8ReturnValue _wrap_Match_getMethod(const SwigV8Arguments &args) {
       SWIG_exception(SWIG_ValueError, e.what());
     }
   }
-  jsresult = SWIG_From_int((int)(result));
+  jsresult = SWIG_From_int(static_cast< int >(result));
   
   
   SWIGV8_RETURN(jsresult);
@@ -3614,7 +3710,7 @@ fail:
 static SwigV8ReturnValue _wrap_Match_getUserAgent(const SwigV8Arguments &args) {
   SWIGV8_HANDLESCOPE();
   
-  v8::Handle<v8::Value> jsresult;
+  v8::Local<v8::Value> jsresult;
   Match *arg1 = (Match *) 0 ;
   void *argp1 = 0 ;
   int res1 = 0 ;
@@ -3626,7 +3722,7 @@ static SwigV8ReturnValue _wrap_Match_getUserAgent(const SwigV8Arguments &args) {
   if (!SWIG_IsOK(res1)) {
     SWIG_exception_fail(SWIG_ArgError(res1), "in method '" "Match_getUserAgent" "', argument " "1"" of type '" "Match *""'"); 
   }
-  arg1 = (Match *)(argp1);
+  arg1 = reinterpret_cast< Match * >(argp1);
   {
     try {
       result = (arg1)->getUserAgent();;
@@ -3638,7 +3734,7 @@ static SwigV8ReturnValue _wrap_Match_getUserAgent(const SwigV8Arguments &args) {
       SWIG_exception(SWIG_ValueError, e.what());
     }
   }
-  jsresult = SWIG_From_std_string((std::string)(result));
+  jsresult = SWIG_From_std_string(static_cast< std::string >(result));
   
   
   SWIGV8_RETURN(jsresult);
@@ -3652,7 +3748,7 @@ fail:
 static SwigV8ReturnValue _wrap_Match_close(const SwigV8Arguments &args) {
   SWIGV8_HANDLESCOPE();
   
-  v8::Handle<v8::Value> jsresult;
+  v8::Local<v8::Value> jsresult;
   Match *arg1 = (Match *) 0 ;
   void *argp1 = 0 ;
   int res1 = 0 ;
@@ -3663,7 +3759,7 @@ static SwigV8ReturnValue _wrap_Match_close(const SwigV8Arguments &args) {
   if (!SWIG_IsOK(res1)) {
     SWIG_exception_fail(SWIG_ArgError(res1), "in method '" "Match_close" "', argument " "1"" of type '" "Match *""'"); 
   }
-  arg1 = (Match *)(argp1);
+  arg1 = reinterpret_cast< Match * >(argp1);
   {
     try {
       (arg1)->close();;
@@ -3735,7 +3831,7 @@ static void _wrap_delete_Profiles(v8::Persistent<v8::Value> object, void *parame
 static SwigV8ReturnValue _wrap_new_Profiles(const SwigV8Arguments &args) {
   SWIGV8_HANDLESCOPE();
   
-  v8::Handle<v8::Object> self = args.Holder();
+  v8::Local<v8::Object> self = args.Holder();
   Profiles *result;
   if(args.Length() != 0) SWIG_exception_fail(SWIG_ERROR, "Illegal number of arguments for _wrap_new_Profiles.");
   {
@@ -3764,7 +3860,7 @@ fail:
 static SwigV8ReturnValue _wrap_Profiles_getCount(const SwigV8Arguments &args) {
   SWIGV8_HANDLESCOPE();
   
-  v8::Handle<v8::Value> jsresult;
+  v8::Local<v8::Value> jsresult;
   Profiles *arg1 = (Profiles *) 0 ;
   void *argp1 = 0 ;
   int res1 = 0 ;
@@ -3776,7 +3872,7 @@ static SwigV8ReturnValue _wrap_Profiles_getCount(const SwigV8Arguments &args) {
   if (!SWIG_IsOK(res1)) {
     SWIG_exception_fail(SWIG_ArgError(res1), "in method '" "Profiles_getCount" "', argument " "1"" of type '" "Profiles *""'"); 
   }
-  arg1 = (Profiles *)(argp1);
+  arg1 = reinterpret_cast< Profiles * >(argp1);
   {
     try {
       result = (int)(arg1)->getCount();;
@@ -3788,7 +3884,7 @@ static SwigV8ReturnValue _wrap_Profiles_getCount(const SwigV8Arguments &args) {
       SWIG_exception(SWIG_ValueError, e.what());
     }
   }
-  jsresult = SWIG_From_int((int)(result));
+  jsresult = SWIG_From_int(static_cast< int >(result));
   
   
   SWIGV8_RETURN(jsresult);
@@ -3802,7 +3898,7 @@ fail:
 static SwigV8ReturnValue _wrap_Profiles_getProfileIndex(const SwigV8Arguments &args) {
   SWIGV8_HANDLESCOPE();
   
-  v8::Handle<v8::Value> jsresult;
+  v8::Local<v8::Value> jsresult;
   Profiles *arg1 = (Profiles *) 0 ;
   int arg2 ;
   void *argp1 = 0 ;
@@ -3817,12 +3913,12 @@ static SwigV8ReturnValue _wrap_Profiles_getProfileIndex(const SwigV8Arguments &a
   if (!SWIG_IsOK(res1)) {
     SWIG_exception_fail(SWIG_ArgError(res1), "in method '" "Profiles_getProfileIndex" "', argument " "1"" of type '" "Profiles *""'"); 
   }
-  arg1 = (Profiles *)(argp1);
+  arg1 = reinterpret_cast< Profiles * >(argp1);
   ecode2 = SWIG_AsVal_int(args[0], &val2);
   if (!SWIG_IsOK(ecode2)) {
     SWIG_exception_fail(SWIG_ArgError(ecode2), "in method '" "Profiles_getProfileIndex" "', argument " "2"" of type '" "int""'");
   } 
-  arg2 = (int)(val2);
+  arg2 = static_cast< int >(val2);
   {
     try {
       result = (int)(arg1)->getProfileIndex(arg2);;
@@ -3834,7 +3930,7 @@ static SwigV8ReturnValue _wrap_Profiles_getProfileIndex(const SwigV8Arguments &a
       SWIG_exception(SWIG_ValueError, e.what());
     }
   }
-  jsresult = SWIG_From_int((int)(result));
+  jsresult = SWIG_From_int(static_cast< int >(result));
   
   
   
@@ -3849,7 +3945,7 @@ fail:
 static SwigV8ReturnValue _wrap_Profiles_getProfileId(const SwigV8Arguments &args) {
   SWIGV8_HANDLESCOPE();
   
-  v8::Handle<v8::Value> jsresult;
+  v8::Local<v8::Value> jsresult;
   Profiles *arg1 = (Profiles *) 0 ;
   int arg2 ;
   void *argp1 = 0 ;
@@ -3864,12 +3960,12 @@ static SwigV8ReturnValue _wrap_Profiles_getProfileId(const SwigV8Arguments &args
   if (!SWIG_IsOK(res1)) {
     SWIG_exception_fail(SWIG_ArgError(res1), "in method '" "Profiles_getProfileId" "', argument " "1"" of type '" "Profiles *""'"); 
   }
-  arg1 = (Profiles *)(argp1);
+  arg1 = reinterpret_cast< Profiles * >(argp1);
   ecode2 = SWIG_AsVal_int(args[0], &val2);
   if (!SWIG_IsOK(ecode2)) {
     SWIG_exception_fail(SWIG_ArgError(ecode2), "in method '" "Profiles_getProfileId" "', argument " "2"" of type '" "int""'");
   } 
-  arg2 = (int)(val2);
+  arg2 = static_cast< int >(val2);
   {
     try {
       result = (int)(arg1)->getProfileId(arg2);;
@@ -3881,7 +3977,7 @@ static SwigV8ReturnValue _wrap_Profiles_getProfileId(const SwigV8Arguments &args
       SWIG_exception(SWIG_ValueError, e.what());
     }
   }
-  jsresult = SWIG_From_int((int)(result));
+  jsresult = SWIG_From_int(static_cast< int >(result));
   
   
   
@@ -3896,7 +3992,7 @@ fail:
 static SwigV8ReturnValue _wrap_new_Provider__SWIG_0(const SwigV8Arguments &args, V8ErrorHandler &SWIGV8_ErrorHandler) {
   SWIGV8_HANDLESCOPE();
   
-  v8::Handle<v8::Object> self = args.Holder();
+  v8::Local<v8::Object> self = args.Holder();
   std::string *arg1 = 0 ;
   int res1 = SWIG_OLDOBJ ;
   Provider *result;
@@ -3939,7 +4035,7 @@ fail:
 static SwigV8ReturnValue _wrap_new_Provider__SWIG_1(const SwigV8Arguments &args, V8ErrorHandler &SWIGV8_ErrorHandler) {
   SWIGV8_HANDLESCOPE();
   
-  v8::Handle<v8::Object> self = args.Holder();
+  v8::Local<v8::Object> self = args.Holder();
   std::string *arg1 = 0 ;
   std::string *arg2 = 0 ;
   int res1 = SWIG_OLDOBJ ;
@@ -3996,7 +4092,7 @@ fail:
 static SwigV8ReturnValue _wrap_new_Provider__SWIG_2(const SwigV8Arguments &args, V8ErrorHandler &SWIGV8_ErrorHandler) {
   SWIGV8_HANDLESCOPE();
   
-  v8::Handle<v8::Object> self = args.Holder();
+  v8::Local<v8::Object> self = args.Holder();
   std::string *arg1 = 0 ;
   std::string *arg2 = 0 ;
   int arg3 ;
@@ -4035,12 +4131,12 @@ static SwigV8ReturnValue _wrap_new_Provider__SWIG_2(const SwigV8Arguments &args,
   if (!SWIG_IsOK(ecode3)) {
     SWIG_exception_fail(SWIG_ArgError(ecode3), "in method '" "new_Provider" "', argument " "3"" of type '" "int""'");
   } 
-  arg3 = (int)(val3);
+  arg3 = static_cast< int >(val3);
   ecode4 = SWIG_AsVal_int(args[3], &val4);
   if (!SWIG_IsOK(ecode4)) {
     SWIG_exception_fail(SWIG_ArgError(ecode4), "in method '" "new_Provider" "', argument " "4"" of type '" "int""'");
   } 
-  arg4 = (int)(val4);
+  arg4 = static_cast< int >(val4);
   {
     try {
       result = (Provider *)new Provider((std::string const &)*arg1,(std::string const &)*arg2,arg3,arg4);;
@@ -4071,7 +4167,7 @@ fail:
 static SwigV8ReturnValue _wrap_new_Provider__SWIG_3(const SwigV8Arguments &args, V8ErrorHandler &SWIGV8_ErrorHandler) {
   SWIGV8_HANDLESCOPE();
   
-  v8::Handle<v8::Object> self = args.Holder();
+  v8::Local<v8::Object> self = args.Holder();
   std::string *arg1 = 0 ;
   std::vector< std::string > *arg2 = 0 ;
   int res1 = SWIG_OLDOBJ ;
@@ -4097,7 +4193,7 @@ static SwigV8ReturnValue _wrap_new_Provider__SWIG_3(const SwigV8Arguments &args,
   if (!argp2) {
     SWIG_exception_fail(SWIG_ValueError, "invalid null reference " "in method '" "new_Provider" "', argument " "2"" of type '" "std::vector< std::string > &""'"); 
   }
-  arg2 = (std::vector< std::string > *)(argp2);
+  arg2 = reinterpret_cast< std::vector< std::string > * >(argp2);
   {
     try {
       result = (Provider *)new Provider((std::string const &)*arg1,*arg2);;
@@ -4126,7 +4222,7 @@ fail:
 static SwigV8ReturnValue _wrap_new_Provider__SWIG_4(const SwigV8Arguments &args, V8ErrorHandler &SWIGV8_ErrorHandler) {
   SWIGV8_HANDLESCOPE();
   
-  v8::Handle<v8::Object> self = args.Holder();
+  v8::Local<v8::Object> self = args.Holder();
   std::string *arg1 = 0 ;
   std::vector< std::string > *arg2 = 0 ;
   int arg3 ;
@@ -4158,17 +4254,17 @@ static SwigV8ReturnValue _wrap_new_Provider__SWIG_4(const SwigV8Arguments &args,
   if (!argp2) {
     SWIG_exception_fail(SWIG_ValueError, "invalid null reference " "in method '" "new_Provider" "', argument " "2"" of type '" "std::vector< std::string > &""'"); 
   }
-  arg2 = (std::vector< std::string > *)(argp2);
+  arg2 = reinterpret_cast< std::vector< std::string > * >(argp2);
   ecode3 = SWIG_AsVal_int(args[2], &val3);
   if (!SWIG_IsOK(ecode3)) {
     SWIG_exception_fail(SWIG_ArgError(ecode3), "in method '" "new_Provider" "', argument " "3"" of type '" "int""'");
   } 
-  arg3 = (int)(val3);
+  arg3 = static_cast< int >(val3);
   ecode4 = SWIG_AsVal_int(args[3], &val4);
   if (!SWIG_IsOK(ecode4)) {
     SWIG_exception_fail(SWIG_ArgError(ecode4), "in method '" "new_Provider" "', argument " "4"" of type '" "int""'");
   } 
-  arg4 = (int)(val4);
+  arg4 = static_cast< int >(val4);
   {
     try {
       result = (Provider *)new Provider((std::string const &)*arg1,*arg2,arg3,arg4);;
@@ -4199,7 +4295,7 @@ fail:
 static SwigV8ReturnValue _wrap_new_Provider__SWIG_5(const SwigV8Arguments &args, V8ErrorHandler &SWIGV8_ErrorHandler) {
   SWIGV8_HANDLESCOPE();
   
-  v8::Handle<v8::Object> self = args.Holder();
+  v8::Local<v8::Object> self = args.Holder();
   std::string *arg1 = 0 ;
   int arg2 ;
   int arg3 ;
@@ -4225,12 +4321,12 @@ static SwigV8ReturnValue _wrap_new_Provider__SWIG_5(const SwigV8Arguments &args,
   if (!SWIG_IsOK(ecode2)) {
     SWIG_exception_fail(SWIG_ArgError(ecode2), "in method '" "new_Provider" "', argument " "2"" of type '" "int""'");
   } 
-  arg2 = (int)(val2);
+  arg2 = static_cast< int >(val2);
   ecode3 = SWIG_AsVal_int(args[2], &val3);
   if (!SWIG_IsOK(ecode3)) {
     SWIG_exception_fail(SWIG_ArgError(ecode3), "in method '" "new_Provider" "', argument " "3"" of type '" "int""'");
   } 
-  arg3 = (int)(val3);
+  arg3 = static_cast< int >(val3);
   {
     try {
       result = (Provider *)new Provider((std::string const &)*arg1,arg2,arg3);;
@@ -4297,7 +4393,7 @@ static void _wrap_delete_Provider(v8::Persistent<v8::Value> object, void *parame
 static SwigV8ReturnValue _wrap_Provider_getHttpHeaders(const SwigV8Arguments &args) {
   SWIGV8_HANDLESCOPE();
   
-  v8::Handle<v8::Value> jsresult;
+  v8::Local<v8::Value> jsresult;
   Provider *arg1 = (Provider *) 0 ;
   void *argp1 = 0 ;
   int res1 = 0 ;
@@ -4309,7 +4405,7 @@ static SwigV8ReturnValue _wrap_Provider_getHttpHeaders(const SwigV8Arguments &ar
   if (!SWIG_IsOK(res1)) {
     SWIG_exception_fail(SWIG_ArgError(res1), "in method '" "Provider_getHttpHeaders" "', argument " "1"" of type '" "Provider *""'"); 
   }
-  arg1 = (Provider *)(argp1);
+  arg1 = reinterpret_cast< Provider * >(argp1);
   {
     try {
       result = (arg1)->getHttpHeaders();;
@@ -4321,7 +4417,7 @@ static SwigV8ReturnValue _wrap_Provider_getHttpHeaders(const SwigV8Arguments &ar
       SWIG_exception(SWIG_ValueError, e.what());
     }
   }
-  jsresult = SWIG_NewPointerObj((new std::vector< std::string >((const std::vector< std::string >&)(result))), SWIGTYPE_p_std__vectorT_std__string_t, SWIG_POINTER_OWN |  0 );
+  jsresult = SWIG_NewPointerObj((new std::vector< std::string >(static_cast< const std::vector< std::string >& >(result))), SWIGTYPE_p_std__vectorT_std__string_t, SWIG_POINTER_OWN |  0 );
   
   
   SWIGV8_RETURN(jsresult);
@@ -4335,7 +4431,7 @@ fail:
 static SwigV8ReturnValue _wrap_Provider_getAvailableProperties(const SwigV8Arguments &args) {
   SWIGV8_HANDLESCOPE();
   
-  v8::Handle<v8::Value> jsresult;
+  v8::Local<v8::Value> jsresult;
   Provider *arg1 = (Provider *) 0 ;
   void *argp1 = 0 ;
   int res1 = 0 ;
@@ -4347,7 +4443,7 @@ static SwigV8ReturnValue _wrap_Provider_getAvailableProperties(const SwigV8Argum
   if (!SWIG_IsOK(res1)) {
     SWIG_exception_fail(SWIG_ArgError(res1), "in method '" "Provider_getAvailableProperties" "', argument " "1"" of type '" "Provider *""'"); 
   }
-  arg1 = (Provider *)(argp1);
+  arg1 = reinterpret_cast< Provider * >(argp1);
   {
     try {
       result = (arg1)->getAvailableProperties();;
@@ -4359,7 +4455,7 @@ static SwigV8ReturnValue _wrap_Provider_getAvailableProperties(const SwigV8Argum
       SWIG_exception(SWIG_ValueError, e.what());
     }
   }
-  jsresult = SWIG_NewPointerObj((new std::vector< std::string >((const std::vector< std::string >&)(result))), SWIGTYPE_p_std__vectorT_std__string_t, SWIG_POINTER_OWN |  0 );
+  jsresult = SWIG_NewPointerObj((new std::vector< std::string >(static_cast< const std::vector< std::string >& >(result))), SWIGTYPE_p_std__vectorT_std__string_t, SWIG_POINTER_OWN |  0 );
   
   
   SWIGV8_RETURN(jsresult);
@@ -4373,7 +4469,7 @@ fail:
 static SwigV8ReturnValue _wrap_Provider_getDataSetName(const SwigV8Arguments &args) {
   SWIGV8_HANDLESCOPE();
   
-  v8::Handle<v8::Value> jsresult;
+  v8::Local<v8::Value> jsresult;
   Provider *arg1 = (Provider *) 0 ;
   void *argp1 = 0 ;
   int res1 = 0 ;
@@ -4385,7 +4481,7 @@ static SwigV8ReturnValue _wrap_Provider_getDataSetName(const SwigV8Arguments &ar
   if (!SWIG_IsOK(res1)) {
     SWIG_exception_fail(SWIG_ArgError(res1), "in method '" "Provider_getDataSetName" "', argument " "1"" of type '" "Provider *""'"); 
   }
-  arg1 = (Provider *)(argp1);
+  arg1 = reinterpret_cast< Provider * >(argp1);
   {
     try {
       result = (arg1)->getDataSetName();;
@@ -4397,7 +4493,7 @@ static SwigV8ReturnValue _wrap_Provider_getDataSetName(const SwigV8Arguments &ar
       SWIG_exception(SWIG_ValueError, e.what());
     }
   }
-  jsresult = SWIG_From_std_string((std::string)(result));
+  jsresult = SWIG_From_std_string(static_cast< std::string >(result));
   
   
   SWIGV8_RETURN(jsresult);
@@ -4411,7 +4507,7 @@ fail:
 static SwigV8ReturnValue _wrap_Provider_getDataSetFormat(const SwigV8Arguments &args) {
   SWIGV8_HANDLESCOPE();
   
-  v8::Handle<v8::Value> jsresult;
+  v8::Local<v8::Value> jsresult;
   Provider *arg1 = (Provider *) 0 ;
   void *argp1 = 0 ;
   int res1 = 0 ;
@@ -4423,7 +4519,7 @@ static SwigV8ReturnValue _wrap_Provider_getDataSetFormat(const SwigV8Arguments &
   if (!SWIG_IsOK(res1)) {
     SWIG_exception_fail(SWIG_ArgError(res1), "in method '" "Provider_getDataSetFormat" "', argument " "1"" of type '" "Provider *""'"); 
   }
-  arg1 = (Provider *)(argp1);
+  arg1 = reinterpret_cast< Provider * >(argp1);
   {
     try {
       result = (arg1)->getDataSetFormat();;
@@ -4435,7 +4531,7 @@ static SwigV8ReturnValue _wrap_Provider_getDataSetFormat(const SwigV8Arguments &
       SWIG_exception(SWIG_ValueError, e.what());
     }
   }
-  jsresult = SWIG_From_std_string((std::string)(result));
+  jsresult = SWIG_From_std_string(static_cast< std::string >(result));
   
   
   SWIGV8_RETURN(jsresult);
@@ -4449,7 +4545,7 @@ fail:
 static SwigV8ReturnValue _wrap_Provider_getDataSetPublishedDate(const SwigV8Arguments &args) {
   SWIGV8_HANDLESCOPE();
   
-  v8::Handle<v8::Value> jsresult;
+  v8::Local<v8::Value> jsresult;
   Provider *arg1 = (Provider *) 0 ;
   void *argp1 = 0 ;
   int res1 = 0 ;
@@ -4461,7 +4557,7 @@ static SwigV8ReturnValue _wrap_Provider_getDataSetPublishedDate(const SwigV8Argu
   if (!SWIG_IsOK(res1)) {
     SWIG_exception_fail(SWIG_ArgError(res1), "in method '" "Provider_getDataSetPublishedDate" "', argument " "1"" of type '" "Provider *""'"); 
   }
-  arg1 = (Provider *)(argp1);
+  arg1 = reinterpret_cast< Provider * >(argp1);
   {
     try {
       result = (arg1)->getDataSetPublishedDate();;
@@ -4473,7 +4569,7 @@ static SwigV8ReturnValue _wrap_Provider_getDataSetPublishedDate(const SwigV8Argu
       SWIG_exception(SWIG_ValueError, e.what());
     }
   }
-  jsresult = SWIG_From_std_string((std::string)(result));
+  jsresult = SWIG_From_std_string(static_cast< std::string >(result));
   
   
   SWIGV8_RETURN(jsresult);
@@ -4487,7 +4583,7 @@ fail:
 static SwigV8ReturnValue _wrap_Provider_getDataSetNextUpdateDate(const SwigV8Arguments &args) {
   SWIGV8_HANDLESCOPE();
   
-  v8::Handle<v8::Value> jsresult;
+  v8::Local<v8::Value> jsresult;
   Provider *arg1 = (Provider *) 0 ;
   void *argp1 = 0 ;
   int res1 = 0 ;
@@ -4499,7 +4595,7 @@ static SwigV8ReturnValue _wrap_Provider_getDataSetNextUpdateDate(const SwigV8Arg
   if (!SWIG_IsOK(res1)) {
     SWIG_exception_fail(SWIG_ArgError(res1), "in method '" "Provider_getDataSetNextUpdateDate" "', argument " "1"" of type '" "Provider *""'"); 
   }
-  arg1 = (Provider *)(argp1);
+  arg1 = reinterpret_cast< Provider * >(argp1);
   {
     try {
       result = (arg1)->getDataSetNextUpdateDate();;
@@ -4511,7 +4607,7 @@ static SwigV8ReturnValue _wrap_Provider_getDataSetNextUpdateDate(const SwigV8Arg
       SWIG_exception(SWIG_ValueError, e.what());
     }
   }
-  jsresult = SWIG_From_std_string((std::string)(result));
+  jsresult = SWIG_From_std_string(static_cast< std::string >(result));
   
   
   SWIGV8_RETURN(jsresult);
@@ -4525,7 +4621,7 @@ fail:
 static SwigV8ReturnValue _wrap_Provider_getDataSetSignatureCount(const SwigV8Arguments &args) {
   SWIGV8_HANDLESCOPE();
   
-  v8::Handle<v8::Value> jsresult;
+  v8::Local<v8::Value> jsresult;
   Provider *arg1 = (Provider *) 0 ;
   void *argp1 = 0 ;
   int res1 = 0 ;
@@ -4537,7 +4633,7 @@ static SwigV8ReturnValue _wrap_Provider_getDataSetSignatureCount(const SwigV8Arg
   if (!SWIG_IsOK(res1)) {
     SWIG_exception_fail(SWIG_ArgError(res1), "in method '" "Provider_getDataSetSignatureCount" "', argument " "1"" of type '" "Provider *""'"); 
   }
-  arg1 = (Provider *)(argp1);
+  arg1 = reinterpret_cast< Provider * >(argp1);
   {
     try {
       result = (int)(arg1)->getDataSetSignatureCount();;
@@ -4549,7 +4645,7 @@ static SwigV8ReturnValue _wrap_Provider_getDataSetSignatureCount(const SwigV8Arg
       SWIG_exception(SWIG_ValueError, e.what());
     }
   }
-  jsresult = SWIG_From_int((int)(result));
+  jsresult = SWIG_From_int(static_cast< int >(result));
   
   
   SWIGV8_RETURN(jsresult);
@@ -4563,7 +4659,7 @@ fail:
 static SwigV8ReturnValue _wrap_Provider_getDataSetDeviceCombinations(const SwigV8Arguments &args) {
   SWIGV8_HANDLESCOPE();
   
-  v8::Handle<v8::Value> jsresult;
+  v8::Local<v8::Value> jsresult;
   Provider *arg1 = (Provider *) 0 ;
   void *argp1 = 0 ;
   int res1 = 0 ;
@@ -4575,7 +4671,7 @@ static SwigV8ReturnValue _wrap_Provider_getDataSetDeviceCombinations(const SwigV
   if (!SWIG_IsOK(res1)) {
     SWIG_exception_fail(SWIG_ArgError(res1), "in method '" "Provider_getDataSetDeviceCombinations" "', argument " "1"" of type '" "Provider *""'"); 
   }
-  arg1 = (Provider *)(argp1);
+  arg1 = reinterpret_cast< Provider * >(argp1);
   {
     try {
       result = (int)(arg1)->getDataSetDeviceCombinations();;
@@ -4587,7 +4683,7 @@ static SwigV8ReturnValue _wrap_Provider_getDataSetDeviceCombinations(const SwigV
       SWIG_exception(SWIG_ValueError, e.what());
     }
   }
-  jsresult = SWIG_From_int((int)(result));
+  jsresult = SWIG_From_int(static_cast< int >(result));
   
   
   SWIGV8_RETURN(jsresult);
@@ -4602,7 +4698,7 @@ static SwigV8ReturnValue _wrap_Provider_getMatch__SWIG_0(const SwigV8Arguments &
 {
   SWIGV8_HANDLESCOPE();
   
-  v8::Handle<v8::Value> jsresult;
+  v8::Local<v8::Value> jsresult;
   Provider *arg1 = (Provider *) 0 ;
   std::string *arg2 = 0 ;
   void *argp1 = 0 ;
@@ -4614,7 +4710,7 @@ static SwigV8ReturnValue _wrap_Provider_getMatch__SWIG_0(const SwigV8Arguments &
   if (!SWIG_IsOK(res1)) {
     SWIG_exception_fail(SWIG_ArgError(res1), "in method '" "Provider_getMatch" "', argument " "1"" of type '" "Provider *""'"); 
   }
-  arg1 = (Provider *)(argp1);
+  arg1 = reinterpret_cast< Provider * >(argp1);
   {
     std::string *ptr = (std::string *)0;
     res2 = SWIG_AsPtr_std_string(args[0], &ptr);
@@ -4653,9 +4749,9 @@ static SwigV8ReturnValue _wrap_Provider_getMatch__SWIG_1(const SwigV8Arguments &
 {
   SWIGV8_HANDLESCOPE();
   
-  v8::Handle<v8::Value> jsresult;
+  v8::Local<v8::Value> jsresult;
   Provider *arg1 = (Provider *) 0 ;
-  std::map< std::string,std::string > *arg2 = 0 ;
+  std::map< std::string,std::string,std::less< std::string > > *arg2 = 0 ;
   void *argp1 = 0 ;
   int res1 = 0 ;
   void *argp2 ;
@@ -4666,18 +4762,18 @@ static SwigV8ReturnValue _wrap_Provider_getMatch__SWIG_1(const SwigV8Arguments &
   if (!SWIG_IsOK(res1)) {
     SWIG_exception_fail(SWIG_ArgError(res1), "in method '" "Provider_getMatch" "', argument " "1"" of type '" "Provider *""'"); 
   }
-  arg1 = (Provider *)(argp1);
-  res2 = SWIG_ConvertPtr(args[0], &argp2, SWIGTYPE_p_std__mapT_std__string_std__string_t,  0 );
+  arg1 = reinterpret_cast< Provider * >(argp1);
+  res2 = SWIG_ConvertPtr(args[0], &argp2, SWIGTYPE_p_std__mapT_std__string_std__string_std__lessT_std__string_t_t,  0 );
   if (!SWIG_IsOK(res2)) {
-    SWIG_exception_fail(SWIG_ArgError(res2), "in method '" "Provider_getMatch" "', argument " "2"" of type '" "std::map< std::string,std::string > const &""'"); 
+    SWIG_exception_fail(SWIG_ArgError(res2), "in method '" "Provider_getMatch" "', argument " "2"" of type '" "std::map< std::string,std::string,std::less< std::string > > const &""'"); 
   }
   if (!argp2) {
-    SWIG_exception_fail(SWIG_ValueError, "invalid null reference " "in method '" "Provider_getMatch" "', argument " "2"" of type '" "std::map< std::string,std::string > const &""'"); 
+    SWIG_exception_fail(SWIG_ValueError, "invalid null reference " "in method '" "Provider_getMatch" "', argument " "2"" of type '" "std::map< std::string,std::string,std::less< std::string > > const &""'"); 
   }
-  arg2 = (std::map< std::string,std::string > *)(argp2);
+  arg2 = reinterpret_cast< std::map< std::string,std::string,std::less< std::string > > * >(argp2);
   {
     try {
-      result = (Match *)(arg1)->getMatch((std::map< std::string,std::string > const &)*arg2);;
+      result = (Match *)(arg1)->getMatch((std::map< std::string,std::string,std::less< std::string > > const &)*arg2);;
     }
     catch(runtime_error& e) {
       SWIG_exception(SWIG_RuntimeError, e.what());
@@ -4701,7 +4797,7 @@ fail:
 static SwigV8ReturnValue _wrap_Provider__wrap_Provider_getMatch(const SwigV8Arguments &args) {
   SWIGV8_HANDLESCOPE();
   
-  v8::Handle<v8::Value> jsresult;
+  v8::Local<v8::Value> jsresult;
   OverloadErrorHandler errorHandler;
   
   
@@ -4749,7 +4845,7 @@ static SwigV8ReturnValue _wrap_Provider_getMatchJson__SWIG_0(const SwigV8Argumen
 {
   SWIGV8_HANDLESCOPE();
   
-  v8::Handle<v8::Value> jsresult;
+  v8::Local<v8::Value> jsresult;
   Provider *arg1 = (Provider *) 0 ;
   std::string *arg2 = 0 ;
   void *argp1 = 0 ;
@@ -4761,7 +4857,7 @@ static SwigV8ReturnValue _wrap_Provider_getMatchJson__SWIG_0(const SwigV8Argumen
   if (!SWIG_IsOK(res1)) {
     SWIG_exception_fail(SWIG_ArgError(res1), "in method '" "Provider_getMatchJson" "', argument " "1"" of type '" "Provider *""'"); 
   }
-  arg1 = (Provider *)(argp1);
+  arg1 = reinterpret_cast< Provider * >(argp1);
   {
     std::string *ptr = (std::string *)0;
     res2 = SWIG_AsPtr_std_string(args[0], &ptr);
@@ -4784,7 +4880,7 @@ static SwigV8ReturnValue _wrap_Provider_getMatchJson__SWIG_0(const SwigV8Argumen
       SWIG_exception(SWIG_ValueError, e.what());
     }
   }
-  jsresult = SWIG_From_std_string((std::string)(result));
+  jsresult = SWIG_From_std_string(static_cast< std::string >(result));
   
   if (SWIG_IsNewObj(res2)) delete arg2;
   
@@ -4800,9 +4896,9 @@ static SwigV8ReturnValue _wrap_Provider_getMatchJson__SWIG_1(const SwigV8Argumen
 {
   SWIGV8_HANDLESCOPE();
   
-  v8::Handle<v8::Value> jsresult;
+  v8::Local<v8::Value> jsresult;
   Provider *arg1 = (Provider *) 0 ;
-  std::map< std::string,std::string > *arg2 = 0 ;
+  std::map< std::string,std::string,std::less< std::string > > *arg2 = 0 ;
   void *argp1 = 0 ;
   int res1 = 0 ;
   void *argp2 ;
@@ -4813,18 +4909,18 @@ static SwigV8ReturnValue _wrap_Provider_getMatchJson__SWIG_1(const SwigV8Argumen
   if (!SWIG_IsOK(res1)) {
     SWIG_exception_fail(SWIG_ArgError(res1), "in method '" "Provider_getMatchJson" "', argument " "1"" of type '" "Provider *""'"); 
   }
-  arg1 = (Provider *)(argp1);
-  res2 = SWIG_ConvertPtr(args[0], &argp2, SWIGTYPE_p_std__mapT_std__string_std__string_t,  0 );
+  arg1 = reinterpret_cast< Provider * >(argp1);
+  res2 = SWIG_ConvertPtr(args[0], &argp2, SWIGTYPE_p_std__mapT_std__string_std__string_std__lessT_std__string_t_t,  0 );
   if (!SWIG_IsOK(res2)) {
-    SWIG_exception_fail(SWIG_ArgError(res2), "in method '" "Provider_getMatchJson" "', argument " "2"" of type '" "std::map< std::string,std::string > const &""'"); 
+    SWIG_exception_fail(SWIG_ArgError(res2), "in method '" "Provider_getMatchJson" "', argument " "2"" of type '" "std::map< std::string,std::string,std::less< std::string > > const &""'"); 
   }
   if (!argp2) {
-    SWIG_exception_fail(SWIG_ValueError, "invalid null reference " "in method '" "Provider_getMatchJson" "', argument " "2"" of type '" "std::map< std::string,std::string > const &""'"); 
+    SWIG_exception_fail(SWIG_ValueError, "invalid null reference " "in method '" "Provider_getMatchJson" "', argument " "2"" of type '" "std::map< std::string,std::string,std::less< std::string > > const &""'"); 
   }
-  arg2 = (std::map< std::string,std::string > *)(argp2);
+  arg2 = reinterpret_cast< std::map< std::string,std::string,std::less< std::string > > * >(argp2);
   {
     try {
-      result = (arg1)->getMatchJson((std::map< std::string,std::string > const &)*arg2);;
+      result = (arg1)->getMatchJson((std::map< std::string,std::string,std::less< std::string > > const &)*arg2);;
     }
     catch(runtime_error& e) {
       SWIG_exception(SWIG_RuntimeError, e.what());
@@ -4833,7 +4929,7 @@ static SwigV8ReturnValue _wrap_Provider_getMatchJson__SWIG_1(const SwigV8Argumen
       SWIG_exception(SWIG_ValueError, e.what());
     }
   }
-  jsresult = SWIG_From_std_string((std::string)(result));
+  jsresult = SWIG_From_std_string(static_cast< std::string >(result));
   
   
   
@@ -4848,7 +4944,7 @@ fail:
 static SwigV8ReturnValue _wrap_Provider__wrap_Provider_getMatchJson(const SwigV8Arguments &args) {
   SWIGV8_HANDLESCOPE();
   
-  v8::Handle<v8::Value> jsresult;
+  v8::Local<v8::Value> jsresult;
   OverloadErrorHandler errorHandler;
   
   
@@ -4895,7 +4991,7 @@ fail:
 static SwigV8ReturnValue _wrap_Provider_getMatchForDeviceId(const SwigV8Arguments &args) {
   SWIGV8_HANDLESCOPE();
   
-  v8::Handle<v8::Value> jsresult;
+  v8::Local<v8::Value> jsresult;
   Provider *arg1 = (Provider *) 0 ;
   std::string *arg2 = 0 ;
   void *argp1 = 0 ;
@@ -4909,7 +5005,7 @@ static SwigV8ReturnValue _wrap_Provider_getMatchForDeviceId(const SwigV8Argument
   if (!SWIG_IsOK(res1)) {
     SWIG_exception_fail(SWIG_ArgError(res1), "in method '" "Provider_getMatchForDeviceId" "', argument " "1"" of type '" "Provider *""'"); 
   }
-  arg1 = (Provider *)(argp1);
+  arg1 = reinterpret_cast< Provider * >(argp1);
   {
     std::string *ptr = (std::string *)0;
     res2 = SWIG_AsPtr_std_string(args[0], &ptr);
@@ -4948,7 +5044,7 @@ static SwigV8ReturnValue _wrap_Provider_findProfiles__SWIG_0(const SwigV8Argumen
 {
   SWIGV8_HANDLESCOPE();
   
-  v8::Handle<v8::Value> jsresult;
+  v8::Local<v8::Value> jsresult;
   Provider *arg1 = (Provider *) 0 ;
   std::string arg2 ;
   std::string arg3 ;
@@ -4960,7 +5056,7 @@ static SwigV8ReturnValue _wrap_Provider_findProfiles__SWIG_0(const SwigV8Argumen
   if (!SWIG_IsOK(res1)) {
     SWIG_exception_fail(SWIG_ArgError(res1), "in method '" "Provider_findProfiles" "', argument " "1"" of type '" "Provider *""'"); 
   }
-  arg1 = (Provider *)(argp1);
+  arg1 = reinterpret_cast< Provider * >(argp1);
   {
     std::string *ptr = (std::string *)0;
     int res = SWIG_AsPtr_std_string(args[0], &ptr);
@@ -5007,7 +5103,7 @@ static SwigV8ReturnValue _wrap_Provider_findProfiles__SWIG_1(const SwigV8Argumen
 {
   SWIGV8_HANDLESCOPE();
   
-  v8::Handle<v8::Value> jsresult;
+  v8::Local<v8::Value> jsresult;
   Provider *arg1 = (Provider *) 0 ;
   std::string arg2 ;
   std::string arg3 ;
@@ -5022,7 +5118,7 @@ static SwigV8ReturnValue _wrap_Provider_findProfiles__SWIG_1(const SwigV8Argumen
   if (!SWIG_IsOK(res1)) {
     SWIG_exception_fail(SWIG_ArgError(res1), "in method '" "Provider_findProfiles" "', argument " "1"" of type '" "Provider *""'"); 
   }
-  arg1 = (Provider *)(argp1);
+  arg1 = reinterpret_cast< Provider * >(argp1);
   {
     std::string *ptr = (std::string *)0;
     int res = SWIG_AsPtr_std_string(args[0], &ptr);
@@ -5045,7 +5141,7 @@ static SwigV8ReturnValue _wrap_Provider_findProfiles__SWIG_1(const SwigV8Argumen
   if (!SWIG_IsOK(res4)) {
     SWIG_exception_fail(SWIG_ArgError(res4), "in method '" "Provider_findProfiles" "', argument " "4"" of type '" "Profiles *""'"); 
   }
-  arg4 = (Profiles *)(argp4);
+  arg4 = reinterpret_cast< Profiles * >(argp4);
   {
     try {
       result = (Profiles *)(arg1)->findProfiles(arg2,arg3,arg4);;
@@ -5074,7 +5170,7 @@ fail:
 static SwigV8ReturnValue _wrap_Provider__wrap_Provider_findProfiles(const SwigV8Arguments &args) {
   SWIGV8_HANDLESCOPE();
   
-  v8::Handle<v8::Value> jsresult;
+  v8::Local<v8::Value> jsresult;
   OverloadErrorHandler errorHandler;
   
   
@@ -5121,7 +5217,7 @@ fail:
 static SwigV8ReturnValue _wrap_Provider_reloadFromFile(const SwigV8Arguments &args) {
   SWIGV8_HANDLESCOPE();
   
-  v8::Handle<v8::Value> jsresult;
+  v8::Local<v8::Value> jsresult;
   Provider *arg1 = (Provider *) 0 ;
   void *argp1 = 0 ;
   int res1 = 0 ;
@@ -5132,7 +5228,7 @@ static SwigV8ReturnValue _wrap_Provider_reloadFromFile(const SwigV8Arguments &ar
   if (!SWIG_IsOK(res1)) {
     SWIG_exception_fail(SWIG_ArgError(res1), "in method '" "Provider_reloadFromFile" "', argument " "1"" of type '" "Provider *""'"); 
   }
-  arg1 = (Provider *)(argp1);
+  arg1 = reinterpret_cast< Provider * >(argp1);
   {
     try {
       (arg1)->reloadFromFile();;
@@ -5158,7 +5254,7 @@ fail:
 static SwigV8ReturnValue _wrap_Provider_reloadFromMemory(const SwigV8Arguments &args) {
   SWIGV8_HANDLESCOPE();
   
-  v8::Handle<v8::Value> jsresult;
+  v8::Local<v8::Value> jsresult;
   Provider *arg1 = (Provider *) 0 ;
   std::string *arg2 = 0 ;
   int arg3 ;
@@ -5174,7 +5270,7 @@ static SwigV8ReturnValue _wrap_Provider_reloadFromMemory(const SwigV8Arguments &
   if (!SWIG_IsOK(res1)) {
     SWIG_exception_fail(SWIG_ArgError(res1), "in method '" "Provider_reloadFromMemory" "', argument " "1"" of type '" "Provider *""'"); 
   }
-  arg1 = (Provider *)(argp1);
+  arg1 = reinterpret_cast< Provider * >(argp1);
   {
     std::string *ptr = (std::string *)0;
     res2 = SWIG_AsPtr_std_string(args[0], &ptr);
@@ -5190,7 +5286,7 @@ static SwigV8ReturnValue _wrap_Provider_reloadFromMemory(const SwigV8Arguments &
   if (!SWIG_IsOK(ecode3)) {
     SWIG_exception_fail(SWIG_ArgError(ecode3), "in method '" "Provider_reloadFromMemory" "', argument " "3"" of type '" "int""'");
   } 
-  arg3 = (int)(val3);
+  arg3 = static_cast< int >(val3);
   {
     try {
       (arg1)->reloadFromMemory((std::string const &)*arg2,arg3);;
@@ -5218,7 +5314,7 @@ fail:
 static SwigV8ReturnValue _wrap_Provider_getCacheHits(const SwigV8Arguments &args) {
   SWIGV8_HANDLESCOPE();
   
-  v8::Handle<v8::Value> jsresult;
+  v8::Local<v8::Value> jsresult;
   Provider *arg1 = (Provider *) 0 ;
   void *argp1 = 0 ;
   int res1 = 0 ;
@@ -5230,7 +5326,7 @@ static SwigV8ReturnValue _wrap_Provider_getCacheHits(const SwigV8Arguments &args
   if (!SWIG_IsOK(res1)) {
     SWIG_exception_fail(SWIG_ArgError(res1), "in method '" "Provider_getCacheHits" "', argument " "1"" of type '" "Provider *""'"); 
   }
-  arg1 = (Provider *)(argp1);
+  arg1 = reinterpret_cast< Provider * >(argp1);
   {
     try {
       result = (int)(arg1)->getCacheHits();;
@@ -5242,7 +5338,7 @@ static SwigV8ReturnValue _wrap_Provider_getCacheHits(const SwigV8Arguments &args
       SWIG_exception(SWIG_ValueError, e.what());
     }
   }
-  jsresult = SWIG_From_int((int)(result));
+  jsresult = SWIG_From_int(static_cast< int >(result));
   
   
   SWIGV8_RETURN(jsresult);
@@ -5256,7 +5352,7 @@ fail:
 static SwigV8ReturnValue _wrap_Provider_getCacheMisses(const SwigV8Arguments &args) {
   SWIGV8_HANDLESCOPE();
   
-  v8::Handle<v8::Value> jsresult;
+  v8::Local<v8::Value> jsresult;
   Provider *arg1 = (Provider *) 0 ;
   void *argp1 = 0 ;
   int res1 = 0 ;
@@ -5268,7 +5364,7 @@ static SwigV8ReturnValue _wrap_Provider_getCacheMisses(const SwigV8Arguments &ar
   if (!SWIG_IsOK(res1)) {
     SWIG_exception_fail(SWIG_ArgError(res1), "in method '" "Provider_getCacheMisses" "', argument " "1"" of type '" "Provider *""'"); 
   }
-  arg1 = (Provider *)(argp1);
+  arg1 = reinterpret_cast< Provider * >(argp1);
   {
     try {
       result = (int)(arg1)->getCacheMisses();;
@@ -5280,7 +5376,7 @@ static SwigV8ReturnValue _wrap_Provider_getCacheMisses(const SwigV8Arguments &ar
       SWIG_exception(SWIG_ValueError, e.what());
     }
   }
-  jsresult = SWIG_From_int((int)(result));
+  jsresult = SWIG_From_int(static_cast< int >(result));
   
   
   SWIGV8_RETURN(jsresult);
@@ -5294,7 +5390,7 @@ fail:
 static SwigV8ReturnValue _wrap_Provider_getCacheMaxIterations(const SwigV8Arguments &args) {
   SWIGV8_HANDLESCOPE();
   
-  v8::Handle<v8::Value> jsresult;
+  v8::Local<v8::Value> jsresult;
   Provider *arg1 = (Provider *) 0 ;
   void *argp1 = 0 ;
   int res1 = 0 ;
@@ -5306,7 +5402,7 @@ static SwigV8ReturnValue _wrap_Provider_getCacheMaxIterations(const SwigV8Argume
   if (!SWIG_IsOK(res1)) {
     SWIG_exception_fail(SWIG_ArgError(res1), "in method '" "Provider_getCacheMaxIterations" "', argument " "1"" of type '" "Provider *""'"); 
   }
-  arg1 = (Provider *)(argp1);
+  arg1 = reinterpret_cast< Provider * >(argp1);
   {
     try {
       result = (int)(arg1)->getCacheMaxIterations();;
@@ -5318,7 +5414,7 @@ static SwigV8ReturnValue _wrap_Provider_getCacheMaxIterations(const SwigV8Argume
       SWIG_exception(SWIG_ValueError, e.what());
     }
   }
-  jsresult = SWIG_From_int((int)(result));
+  jsresult = SWIG_From_int(static_cast< int >(result));
   
   
   SWIGV8_RETURN(jsresult);
@@ -5332,7 +5428,7 @@ fail:
 static SwigV8ReturnValue _wrap_Provider_getIsThreadSafe(const SwigV8Arguments &args) {
   SWIGV8_HANDLESCOPE();
   
-  v8::Handle<v8::Value> jsresult;
+  v8::Local<v8::Value> jsresult;
   Provider *arg1 = (Provider *) 0 ;
   void *argp1 = 0 ;
   int res1 = 0 ;
@@ -5344,7 +5440,7 @@ static SwigV8ReturnValue _wrap_Provider_getIsThreadSafe(const SwigV8Arguments &a
   if (!SWIG_IsOK(res1)) {
     SWIG_exception_fail(SWIG_ArgError(res1), "in method '" "Provider_getIsThreadSafe" "', argument " "1"" of type '" "Provider *""'"); 
   }
-  arg1 = (Provider *)(argp1);
+  arg1 = reinterpret_cast< Provider * >(argp1);
   {
     try {
       result = (bool)(arg1)->getIsThreadSafe();;
@@ -5356,7 +5452,7 @@ static SwigV8ReturnValue _wrap_Provider_getIsThreadSafe(const SwigV8Arguments &a
       SWIG_exception(SWIG_ValueError, e.what());
     }
   }
-  jsresult = SWIG_From_bool((bool)(result));
+  jsresult = SWIG_From_bool(static_cast< bool >(result));
   
   
   SWIGV8_RETURN(jsresult);
@@ -5370,7 +5466,7 @@ fail:
 static SwigV8ReturnValue _wrap_new_Provider__SWIG_6(const SwigV8Arguments &args, V8ErrorHandler &SWIGV8_ErrorHandler) {
   SWIGV8_HANDLESCOPE();
   
-  v8::Handle<v8::Object> self = args.Holder();
+  v8::Local<v8::Object> self = args.Holder();
   std::string *arg1 = 0 ;
   std::string *arg2 = 0 ;
   int arg3 ;
@@ -5412,17 +5508,17 @@ static SwigV8ReturnValue _wrap_new_Provider__SWIG_6(const SwigV8Arguments &args,
   if (!SWIG_IsOK(ecode3)) {
     SWIG_exception_fail(SWIG_ArgError(ecode3), "in method '" "new_Provider" "', argument " "3"" of type '" "int""'");
   } 
-  arg3 = (int)(val3);
+  arg3 = static_cast< int >(val3);
   ecode4 = SWIG_AsVal_int(args[3], &val4);
   if (!SWIG_IsOK(ecode4)) {
     SWIG_exception_fail(SWIG_ArgError(ecode4), "in method '" "new_Provider" "', argument " "4"" of type '" "int""'");
   } 
-  arg4 = (int)(val4);
+  arg4 = static_cast< int >(val4);
   ecode5 = SWIG_AsVal_bool(args[4], &val5);
   if (!SWIG_IsOK(ecode5)) {
     SWIG_exception_fail(SWIG_ArgError(ecode5), "in method '" "new_Provider" "', argument " "5"" of type '" "bool""'");
   } 
-  arg5 = (bool)(val5);
+  arg5 = static_cast< bool >(val5);
   {
     try {
       result = (Provider *)new Provider((std::string const &)*arg1,(std::string const &)*arg2,arg3,arg4,arg5);;
@@ -5455,7 +5551,7 @@ static SwigV8ReturnValue _wrap_new_Provider(const SwigV8Arguments &args) {
   SWIGV8_HANDLESCOPE();
   
   OverloadErrorHandler errorHandler;
-  v8::Handle<v8::Value> self;
+  v8::Local<v8::Value> self;
   
   // switch all cases by means of series of if-returns.
   
@@ -5611,7 +5707,7 @@ static swig_type_info _swigt__p_difference_type = {"_p_difference_type", "differ
 static swig_type_info _swigt__p_key_type = {"_p_key_type", "key_type *", 0, 0, (void*)0, 0};
 static swig_type_info _swigt__p_mapped_type = {"_p_mapped_type", "mapped_type *", 0, 0, (void*)0, 0};
 static swig_type_info _swigt__p_size_type = {"_p_size_type", "size_type *", 0, 0, (void*)0, 0};
-static swig_type_info _swigt__p_std__mapT_std__string_std__string_t = {"_p_std__mapT_std__string_std__string_t", "p_std__mapT_std__string_std__string_t|std::map< std::string,std::string > *", 0, 0, (void*)0, 0};
+static swig_type_info _swigt__p_std__mapT_std__string_std__string_std__lessT_std__string_t_t = {"_p_std__mapT_std__string_std__string_std__lessT_std__string_t_t", "p_std__mapT_std__string_std__string_std__lessT_std__string_t_t|std::map< std::string,std::string > *|std::map< std::string,std::string,std::less< std::string > > *", 0, 0, (void*)0, 0};
 static swig_type_info _swigt__p_std__string = {"_p_std__string", "std::string *", 0, 0, (void*)0, 0};
 static swig_type_info _swigt__p_std__vectorT_std__string_t = {"_p_std__vectorT_std__string_t", "p_std__vectorT_std__string_t|std::vector< std::string > *", 0, 0, (void*)0, 0};
 static swig_type_info _swigt__p_value_type = {"_p_value_type", "value_type *", 0, 0, (void*)0, 0};
@@ -5625,7 +5721,7 @@ static swig_type_info *swig_type_initial[] = {
   &_swigt__p_key_type,
   &_swigt__p_mapped_type,
   &_swigt__p_size_type,
-  &_swigt__p_std__mapT_std__string_std__string_t,
+  &_swigt__p_std__mapT_std__string_std__string_std__lessT_std__string_t_t,
   &_swigt__p_std__string,
   &_swigt__p_std__vectorT_std__string_t,
   &_swigt__p_value_type,
@@ -5639,7 +5735,7 @@ static swig_cast_info _swigc__p_difference_type[] = {  {&_swigt__p_difference_ty
 static swig_cast_info _swigc__p_key_type[] = {  {&_swigt__p_key_type, 0, 0, 0},{0, 0, 0, 0}};
 static swig_cast_info _swigc__p_mapped_type[] = {  {&_swigt__p_mapped_type, 0, 0, 0},{0, 0, 0, 0}};
 static swig_cast_info _swigc__p_size_type[] = {  {&_swigt__p_size_type, 0, 0, 0},{0, 0, 0, 0}};
-static swig_cast_info _swigc__p_std__mapT_std__string_std__string_t[] = {  {&_swigt__p_std__mapT_std__string_std__string_t, 0, 0, 0},{0, 0, 0, 0}};
+static swig_cast_info _swigc__p_std__mapT_std__string_std__string_std__lessT_std__string_t_t[] = {  {&_swigt__p_std__mapT_std__string_std__string_std__lessT_std__string_t_t, 0, 0, 0},{0, 0, 0, 0}};
 static swig_cast_info _swigc__p_std__string[] = {  {&_swigt__p_std__string, 0, 0, 0},{0, 0, 0, 0}};
 static swig_cast_info _swigc__p_std__vectorT_std__string_t[] = {  {&_swigt__p_std__vectorT_std__string_t, 0, 0, 0},{0, 0, 0, 0}};
 static swig_cast_info _swigc__p_value_type[] = {  {&_swigt__p_value_type, 0, 0, 0},{0, 0, 0, 0}};
@@ -5653,7 +5749,7 @@ static swig_cast_info *swig_cast_initial[] = {
   _swigc__p_key_type,
   _swigc__p_mapped_type,
   _swigc__p_size_type,
-  _swigc__p_std__mapT_std__string_std__string_t,
+  _swigc__p_std__mapT_std__string_std__string_std__lessT_std__string_t_t,
   _swigc__p_std__string,
   _swigc__p_std__vectorT_std__string_t,
   _swigc__p_value_type,
@@ -5815,7 +5911,7 @@ SWIG_InitializeModule(void *clientdata) {
 
   /* Now work on filling in swig_module.types */
 #ifdef SWIGRUNTIME_DEBUG
-  printf("SWIG_InitializeModule: size %d\n", swig_module.size);
+  printf("SWIG_InitializeModule: size %lu\n", (unsigned long)swig_module.size);
 #endif
   for (i = 0; i < swig_module.size; ++i) {
     swig_type_info *type = 0;
@@ -5823,7 +5919,7 @@ SWIG_InitializeModule(void *clientdata) {
     swig_cast_info *cast;
 
 #ifdef SWIGRUNTIME_DEBUG
-    printf("SWIG_InitializeModule: type %d %s\n", i, swig_module.type_initial[i]->name);
+    printf("SWIG_InitializeModule: type %lu %s\n", (unsigned long)i, swig_module.type_initial[i]->name);
 #endif
 
     /* if there is another module already loaded */
@@ -5899,7 +5995,7 @@ SWIG_InitializeModule(void *clientdata) {
   for (i = 0; i < swig_module.size; ++i) {
     int j = 0;
     swig_cast_info *cast = swig_module.cast_initial[i];
-    printf("SWIG_InitializeModule: type %d %s\n", i, swig_module.type_initial[i]->name);
+    printf("SWIG_InitializeModule: type %lu %s\n", (unsigned long)i, swig_module.type_initial[i]->name);
     while (cast->type) {
       printf("SWIG_InitializeModule: cast type %s\n", cast->type->name);
       cast++;
@@ -5953,14 +6049,14 @@ extern "C"
 #if (NODE_MODULE_VERSION < 0x000C)
 void SWIGV8_INIT (v8::Handle<v8::Object> exports)
 #else
-void SWIGV8_INIT (v8::Handle<v8::Object> exports, v8::Handle<v8::Object> /*module*/)
+void SWIGV8_INIT (v8::Local<v8::Object> exports, v8::Local<v8::Object> /*module*/)
 #endif
 {
   SWIG_InitializeModule(static_cast<void *>(&exports));
 
   SWIGV8_HANDLESCOPE();
   
-  v8::Handle<v8::Object> exports_obj = exports;
+  v8::Local<v8::Object> exports_obj = exports;
 
 
   // a class template for creating proxies of undefined types
@@ -5970,36 +6066,36 @@ void SWIGV8_INIT (v8::Handle<v8::Object> exports, v8::Handle<v8::Object> /*modul
   
 
   /* create class templates */
-  /* Name: _exports_MapStringString, Type: p_std__mapT_std__string_std__string_t, Dtor: _wrap_delete_MapStringString */
-v8::Handle<v8::FunctionTemplate> _exports_MapStringString_class = SWIGV8_CreateClassTemplate("_exports_MapStringString");
+  /* Name: _exports_MapStringString, Type: p_std__mapT_std__string_std__string_std__lessT_std__string_t_t, Dtor: _wrap_delete_MapStringString */
+v8::Local<v8::FunctionTemplate> _exports_MapStringString_class = SWIGV8_CreateClassTemplate("_exports_MapStringString");
 SWIGV8_SET_CLASS_TEMPL(_exports_MapStringString_clientData.class_templ, _exports_MapStringString_class);
 _exports_MapStringString_clientData.dtor = _wrap_delete_MapStringString;
-if (SWIGTYPE_p_std__mapT_std__string_std__string_t->clientdata == 0) {
-  SWIGTYPE_p_std__mapT_std__string_std__string_t->clientdata = &_exports_MapStringString_clientData;
+if (SWIGTYPE_p_std__mapT_std__string_std__string_std__lessT_std__string_t_t->clientdata == 0) {
+  SWIGTYPE_p_std__mapT_std__string_std__string_std__lessT_std__string_t_t->clientdata = &_exports_MapStringString_clientData;
 }
 /* Name: _exports_VectorString, Type: p_std__vectorT_std__string_t, Dtor: _wrap_delete_VectorString */
-v8::Handle<v8::FunctionTemplate> _exports_VectorString_class = SWIGV8_CreateClassTemplate("_exports_VectorString");
+v8::Local<v8::FunctionTemplate> _exports_VectorString_class = SWIGV8_CreateClassTemplate("_exports_VectorString");
 SWIGV8_SET_CLASS_TEMPL(_exports_VectorString_clientData.class_templ, _exports_VectorString_class);
 _exports_VectorString_clientData.dtor = _wrap_delete_VectorString;
 if (SWIGTYPE_p_std__vectorT_std__string_t->clientdata == 0) {
   SWIGTYPE_p_std__vectorT_std__string_t->clientdata = &_exports_VectorString_clientData;
 }
 /* Name: _exports_Match, Type: p_Match, Dtor: _wrap_delete_Match */
-v8::Handle<v8::FunctionTemplate> _exports_Match_class = SWIGV8_CreateClassTemplate("_exports_Match");
+v8::Local<v8::FunctionTemplate> _exports_Match_class = SWIGV8_CreateClassTemplate("_exports_Match");
 SWIGV8_SET_CLASS_TEMPL(_exports_Match_clientData.class_templ, _exports_Match_class);
 _exports_Match_clientData.dtor = _wrap_delete_Match;
 if (SWIGTYPE_p_Match->clientdata == 0) {
   SWIGTYPE_p_Match->clientdata = &_exports_Match_clientData;
 }
 /* Name: _exports_Profiles, Type: p_Profiles, Dtor: _wrap_delete_Profiles */
-v8::Handle<v8::FunctionTemplate> _exports_Profiles_class = SWIGV8_CreateClassTemplate("_exports_Profiles");
+v8::Local<v8::FunctionTemplate> _exports_Profiles_class = SWIGV8_CreateClassTemplate("_exports_Profiles");
 SWIGV8_SET_CLASS_TEMPL(_exports_Profiles_clientData.class_templ, _exports_Profiles_class);
 _exports_Profiles_clientData.dtor = _wrap_delete_Profiles;
 if (SWIGTYPE_p_Profiles->clientdata == 0) {
   SWIGTYPE_p_Profiles->clientdata = &_exports_Profiles_clientData;
 }
 /* Name: _exports_Provider, Type: p_Provider, Dtor: _wrap_delete_Provider */
-v8::Handle<v8::FunctionTemplate> _exports_Provider_class = SWIGV8_CreateClassTemplate("_exports_Provider");
+v8::Local<v8::FunctionTemplate> _exports_Provider_class = SWIGV8_CreateClassTemplate("_exports_Provider");
 SWIGV8_SET_CLASS_TEMPL(_exports_Provider_clientData.class_templ, _exports_Provider_class);
 _exports_Provider_clientData.dtor = _wrap_delete_Provider;
 if (SWIGTYPE_p_Provider->clientdata == 0) {
@@ -6059,35 +6155,55 @@ SWIGV8_AddMemberFunction(_exports_Provider_class, "getIsThreadSafe", _wrap_Provi
 
   /* class instances */
   /* Class: MapStringString (_exports_MapStringString) */
-v8::Handle<v8::FunctionTemplate> _exports_MapStringString_class_0 = SWIGV8_CreateClassTemplate("MapStringString");
+v8::Local<v8::FunctionTemplate> _exports_MapStringString_class_0 = SWIGV8_CreateClassTemplate("MapStringString");
 _exports_MapStringString_class_0->SetCallHandler(_wrap_new_MapStringString);
 _exports_MapStringString_class_0->Inherit(_exports_MapStringString_class);
 _exports_MapStringString_class_0->SetHiddenPrototype(true);
-v8::Handle<v8::Object> _exports_MapStringString_obj = _exports_MapStringString_class_0->GetFunction();
+#if (NODE_MODULE_VERSION < 72)
+v8::Local<v8::Object> _exports_MapStringString_obj = _exports_MapStringString_class_0->GetFunction();
+#else
+v8::Local<v8::Object> _exports_MapStringString_obj = _exports_MapStringString_class_0->GetFunction(SWIGV8_CURRENT_CONTEXT()).ToLocalChecked();
+#endif
 /* Class: VectorString (_exports_VectorString) */
-v8::Handle<v8::FunctionTemplate> _exports_VectorString_class_0 = SWIGV8_CreateClassTemplate("VectorString");
+v8::Local<v8::FunctionTemplate> _exports_VectorString_class_0 = SWIGV8_CreateClassTemplate("VectorString");
 _exports_VectorString_class_0->SetCallHandler(_wrap_new_VectorString);
 _exports_VectorString_class_0->Inherit(_exports_VectorString_class);
 _exports_VectorString_class_0->SetHiddenPrototype(true);
-v8::Handle<v8::Object> _exports_VectorString_obj = _exports_VectorString_class_0->GetFunction();
+#if (NODE_MODULE_VERSION < 72)
+v8::Local<v8::Object> _exports_VectorString_obj = _exports_VectorString_class_0->GetFunction();
+#else
+v8::Local<v8::Object> _exports_VectorString_obj = _exports_VectorString_class_0->GetFunction(SWIGV8_CURRENT_CONTEXT()).ToLocalChecked();
+#endif
 /* Class: Match (_exports_Match) */
-v8::Handle<v8::FunctionTemplate> _exports_Match_class_0 = SWIGV8_CreateClassTemplate("Match");
+v8::Local<v8::FunctionTemplate> _exports_Match_class_0 = SWIGV8_CreateClassTemplate("Match");
 _exports_Match_class_0->SetCallHandler(_wrap_new_veto_Match);
 _exports_Match_class_0->Inherit(_exports_Match_class);
 _exports_Match_class_0->SetHiddenPrototype(true);
-v8::Handle<v8::Object> _exports_Match_obj = _exports_Match_class_0->GetFunction();
+#if (NODE_MODULE_VERSION < 72)
+v8::Local<v8::Object> _exports_Match_obj = _exports_Match_class_0->GetFunction();
+#else
+v8::Local<v8::Object> _exports_Match_obj = _exports_Match_class_0->GetFunction(SWIGV8_CURRENT_CONTEXT()).ToLocalChecked();
+#endif
 /* Class: Profiles (_exports_Profiles) */
-v8::Handle<v8::FunctionTemplate> _exports_Profiles_class_0 = SWIGV8_CreateClassTemplate("Profiles");
+v8::Local<v8::FunctionTemplate> _exports_Profiles_class_0 = SWIGV8_CreateClassTemplate("Profiles");
 _exports_Profiles_class_0->SetCallHandler(_wrap_new_Profiles);
 _exports_Profiles_class_0->Inherit(_exports_Profiles_class);
 _exports_Profiles_class_0->SetHiddenPrototype(true);
-v8::Handle<v8::Object> _exports_Profiles_obj = _exports_Profiles_class_0->GetFunction();
+#if (NODE_MODULE_VERSION < 72)
+v8::Local<v8::Object> _exports_Profiles_obj = _exports_Profiles_class_0->GetFunction();
+#else
+v8::Local<v8::Object> _exports_Profiles_obj = _exports_Profiles_class_0->GetFunction(SWIGV8_CURRENT_CONTEXT()).ToLocalChecked();
+#endif
 /* Class: Provider (_exports_Provider) */
-v8::Handle<v8::FunctionTemplate> _exports_Provider_class_0 = SWIGV8_CreateClassTemplate("Provider");
+v8::Local<v8::FunctionTemplate> _exports_Provider_class_0 = SWIGV8_CreateClassTemplate("Provider");
 _exports_Provider_class_0->SetCallHandler(_wrap_new_Provider);
 _exports_Provider_class_0->Inherit(_exports_Provider_class);
 _exports_Provider_class_0->SetHiddenPrototype(true);
-v8::Handle<v8::Object> _exports_Provider_obj = _exports_Provider_class_0->GetFunction();
+#if (NODE_MODULE_VERSION < 72)
+v8::Local<v8::Object> _exports_Provider_obj = _exports_Provider_class_0->GetFunction();
+#else
+v8::Local<v8::Object> _exports_Provider_obj = _exports_Provider_class_0->GetFunction(SWIGV8_CURRENT_CONTEXT()).ToLocalChecked();
+#endif
 
 
   /* add static class functions and variables */
