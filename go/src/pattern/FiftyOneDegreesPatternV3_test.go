@@ -122,6 +122,47 @@ func MatchAllUserAgents() int {
 }
 
 /*
+ * Examples
+ */
+
+func Example() {
+	var (
+		provider Provider
+		match    Match
+	)
+
+	provider = NewProvider("../../../data/51Degrees-LiteV3.2.dat")
+	match = provider.GetMatch("Mozilla/5.0 (Windows NT 6.3; WOW64; rv:41.0) Gecko/20100101 Firefox/41.0")
+
+	// release the match when the function returns
+	defer DeleteMatch(match)
+
+	fmt.Println("IsMobile:", match.GetValue("IsMobile"))
+}
+
+// Increase the maximum number of matches the provider will supply
+func Example_increaseMaxMatches() {
+	var (
+		dataFilePath = "../../../data/51Degrees-LiteV3.2.dat"
+		cacheSize    = 10000
+		poolSize     = 50
+
+		provider = NewProvider(
+			dataFilePath,
+			cacheSize,
+			poolSize,
+		)
+
+		match = provider.GetMatch("Mozilla/5.0 (Windows NT 6.3; WOW64; rv:41.0) Gecko/20100101 Firefox/41.0")
+	)
+
+	// release the match when the function returns
+	defer DeleteMatch(match)
+
+	fmt.Println("IsMobile:", match.GetValue("IsMobile"))
+}
+
+/*
  * Tests
  */
 
