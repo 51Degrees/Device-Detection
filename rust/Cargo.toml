@@ -1,0 +1,22 @@
+[package]
+name = "51degrees-sys"
+version = "0.1.0"
+edition = "2018"
+publish = false
+
+[features]
+trie = []
+pattern = []
+
+[lib]
+name = "51degrees"
+path = "lib.rs"
+
+[target.trie]
+rustc-link-lib = ["trie"]
+
+[dependencies]
+libc = "0.2.64"
+
+[build-dependencies]
+cc = "1.0.46"
