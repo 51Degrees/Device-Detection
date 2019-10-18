@@ -1229,8 +1229,8 @@ pub type fiftyoneDegreesRange = fiftyoneDegreesRange_t;
 #[repr(C, packed)]
 #[derive(Debug, Copy, Clone)]
 pub struct fiftyoneDegrees_ascii_string_t {
-    pub length: i16,
-    pub firstByte: ::std::os::raw::c_char,
+    pub length: usize,
+    pub firstByte: *const ::std::os::raw::c_char,
 }
 #[test]
 fn bindgen_test_layout_fiftyoneDegrees_ascii_string_t() {
