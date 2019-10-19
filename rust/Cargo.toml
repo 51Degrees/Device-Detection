@@ -8,13 +8,6 @@ publish = false
 trie = []
 pattern = []
 
-[lib]
-name = "51degrees"
-path = "lib.rs"
-
-[target.trie]
-rustc-link-lib = ["trie"]
-
 [dependencies]
 libc = "0.2.64"
 
