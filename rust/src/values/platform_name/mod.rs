@@ -1,5 +1,5 @@
 ///
-/// # BrowserName
+/// # PlatformName
 ///
 /// All operating systems with a north american market share
 /// [greater than %1](https://gs.statcounter.com/browser-market-share/all/north-america)

@@ -1,6 +1,5 @@
 #![feature(test)]
 
-extern crate libc;
 extern crate test;
 
 pub mod values;
