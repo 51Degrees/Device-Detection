@@ -4,8 +4,7 @@ pub enum PlatformName<'detector> {
     MacOS,
     iOS,
     Windows,
-    Other(&'detector str),
-    Ubuntu,
+    Other(&'detector str)
 }
 
 impl<'detector> From<&'detector str> for PlatformName<'detector> {
@@ -15,7 +14,6 @@ impl<'detector> From<&'detector str> for PlatformName<'detector> {
             "macOS" => PlatformName::MacOS,
             "iOS" => PlatformName::iOS,
             "Windows" => PlatformName::Windows,
-            "Ubuntu" => PlatformName::Ubuntu,
             _ => PlatformName::Other(value)
         }
     }
