@@ -3,8 +3,8 @@
 extern crate libc;
 extern crate test;
 
-mod values;
-mod common;
+pub mod values;
+pub mod common;
 
 #[cfg(feature = "trie")]
 mod trie_c;

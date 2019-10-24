@@ -10,7 +10,7 @@ pub trait DeviceMatch {
 }
 
 pub trait DeviceDetector<'detector, M:DeviceMatch + 'detector> {
-    fn match_by_user_agent(&'detector self, user_agent: &str) -> Option<M>;
+    fn match_by_user_agent(&'detector self, user_agent: &String) -> Option<M>;
 }
 
 pub type PropertyIndexes = [i32;10];

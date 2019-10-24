@@ -1,10 +1,13 @@
 [package]
-name = "51degrees-sys"
+name = "fiftyonedegrees-sys"
 version = "0.1.0"
 edition = "2018"
 publish = false
 
 [features]
+browser-name-enum = []
+browser-name-enum-mode = []
+platform-name-enum = []
 trie = []
 pattern = []
 

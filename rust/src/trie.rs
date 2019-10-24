@@ -8,6 +8,9 @@ use crate::common::*;
 use std::str::Utf8Error;
 use crate::values::PropertyValue;
 use std::alloc::{alloc, Layout};
+use std::sync::{Arc, RwLock};
+use std::borrow::Borrow;
+use std::sync::atomic::{AtomicPtr, Ordering};
 
 #[derive(PartialEq)]
 pub enum TrieInitStatus {
@@ -20,12 +23,12 @@ pub enum TrieInitStatus {
     PointerOutOfBounds,
     NullPointer,
     TooManyOpenFiles,
-    Unexpected
+    Unexpected,
 }
 
-pub struct TrieDeviceDetector{
-    provider: Box<fiftyoneDegreesProvider>,
-    indexes: PropertyIndexes
+pub struct TrieDeviceDetector {
+    provider: AtomicPtr<fiftyoneDegreesProvider>,
+    indexes: PropertyIndexes,
 }
 
 pub struct TriePropertyAccessor {
@@ -38,10 +41,10 @@ type DataSet = *mut fiftyoneDegreesDataSet;
 pub struct TrieDeviceMatch<'detector> {
     indexes: &'detector PropertyIndexes,
     dataset: DataSet,
-    device_offset: TrieDeviceIndex
+    device_offset: TrieDeviceIndex,
 }
 
-impl<'detector> DeviceMatch for TrieDeviceMatch<'detector>{
+impl<'detector> DeviceMatch for TrieDeviceMatch<'detector> {
     fn get_property(&self, property_type: PropertyName) -> Option<PropertyValue> {
         let str = unsafe {
             let pointer = fiftyoneDegreesGetValue(self.dataset, self.device_offset, self.indexes[usize::from(&property_type)]);
@@ -52,7 +55,7 @@ impl<'detector> DeviceMatch for TrieDeviceMatch<'detector>{
         match str {
             Ok(str) => {
                 PropertyValue::new(&property_type, str)
-            },
+            }
             Err(err) => None
         }
     }
@@ -95,30 +98,30 @@ impl TrieDeviceDetector {
 
         let dataset = unsafe { (*(*provider).active).dataSet };
 
-        let mut indexes:PropertyIndexes = PropertyIndexesEmpty;
+        let mut indexes: PropertyIndexes = PropertyIndexesEmpty;
 
         for property in &properties {
             let c_string = property.as_cstring();
 
-            indexes[usize::from(property)] = unsafe { fiftyoneDegreesGetPropertyIndex(dataset,c_string.as_ptr()) };
+            indexes[usize::from(property)] = unsafe { fiftyoneDegreesGetPropertyIndex(dataset, c_string.as_ptr()) };
         }
 
         if status == TrieInitStatus::Success {
-            Ok(TrieDeviceDetector{
-                provider: unsafe { Box::from_raw(provider) },
-                indexes
+            Ok(TrieDeviceDetector {
+                provider: unsafe { AtomicPtr::new(provider) },
+                indexes,
             })
-        }else{
+        } else {
             Err(status)
         }
     }
 }
 
-impl<'detector> DeviceDetector<'detector, TrieDeviceMatch<'detector>> for TrieDeviceDetector{
-    fn match_by_user_agent(&'detector self, user_agent: &str) -> Option<TrieDeviceMatch<'detector>> {
-        let user_agent = CString::new(user_agent).expect("CString::new failed");
+impl<'detector> DeviceDetector<'detector, TrieDeviceMatch<'detector>> for TrieDeviceDetector {
+    fn match_by_user_agent(&'detector self, user_agent: &String) -> Option<TrieDeviceMatch<'detector>> {
+        let user_agent = CString::new(user_agent.as_bytes()).expect("CString::new failed");
 
-        let dataset = unsafe { (*self.provider.active).dataSet };
+        let dataset = unsafe { (*(*self.provider.load(Ordering::Relaxed)).active).dataSet };
 
         let device_offset = unsafe {
             fiftyoneDegreesGetDeviceOffset(dataset, user_agent.as_ptr())
@@ -127,7 +130,7 @@ impl<'detector> DeviceDetector<'detector, TrieDeviceMatch<'detector>> for TrieDe
         Some(TrieDeviceMatch {
             indexes: &self.indexes,
             dataset,
-            device_offset
+            device_offset,
         })
     }
 }
@@ -144,7 +147,9 @@ mod tests {
     fn trie_init() {
         let mut detector = TrieDeviceDetector::new("/Users/pholley/Downloads/51Degrees-EnterpriseV3.4.trie", vec![PropertyName::IsSmartPhone, PropertyName::DeviceType, PropertyName::BrowserVersion, PropertyName::PlatformVersion]).ok().unwrap();
 
-        let matched = detector.match_by_user_agent("Mozilla/5.0 (iPhone; CPU iPhone OS 10_3_2 like Mac OS X) AppleWebKit/603.2.4 (KHTML, like Gecko) FxiOS/7.5b3349 Mobile/14F89 Safari/603.2.4").unwrap();
+        let ua = "Mozilla/5.0 (iPhone; CPU iPhone OS 10_3_2 like Mac OS X) AppleWebKit/603.2.4 (KHTML, like Gecko) FxiOS/7.5b3349 Mobile/14F89 Safari/603.2.4".to_string();
+
+        let matched = detector.match_by_user_agent(&ua).unwrap();
 
         assert_eq!(matched.get_property(PropertyName::IsSmartPhone).unwrap(), PropertyValue::IsSmartPhone(true));
         assert_eq!(matched.get_property(PropertyName::DeviceType).unwrap(), PropertyValue::DeviceType(DeviceType::SmartPhone));
@@ -157,10 +162,13 @@ mod tests {
     fn trie_bench(b: &mut Bencher) {
         let mut detector = TrieDeviceDetector::new("/Users/pholley/Downloads/51Degrees-EnterpriseV3.4.trie", vec![PropertyName::IsSmartPhone, PropertyName::DeviceType]).ok().unwrap();
 
-        b.iter(|| {
-            let matched = detector.match_by_user_agent("Mozilla/5.0 (iPhone; CPU iPhone OS 10_3_2 like Mac OS X) AppleWebKit/603.2.4 (KHTML, like Gecko) FxiOS/7.5b3349 Mobile/14F89 Safari/603.2.4").unwrap();
+        // assuming that this will exist in memory already as a result of an HTTP request, so no need to allocate per iteration
+        let ua = "Mozilla/5.0 (iPhone; CPU iPhone OS 10_3_2 like Mac OS X) AppleWebKit/603.2.4 (KHTML, like Gecko) FxiOS/7.5b3349 Mobile/14F89 Safari/603.2.4".to_string();
 
-            assert_eq!(matched.get_property(PropertyName::IsSmartPhone).unwrap(), PropertyValue::IsSmartPhone(true));
+        b.iter(|| {
+            let matched = detector.match_by_user_agent(&ua);
+
+            // assert_eq!(matched.unwrap().get_property(PropertyName::IsSmartPhone).unwrap(), PropertyValue::IsSmartPhone(true));
         });
     }
 }

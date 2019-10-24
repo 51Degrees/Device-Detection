@@ -13,12 +13,12 @@ pub enum PropertyValue<'detector> {
     DeviceType(DeviceType),
     IsSmartPhone(bool),
     IsTablet(bool),
-    HardwareName,
-    HardwareModel,
-    HardwareVendor,
-    PlatformName(PlatformName),
+    HardwareName(&'detector str),
+    HardwareModel(&'detector str),
+    HardwareVendor(&'detector str),
+    PlatformName(PlatformName<'detector>),
     PlatformVersion(&'detector str),
-    BrowserName(BrowserName),
+    BrowserName(BrowserName<'detector>),
     BrowserVersion(&'detector str)
 }
 
@@ -33,6 +33,9 @@ fn value_to_bool(value:&str) -> Option<bool>{
 impl<'detector> PropertyValue<'detector> {
     pub fn new(property_name: &PropertyName, value: &'detector str) -> Option<PropertyValue<'detector>> {
         match property_name {
+            PropertyName::HardwareName => Some(PropertyValue::HardwareName(value)),
+            PropertyName::HardwareVendor => Some(PropertyValue::HardwareVendor(value)),
+            PropertyName::HardwareModel => Some(PropertyValue::HardwareModel(value)),
             PropertyName::IsSmartPhone => match value_to_bool(value) {
                 Some(converted) => Some(PropertyValue::IsSmartPhone(converted)),
                 _ => None
@@ -45,14 +48,8 @@ impl<'detector> PropertyValue<'detector> {
                 Some(converted) => Some(PropertyValue::DeviceType(converted)),
                 _ => None
             },
-            PropertyName::PlatformName => match PlatformName::from_str(value) {
-                Some(converted) => Some(PropertyValue::PlatformName(converted)),
-                _ => None
-            },
-            PropertyName::BrowserName => match BrowserName::from_str(value) {
-                Some(converted) => Some(PropertyValue::BrowserName(converted)),
-                _ => None
-            },
+            PropertyName::PlatformName => Some(PropertyValue::PlatformName(PlatformName::from(value))),
+            PropertyName::BrowserName => Some(PropertyValue::BrowserName(BrowserName::from(value))),
             PropertyName::PlatformVersion => Some(PropertyValue::PlatformVersion(value)),
             PropertyName::BrowserVersion =>  Some(PropertyValue::BrowserVersion(value)),
             _ => None
