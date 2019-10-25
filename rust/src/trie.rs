@@ -5,20 +5,17 @@ use crate::common::*;
 use crate::values::PropertyValue;
 use std::alloc::{alloc, Layout};
 use std::sync::atomic::{AtomicPtr, Ordering};
-use crate::trie_c::*;
+use crate::c::trie::*;
 
 pub struct TrieDeviceDetector {
     provider: AtomicPtr<Provider>,
     indexes: PropertyIndexes,
 }
 
-type TrieDeviceIndex = ::std::os::raw::c_int;
-type DataSet = *mut Dataset;
-
 pub struct TrieDeviceMatch<'detector> {
     indexes: &'detector PropertyIndexes,
-    dataset: DataSet,
-    device_offset: TrieDeviceIndex,
+    dataset: *mut Dataset,
+    device_offset: ::std::os::raw::c_int,
 }
 
 impl<'detector> DeviceMatch for TrieDeviceMatch<'detector> {
@@ -107,6 +104,7 @@ mod tests {
     use crate::values::device_type::DeviceType;
 
     #[test]
+    #[cfg(all(feature = "browser-name-enum", feature = "platform-name-enum"))]
     fn trie_init() {
         let detector = TrieDeviceDetector::new("/Users/pholley/Downloads/51Degrees-EnterpriseV3.4.trie", vec![PropertyName::IsSmartPhone, PropertyName::DeviceType, PropertyName::BrowserVersion, PropertyName::PlatformVersion]).ok().unwrap();
 

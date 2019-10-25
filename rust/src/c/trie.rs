@@ -1,10 +1,4 @@
-#[repr(C, packed)]
-#[derive(Debug, Copy, Clone)]
-struct Date {
-    year: i16,
-    month: ::std::os::raw::c_uchar,
-    day: ::std::os::raw::c_uchar,
-}
+use crate::c::{Byte, Date};
 
 #[repr(C, packed(2))]
 #[allow(non_snake_case)]
@@ -13,7 +7,7 @@ struct DatasetHeader {
     version: u16,
     formatOffset: i32,
     nameOffset: i32,
-    tag: [::std::os::raw::c_uchar; 16usize],
+    tag: [Byte; 16usize],
     published: Date,
     nextUpdate: Date,
     copyrightOffset: i32,
@@ -68,7 +62,7 @@ struct Properties {
 #[allow(non_snake_case)]
 #[derive(Debug, Copy, Clone)]
 struct Collection {
-    firstByte: *mut ::std::os::raw::c_uchar,
+    firstByte: *mut Byte,
     count: ::std::os::raw::c_uint,
 }
 

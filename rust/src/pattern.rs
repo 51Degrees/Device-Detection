@@ -1,49 +1,26 @@
 extern crate libc;
 
-use std::mem;
 use std::ffi::{CString, CStr};
-use crate::pattern_c::*;
-use std::mem::{MaybeUninit, forget};
-use std::os::raw::c_char;
-use std::pin::Pin;
 use crate::common::{PropertyIndexes, PropertyName, DeviceMatch, PROPERTY_INDEXES_EMPTY, DeviceDetector};
 use crate::values::PropertyValue;
-use std::alloc::{Layout, alloc};
-use std::rc::Rc;
-use std::borrow::{BorrowMut, Borrow};
-use std::ptr::NonNull;
-use std::fmt::Display;
+use crate::c::pattern::*;
 use std::cell::{RefCell};
-
-#[derive(PartialEq)]
-pub enum PatternInitStatus {
-    Success,
-    InsufficientMemory,
-    CorruptData,
-    IncorrectVersion,
-    FileNotFound,
-    NotSet,
-    PointerOutOfBounds,
-    NullPointer,
-    Unexpected,
-    InvalidProperty
-}
+use std::mem::MaybeUninit;
 
 pub struct PatternDeviceDetector{
-    provider: RefCell<Box<MaybeUninit<fiftyoneDegreesProvider>>>,
+    provider: RefCell<Box<MaybeUninit<Provider>>>,
     indexes: PropertyIndexes
 }
 
-pub struct TriePropertyAccessor {
-    dataset: *mut fiftyoneDegreesDataSet
+pub enum PatternDeviceDetectorError {
+    InitStatus(PatternInitStatus),
+    InvalidProperty
 }
 
-type TrieDeviceIndex = ::std::os::raw::c_int;
-type DataSet = *mut fiftyoneDegreesDataSet;
 
 impl PatternDeviceDetector {
-    pub fn new(file_location: &str, properties: Vec<PropertyName>) -> Result<PatternDeviceDetector, PatternInitStatus> {
-        let provider:MaybeUninit<fiftyoneDegreesProvider> = unsafe { MaybeUninit::uninit()};
+    pub fn new(file_location: &str, properties: Vec<PropertyName>) -> Result<PatternDeviceDetector, PatternDeviceDetectorError> {
+        let provider:MaybeUninit<Provider> = MaybeUninit::uninit();
 
         let mut boxed = Box::new(provider);
 
@@ -58,20 +35,8 @@ impl PatternDeviceDetector {
 
         let property_select = CString::new(property_select).expect("CString::new failed");
 
-        let status_code = unsafe {
-            fiftyoneDegreesInitProviderWithPropertyString(file_name.into_raw(), boxed.as_mut_ptr(), property_select.into_raw(), 1, 0)
-        };
-
-        let status = match status_code {
-            e_fiftyoneDegrees_DataSetInitStatus_DATA_SET_INIT_STATUS_SUCCESS => PatternInitStatus::Success,
-            e_fiftyoneDegrees_DataSetInitStatus_DATA_SET_INIT_STATUS_INSUFFICIENT_MEMORY => PatternInitStatus::InsufficientMemory,
-            e_fiftyoneDegrees_DataSetInitStatus_DATA_SET_INIT_STATUS_CORRUPT_DATA => PatternInitStatus::CorruptData,
-            e_fiftyoneDegrees_DataSetInitStatus_DATA_SET_INIT_STATUS_INCORRECT_VERSION => PatternInitStatus::IncorrectVersion,
-            e_fiftyoneDegrees_DataSetInitStatus_DATA_SET_INIT_STATUS_FILE_NOT_FOUND => PatternInitStatus::FileNotFound,
-            e_fiftyoneDegrees_DataSetInitStatus_DATA_SET_INIT_STATUS_NOT_SET => PatternInitStatus::NotSet,
-            e_fiftyoneDegrees_DataSetInitStatus_DATA_SET_INIT_STATUS_POINTER_OUT_OF_BOUNDS => PatternInitStatus::PointerOutOfBounds,
-            e_fiftyoneDegrees_DataSetInitStatus_DATA_SET_INIT_STATUS_NULL_POINTER => PatternInitStatus::NullPointer,
-            _ => PatternInitStatus::Unexpected
+        let status = unsafe {
+            init_provider_with_property_String(file_name.into_raw(), boxed.as_mut_ptr(), property_select.into_raw(), 1, 0)
         };
 
         if status == PatternInitStatus::Success {
@@ -82,10 +47,10 @@ impl PatternDeviceDetector {
             for property in &properties {
                 let c_string = property.as_cstring();
 
-                let index = unsafe { fiftyoneDegreesGetRequiredPropertyIndex(dataset,c_string.as_ptr()) };
+                let index = unsafe { get_required_property_index(dataset,c_string.as_ptr()) };
 
                 if index == -1 {
-                    return Err(PatternInitStatus::InvalidProperty)
+                    return Err(PatternDeviceDetectorError::InvalidProperty)
                 }
 
                 indexes[usize::from(property)] = index;
@@ -96,26 +61,26 @@ impl PatternDeviceDetector {
                 indexes
             })
         }else{
-            Err(status)
+            Err(PatternDeviceDetectorError::InitStatus(status))
         }
     }
 }
 
 pub struct PatternDeviceMatch<'detector> {
     indexes: &'detector PropertyIndexes,
-    workset: *mut fiftyoneDegreesWorkset
+    workset: *mut Workset
 }
 
 impl<'detector> DeviceMatch for PatternDeviceMatch<'detector>{
     fn get_property(&self, property_type: PropertyName) -> Option<PropertyValue> {
         let str = unsafe {
-            let set = fiftyoneDegreesSetValues(self.workset, self.indexes[usize::from(&property_type)]);
+            set_values(self.workset, self.indexes[usize::from(&property_type)]);
 
             let vals = (*self.workset).values;
 
             let val = *vals.offset(0);
 
-            let pointer = fiftyoneDegreesGetValueName((*self.workset).dataSet, val);
+            let pointer = get_value_name((*self.workset).dataSet, val);
 
             CStr::from_ptr(pointer).to_str()
         };
@@ -124,7 +89,7 @@ impl<'detector> DeviceMatch for PatternDeviceMatch<'detector>{
             Ok(str) => {
                 PropertyValue::new(&property_type, str)
             },
-            Err(err) => None
+            Err(_) => None
         }
     }
 }
@@ -132,24 +97,24 @@ impl<'detector> DeviceMatch for PatternDeviceMatch<'detector>{
 impl<'detector> Drop for PatternDeviceMatch<'detector> {
     fn drop(&mut self) {
         unsafe {
-            fiftyoneDegreesWorksetRelease(self.workset);
+            workset_release(self.workset);
         }
     }
 }
 
 
 impl<'detector> DeviceDetector<'detector, PatternDeviceMatch<'detector>> for PatternDeviceDetector{
-    fn match_by_user_agent(&'detector self, user_agent: &str) -> Option<PatternDeviceMatch<'detector>> {
-        let mut pointer = unsafe {
-            fiftyoneDegreesProviderWorksetGet(self.provider.borrow_mut().as_mut_ptr())
+    fn match_by_user_agent(&'detector self, user_agent: &String) -> Option<PatternDeviceMatch<'detector>> {
+        let pointer = unsafe {
+            workset_get(self.provider.borrow_mut().as_mut_ptr())
         };
 
-        let user_agent = CString::new(user_agent).expect("CString::new failed");
+        let user_agent = CString::new(user_agent.as_bytes()).expect("CString::new failed");
 
         unsafe {
-            fiftyoneDegreesMatch(pointer, user_agent.as_ptr());
+            do_match(pointer, user_agent.as_ptr());
 
-            if (*pointer).method == e_fiftyoneDegrees_MatchMethod_NONE {
+            if (*pointer).method == PatternMatchMethod::None {
                 None
             } else {
                 Some(PatternDeviceMatch {
@@ -166,14 +131,14 @@ mod tests {
     use super::*;
     use test::Bencher;
     use crate::values::PropertyValue;
-    use crate::values::device_type::DeviceType;
-    use crate::values::browser_name::BrowserName;
 
     #[test]
+    #[cfg(all(feature = "browser-name-enum", feature = "platform-name-enum"))]
     fn pattern_init() {
-        let mut detector = PatternDeviceDetector::new("../data/51Degrees-LiteV3.2.dat", vec![PropertyName::BrowserVersion]).ok().unwrap();
+        let detector = PatternDeviceDetector::new("../data/51Degrees-LiteV3.2.dat", vec![PropertyName::BrowserVersion]).ok().unwrap();
 
-        let mut matched = detector.match_by_user_agent("Mozilla/5.0 (iPhone; CPU iPhone OS 10_3_2 like Mac OS X) AppleWebKit/603.2.4 (KHTML, like Gecko) FxiOS/7.5b3349 Mobile/14F89 Safari/603.2.4").unwrap();
+        let ua = "Mozilla/5.0 (iPhone; CPU iPhone OS 10_3_2 like Mac OS X) AppleWebKit/603.2.4 (KHTML, like Gecko) FxiOS/7.5b3349 Mobile/14F89 Safari/603.2.4".to_string();
+        let matched = detector.match_by_user_agent(&ua).unwrap();
 
         //assert_eq!(matched.get_property(PropertyName::IsSmartPhone).unwrap(), PropertyValue::IsSmartPhone(true));
         //assert_eq!(matched.get_property(PropertyName::DeviceType).unwrap(), PropertyValue::DeviceType(DeviceType::SmartPhone));
@@ -184,10 +149,11 @@ mod tests {
 
     #[bench]
     fn pattern_bench(b: &mut Bencher) {
-        let mut detector = PatternDeviceDetector::new("../data/51Degrees-LiteV3.2.dat", vec![PropertyName::BrowserVersion]).ok().unwrap();
+        let detector = PatternDeviceDetector::new("../data/51Degrees-LiteV3.2.dat", vec![PropertyName::BrowserVersion]).ok().unwrap();
+        let ua = "Mozilla/5.0 (iPhone; CPU iPhone OS 10_3_2 like Mac OS X) AppleWebKit/603.2.4 (KHTML, like Gecko) FxiOS/7.5b3349 Mobile/14F89 Safari/603.2.4".to_string();
 
         b.iter(|| {
-            let mut matched = detector.match_by_user_agent("Mozilla/5.0 (iPhone; CPU iPhone OS 10_3_2 like Mac OS X) AppleWebKit/603.2.4 (KHTML, like Gecko) FxiOS/7.5b3349 Mobile/14F89 Safari/603.2.4").unwrap();
+            let matched = detector.match_by_user_agent(&ua).unwrap();
 
             assert_eq!(matched.get_property(PropertyName::BrowserVersion).unwrap(), PropertyValue::BrowserVersion("7.5"));
         });
