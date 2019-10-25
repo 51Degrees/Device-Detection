@@ -1,9 +1,5 @@
-use std::str::Utf8Error;
-use std::slice::SliceIndex;
 use std::ffi::CString;
 use crate::values::PropertyValue;
-
-type PropertyLookupFn = fn(i32, i32) -> i32;
 
 pub trait DeviceMatch {
     fn get_property(&self, property_type: PropertyName) -> Option<PropertyValue>;
@@ -14,7 +10,7 @@ pub trait DeviceDetector<'detector, M:DeviceMatch + 'detector> {
 }
 
 pub type PropertyIndexes = [i32;10];
-pub static PropertyIndexesEmpty:PropertyIndexes = [-1;10];
+pub static PROPERTY_INDEXES_EMPTY:PropertyIndexes = [-1;10];
 
 pub enum PropertyName {
     DeviceType,

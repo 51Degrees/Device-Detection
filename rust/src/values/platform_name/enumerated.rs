@@ -2,7 +2,7 @@
 pub enum PlatformName<'detector> {
     Android,
     MacOS,
-    iOS,
+    IOS,
     Windows,
     Other(&'detector str)
 }
@@ -12,7 +12,7 @@ impl<'detector> From<&'detector str> for PlatformName<'detector> {
         match value {
             "Android" => PlatformName::Android,
             "macOS" => PlatformName::MacOS,
-            "iOS" => PlatformName::iOS,
+            "iOS" => PlatformName::IOS,
             "Windows" => PlatformName::Windows,
             _ => PlatformName::Other(value)
         }

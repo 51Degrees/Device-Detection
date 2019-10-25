@@ -51,8 +51,7 @@ impl<'detector> PropertyValue<'detector> {
             PropertyName::PlatformName => Some(PropertyValue::PlatformName(PlatformName::from(value))),
             PropertyName::BrowserName => Some(PropertyValue::BrowserName(BrowserName::from(value))),
             PropertyName::PlatformVersion => Some(PropertyValue::PlatformVersion(value)),
-            PropertyName::BrowserVersion =>  Some(PropertyValue::BrowserVersion(value)),
-            _ => None
+            PropertyName::BrowserVersion =>  Some(PropertyValue::BrowserVersion(value))
         }
     }
 }

@@ -6,7 +6,7 @@ use crate::pattern_c::*;
 use std::mem::{MaybeUninit, forget};
 use std::os::raw::c_char;
 use std::pin::Pin;
-use crate::common::{PropertyIndexes, PropertyName, DeviceMatch, PropertyIndexesEmpty, DeviceDetector};
+use crate::common::{PropertyIndexes, PropertyName, DeviceMatch, PROPERTY_INDEXES_EMPTY, DeviceDetector};
 use crate::values::PropertyValue;
 use std::alloc::{Layout, alloc};
 use std::rc::Rc;
@@ -77,7 +77,7 @@ impl PatternDeviceDetector {
         if status == PatternInitStatus::Success {
             let dataset = unsafe { (*(*boxed.as_ptr()).activePool).dataSet };
 
-            let mut indexes:PropertyIndexes = PropertyIndexesEmpty;
+            let mut indexes:PropertyIndexes = PROPERTY_INDEXES_EMPTY;
 
             for property in &properties {
                 let c_string = property.as_cstring();
