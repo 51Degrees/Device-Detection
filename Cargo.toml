@@ -6,7 +6,7 @@ build = "rust/build.rs"
 license = "MPL-2.0"
 authors = ["Paris Holley <mail@parisholley.com>"]
 description = "A wrapper around Rust FFI bindings for the 51Degrees device detection C library."
-include = ["rust/src/*"]
+include = ["rust/src/*", "rust/build.rs"]
 
 [lib]
 path = "rust/src/lib.rs"
