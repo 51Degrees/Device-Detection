@@ -15,6 +15,7 @@ offlineProcessingOutput.csv
 # Rust output
 rust/target
 rust/doc
+target
 
 # NuGet Packages
 *.nupkg

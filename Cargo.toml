@@ -1,7 +1,11 @@
 [package]
-name = "fiftyonedegrees-sys"
+name = "fiftyonedegrees"
 version = "0.1.0"
 edition = "2018"
+build = "rust/build.rs"
+
+[lib]
+path = "rust/src/lib.rs"
 
 [features]
 browser-name-enum = []
