@@ -45,11 +45,11 @@ class FiftyOneDegreesProviderOnPremise
 
         if ($settings["FiftyOneProvider"] === "Pattern") {
 
-          $provider = new \Provider(ini_get("FiftyOneDegreesPatternV3.data_file"));
+          $provider = \FiftyOneDegreesPatternV3::provider_get();
 
         } else if ($settings["FiftyOneProvider"] === "TRIE") {
 
-          $provider = new \Provider(ini_get("FiftyOneDegreesTrieV3.data_file"));
+          $provider = \FiftyOneDegreesTrieV3::provider_get();
 
         }
 
