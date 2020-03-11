@@ -231,11 +231,11 @@ int fiftyoneDegreesSignalValid(fiftyoneDegreesSignal *signal);
 #ifdef _MSC_VER
 #define FIFTYONEDEGREES_INTERLOCK_INC(v) _InterlockedIncrement(v)
 #else
-#define FIFTYONEDEGREES_INTERLOCK_INC(v) __sync_fetch_and_add(v, 1)
+#define FIFTYONEDEGREES_INTERLOCK_INC(v) __sync_add_and_fetch(v, 1)
 #endif
 
 #ifdef _MSC_VER
 #define FIFTYONEDEGREES_INTERLOCK_DEC(v) _InterlockedDecrement(v)
 #else
-#define FIFTYONEDEGREES_INTERLOCK_DEC(v) __sync_fetch_and_add(v, -1)
+#define FIFTYONEDEGREES_INTERLOCK_DEC(v) __sync_add_and_fetch(v, -1)
 #endif
