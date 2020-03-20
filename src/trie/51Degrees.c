@@ -1775,7 +1775,7 @@ fiftyoneDegreesActiveDataSet* incrementActive(
 #endif
 	return incremented.self;
 }
-#include <unistd.h>
+
 void decrementActive(
 	fiftyoneDegreesActiveDataSet *active) {
 	// When modifying this method, it is important to note the reason for using
