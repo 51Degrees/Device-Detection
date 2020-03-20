@@ -1560,6 +1560,35 @@ static fiftyoneDegreesDataSetInitStatus initFromFile(
 	return status;
 }
 
+static fiftyoneDegreesDataSetInitStatus initActiveDataSet(
+	fiftyoneDegreesProvider *provider,
+	fiftyoneDegreesDataSet *dataSet,
+	fiftyoneDegreesActiveDataSet **activePtr) {
+	// Create a new active wrapper for the provider.
+	fiftyoneDegreesActiveDataSet *active =
+		(fiftyoneDegreesActiveDataSet*)fiftyoneDegreesMalloc(
+		sizeof(fiftyoneDegreesActiveDataSet));
+	if (active == NULL) {
+		fiftyoneDegreesDataSetFree(dataSet);
+		return DATA_SET_INIT_STATUS_INSUFFICIENT_MEMORY;
+	}
+	*activePtr = active;
+
+	active->self = active;
+	// Set the number of offsets using the active dataset to zero.
+	active->counter.padding = NULL;
+
+	// Set a link between the new active wrapper and the provider. Used to
+	// check if the dataset can be freed when the last thread has finished
+	// using it.
+	active->provider = provider;
+
+	// Switch the active dataset for the provider to the newly created one.
+	active->dataSet = dataSet;
+
+	return DATA_SET_INIT_STATUS_SUCCESS;
+}
+
 /**
  * \cond
  * Initialises the provider with the provided dataset.
@@ -1574,26 +1603,7 @@ static fiftyoneDegreesDataSetInitStatus initProvider(
 	fiftyoneDegreesDataSet *dataSet) {
 	fiftyoneDegreesActiveDataSet *active;
 
-	// Create a new active wrapper for the provider.
-	active = (fiftyoneDegreesActiveDataSet*)fiftyoneDegreesMalloc(
-		sizeof(fiftyoneDegreesActiveDataSet));
-	if (active == NULL) {
-		fiftyoneDegreesDataSetFree(dataSet);
-		return DATA_SET_INIT_STATUS_INSUFFICIENT_MEMORY;
-	}
-
-	// Set the number of offsets using the active dataset to zero.
-	active->inUse = 0;
-
-	// Set a link between the new active wrapper and the provider. Used to
-	// check if the dataset can be freed when the last thread has finished
-	// using it.
-	active->provider = provider;
-
-	// Switch the active dataset for the provider to the newly created one.
-	active->dataSet = dataSet;
-	provider->active = active;
-
+	initActiveDataSet(provider, dataSet, (fiftyoneDegreesActiveDataSet**)&provider->active);
 	return DATA_SET_INIT_STATUS_SUCCESS;
 }
 
@@ -1745,6 +1755,80 @@ void fiftyoneDegreesActiveDataSetFree(fiftyoneDegreesActiveDataSet *active) {
 	fiftyoneDegreesFree(active);
 }
 
+fiftyoneDegreesActiveDataSet* incrementActive(
+	fiftyoneDegreesProvider *provider) {
+	fiftyoneDegreesActiveDataSet incremented;
+#ifndef FIFTYONEDEGREES_NO_THREADING
+	fiftyoneDegreesActiveDataSet active;
+	do {
+		active = *provider->active;
+		incremented = active;
+
+		incremented.counter.inUse++;
+	} while (FIFTYONEDEGREES_INTERLOCK_EXCHANGE_DW(
+		provider->active,
+		incremented,
+		active) == FALSE);
+#else
+	provider->active->inUse++;
+	incremented = *provider->active;
+#endif
+	return incremented.self;
+}
+#include <unistd.h>
+void decrementActive(
+	fiftyoneDegreesActiveDataSet *active) {
+	// When modifying this method, it is important to note the reason for using
+	// two separate compareand swaps. The first compare and swap ensures that
+	// we are certain the dataset is ready to be released i.e. the inUse counter
+	// is zero, and the dataset is no longer active in the provider. The second
+	// compare and swap ensures that we are certain the dataset can be freed by
+	// THIS thread. See below for an example of when this can happen.
+
+	assert(handle->counter.inUse > 0);
+	fiftyoneDegreesActiveDataSet decremented;
+#ifndef FIFTYONEDEGREES_NO_THREADING
+	fiftyoneDegreesActiveDataSet tempActive;
+	do {
+		tempActive = *active;
+		decremented = tempActive;
+
+		decremented.counter.inUse--;
+
+	} while (FIFTYONEDEGREES_INTERLOCK_EXCHANGE_DW(
+		active,
+		decremented,
+		tempActive) == FALSE);
+#else
+	active->counter.inUse--;
+	decremented = *active;
+#endif
+	if (decremented.counter.inUse == 0 &&  // Am I the last user of the dataset?
+		decremented.provider->active != decremented.self) { // Is the dataset still active?
+#ifndef FIFTYONEDEGREES_NO_THREADING
+		// Atomically set the dataset's self pointer to null to ensure only
+		// one thread can get into the free method.
+		// Consider the scenario where between the decrement this if statement:
+		// 1. another thread increments and decrements the counter, then
+		// 2. the active dataset is replaced.
+		// In this case, both threads will make it into here, so access to
+		// the free method must be limted to one by atomically nulling
+		// the self pointer. We will still have access to the pointer for
+		// freeing through the decremented copy.
+		fiftyoneDegreesActiveDataSet nulled = decremented;
+		nulled.self = NULL;
+		if (FIFTYONEDEGREES_INTERLOCK_EXCHANGE(
+			decremented.self->self,
+			NULL,
+			decremented.self) != NULL) {
+			fiftyoneDegreesActiveDataSetFree(decremented.self);
+		}
+#else
+	fiftyoneDegreesActiveDataSetFree(decremented.self);
+#endif
+	}		
+}
+
 /**
  * \cond
  * Reloads the provider with the new dataset provided. This is common to both
@@ -1757,44 +1841,49 @@ void fiftyoneDegreesActiveDataSetFree(fiftyoneDegreesActiveDataSet *active) {
 static fiftyoneDegreesDataSetInitStatus reloadCommon(
 		fiftyoneDegreesProvider *provider, 
 		fiftyoneDegreesDataSet *newDataSet) {
-	const fiftyoneDegreesActiveDataSet *oldActive;
 	fiftyoneDegreesDataSetInitStatus status;
 
-	// Maintain a reference to the current active wrapper in case it can be
-	// freed.
-	oldActive = (const fiftyoneDegreesActiveDataSet*)provider->active;
+	fiftyoneDegreesActiveDataSet *oldActive  = NULL;
+	fiftyoneDegreesActiveDataSet *active;
 
 	// Initialise the new dataset with the same properties as the old one.
 	status = initSpecificPropertiesFromArray(
 		newDataSet,
-		oldActive->dataSet->requiredPropertiesNames,
-		oldActive->dataSet->requiredProperties.count);
+		provider->active->dataSet->requiredPropertiesNames,
+		provider->active->dataSet->requiredProperties.count);
 	if (status != DATA_SET_INIT_STATUS_SUCCESS) {
 		fiftyoneDegreesDataSetFree(newDataSet);
 		return status;
 	}
 
 	// Set the tolerances from the old dataset.
-	newDataSet->baseDrift = oldActive->dataSet->baseDrift;
-	newDataSet->baseDifference = oldActive->dataSet->baseDifference;
+	newDataSet->baseDrift = provider->active->dataSet->baseDrift;
+	newDataSet->baseDifference = provider->active->dataSet->baseDifference;
 
-#ifndef FIFTYONEDEGREES_NO_THREADING
-	FIFTYONEDEGREES_MUTEX_LOCK(&provider->lock);
-#endif
 	// Initialise the new provider.
-	status = initProvider(provider, newDataSet);
+	status = initActiveDataSet(provider, newDataSet, &active);
 	if (status != DATA_SET_INIT_STATUS_SUCCESS) {
 		fiftyoneDegreesDataSetFree(newDataSet);
-	}
-
-	// If the old dataset is ready to be freed then do so.
-	else if (oldActive->inUse == 0) {
-		fiftyoneDegreesActiveDataSetFree(
-			(fiftyoneDegreesActiveDataSet*)oldActive);
+		return status;
 	}
 #ifndef FIFTYONEDEGREES_NO_THREADING
-	FIFTYONEDEGREES_MUTEX_UNLOCK(&provider->lock);
+	// Switch the active dataset for the provider to the newly created one.
+	do {
+		if (oldActive != NULL) {
+			decrementActive(oldActive);
+		}
+		oldActive = incrementActive(provider);
+	} while (FIFTYONEDEGREES_INTERLOCK_EXCHANGE(
+		provider->active,
+		active,
+		oldActive) == FALSE);
+#else
+	oldActive = incrementActive(provider);
+	provider->active = active;
 #endif
+	// Release the existing dataset can be freed. If nothing else is
+	// holding onto a reference to it then free it will be freed.
+	decrementActive(oldActive);
 	return DATA_SET_INIT_STATUS_SUCCESS;
 }
 
@@ -2983,41 +3072,10 @@ void fiftyoneDegreesFreeDeviceOffsets(fiftyoneDegreesDeviceOffsets* offsets) {
 fiftyoneDegreesDeviceOffsets* fiftyoneDegreesProviderCreateDeviceOffsets(
 	fiftyoneDegreesProvider *provider) {
 	fiftyoneDegreesDeviceOffsets *offsets = NULL;
-	fiftyoneDegreesActiveDataSet *active = NULL;
-
-#ifndef FIFTYONEDEGREES_NO_THREADING
-	do {
-		// If the we've an old active data set and it's no longer in use
-		// after we've decremented the use counter then free it.
-		if (active != NULL) {
-			fiftyoneDegreesProviderFreeDeviceOffsets(offsets);
-		}
-
-		// Get the active data set.
-		active = (fiftyoneDegreesActiveDataSet*)provider->active;
-
-		// Increment the inUse counter for the active data set so that we can
-		// track any offsets that are created.
-		FIFTYONEDEGREES_INTERLOCK_INC(&active->inUse);
-
-		// Create the offsets.
-		offsets = fiftyoneDegreesCreateDeviceOffsets(active->dataSet);
-		offsets->active = active;
-
-		// If the current active data set is the same as the local one then 
-		// continue.
-	} while (active != provider->active);
-#else
-	// Get the active data set.
-	active = (fiftyoneDegreesActiveDataSet*)provider->active;
-
-	// Increment the in use counter.
-	active->inUse++;
-
+	fiftyoneDegreesActiveDataSet *active = incrementActive(provider);
 	// Create the offsets.
 	offsets = fiftyoneDegreesCreateDeviceOffsets(active->dataSet);
-	offsets->active = active; 
-#endif
+	offsets->active = active;
 
 	return offsets;
 }
@@ -3036,18 +3094,7 @@ void fiftyoneDegreesProviderFreeDeviceOffsets(
 
 	// If the dataset the offsets are associated with is not the active
 	// one and no other offsets are using it, then dispose of it.
-#ifndef FIFTYONEDEGREES_NO_THREADING
-	if (FIFTYONEDEGREES_INTERLOCK_DEC(&offsets->active->inUse) == 0 &&
-		provider->active != offsets->active) {
-		fiftyoneDegreesActiveDataSetFree(offsets->active);
-	}
-#else
-	offsets->active->inUse--;
-	if (offsets->active->inUse == 0 &&
-		provider->active != offsets->active) {
-		fiftyoneDegreesActiveDataSetFree(offsets->active);
-	}
-#endif
+	decrementActive(offsets->active);
 	fiftyoneDegreesFreeDeviceOffsets(offsets);
 }
 

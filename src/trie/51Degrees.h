@@ -255,15 +255,27 @@ typedef struct fiftyoneDegrees_dataset_t {
 typedef struct fiftyoneDegrees_provider_t fiftyoneDegreesProvider;
 
 /**
+ * Counter used for the active dataset.
+ */
+typedef union fiftyoneDegrees_active_dataset_counter_t {
+	int inUse; /* Counter indicating how many device offsets are still linked
+	           to a dataset. */
+	void *padding; /* Padding to ensure the counter is the same size as a
+	               pointer. */
+} fiftyoneDegreesActiveDataSetCounter;
+
+/**
  * Active wrapper for the provider's dataset. This is used to make reloading
  * thread safe.
  */
 struct fiftyoneDegrees_active_dataset_t {
+	fiftyoneDegreesActiveDataSet *self; /* Pointer to this active dataset. */
+	fiftyoneDegreesActiveDataSetCounter counter; /* Counter indicating how
+	                                             many device offsets are still
+												 linked to this dataset. */
 	fiftyoneDegreesDataSet *dataSet; /* Pointer to an initialised data set. */
 	fiftyoneDegreesProvider *provider; /* Pointer to the provider the active
 									   wrapper relates to. */
-	volatile long inUse; /* Counter indicating how many device offsets are still
-						linked to this dataset. */
 };
 
 /* Provider structure containing the dataset used for detections. */

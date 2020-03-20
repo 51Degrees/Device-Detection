@@ -239,3 +239,70 @@ int fiftyoneDegreesSignalValid(fiftyoneDegreesSignal *signal);
 #else
 #define FIFTYONEDEGREES_INTERLOCK_DEC(v) __sync_add_and_fetch(v, -1)
 #endif
+
+#ifdef _MSC_VER
+#define FIFTYONEDEGREES_INTERLOCK_EXCHANGE(d,e,c) \
+	InterlockedCompareExchange(&d, e, c)
+#else
+#define FIFTYONEDEGREES_INTERLOCK_EXCHANGE(d,e,c) \
+	__sync_val_compare_and_swap(&d,c,e)
+#endif
+
+/**
+ * Double width (64 or 128 depending on the architecture) compare and exchange.
+ * Replaces the destination value with the exchange value, only if the
+ * destination value matched the comparand. Returns true if the value was
+ * exchanged.
+ * @param d the destination to swap
+ * @param e the exchange value
+ * @param c the comparand
+ */
+#ifdef _MSC_VER
+#define FIFTYONEDEGREES_INTERLOCK_EXCHANGE_DW(d,e,c) \
+    (sizeof(void*) == 8 ? \
+    InterlockedCompareExchange128((__int64*)d, *((__int64*)&e + 1), *(((__int64*)&e)), (__int64*)&c) : \
+    InterlockedCompareExchange64((__int64*)d, *((__int64*)&e), *(__int64*)&c))
+#else
+/**
+ * Implements the __sync_bool_compare_and_swap_16 function which is often not
+ * implemtned by the compiler. This uses the cmpxchg16b instruction from the
+ * x86-64 instruction set, the same instruction as the
+ * InterlockedCompareExchange128 implementation
+ * (see https://docs.microsoft.com/en-us/cpp/intrinsics/interlockedcompareexchange128?view=vs-2019#remarks).
+ * It is therefore supported by modern Intel and AMD CPUs. However, most ARM
+ * chips will not support this.
+ * For full details of the cmpxchg16b instruction, see the manual:
+ * https://www.intel.com/content/dam/www/public/us/en/documents/manuals/64-ia-32-architectures-software-developer-instruction-set-reference-manual-325383.pdf
+ * and other example implementations:
+ * https://github.com/ivmai/libatomic_ops/blob/release-7_2/src/atomic_ops/sysdeps/gcc/x86_64.h#L148
+ * https://github.com/haproxy/haproxy/blob/a7bf57352059277239794950f9aac33d05741f1a/include/common/hathreads.h#L1000
+ * @param destination memory location to be replaced if the compare is true
+ * @param exchange memory to copy to the destination if the compare is true
+ * @param compare memory to compare to destination.
+ * @return 1 if all 16 bytes of destination and compare were equal and
+ * destination was replaced, otherwise 0
+ */
+static __inline int
+__fod_sync_bool_compare_and_swap_16(
+    void *destination,
+    const void *exchange,
+    void *compare)
+{
+    char result;
+    __asm __volatile("lock cmpxchg16b %0; setz %3"
+    : "+m" (*(void **)destination),
+        "=a" (((void **)compare)[0]),
+        "=d" (((void **)compare)[1]),
+        "=q" (result)
+        : "a" (((void **)compare)[0]),
+        "d" (((void **)compare)[1]),
+        "b" (((const void **)exchange)[0]),
+        "c" (((const void **)exchange)[1])
+        : "memory", "cc");
+    return (result);
+}
+#define FIFTYONEDEGREES_INTERLOCK_EXCHANGE_DW(d,e,c) \
+    (sizeof(void*) == 8 ? \
+    __fod_sync_bool_compare_and_swap_16((void*)d, (void*)&e, (void*)&c) : \
+    __sync_bool_compare_and_swap((long*)d, *((long*)&c), *((long*)&e)))
+#endif
