@@ -1601,8 +1601,6 @@ static fiftyoneDegreesDataSetInitStatus initActiveDataSet(
 static fiftyoneDegreesDataSetInitStatus initProvider(
 	fiftyoneDegreesProvider *provider,
 	fiftyoneDegreesDataSet *dataSet) {
-	fiftyoneDegreesActiveDataSet *active;
-
 	initActiveDataSet(provider, dataSet, (fiftyoneDegreesActiveDataSet**)&provider->active);
 	return DATA_SET_INIT_STATUS_SUCCESS;
 }
@@ -1761,7 +1759,7 @@ fiftyoneDegreesActiveDataSet* incrementActive(
 #ifndef FIFTYONEDEGREES_NO_THREADING
 	fiftyoneDegreesActiveDataSet active;
 	do {
-		active = *provider->active;
+		active = *(fiftyoneDegreesActiveDataSet*)provider->active;
 		incremented = active;
 
 		incremented.counter.inUse++;
@@ -1785,7 +1783,7 @@ void decrementActive(
 	// compare and swap ensures that we are certain the dataset can be freed by
 	// THIS thread. See below for an example of when this can happen.
 
-	assert(handle->counter.inUse > 0);
+	assert(active->counter.inUse > 0);
 	fiftyoneDegreesActiveDataSet decremented;
 #ifndef FIFTYONEDEGREES_NO_THREADING
 	fiftyoneDegreesActiveDataSet tempActive;
@@ -1817,12 +1815,14 @@ void decrementActive(
 		// freeing through the decremented copy.
 		fiftyoneDegreesActiveDataSet nulled = decremented;
 		nulled.self = NULL;
-		if (FIFTYONEDEGREES_INTERLOCK_EXCHANGE(
-			decremented.self->self,
-			NULL,
-			decremented.self) != NULL) {
+#pragma warning(disable: 4047)
+		if (FIFTYONEDEGREES_INTERLOCK_EXCHANGE_DW(
+			decremented.self,
+			nulled,
+			decremented) != NULL) {
 			fiftyoneDegreesActiveDataSetFree(decremented.self);
 		}
+#pragma warning(default: 4047)
 #else
 	fiftyoneDegreesActiveDataSetFree(decremented.self);
 #endif
@@ -1873,7 +1873,7 @@ static fiftyoneDegreesDataSetInitStatus reloadCommon(
 			decrementActive(oldActive);
 		}
 		oldActive = incrementActive(provider);
-	} while (FIFTYONEDEGREES_INTERLOCK_EXCHANGE(
+	} while (FIFTYONEDEGREES_INTERLOCK_EXCHANGE_DW(
 		provider->active,
 		active,
 		oldActive) == FALSE);
