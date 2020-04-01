@@ -57,6 +57,15 @@ void *(FIFTYONEDEGREES_CALL_CONV *fiftyoneDegreesMalloc)(size_t __size) =
 	malloc;
 void (FIFTYONEDEGREES_CALL_CONV *fiftyoneDegreesFree)(void *__ptr) = free;
 
+static void* fiftyoneDegreesMallocAligned(int alignment, size_t size) {
+	void *ptr = fiftyoneDegreesMalloc(size + alignment - 1);
+	if ((((uint64_t)ptr) % alignment) != 0) {
+		unsigned char *boundary = (unsigned char *)ptr;
+		boundary += alignment - (((unsigned long)ptr) % alignment);
+		ptr = (void*)boundary;
+	}
+	return ptr;
+}
 
 /**
 * DATASET MEMORY ALLOCATION SIZE MACROS
@@ -1566,7 +1575,8 @@ static fiftyoneDegreesDataSetInitStatus initActiveDataSet(
 	fiftyoneDegreesActiveDataSet **activePtr) {
 	// Create a new active wrapper for the provider.
 	fiftyoneDegreesActiveDataSet *active =
-		(fiftyoneDegreesActiveDataSet*)fiftyoneDegreesMalloc(
+		(fiftyoneDegreesActiveDataSet*)fiftyoneDegreesMallocAligned(
+		sizeof(void*) * 2,
 		sizeof(fiftyoneDegreesActiveDataSet));
 	if (active == NULL) {
 		fiftyoneDegreesDataSetFree(dataSet);
@@ -1815,14 +1825,12 @@ void decrementActive(
 		// freeing through the decremented copy.
 		fiftyoneDegreesActiveDataSet nulled = decremented;
 		nulled.self = NULL;
-#pragma warning(disable: 4047)
 		if (FIFTYONEDEGREES_INTERLOCK_EXCHANGE_DW(
 			decremented.self,
 			nulled,
-			decremented) != NULL) {
+			decremented) == TRUE) {
 			fiftyoneDegreesActiveDataSetFree(decremented.self);
 		}
-#pragma warning(default: 4047)
 #else
 	fiftyoneDegreesActiveDataSetFree(decremented.self);
 #endif
@@ -1873,7 +1881,7 @@ static fiftyoneDegreesDataSetInitStatus reloadCommon(
 			decrementActive(oldActive);
 		}
 		oldActive = incrementActive(provider);
-	} while (FIFTYONEDEGREES_INTERLOCK_EXCHANGE_DW(
+	} while (FIFTYONEDEGREES_INTERLOCK_EXCHANGE(
 		provider->active,
 		active,
 		oldActive) == FALSE);
@@ -3090,8 +3098,6 @@ fiftyoneDegreesDeviceOffsets* fiftyoneDegreesProviderCreateDeviceOffsets(
  */
 void fiftyoneDegreesProviderFreeDeviceOffsets(
 		fiftyoneDegreesDeviceOffsets *offsets) {
-	fiftyoneDegreesProvider* provider= offsets->active->provider;
-
 	// If the dataset the offsets are associated with is not the active
 	// one and no other offsets are using it, then dispose of it.
 	decrementActive(offsets->active);

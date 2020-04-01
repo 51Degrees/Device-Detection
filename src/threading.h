@@ -241,8 +241,13 @@ int fiftyoneDegreesSignalValid(fiftyoneDegreesSignal *signal);
 #endif
 
 #ifdef _MSC_VER
+#ifdef _WIN64
 #define FIFTYONEDEGREES_INTERLOCK_EXCHANGE(d,e,c) \
-	InterlockedCompareExchange(&d, e, c)
+	InterlockedCompareExchange64((volatile __int64*)&d, (__int64)e, (__int64)c)
+#else
+#define FIFTYONEDEGREES_INTERLOCK_EXCHANGE(d,e,c) \
+	InterlockedCompareExchange((volatile long*)&d, (long)e, (long)c))
+#endif
 #else
 #define FIFTYONEDEGREES_INTERLOCK_EXCHANGE(d,e,c) \
 	__sync_val_compare_and_swap(&d,c,e)
@@ -258,10 +263,13 @@ int fiftyoneDegreesSignalValid(fiftyoneDegreesSignal *signal);
  * @param c the comparand
  */
 #ifdef _MSC_VER
+#ifdef _WIN64
 #define FIFTYONEDEGREES_INTERLOCK_EXCHANGE_DW(d,e,c) \
-    (sizeof(void*) == 8 ? \
-    InterlockedCompareExchange128((__int64*)d, *((__int64*)&e + 1), *(((__int64*)&e)), (__int64*)&c) : \
-    InterlockedCompareExchange64((__int64*)d, *((__int64*)&e), *(__int64*)&c))
+    InterlockedCompareExchange128((__int64*)d, *((__int64*)&e + 1), *(((__int64*)&e)), (__int64*)&c)
+#else
+#define FIFTYONEDEGREES_INTERLOCK_EXCHANGE_DW(d,e,c) \
+    InterlockedCompareExchange64((__int64*)d, *((__int64*)&e), *(__int64*)&c)
+#endif
 #else
 /**
  * Implements the __sync_bool_compare_and_swap_16 function which is often not
