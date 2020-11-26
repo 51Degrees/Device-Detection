@@ -17,3 +17,16 @@ offlineProcessingOutput.csv
 !**/packages/build/
 # Uncomment if necessary however generally it will be regenerated when needed
 !**/packages/repositories.config
+
+.vscode/
+build/
+go/__debug_bin
+go/**/*.cxx
+go/**/*.hpp
+go/**/*.cpp
+go/**/*.i
+go/**/*.c
+go/**/*.h
+go/src/pattern
+go/src/trie
+*.exe
