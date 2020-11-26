@@ -34,7 +34,7 @@ var provider = FiftyOneDegreesTrieV3.NewProvider(dataFile)
 <p><pre class="prettyprint lang-go">
 fin, err := os.Open("20000 User Agents.csv")
 </pre></p>
-<li>Read user agents from a file and calculate the ammount of time it takes to 
+<li>Read user agents from a file and calculate the amount of time it takes to 
 match them all using the provider.
 </ol>
 This example assumes you have the 51Degrees Go API installed correctly,
