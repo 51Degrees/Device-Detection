@@ -7,6 +7,7 @@ import (
     "os"
     "io"
     "log"
+    "fmt"
 )
 
 /*
@@ -281,7 +282,8 @@ func TestMatchForDeviceID (t *testing.T) {
 func TestFindMobileProfiles(t *testing.T) {
     profiles := provider.FindProfiles("IsMobile", "True")
     for i := 0; i < profiles.GetCount(); i++ {
-        match := provider.GetMatchForDeviceId(string(profiles.GetProfileId(i)))
+        match := provider.GetMatchForDeviceId(
+            fmt.Sprint(profiles.GetProfileId(i)))
         if match == nil {
             t.Fatalf("GetMatchForDeviceId should return a valid match object")
         }
@@ -296,7 +298,8 @@ func TestFindMobileProfiles(t *testing.T) {
 func TestFindNonMobileProfiles(t *testing.T) {
     profiles := provider.FindProfiles("IsMobile", "False")
     for i := 0; i < profiles.GetCount(); i++ {
-        match := provider.GetMatchForDeviceId(string(profiles.GetProfileId(i)))
+        match := provider.GetMatchForDeviceId(
+            fmt.Sprint(profiles.GetProfileId(i)))
         if match == nil {
             t.Fatalf("GetMatchForDeviceId should return a valid match object")
         }
@@ -339,7 +342,8 @@ func TestMatchingFromFindProfiles(t *testing.T) {
     profiles := provider.FindProfiles("IsMobile", "True")
     
     for i := 0; i < profiles.GetCount(); i++ {
-        match := provider.GetMatchForDeviceId(string(profiles.GetProfileId(i)))
+        match := provider.GetMatchForDeviceId(
+            fmt.Sprint(profiles.GetProfileId(i)))
         if match.GetValue("IsMobile") == "False" {
             t.Fatalf("Should return a match object with " +
                 "profiles.GetProfileIndex()")
@@ -348,13 +352,13 @@ func TestMatchingFromFindProfiles(t *testing.T) {
     }
     
     match := provider.GetMatchForDeviceId(
-        string(profiles.GetProfileId(profiles.GetCount())))
+        fmt.Sprint(profiles.GetProfileId(profiles.GetCount())))
     if match.GetValue("IsMobile") != "" {
         t.Fatalf("Should return nil for an out of range profile")
     }
     DeleteMatch(match)
     
-    match = provider.GetMatchForDeviceId(string(profiles.GetProfileId(0)))
+    match = provider.GetMatchForDeviceId(fmt.Sprint(profiles.GetProfileId(0)))
     if match.GetValue("BrowserName") != "" {
         t.Fatalf("Should return nil for a property from a different component.")
     }
