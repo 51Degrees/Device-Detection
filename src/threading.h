@@ -226,7 +226,6 @@ int fiftyoneDegreesSignalValid(fiftyoneDegreesSignal *signal);
 #endif
 
 #endif
-#endif
 
 #ifdef _MSC_VER
 #define FIFTYONEDEGREES_INTERLOCK_INC(v) _InterlockedIncrement(v)
@@ -313,4 +312,5 @@ __fod_sync_bool_compare_and_swap_16(
     (sizeof(void*) == 8 ? \
     __fod_sync_bool_compare_and_swap_16((void*)d, (void*)&e, (void*)&c) : \
     __sync_bool_compare_and_swap((long*)d, *((long*)&c), *((long*)&e)))
+#endif
 #endif
