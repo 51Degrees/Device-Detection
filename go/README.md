@@ -122,4 +122,10 @@ OR
 
 The 51Degrees Go API has not yet been initialized. Run make command if on Linux/MacOS or PreBuild.bat script if on Windows.
 
+##### Problem:
 
+`build constraints exclude all Go files`
+
+##### Resolution:
+
+Set the environment variable CGO_ENABLED to 1.
