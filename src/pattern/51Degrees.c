@@ -5641,7 +5641,7 @@ void fiftyoneDegreesMatchForDeviceId(fiftyoneDegreesWorkset *ws, const char *dev
 	fiftyoneDegreesProfile *profile;
 	resetCounters(ws);
 	ws->profileCount = 0;
-	if (strncpy(ws->input, deviceId, strlen(deviceId) + 1) == ws->input) {
+	if (strcpy(ws->input, deviceId) == ws->input) {
 		while (lastId == 0 && ws->profileCount < ws->dataSet->header.components.count) {
 			lastId = *current == 0;
 			if (isdigit(*current) == 0 || *current == 0) {
