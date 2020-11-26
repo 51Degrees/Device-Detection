@@ -216,7 +216,7 @@ double performTest(PERFORMANCE_STATE *state, int passes, char *test) {
 #ifdef _MSC_VER
 	start = GetTickCount();
 #else
-	clock_gettime(CLOCK_MONOTONIC_RAW, &start);
+	clock_gettime(CLOCK_MONOTONIC, &start);
 #endif
 	for (pass = 1; pass <= passes; pass++) {
 		printf("%s pass %i of %i: \n\n", test, pass, passes);
@@ -226,7 +226,7 @@ double performTest(PERFORMANCE_STATE *state, int passes, char *test) {
 	end = GetTickCount();
 	return (end - start) / 1000 / (double)passes;
 #else
-	clock_gettime(CLOCK_MONOTONIC_RAW, &end);
+	clock_gettime(CLOCK_MONOTONIC, &end);
 	return ((end.tv_sec - start.tv_sec) +
 		(end.tv_nsec - start.tv_nsec) / 1.0e9) / (double)passes;
 #endif
