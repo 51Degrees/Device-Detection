@@ -59,9 +59,9 @@ void (FIFTYONEDEGREES_CALL_CONV *fiftyoneDegreesFree)(void *__ptr) = free;
 
 static void* fiftyoneDegreesMallocAligned(int alignment, size_t size) {
 	void *ptr = fiftyoneDegreesMalloc(size + alignment - 1);
-	if ((((uint64_t)ptr) % alignment) != 0) {
-		unsigned char *boundary = (unsigned char *)ptr;
-		boundary += alignment - (((unsigned long)ptr) % alignment);
+	if ((((size_t)ptr) % alignment) != 0) {
+		size_t *boundary = (size_t*)ptr;
+		boundary += alignment - (((size_t)ptr) % alignment);
 		ptr = (void*)boundary;
 	}
 	return ptr;
