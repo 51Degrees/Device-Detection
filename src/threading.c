@@ -28,6 +28,8 @@
 #include "threading.h"
 #ifdef __APPLE__
 #include <sys/time.h>
+#else
+#include <time.h>
 #endif
 
 /**
