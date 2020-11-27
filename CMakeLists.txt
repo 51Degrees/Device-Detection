@@ -9,6 +9,18 @@ include_directories(/usr/local/include)
 
 set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -std=c++11")
 
+if (NOT CMAKE_BUILD_TYPE AND NOT MSVC)
+	message("-- Setting default CMAKE_BUILD_TYPE to Release")
+	set(CMAKE_BUILD_TYPE "Release")
+endif()
+
+if (NOT MSVC)
+	string(TOLOWER ${CMAKE_BUILD_TYPE} lower_CMAKE_BUILD_TYPE)
+	if (lower_CMAKE_BUILD_TYPE MATCHES "^debug")
+		set(EXAMPLE_COMPILE_OPTIONS -D_DEBUG)
+	endif()
+endif()
+
 set(SNPRINTF src/snprintf/snprintf.c
         src/snprintf/snprintf.h)
 
@@ -33,7 +45,7 @@ add_executable(ReloadFromFile
         ${PATTERN})
 
 target_link_libraries(ReloadFromFile dmallocth pthread m)
-target_compile_options(ReloadFromFile PRIVATE -D_DEBUG)
+target_compile_options(ReloadFromFile PRIVATE ${EXAMPLE_COMPILE_OPTIONS})
 
 add_executable(ReloadFromFileTrie
         examples/ReloadFromFileTrie.c
@@ -41,7 +53,7 @@ add_executable(ReloadFromFileTrie
         ${THREADING})
 
 target_link_libraries(ReloadFromFileTrie dmallocth pthread)
-target_compile_options(ReloadFromFileTrie PRIVATE -D_DEBUG)
+target_compile_options(ReloadFromFileTrie PRIVATE ${EXAMPLE_COMPILE_OPTIONS})
 
 add_executable(ReloadFromMemory
         examples/ReloadFromMemory.c
@@ -49,7 +61,7 @@ add_executable(ReloadFromMemory
         ${THREADING})
 
 target_link_libraries(ReloadFromMemory dmallocth pthread m)
-target_compile_options(ReloadFromMemory PRIVATE -D_DEBUG)
+target_compile_options(ReloadFromMemory PRIVATE ${EXAMPLE_COMPILE_OPTIONS})
 
 add_executable(ReloadFromMemoryTrie
         examples/ReloadFromMemoryTrie.c
@@ -57,7 +69,7 @@ add_executable(ReloadFromMemoryTrie
         ${THREADING})
 
 target_link_libraries(ReloadFromMemoryTrie dmallocth pthread)
-target_compile_options(ReloadFromMemoryTrie PRIVATE -D_DEBUG)
+target_compile_options(ReloadFromMemoryTrie PRIVATE ${EXAMPLE_COMPILE_OPTIONS})
 
 add_executable(GettingStarted
         examples/GettingStarted.c
@@ -65,7 +77,7 @@ add_executable(GettingStarted
         ${THREADING})
 
 target_link_libraries(GettingStarted dmalloc m)
-target_compile_options(GettingStarted PRIVATE -D_DEBUG)
+target_compile_options(GettingStarted PRIVATE ${EXAMPLE_COMPILE_OPTIONS})
 
 add_executable(GettingStartedTrie
         examples/GettingStartedTrie.c
@@ -73,7 +85,7 @@ add_executable(GettingStartedTrie
         ${THREADING})
 
 target_link_libraries(GettingStartedTrie dmalloc)
-target_compile_options(GettingStartedTrie PRIVATE -D_DEBUG)
+target_compile_options(GettingStartedTrie PRIVATE ${EXAMPLE_COMPILE_OPTIONS})
 
 add_executable(MatchForDeviceId
         examples/MatchForDeviceId.c
@@ -81,7 +93,7 @@ add_executable(MatchForDeviceId
         ${THREADING})
 
 target_link_libraries(MatchForDeviceId dmalloc m)
-target_compile_options(MatchForDeviceId PRIVATE -D_DEBUG)
+target_compile_options(MatchForDeviceId PRIVATE ${EXAMPLE_COMPILE_OPTIONS})
 
 add_executable(MatchMetrics
         examples/MatchMetrics.c
@@ -89,7 +101,7 @@ add_executable(MatchMetrics
         ${THREADING})
 
 target_link_libraries(MatchMetrics dmalloc m)
-target_compile_options(MatchMetrics PRIVATE -D_DEBUG)
+target_compile_options(MatchMetrics PRIVATE ${EXAMPLE_COMPILE_OPTIONS})
 
 add_executable(OfflineProcessing
         examples/OfflineProcessing.c
@@ -97,7 +109,7 @@ add_executable(OfflineProcessing
         ${THREADING})
 
 target_link_libraries(OfflineProcessing dmalloc m)
-target_compile_options(OfflineProcessing PRIVATE -D_DEBUG)
+target_compile_options(OfflineProcessing PRIVATE ${EXAMPLE_COMPILE_OPTIONS})
 
 add_executable(FindProfiles
         examples/FindProfiles.c
@@ -105,7 +117,7 @@ add_executable(FindProfiles
         ${THREADING})
 
 target_link_libraries(FindProfiles dmalloc m)
-target_compile_options(FindProfiles PRIVATE -D_DEBUG)
+target_compile_options(FindProfiles PRIVATE ${EXAMPLE_COMPILE_OPTIONS})
 
 add_executable(StronglyTyped
         examples/StronglyTyped.c
@@ -113,7 +125,7 @@ add_executable(StronglyTyped
         ${THREADING})
 
 target_link_libraries(StronglyTyped dmalloc m)
-target_compile_options(StronglyTyped PRIVATE -D_DEBUG)
+target_compile_options(StronglyTyped PRIVATE ${EXAMPLE_COMPILE_OPTIONS})
 
 add_executable(PerfPat
         src/pattern/PerfPat.c
