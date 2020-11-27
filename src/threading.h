@@ -272,7 +272,7 @@ int fiftyoneDegreesSignalValid(fiftyoneDegreesSignal *signal);
 #else
 /**
  * Implements the __sync_bool_compare_and_swap_16 function which is often not
- * implementned by the compiler. This uses the cmpxchg16b instruction from the
+ * implemented by the compiler. This uses the cmpxchg16b instruction from the
  * x86-64 instruction set, the same instruction as the
  * InterlockedCompareExchange128 implementation
  * (see https://docs.microsoft.com/en-us/cpp/intrinsics/interlockedcompareexchange128?view=vs-2019#remarks).
