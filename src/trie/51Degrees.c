@@ -1778,7 +1778,7 @@ fiftyoneDegreesActiveDataSet* incrementActive(
 		incremented,
 		active) == FALSE);
 #else
-	provider->active->inUse++;
+	provider->active->counter.inUse++;
 	incremented = *provider->active;
 #endif
 	return incremented.self;
