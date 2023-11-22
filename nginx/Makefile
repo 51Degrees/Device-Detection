@@ -20,9 +20,9 @@ $(eval $(API):;@:)
 ifdef ARGNEEDED
 	API := $(word 2,$(words $(MAKECMDGOALS)),$(MAKECMDGOALS))
 ifeq ($(API),pattern)
-	ARGS := "-DFIFTYONEDEGREES_PATTERN -DFIFTYONEDEGREES_NO_THREADING -Wno-ignored-qualifiers -Wno-unused-result -Wno-unused-but-set-variable -Wno-unused-function"
+	ARGS := "-DFIFTYONEDEGREES_PATTERN -DFIFTYONEDEGREES_NO_THREADING -Wno-ignored-qualifiers -Wno-unused-result -Wno-unused-but-set-variable -Wno-unused-function -fcommon"
 else ifeq ($(API),trie)
-	ARGS := "-DFIFTYONEDEGREES_TRIE -DFIFTYONEDEGREES_NO_THREADING"
+	ARGS := "-DFIFTYONEDEGREES_TRIE -DFIFTYONEDEGREES_NO_THREADING -fcommon"
 else
 $(error $(API) is not a valid argument, must be pattern or trie)
 endif
