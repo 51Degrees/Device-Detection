@@ -6,7 +6,9 @@
 
 ### Important note regarding trie
 
-51Degrees Trie data files are now distributed directly from the 51Degrees website. To sign up for a free subscription, go to the [products](https://51degrees.com/products/store/on-premise-device-detection) page.
+51Degrees Trie data files are now distributed directly from the 51Degrees website. Go to the [pricing page](https://51degrees.com/pricing) for more information.
+
+As of December 2023, we have retired the git.51degrees.com service. Please refer to [our blog](https://51degrees.com/blog/retiring-git-51degrees-com) for more information.
 
 ### Quick start
 
