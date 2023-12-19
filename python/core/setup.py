@@ -37,8 +37,8 @@ with io.open(path.join(this_directory, 'README.rst'), encoding='utf-8') as f:
 setup(
     name='51degrees-mobile-detector',
     version='3.2.18.3',
-    author='51Degrees',
-    author_email='info@51degrees.com',
+    author='51Degrees Engineering',
+    author_email='engineering@51degrees.com',
     packages=find_packages(),
     include_package_data=True,
     url='http://51degrees.com',

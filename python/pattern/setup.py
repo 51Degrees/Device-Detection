@@ -60,8 +60,8 @@ with io.open(path.join(this_directory, 'README.rst'), encoding='utf-8') as f:
 setup(
     name='51degrees-mobile-detector-v3-wrapper',
     version='3.2.18.3',
-    author='51Degrees.com',
-    author_email='support@51degrees.com',
+    author='51Degrees Engineering',
+    author_email='engineering@51degrees.com',
     packages=find_packages(),
     include_package_data=True,
     data_files=[(os.path.expanduser('~/51Degrees'), ['data/51Degrees-LiteV3.2.dat'])],
