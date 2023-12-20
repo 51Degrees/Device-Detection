@@ -866,7 +866,7 @@ EXTERNAL void fiftyoneDegreesSetDifference(
 */
 EXTERNAL int fiftyoneDegreesGetIsThreadSafe();
 
-/**
+/**x
  * \ingroup FiftyOneDegreesFunctions
  * @param dataSet pointer to an initialised data set.
  * @returns the format of the data set used contained in the source file.

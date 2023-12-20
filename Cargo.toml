@@ -1,0 +1,25 @@
+[package]
+name = "fiftyonedegrees"
+version = "0.1.1"
+edition = "2018"
+build = "rust/build.rs"
+license = "MPL-2.0"
+authors = ["Paris Holley <mail@parisholley.com>"]
+description = "A wrapper around Rust FFI bindings for the 51Degrees device detection C library."
+include = ["rust/src/*", "rust/build.rs", "src/*"]
+
+[lib]
+path = "rust/src/lib.rs"
+
+[features]
+browser-name-enum = []
+browser-name-enum-mode = []
+platform-name-enum = []
+trie = []
+pattern = []
+
+[dependencies]
+libc = "0.2.64"
+
+[build-dependencies]
+cc = "1.0.46"

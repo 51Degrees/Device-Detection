@@ -1,4 +1,7 @@
 # General
+cmake-build-debug
+.DS_store
+.idea
 doxygen/
 *Enterprise*.dat*
 *Premium*.dat*
@@ -8,6 +11,11 @@ million.csv
 *.o
 *.layout
 offlineProcessingOutput.csv
+
+# Rust output
+rust/target
+rust/doc
+target
 
 # NuGet Packages
 *.nupkg

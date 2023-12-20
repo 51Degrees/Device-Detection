@@ -529,7 +529,9 @@ static fiftyoneDegreesDataSetInitStatus readDataSetFromMemoryLocation(
 	if (memcpy((void*)(&dataSet->header), current, sizeof(fiftyoneDegreesDataSetHeader)) != dataSet) {
 		return DATA_SET_INIT_STATUS_CORRUPT_DATA;
 	}
+
 	status = advancePointer(&current, lastByte, sizeof(fiftyoneDegreesDataSetHeader));
+
 	if (status != DATA_SET_INIT_STATUS_SUCCESS) return status;
 
 	/* Check the version of the data file */
