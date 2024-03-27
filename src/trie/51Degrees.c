@@ -57,6 +57,9 @@ void *(FIFTYONEDEGREES_CALL_CONV *fiftyoneDegreesMalloc)(size_t __size) =
 	malloc;
 void (FIFTYONEDEGREES_CALL_CONV *fiftyoneDegreesFree)(void *__ptr) = free;
 
+#pragma warning(push)
+#pragma warning(disable: 4302)
+#pragma warning(disable: 4311)
 static void* fiftyoneDegreesMallocAligned(int alignment, size_t size) {
 	void *ptr = fiftyoneDegreesMalloc(size + alignment - 1);
 	if ((((uint64_t)ptr) % alignment) != 0) {
@@ -66,6 +69,7 @@ static void* fiftyoneDegreesMallocAligned(int alignment, size_t size) {
 	}
 	return ptr;
 }
+#pragma warning(pop)
 
 /**
 * DATASET MEMORY ALLOCATION SIZE MACROS
@@ -2937,12 +2941,8 @@ void fiftyoneDegreesSetDeviceOffsetFromArrayWithTolerances(
 		dataSet->uniqueHttpHeaders.firstElement[httpHeaderIndex];
 	offset->length = strlen(userAgent);
 	offset->difference = 0;
-#ifdef _DEBUG
 	offset->userAgent = (char*)fiftyoneDegreesMalloc(
 		offset->length + 1 * sizeof(char));
-#else
-	offset->userAgent = NULL;
-#endif
 	offset->deviceOffset = getDeviceIndex(
 		dataSet, 
 		userAgent, 

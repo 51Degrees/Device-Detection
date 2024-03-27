@@ -281,7 +281,11 @@ vector<string> Match::getValues(const string &propertyName) {
  * @returns string set to the HTTP header value matched
  */
 string Match::getUserAgent() {
-	return offsets != NULL ? string(offsets->firstOffset->userAgent) : "";
+	return offsets != NULL && 
+		offsets->firstOffset != NULL && 
+		offsets->firstOffset->userAgent != NULL ?
+		string(offsets->firstOffset->userAgent) : 
+		"";
 }
 
 /**
