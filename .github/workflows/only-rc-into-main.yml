@@ -1,0 +1,11 @@
+name: Only rc into main
+
+# A pull request into the default branch must come from rc. See
+# 51Degrees/common-ci .github/workflows/only-rc-into-main.yml.
+on:
+  pull_request:
+
+jobs:
+  rc:
+    name: Only rc into main
+    uses: 51Degrees/common-ci/.github/workflows/only-rc-into-main.yml@main
